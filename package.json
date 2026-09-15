@@ -1,0 +1,10 @@
+{
+  "name": "exe-fe-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix exe-fe run dev",
+    "build": "npm --prefix exe-fe run build",
+    "preview": "npm --prefix exe-fe run preview",
+    "lint": "npm --prefix exe-fe run lint"
+  }
+}

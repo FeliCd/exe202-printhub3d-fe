@@ -1,0 +1,7 @@
+# Agent Instructions for Obsidian Integration
+
+- **Auto-Logging Requirement**: Sau khi hoàn thành việc xây dựng tính năng hoặc sửa lỗi, bạn PHẢI tự động tạo một tệp Markdown tổng kết.
+- **Naming Convention**: Tên tệp có định dạng `[ten-tinh-nang]-Walkthrough.md` và phải được lưu chính xác vào thư mục `/_Build_Logs/`.
+- **Content Structure**: Nội dung bên trong tệp bao gồm tổng quan kiến trúc, logic thay đổi và bài học kinh nghiệm cốt lõi để tối ưu hóa việc học tập.
+- **Global Log Sync**: Bất kể bạn đang làm việc ở thư mục code nào, sau khi hoàn thành tính năng, hãy tạo file log và copy/lưu nó trực tiếp vào đường dẫn tuyệt đối của Obsidian Vault trên máy tính: `C:/Users/ADMIN/Desktop/second/Second-Brain/_Build_Logs/print-hub`.
+- **Merge Tracking & Progress Summary**: Khi thực hiện hoặc phát hiện thao tác merge code từ nhánh khác (Git Merge / Pull Request), bạn PHẢI tự động tạo một tệp Markdown tóm tắt với định dạng `YYYY-MM-DD-[ten-nhanh]-Merge-Summary.md` lưu trực tiếp vào thư mục Obsidian Vault trên. Nội dung bao gồm: tổng quan các thay đổi/tính năng mới được gộp vào, danh sách file chính bị ảnh hưởng, chỉ ra những lỗi/thiếu sót trong code, hướng đi để cải thiện code hoặc luồng hoạt động (code flow), và đánh giá tiến độ dự án.

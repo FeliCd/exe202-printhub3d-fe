@@ -1,0 +1,148 @@
+import { useState } from 'react';
+import { ShieldCheck, CheckCircle2, XCircle, Wrench } from 'lucide-react';
+
+interface QCItem {
+  id: string;
+  orderId: string;
+  productName: string;
+  printedQty: number;
+  postProcessSteps: string[];
+  qcStatus: 'PENDING_QC' | 'PASS' | 'FAIL';
+  defectReason?: string;
+  inspectedBy?: string;
+}
+
+const mockQCs: QCItem[] = [
+  {
+    id: 'QC-9024',
+    orderId: 'ORD-9024',
+    productName: 'Thước Kỹ Thuật PLA Pro 20cm (Khắc Laser MSSV)',
+    printedQty: 2,
+    postProcessSteps: ['Tách chân đệm Brims', 'Chà nhám viền', 'Kiểm tra quang học dung sai ±0.1mm'],
+    qcStatus: 'PENDING_QC',
+  },
+  {
+    id: 'QC-8812',
+    orderId: 'ORD-8812',
+    productName: 'Thước Vuông Chữ T Đồ Án Kiến Trúc 30cm',
+    printedQty: 3,
+    postProcessSteps: ['Tách Support', 'Sấy khô nhiệt 50°C'],
+    qcStatus: 'PASS',
+    inspectedBy: 'KTV. Trần Văn B',
+  },
+  {
+    id: 'QC-7510',
+    orderId: 'ORD-7510',
+    productName: 'Thước Kẹp Vernier 150mm Resin UV',
+    printedQty: 1,
+    postProcessSteps: ['Rửa Isopropyl Alcohol 99%', 'Chiếu tia UV 405nm'],
+    qcStatus: 'FAIL',
+    defectReason: 'Bị cong vênh bề mặt do quá nhiệt tia UV.',
+    inspectedBy: 'KTV. Trần Văn B',
+  },
+];
+
+export default function FactoryQCPage() {
+  const [qcs, setQcs] = useState<QCItem[]>(mockQCs);
+
+  const handleSetStatus = (id: string, status: 'PASS' | 'FAIL') => {
+    setQcs(prev =>
+      prev.map(q =>
+        q.id === id
+          ? {
+              ...q,
+              qcStatus: status,
+              inspectedBy: 'KTV. Nguyễn Văn A',
+              defectReason: status === 'FAIL' ? 'Phát hiện mẻ vạch chia số góc 45°' : undefined,
+            }
+          : q
+      )
+    );
+  };
+
+  return (
+    <div className="space-y-6 w-full">
+      <div>
+        <div className="flex items-center gap-2 text-cyan-400">
+          <ShieldCheck className="w-6 h-6" />
+          <h1 className="text-2xl font-black text-white">Kiểm Soát Chất Lượng (QC) &amp; Xử Lý Sau In</h1>
+        </div>
+        <p className="text-xs text-[#94a3b8]">
+          Tách support, chà nhám, đo kính hiển vi dung sai và đánh giá Đạt (Pass) / Lỗi (Fail) trước khi xuất kho.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {qcs.map(q => (
+          <div key={q.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-4">
+            <div className="flex justify-between items-center border-b border-[#272930] pb-3">
+              <div>
+                <span className="font-mono text-cyan-400 font-bold">{q.id} • Đơn {q.orderId}</span>
+                <h3 className="font-bold text-white text-sm mt-0.5">{q.productName}</h3>
+                <p className="text-[#94a3b8] text-[11px]">Số lượng hoàn thiện: {q.printedQty} cái</p>
+              </div>
+
+              <div>
+                {q.qcStatus === 'PENDING_QC' && (
+                  <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[11px] flex items-center gap-1">
+                    <Wrench className="w-3.5 h-3.5" /> Đang xử lý sau in (QC)
+                  </span>
+                )}
+                {q.qcStatus === 'PASS' && (
+                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> ĐẠT CHUẨN QC (PASS)
+                  </span>
+                )}
+                {q.qcStatus === 'FAIL' && (
+                  <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-[11px] flex items-center gap-1">
+                    <XCircle className="w-3.5 h-3.5" /> LỖI SẢN XUẤT (FAIL)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Steps Checklist */}
+            <div className="p-3 bg-[#111215] rounded-xl border border-[#272930] space-y-1.5">
+              <span className="text-xs font-bold text-slate-300 block">Quy trình xử lý sau in bắt buộc:</span>
+              <div className="flex flex-wrap gap-2">
+                {q.postProcessSteps.map((step, idx) => (
+                  <span key={idx} className="px-2.5 py-1 rounded-lg bg-[#18191d] border border-[#272930] text-slate-300 font-semibold text-[11px] flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-cyan-400" /> {step}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {q.defectReason && (
+              <div className="p-3 rounded-xl bg-red-950/40 border border-red-800/40 text-red-300 text-xs">
+                <strong>Lý do loại bỏ:</strong> {q.defectReason}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#272930]">
+              <span className="text-[#94a3b8] text-[11px]">Kỹ thuật viên QC: <strong className="text-white">{q.inspectedBy || 'Chờ nghiệm thu'}</strong></span>
+
+              {q.qcStatus === 'PENDING_QC' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleSetStatus(q.id, 'FAIL')}
+                    className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 font-bold text-xs flex items-center gap-1 transition"
+                  >
+                    <XCircle className="w-4 h-4" /> Báo Lỗi (Fail)
+                  </button>
+                  <button
+                    onClick={() => handleSetStatus(q.id, 'PASS')}
+                    className="px-4 py-2 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs flex items-center gap-1 transition shadow-md"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Xác Nhận Đạt (Pass)
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
