@@ -1,8 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
+const getBaseUrl = (): string => {
+  let url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+  // Bỏ dấu gạch chéo cuối
+  url = url.trim().replace(/\/+$/, '');
+  // Nếu chưa có đuôi /api thì tự động thêm vào để khớp với backend Spring Boot
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: getBaseUrl(),
 });
 
 // Interceptor automatically attaches token if available (except for auth endpoints)

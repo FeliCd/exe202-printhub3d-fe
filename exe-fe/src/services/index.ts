@@ -12,3 +12,4 @@ export * from './notificationService';
 export * from './fileVaultService';
 export * from './adminService';
 export * from './factoryService';
+export * from './paymentService';

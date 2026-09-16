@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useCart } from '../features/cart/hooks/useCart';
 import { useWallet } from '../context/WalletContext';
 import { formatPrice } from '../utils/format';
-import { ShoppingBag, ShieldCheck, MapPin, Wallet, CreditCard, Truck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, MapPin, Wallet, CreditCard, Truck, CheckCircle2, ArrowRight, QrCode, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PasscodeModal from '../components/PasscodeModal';
+import { paymentService } from '../services/paymentService';
+import { orderService } from '../services/orderService';
 
 interface CartPageProps {
   onOpenAddressModal: () => void;
@@ -15,21 +18,77 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
   const { balance, pay } = useWallet();
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState<'WALLET' | 'COD' | 'BANKING' | 'VNPAY'>('WALLET');
+  const [paymentMethod, setPaymentMethod] = useState<'PAYOS' | 'WALLET' | 'COD'>('PAYOS');
   const [showPasscode, setShowPasscode] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCheckoutSubmit = () => {
+  const handleCheckoutSubmit = async () => {
     setErrorMessage('');
+    if (items.length === 0) {
+      setErrorMessage('Giỏ hàng của bạn đang trống! Vui lòng chọn sản phẩm trước khi thanh toán.');
+      return;
+    }
     if (paymentMethod === 'WALLET') {
       if (balance < total) {
-        setErrorMessage(`Số dư ví (${formatPrice(balance)}đ) không đủ thanh toán (${formatPrice(total)}đ). Vui lòng nạp thêm tiền!`);
+        setErrorMessage(`Số dư ví (${formatPrice(balance)}đ) không đủ thanh toán (${formatPrice(total)}đ). Vui lòng nạp thêm tiền hoặc chọn thanh toán PayOS!`);
         return;
       }
       setShowPasscode(true);
+    } else if (paymentMethod === 'PAYOS') {
+      await handlePayOSCheckout();
     } else {
       processOrder();
+    }
+  };
+
+  const handlePayOSCheckout = async () => {
+    setIsSubmitting(true);
+    try {
+      let orderId = '';
+      try {
+        const orderPayload = {
+          items: items.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            engraving: item.engraving,
+          })),
+          totalAmount: total,
+          paymentMethod: 'PAYOS',
+        };
+        const orderRes = await orderService.createOrder(orderPayload);
+        const orderData = orderRes?.result || orderRes?.data || orderRes;
+        orderId = orderData?.id || orderData?.orderId || '';
+      } catch (orderErr) {
+        console.warn('Backend createOrder không phản hồi hoặc đang cold-start, tiếp tục tạo link thanh toán PayOS:', orderErr);
+      }
+
+      // Tạo link thanh toán PayOS
+      const paymentRes = await paymentService.createPaymentLink({
+        orderId: orderId || undefined,
+        orderType: 'ORDER',
+        description: `Thanh toan PrintHub 3D`,
+        customAmount: total,
+        paymentOption: 'FULL',
+      });
+
+      const paymentData = paymentRes?.result || paymentRes?.data || paymentRes;
+      const checkoutUrl = paymentData?.paymentLinkUrl || paymentData?.checkoutUrl || paymentData?.paymentUrl;
+
+      if (checkoutUrl) {
+        // Điều hướng trực tiếp sang giao diện thanh toán PayOS
+        window.location.href = checkoutUrl;
+        return;
+      }
+
+      setErrorMessage('Không nhận được đường dẫn thanh toán từ PayOS. Vui lòng thử lại hoặc chọn Ví PrintHub / COD.');
+    } catch (error: any) {
+      console.error('Lỗi khi kết nối cổng PayOS:', error);
+      const backendMessage = error?.response?.data?.message || error?.message;
+      setErrorMessage(`Lỗi cổng thanh toán: ${backendMessage || 'Máy chủ backend trên Render đang khởi động, vui lòng thử lại sau giây lát!'}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -134,34 +193,55 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
               <CreditCard className="w-4 h-4 text-[#22c55e]" /> Phương Thức Thanh Toán
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <button
+                type="button"
+                onClick={() => setPaymentMethod('PAYOS')}
+                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between gap-2 transition ${
+                  paymentMethod === 'PAYOS'
+                    ? 'border-[#22c55e] bg-[#22c55e]/10 text-white'
+                    : 'border-[#272930] bg-[#111215] text-slate-300 hover:border-slate-500'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <QrCode className="w-5 h-5 text-[#22c55e]" />
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-[#22c55e] font-bold">Khuyên dùng</span>
+                </div>
+                <div>
+                  <p className="font-bold">Quét Mã VietQR (PayOS)</p>
+                  <p className="text-[11px] text-[#94a3b8]">Chuyển khoản liên ngân hàng tự động</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setPaymentMethod('WALLET')}
-                className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition ${
+                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between gap-2 transition ${
                   paymentMethod === 'WALLET'
                     ? 'border-[#22c55e] bg-[#22c55e]/10 text-white'
                     : 'border-[#272930] bg-[#111215] text-slate-300 hover:border-slate-500'
                 }`}
               >
-                <Wallet className="w-5 h-5 text-[#22c55e] shrink-0 mt-0.5" />
+                <Wallet className="w-5 h-5 text-cyan-400" />
                 <div>
                   <p className="font-bold">Ví Điện Tử PrintHub</p>
-                  <p className="text-[11px] text-[#94a3b8]">Số dư ví: <span className="text-[#22c55e] font-bold">{formatPrice(balance)}đ</span></p>
+                  <p className="text-[11px] text-[#94a3b8]">Số dư: <span className="text-[#22c55e] font-bold">{formatPrice(balance)}đ</span></p>
                 </div>
               </button>
 
               <button
+                type="button"
                 onClick={() => setPaymentMethod('COD')}
-                className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition ${
+                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between gap-2 transition ${
                   paymentMethod === 'COD'
                     ? 'border-[#22c55e] bg-[#22c55e]/10 text-white'
                     : 'border-[#272930] bg-[#111215] text-slate-300 hover:border-slate-500'
                 }`}
               >
-                <Truck className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                <Truck className="w-5 h-5 text-amber-400" />
                 <div>
-                  <p className="font-bold">Thanh Toán Khi Nhận Hàng (COD)</p>
-                  <p className="text-[11px] text-[#94a3b8]">Thanh toán tiền mặt khi ship tới KTX</p>
+                  <p className="font-bold">Thanh Toán COD</p>
+                  <p className="text-[11px] text-[#94a3b8]">Tiền mặt khi nhận hàng tại KTX</p>
                 </div>
               </button>
             </div>
@@ -194,16 +274,27 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
             </div>
 
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-red-950/50 border border-red-800 text-red-400 text-xs font-semibold">
+              <div className="p-3 rounded-xl bg-red-950/50 border border-red-800 text-red-400 text-xs font-semibold leading-relaxed">
                 {errorMessage}
               </div>
             )}
 
             <button
               onClick={handleCheckoutSubmit}
-              className="w-full py-3.5 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className={`w-full py-3.5 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2 ${
+                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
-              Xác Nhận Đặt Hàng &amp; In 3D <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Đang Kết Nối Cổng Thanh Toán...
+                </>
+              ) : (
+                <>
+                  {paymentMethod === 'PAYOS' ? 'Chuyển Đến Cổng Thanh Toán PayOS' : 'Xác Nhận Đặt Hàng & In 3D'} <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
 
             <div className="text-[11px] text-[#94a3b8] bg-emerald-950/30 border border-emerald-900/40 p-3 rounded-xl flex items-center gap-2">

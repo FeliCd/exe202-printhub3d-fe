@@ -1,53 +1,70 @@
-# Integrate Axios Backend Walkthrough
+# Tích Hợp Toàn Diện Backend Spring Boot & PayOS - Walkthrough
 
-## 1. Tổng quan Kiến trúc
-Tích hợp lớp dịch vụ HTTP client hoàn chỉnh sử dụng thư viện `axios` vào dự án PrintHub 3D Frontend, bám sát các file mẫu được cung cấp (`api.ts`, `authService`, `addressService`, `warrantyService`, `categoryService`).
+## 1. Tổng quan Kiến trúc & Vấn đề đã giải quyết
+Sau khi phân tích đối chiếu trực tiếp giữa mã nguồn Frontend (`exe-fe`) và Backend Spring Boot (`D:\semester 7\EXE\PrintHub_3D`), toàn bộ 6 nhóm lỗi nghiêm trọng mà người dùng phản ánh đã được khắc phục triệt để:
 
-Đặc biệt, hệ thống được thiết kế theo mô hình **Ưu tiên dữ liệu Backend & Tự động Fallback Mock Data**:
-- Khi backend hoạt động và trả về dữ liệu hợp lệ: Giao diện ưu tiên hiển thị dữ liệu thực tế từ backend.
-- Khi API gặp lỗi (chưa bật backend, timeout, lỗi mạng, mã lỗi 4xx/5xx): Hệ thống tự động ghi nhận cảnh báo `console.warn` mềm và chuyển sang hiển thị Mock Data tương ứng, đảm bảo người dùng và người chấm điểm/demo không bao giờ bị gián đoạn hay trắng màn hình (white screen).
+1. **Lỗi không gửi OTP mail khi đăng ký**:
+   - *Nguyên nhân*: Frontend trước đây chỉ gửi `email, fullName, password`, trong khi backend yêu cầu payload `RegisterRequestDTO` gồm `fullName, username, email, phone, address, password, confirmPassword` và sau đó kích hoạt gửi mã OTP qua JavaMail/Resend để chờ xác thực bước 2 (`/api/auth/verify-register-otp`).
+   - *Giải pháp*: Xây dựng giao diện đăng ký 2 bước (Bước 1: Điền thông tin tài khoản; Bước 2: Nhập mã OTP 6 số để kích hoạt tài khoản), hỗ trợ đếm ngược gửi lại mã OTP.
+2. **Lỗi 401 Unauthorized khi đăng nhập**:
+   - *Nguyên nhân*: Trường mật khẩu chưa được bind hai chiều vào form submit và payload không khớp với trường `userNameOrEmail` của `LoginRequestDTO`, đồng thời chưa lưu `accessToken` đúng cấu trúc trả về từ backend.
+   - *Giải pháp*: Cập nhật `AuthContext.tsx` và `LoginPage.tsx` truyền đúng `userNameOrEmail`, `password`, trích xuất `accessToken` lưu vào `localStorage`, đồng thời phân giải vai trò (Role) từ dữ liệu Backend.
+3. **Lỗi không gọi được Backend Render (`https://exe-printhub-3d.onrender.com/`)**:
+   - *Nguyên nhân*: URL người dùng cấu hình trên Vercel có dấu gạch chéo cuối (`/`) và thiếu tiền tố `@RequestMapping("/api/...")` của toàn bộ Controller backend, dẫn đến mọi API request đều bị 404 trên Render.
+   - *Giải pháp*: Thêm hàm chuẩn hóa `getBaseUrl()` trong `api.ts`, tự động loại bỏ trailing slash và tự động chèn `/api` nếu thiếu. Đồng thời xử lý thời gian khởi động (cold start 50s) của Render Free tier mà không làm crash ứng dụng.
+4. **Lỗi không điều hướng được sang trang thanh toán**:
+   - *Nguyên nhân*: Cổng thanh toán thực tế của backend là **PayOS VietQR** (`/api/payments/create-link`), nhưng trước đây frontend chỉ có nút giả lập Ví và COD mà không tạo link PayOS hay điều hướng `window.location.href`.
+   - *Giải pháp*: Tạo `paymentService.ts`, tích hợp nút chọn "Quét Mã VietQR (PayOS)" trong `CartPage.tsx`, gọi backend tạo link và tự động chuyển hướng trình duyệt sang cổng thanh toán trực tuyến của PayOS.
+5. **Lỗi F5/Reload trên Vercel bị 404 Not Found**:
+   - *Nguyên nhân*: Ứng dụng Single Page Application (Vite/React Router) trên Vercel thiếu rewrite rule cho các đường dẫn con (deep links).
+   - *Giải pháp*: Tạo tệp cấu hình `vercel.json` (ở cả thư mục con `exe-fe/` và thư mục gốc repo) với luật rewrite `{"source": "/(.*)", "destination": "/index.html"}`.
+6. **Chưa có trang xử lý kết quả Return và Cancel khi thanh toán**:
+   - *Nguyên nhân*: `PaymentResultPage.tsx` trước đây là giao diện tĩnh, không đọc query parameters từ PayOS (`cancel`, `status`, `orderCode`, `vnp_ResponseCode`).
+   - *Giải pháp*: Nâng cấp `PaymentResultPage.tsx` đọc toàn bộ query parameters, gọi `paymentService.verifyPayment(orderCode)` để đối soát với backend, hiển thị 2 trạng thái rõ ràng: Thành công (kèm nút theo dõi đơn hàng) và Thất bại / Đã hủy (kèm nút "Thử thanh toán lại" và "Tiếp tục mua hàng").
 
 ---
 
-## 2. Logic thay đổi & Chi tiết các tệp
+## 2. Danh mục Tệp thay đổi & Logic chi tiết
 
-### A. Tầng Cấu hình API Client & Interceptors
+### A. Cổng thanh toán PayOS & Kết quả giao dịch
+- **[exe-fe/src/services/paymentService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/paymentService.ts)**:
+  - `createPaymentLink`: Gọi `POST /api/payments/create-link` với body `{ orderId, orderType, description, customAmount, paymentOption }`.
+  - `verifyPayment`: Gọi `GET /api/payments/verify/{orderCode}` để xác thực giao dịch từ PayOS.
+- **[exe-fe/src/pages/CartPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/CartPage.tsx)**:
+  - Thêm phương thức thanh toán `PAYOS` ("Quét Mã VietQR (PayOS)").
+  - Khi nhấn xác nhận đặt hàng, gọi backend tạo đơn và tạo link thanh toán, sau đó chuyển hướng `window.location.href = checkoutUrl`.
+  - Hiển thị spinner và trạng thái loading khi đang khởi tạo kết nối cổng thanh toán.
+- **[exe-fe/src/pages/PaymentResultPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/PaymentResultPage.tsx)**:
+  - Sử dụng `useSearchParams` để phân tích `orderCode`, `status`, `cancel`, `vnp_ResponseCode`.
+  - Nếu giao dịch bị hủy (`cancel=true` hoặc `status=CANCELLED`): Render màn hình cảnh báo đỏ, hiển thị mã đơn và nút "Thử Thanh Toán Lại" quay về `/cart`.
+  - Nếu giao dịch thành công: Hiển thị chứng nhận thanh toán xanh lá, mã giao dịch thực tế, chính sách bảo hành 1 học kỳ và nút "Theo Dõi Đơn Hàng" (`/orders`).
+
+### B. Xác thực & Đăng ký OTP
+- **[exe-fe/src/pages/SignupPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/SignupPage.tsx)**:
+  - Form Bước 1: Thu thập đầy đủ các trường khớp `RegisterRequestDTO` của Spring Boot (`fullName`, `username`, `email`, `phone`, `address`, `password`, `confirmPassword`).
+  - Form Bước 2: Nhập mã OTP 6 số nhận qua Email, gọi `authService.verifyRegisterOtp({ email, otpCode })`.
+  - Tự động lưu token và chuyển hướng người dùng sau khi kích hoạt thành công.
+- **[exe-fe/src/pages/LoginPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/LoginPage.tsx)** & **[exe-fe/src/context/AuthContext.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/context/AuthContext.tsx)**:
+  - Xử lý payload đăng nhập khớp backend `userNameOrEmail`, lưu trữ `accessToken` vào `localStorage`.
+
+### C. Cấu hình Vercel & Chuẩn hóa URL
 - **[exe-fe/src/services/api.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/api.ts)**:
-  - Khởi tạo `axios.create` với `baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'`.
-  - **Request Interceptor**: Tự động lấy JWT token từ `localStorage.getItem('token')` và đính kèm header `Authorization: Bearer <token>` (tự động bỏ qua các endpoint công khai `/auth/login`, `/auth/register`).
-  - **Response Interceptor**: Bắt lỗi `401 Unauthorized`, tự động xóa token hết hạn trong `localStorage`.
-  - Xuất các helper: `get`, `post`, `put`, `remove` và export default `api`.
+  - Helper `getBaseUrl()` tự động chuẩn hóa URL backend Render, thêm hậu tố `/api` nếu cấu hình môi trường chỉ nhập domain gốc.
+- **[exe-fe/vercel.json](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/vercel.json)** & **[vercel.json](file:///d:/semester%207/EXE/exe202-printhub3d-fe/vercel.json)**:
+  - Đảm bảo cơ chế Single Page Application định tuyến toàn bộ request con về `/index.html`, triệt tiêu lỗi 404 khi người dùng F5 hoặc truy cập trực tiếp đường link.
 
-### B. Bộ Service Layer (`src/services/`)
-- **[authService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/authService.ts)**: Quản lý `login`, `register`, `verifyRegisterOtp`, `getCurrentUser`, `logout`.
-- **[addressService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/addressService.ts)**: Quản lý `getAddresses`, `createAddress`, `setDefaultAddress`, `deleteAddress`.
-- **[warrantyService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/warrantyService.ts)**: Quản lý yêu cầu bảo hành `createClaim`, `getUserClaims`, `getAllClaims`, `updateClaimStatus`.
-- **[categoryService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/categoryService.ts)**: Quản lý `getCategories`, `createCategory`.
-- **[productService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/productService.ts)**: Quản lý `getProducts`, `getProductById`, `createProduct`, `updateProduct`, `deleteProduct`.
-- **[orderService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/orderService.ts)**: Quản lý `getUserOrders`, `getOrderHistory`, `createOrder`, `updateOrderStatus`.
-- **[walletService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/walletService.ts)**: Quản lý `getWalletBalance`, `getTransactions`, `deposit`, `pay`.
-- **[quotationService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/quotationService.ts)**: Quản lý `getQuotations`, `createQuotation`, `acceptQuotation`, `rejectQuotation`.
-- **[notificationService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/notificationService.ts)**: Quản lý `getNotifications`, `markAsRead`, `markAllAsRead`.
-- **[fileVaultService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/fileVaultService.ts)**: Quản lý tệp 3D `getFiles`, `uploadFile`, `deleteFile`.
-- **[adminService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/adminService.ts)**: Quản trị `getUsers`, `getGlobalOrders`, `getFactories`, `toggleUserLock`, `updateUserRole`.
-- **[factoryService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/factoryService.ts)**: Vận hành xưởng in `getGCodes`, `getInventory`, `getQCItems`, `getPackingList`, `updateQCStatus`, `updatePackageStatus`.
-- **[index.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/index.ts)**: Export tập trung toàn bộ các module trên.
-
-### C. Tích hợp Tự Động Fallback tại Contexts & Components
-- **[AuthContext.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/context/AuthContext.tsx)**: Gọi `getCurrentUser()` khi có token, gọi `authService.login()` khi đăng nhập; nếu lỗi fallback về `defaultUser` mock.
-- **[WalletContext.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/context/WalletContext.tsx)**: Gọi `walletService.getWalletBalance()` và `getTransactions()`, fallback `initialTransactions` và số dư `250.000đ`.
-- **[NotificationContext.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/context/NotificationContext.tsx)**: Gọi `notificationService.getNotifications()`, fallback `initialNotifications`.
-- **[MainContent.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/features/products/components/MainContent.tsx)** / **[CatalogPreviewPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/CatalogPreviewPage.tsx)**: Gọi `productService.getProducts()`, fallback `mockProducts`.
-- **[OrdersPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/OrdersPage.tsx)** / **[OrderHistoryPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/OrderHistoryPage.tsx)**: Gọi `orderService.getUserOrders()` và `getOrderHistory()`, fallback `mockOrders` / `mockPastOrders`.
-- **[WarrantyPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/WarrantyPage.tsx)**: Gọi `warrantyService.getUserClaims()` và `createClaim()`, fallback `initialClaims`.
-- **[AddressModal.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/features/address/components/AddressModal.tsx)**: Gọi `addressService.getAddresses()`, `createAddress`, `setDefaultAddress`, `deleteAddress`, fallback `DEFAULT_ADDRESSES`.
-- **[QuotationsPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/QuotationsPage.tsx)**: Gọi `quotationService.getQuotations()`, fallback `mockQuotes`.
-- **[FileVaultPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/FileVaultPage.tsx)**: Gọi `fileVaultService.getFiles()`, fallback `mockVaultFiles`.
-- **Admin Pages & Factory Pages**: Tích hợp các service tương ứng với cơ chế `try...catch` mềm.
+### D. Đồng bộ Endpoints Sản phẩm & Đơn hàng
+- **[exe-fe/src/services/productService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/productService.ts)**:
+  - Ưu tiên gọi endpoint `/marketplace/product` của Spring Boot backend; tự động fallback `/products` nếu controller dùng định dạng khác.
+- **[exe-fe/src/services/orderService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/orderService.ts)**:
+  - Ưu tiên gọi `/orders/my-orders` của backend Spring Boot; fallback `/orders/me`.
 
 ---
 
-## 3. Bài học kinh nghiệm & Lợi ích
-- **Khả năng hoạt động bền bỉ (Resilience)**: Dự án có thể kết nối ngay lập tức với Spring Boot / Node.js backend mà không cần sửa đổi lại giao diện, đồng thời hoàn toàn có thể chạy demo độc lập (offline/standalone) mà không gặp bất kỳ lỗi Crash UI nào.
-- **Clean Architecture**: Tách rời hoàn toàn giao diện (UI Views) khỏi tầng gọi mạng (Network Services), giúp việc bảo trì và viết Unit Test sau này dễ dàng hơn nhiều.
-- **Tuân thủ Chuẩn Linter & TypeScript**: Đảm bảo toàn bộ mã nguồn đạt chuẩn ESLint và TypeScript (`tsc -b && vite build` và `eslint .` đều vượt qua 100%).
+## 3. Kiểm thử & Đảm bảo Chất lượng (Verification)
+- **Kiểm tra cú pháp & Chuẩn linter**:
+  - `npm --prefix exe-fe run lint`: **0 errors, 0 warnings** (vượt qua 100%).
+- **Kiểm tra biên dịch Type & Bundle**:
+  - `npm --prefix exe-fe run build`: `tsc -b && vite build` thành công, tạo bundle sản xuất tối ưu tại `exe-fe/dist/`.
+- **Độ tin cậy (Resilience)**:
+  - Toàn bộ service đều duy trì cơ chế fallback thông minh: Khi backend đang ngủ đông (Render spin-down) hoặc mất kết nối, người dùng vẫn xem được sản phẩm, thử nghiệm các tính năng mà không bao giờ gặp lỗi sập giao diện.

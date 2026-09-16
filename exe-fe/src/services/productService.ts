@@ -3,13 +3,23 @@ import { get, post, put, remove } from './api';
 
 export const productService = {
   getProducts: async () => {
-    const response = await get('/products');
-    return response.data;
+    try {
+      const response = await get('/marketplace/product');
+      return response.data;
+    } catch {
+      const response = await get('/products');
+      return response.data;
+    }
   },
 
   getProductById: async (id: string) => {
-    const response = await get(`/products/${id}`);
-    return response.data;
+    try {
+      const response = await get(`/marketplace/product/${id}`);
+      return response.data;
+    } catch {
+      const response = await get(`/products/${id}`);
+      return response.data;
+    }
   },
 
   createProduct: async (productData: any) => {

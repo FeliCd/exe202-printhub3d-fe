@@ -3,8 +3,13 @@ import { get, post, put } from './api';
 
 export const orderService = {
   getUserOrders: async () => {
-    const response = await get('/orders/me');
-    return response.data;
+    try {
+      const response = await get('/orders/my-orders');
+      return response.data;
+    } catch {
+      const response = await get('/orders/me');
+      return response.data;
+    }
   },
 
   getOrderHistory: async () => {

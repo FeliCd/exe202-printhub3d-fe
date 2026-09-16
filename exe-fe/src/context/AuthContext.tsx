@@ -63,13 +63,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, role: UserRole, password?: string) => {
     try {
       // Ưu tiên gọi API backend đăng nhập
-      const res = await authService.login({ userNameOrEmail: email, password: password || '123456' });
+      const res = await authService.login({ userNameOrEmail: email, password: password || '12345678' });
       const data = res?.result || res?.data || res;
-      if (data?.user) {
+      const token = data?.accessToken || data?.token;
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      if (data && (token || data.userId || data.fullName)) {
+        const backendRole: UserRole = data.role === 'ADMIN' ? 'ADMIN' : data.role === 'MAKER' || data.role === 'FACTORY' ? 'FACTORY' : 'BUYER';
         setUser({
           ...defaultUser,
-          ...data.user,
-          role,
+          id: data.userId ? String(data.userId) : defaultUser.id,
+          email: data.email || email,
+          role: role || backendRole,
+          name: data.fullName || (role === 'ADMIN' ? 'Admin Quản Trị' : role === 'FACTORY' ? 'Xưởng In 3D BK-Maker' : 'Nguyễn Văn Anh'),
         });
         return;
       }

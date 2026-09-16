@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -9,17 +10,29 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('vananh.student@hcmut.edu.vn');
+  const [password, setPassword] = useState('12345678');
   const [role, setSelectedRole] = useState<UserRole>('BUYER');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, role);
-    if (role === 'ADMIN') {
-      navigate('/admin/dashboard');
-    } else if (role === 'FACTORY') {
-      navigate('/factory/dashboard');
-    } else {
-      navigate('/catalog');
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      await login(email, role, password);
+      if (role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else if (role === 'FACTORY') {
+        navigate('/factory/dashboard');
+      } else {
+        navigate('/catalog');
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setErrorMsg(err?.response?.data?.message || 'Đăng nhập không thành công. Vui lòng kiểm tra email và mật khẩu.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,18 +108,27 @@ export default function LoginPage() {
               <Lock className="w-4 h-4 absolute left-3 top-3 text-[#94a3b8]" />
               <input
                 type="password"
-                defaultValue="12345678"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
+                placeholder="Nhập mật khẩu"
                 className="w-full bg-[#111215] border border-[#272930] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
               />
             </div>
           </div>
 
+          {errorMsg && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400">
+              {errorMsg}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2"
           >
-            Đăng Nhập Ngay <ArrowRight className="w-4 h-4" />
+            {loading ? 'Đang xác thực...' : 'Đăng Nhập Ngay'} <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
