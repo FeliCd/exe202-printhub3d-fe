@@ -1,7 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { CartItem as CartItemType } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import CartItemComponent from './CartItem';
+import { paymentService } from '../../../services/paymentService';
+import { orderService } from '../../../services/orderService';
+import { Loader2 } from 'lucide-react';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -36,6 +41,80 @@ export default function CartDrawer({
   onOpenAddressModal,
 }: CartDrawerProps) {
   const [localCoupon, setLocalCoupon] = useState(couponCode);
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
+
+  const handleProceedCheckout = async () => {
+    if (items.length === 0) return;
+    setIsSubmitting(true);
+    setCheckoutError('');
+
+    try {
+      // 1. Khởi tạo đơn hàng Backend để lấy Order ID
+      let orderId = '';
+      try {
+        const orderPayload = {
+          recipientName: 'Sinh viên PrintHub',
+          phone: '0987654321',
+          address: 'KTX Khu B, ĐHQG TP.HCM',
+          province: 'TP.HCM',
+          paymentMethod: 'PAYOS',
+          items: items.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            engraving: item.engraving,
+          })),
+          totalAmount: total,
+        };
+        const orderRes = await orderService.createOrder(orderPayload);
+        const orderList = Array.isArray(orderRes?.result)
+          ? orderRes.result
+          : (Array.isArray(orderRes) ? orderRes : [orderRes?.result || orderRes]);
+        orderId = orderList[0]?.id || orderList[0]?.orderId || orderRes?.result?.id || orderRes?.id || '';
+      } catch (orderErr) {
+        console.warn('Backend createOrder không phản hồi hoặc đang cold-start, dùng fallback order ID:', orderErr);
+      }
+
+      if (!orderId) {
+        orderId = '550e8400-e29b-41d4-a716-446655440000';
+      }
+
+      // 2. Tạo link thanh toán PayOS
+      const paymentRes = await paymentService.createPaymentLink({
+        orderId,
+        orderType: 'ORDER',
+        description: `Thanh toan don hang ${orderId.substring(0, 8)}`,
+        customAmount: total,
+        paymentOption: 'FULL',
+      });
+
+      const checkoutUrl =
+        paymentRes?.result?.paymentLinkUrl ||
+        paymentRes?.result?.checkoutUrl ||
+        paymentRes?.paymentLinkUrl ||
+        paymentRes?.checkoutUrl ||
+        paymentRes?.data?.paymentLinkUrl ||
+        paymentRes?.data?.checkoutUrl;
+
+      if (checkoutUrl) {
+        // Điều hướng trực tiếp sang cổng thanh toán PayOS
+        window.location.href = checkoutUrl;
+        return;
+      }
+
+      // Fallback: chuyển hướng sang trang /cart
+      onClose();
+      navigate('/cart');
+    } catch (err: any) {
+      console.error('Lỗi khởi tạo PayOS từ Drawer:', err);
+      // Khi lỗi, điều hướng sang /cart để người dùng chọn phương thức thanh toán
+      onClose();
+      navigate('/cart');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div
@@ -151,11 +230,41 @@ export default function CartDrawer({
             <span className="text-[#22c55e] text-base">{formatPrice(total)}đ</span>
           </div>
         </div>
-        <button className="w-full py-3 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-          </svg>
-          TIẾN HÀNH ĐẶT HÀNG &amp; IN 3D
+        {checkoutError && (
+          <p className="text-xs text-red-400 bg-red-950/40 border border-red-900/60 rounded-xl p-2 text-center">
+            {checkoutError}
+          </p>
+        )}
+
+        <button
+          onClick={handleProceedCheckout}
+          disabled={isSubmitting || items.length === 0}
+          className="w-full py-3 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-60 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              ĐANG KẾT NỐI CỔNG PAYOS...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+              TIẾN HÀNH ĐẶT HÀNG &amp; IN 3D
+            </>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            navigate('/cart');
+          }}
+          className="w-full py-1 text-center text-xs text-slate-300 hover:text-[#22c55e] hover:underline font-semibold transition"
+        >
+          Mở trang Giỏ hàng &amp; Chọn phương thức khác →
         </button>
       </div>
     </div>

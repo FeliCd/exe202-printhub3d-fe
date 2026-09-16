@@ -104,6 +104,13 @@ export default function SignupPage() {
       setStep('OTP');
     } catch (err: any) {
       console.warn('Backend register error:', err);
+      // Xử lý mã lỗi 409 CONFLICT (Email hoặc SĐT đã tồn tại)
+      if (err?.response?.status === 409) {
+        const conflictMsg = err?.response?.data?.message;
+        setErrorMsg(conflictMsg || 'Email hoặc Số điện thoại này đã được đăng ký tài khoản. Vui lòng đăng nhập hoặc sử dụng thông tin khác!');
+        return;
+      }
+
       // Kiểm tra xem backend Spring Boot có trả về validation error map không
       const errorMap = err?.response?.data?.errors;
       if (errorMap && typeof errorMap === 'object') {
