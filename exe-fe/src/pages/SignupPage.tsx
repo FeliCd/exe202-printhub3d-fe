@@ -30,25 +30,68 @@ export default function SignupPage() {
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (password !== confirmPassword) {
-      setErrorMsg('Mật khẩu và Xác nhận mật khẩu không trùng khớp.');
+    // 1. Validation họ và tên
+    if (!name.trim() || name.trim().length < 9) {
+      setErrorMsg('Họ và tên phải chứa ít nhất 9 ký tự (VD: Nguyễn Văn Anh).');
+      return;
+    }
+    if (!/^[\p{L} ]+$/u.test(name.trim())) {
+      setErrorMsg('Họ và tên chỉ được chứa chữ cái và khoảng trắng.');
       return;
     }
 
+    // 2. Validation username
+    if (!username.trim() || username.trim().length < 5) {
+      setErrorMsg('Tên đăng nhập (Username) phải từ 5 đến 50 ký tự.');
+      return;
+    }
+    if (!/^[\p{L}0-9_]+$/u.test(username.trim())) {
+      setErrorMsg('Tên đăng nhập chỉ được chứa chữ cái, chữ số và dấu gạch dưới.');
+      return;
+    }
+
+    // 3. Validation phone
+    const phoneRegex = /^0[3|5|7|8|9][0-9]{8}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      setErrorMsg('Số điện thoại không đúng định dạng (phải đúng 10 số, VD: 0912345678).');
+      return;
+    }
+
+    // 4. Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim()) || email.trim().length < 10) {
+      setErrorMsg('Địa chỉ Email không đúng định dạng (VD: student@gmail.com).');
+      return;
+    }
+
+    // 5. Validation địa chỉ
+    if (!address.trim()) {
+      setErrorMsg('Vui lòng nhập địa chỉ nhận hàng.');
+      return;
+    }
+
+    // 6. Validation mật khẩu
     if (password.length < 8) {
       setErrorMsg('Mật khẩu phải có tối thiểu 8 ký tự.');
       return;
     }
-
-    // Auto-generate clean username if empty
-    const cleanUsername = username.trim() || email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '') || 'user_' + Date.now().toString().slice(-4);
+    // eslint-disable-next-line no-useless-escape
+    const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])\S+$/;
+    if (!pwdRegex.test(password)) {
+      setErrorMsg('Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt (!@#$%...).');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMsg('Mật khẩu xác nhận không trùng khớp.');
+      return;
+    }
 
     const payload = {
       fullName: name.trim(),
-      username: cleanUsername,
+      username: username.trim(),
       email: email.trim(),
-      phone: phone.trim() || '0987654321',
-      address: address.trim() || 'KTX Đại Học Quốc Gia TP.HCM',
+      phone: phone.trim(),
+      address: address.trim(),
       password: password,
       confirmPassword: confirmPassword,
       isActive: false,
@@ -57,17 +100,25 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await authService.register(payload);
-      setSuccessMsg('Đăng ký thành công! Vui lòng nhập mã OTP đã được gửi tới email của bạn.');
+      setSuccessMsg('Đăng ký thành công! Mã OTP kích hoạt đã được gửi tới Email của bạn.');
       setStep('OTP');
     } catch (err: any) {
-      console.warn('Backend register error, offering OTP verification or fallback:', err);
+      console.warn('Backend register error:', err);
+      // Kiểm tra xem backend Spring Boot có trả về validation error map không
+      const errorMap = err?.response?.data?.errors;
+      if (errorMap && typeof errorMap === 'object') {
+        const firstFieldMsg = Object.values(errorMap)[0] as string;
+        if (firstFieldMsg) {
+          setErrorMsg(firstFieldMsg);
+          return;
+        }
+      }
+
       const beMessage = err?.response?.data?.message || err?.message;
       if (beMessage && !beMessage.includes('Network Error')) {
         setErrorMsg(beMessage);
       } else {
-        // Nếu lỗi kết nối backend, vẫn cho phép chuyển sang bước OTP demo để người dùng trải nghiệm
-        setSuccessMsg('Đã khởi tạo yêu cầu. Vui lòng nhập mã OTP để kích hoạt tài khoản.');
-        setStep('OTP');
+        setErrorMsg('Không thể kết nối đến máy chủ backend (Render có thể đang khởi động). Vui lòng thử lại sau 30 giây.');
       }
     } finally {
       setLoading(false);
@@ -159,12 +210,13 @@ export default function SignupPage() {
           <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
             {/* Họ và tên */}
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-300">Họ và tên sinh viên</label>
+              <label className="text-xs font-bold text-slate-300">Họ và tên sinh viên (tối thiểu 9 ký tự)</label>
               <div className="relative">
                 <User className="w-4 h-4 absolute left-3 top-3 text-[#94a3b8]" />
                 <input
                   type="text"
                   required
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Nguyễn Văn Anh"
@@ -176,10 +228,11 @@ export default function SignupPage() {
             {/* Username & Phone */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300">Tên người dùng (Username)</label>
+                <label className="text-xs font-bold text-slate-300">Tên người dùng (tối thiểu 5 ký tự)</label>
                 <input
                   type="text"
                   required
+                  autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="vananh_2026"
@@ -187,12 +240,13 @@ export default function SignupPage() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300">Số điện thoại</label>
+                <label className="text-xs font-bold text-slate-300">Số điện thoại (10 số)</label>
                 <div className="relative">
                   <Phone className="w-4 h-4 absolute left-3 top-3 text-[#94a3b8]" />
                   <input
                     type="tel"
                     required
+                    autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="0987654321"
@@ -210,6 +264,7 @@ export default function SignupPage() {
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="vananh.student@hcmut.edu.vn"
@@ -226,6 +281,7 @@ export default function SignupPage() {
                 <input
                   type="text"
                   required
+                  autoComplete="street-address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Phòng 402, KTX Khu B, ĐHQG TP.HCM"
@@ -243,6 +299,7 @@ export default function SignupPage() {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="PrintHub@2026"
@@ -257,6 +314,7 @@ export default function SignupPage() {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="PrintHub@2026"
@@ -265,7 +323,9 @@ export default function SignupPage() {
                 </div>
               </div>
             </div>
-            <p className="text-[10px] text-[#94a3b8]">Mật khẩu từ 8 ký tự gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
+            <div className="p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-900/30 text-[11px] text-emerald-300/90 leading-relaxed">
+              * Mật khẩu bảo mật: Tối thiểu 8 ký tự, gồm <strong>1 chữ hoa</strong>, <strong>1 chữ thường</strong>, <strong>1 chữ số</strong> và <strong>1 ký tự đặc biệt</strong> (VD: PrintHub@2026).
+            </div>
 
             <button
               type="submit"

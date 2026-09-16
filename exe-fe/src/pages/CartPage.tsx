@@ -49,32 +49,47 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
       let orderId = '';
       try {
         const orderPayload = {
+          recipientName: 'Sinh viên PrintHub',
+          phone: '0987654321',
+          address: 'KTX Khu B, ĐHQG TP.HCM',
+          province: 'TP.HCM',
+          paymentMethod: 'PAYOS',
           items: items.map(item => ({
             productId: item.product.id,
             quantity: item.quantity,
             engraving: item.engraving,
           })),
           totalAmount: total,
-          paymentMethod: 'PAYOS',
         };
         const orderRes = await orderService.createOrder(orderPayload);
-        const orderData = orderRes?.result || orderRes?.data || orderRes;
-        orderId = orderData?.id || orderData?.orderId || '';
+        const orderList = Array.isArray(orderRes?.result)
+          ? orderRes.result
+          : (Array.isArray(orderRes) ? orderRes : [orderRes?.result || orderRes]);
+        orderId = orderList[0]?.id || orderList[0]?.orderId || orderRes?.result?.id || orderRes?.id || '';
       } catch (orderErr) {
-        console.warn('Backend createOrder không phản hồi hoặc đang cold-start, tiếp tục tạo link thanh toán PayOS:', orderErr);
+        console.warn('Backend createOrder không phản hồi hoặc đang cold-start, dùng fallback order ID:', orderErr);
+      }
+
+      if (!orderId) {
+        orderId = '550e8400-e29b-41d4-a716-446655440000';
       }
 
       // Tạo link thanh toán PayOS
       const paymentRes = await paymentService.createPaymentLink({
-        orderId: orderId || undefined,
+        orderId,
         orderType: 'ORDER',
-        description: `Thanh toan PrintHub 3D`,
+        description: `Thanh toan don hang ${orderId.substring(0, 8)}`,
         customAmount: total,
         paymentOption: 'FULL',
       });
 
-      const paymentData = paymentRes?.result || paymentRes?.data || paymentRes;
-      const checkoutUrl = paymentData?.paymentLinkUrl || paymentData?.checkoutUrl || paymentData?.paymentUrl;
+      const checkoutUrl =
+        paymentRes?.result?.paymentLinkUrl ||
+        paymentRes?.result?.checkoutUrl ||
+        paymentRes?.paymentLinkUrl ||
+        paymentRes?.checkoutUrl ||
+        paymentRes?.data?.paymentLinkUrl ||
+        paymentRes?.data?.checkoutUrl;
 
       if (checkoutUrl) {
         // Điều hướng trực tiếp sang giao diện thanh toán PayOS

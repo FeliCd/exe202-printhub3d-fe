@@ -46,8 +46,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [balance, setBalance] = useState<number>(250000);
   const [transactions, setTransactions] = useState<WalletTransaction[]>(initialTransactions);
 
-  // Thử gọi backend lấy số dư và lịch sử giao dịch, nếu lỗi dùng mock data
+  // Thử gọi backend lấy số dư và lịch sử giao dịch (chỉ khi đã đăng nhập), nếu lỗi dùng mock data
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     const fetchWalletData = async () => {
       try {
         const [balRes, txnsRes] = await Promise.all([

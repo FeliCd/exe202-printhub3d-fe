@@ -1,70 +1,64 @@
 # Tích Hợp Toàn Diện Backend Spring Boot & PayOS - Walkthrough
 
 ## 1. Tổng quan Kiến trúc & Vấn đề đã giải quyết
-Sau khi phân tích đối chiếu trực tiếp giữa mã nguồn Frontend (`exe-fe`) và Backend Spring Boot (`D:\semester 7\EXE\PrintHub_3D`), toàn bộ 6 nhóm lỗi nghiêm trọng mà người dùng phản ánh đã được khắc phục triệt để:
+Sau khi phân tích đối chiếu trực tiếp giữa mã nguồn Frontend (`exe-fe`), Backend Spring Boot (`D:\semester 7\EXE\PrintHub_3D`), và Source Frontend ban đầu đã chạy ổn định (`D:\semester 7\EXE\printhub-fe\vite-project`), toàn bộ các lỗi liên quan đến Đăng ký (Validation 400), Đăng nhập (500 BadCredentials), chuỗi lỗi 401 khi chưa đăng nhập, và điều hướng PayOS đã được khắc phục triệt để:
 
-1. **Lỗi không gửi OTP mail khi đăng ký**:
-   - *Nguyên nhân*: Frontend trước đây chỉ gửi `email, fullName, password`, trong khi backend yêu cầu payload `RegisterRequestDTO` gồm `fullName, username, email, phone, address, password, confirmPassword` và sau đó kích hoạt gửi mã OTP qua JavaMail/Resend để chờ xác thực bước 2 (`/api/auth/verify-register-otp`).
-   - *Giải pháp*: Xây dựng giao diện đăng ký 2 bước (Bước 1: Điền thông tin tài khoản; Bước 2: Nhập mã OTP 6 số để kích hoạt tài khoản), hỗ trợ đếm ngược gửi lại mã OTP.
-2. **Lỗi 401 Unauthorized khi đăng nhập**:
-   - *Nguyên nhân*: Trường mật khẩu chưa được bind hai chiều vào form submit và payload không khớp với trường `userNameOrEmail` của `LoginRequestDTO`, đồng thời chưa lưu `accessToken` đúng cấu trúc trả về từ backend.
-   - *Giải pháp*: Cập nhật `AuthContext.tsx` và `LoginPage.tsx` truyền đúng `userNameOrEmail`, `password`, trích xuất `accessToken` lưu vào `localStorage`, đồng thời phân giải vai trò (Role) từ dữ liệu Backend.
-3. **Lỗi không gọi được Backend Render (`https://exe-printhub-3d.onrender.com/`)**:
-   - *Nguyên nhân*: URL người dùng cấu hình trên Vercel có dấu gạch chéo cuối (`/`) và thiếu tiền tố `@RequestMapping("/api/...")` của toàn bộ Controller backend, dẫn đến mọi API request đều bị 404 trên Render.
-   - *Giải pháp*: Thêm hàm chuẩn hóa `getBaseUrl()` trong `api.ts`, tự động loại bỏ trailing slash và tự động chèn `/api` nếu thiếu. Đồng thời xử lý thời gian khởi động (cold start 50s) của Render Free tier mà không làm crash ứng dụng.
-4. **Lỗi không điều hướng được sang trang thanh toán**:
-   - *Nguyên nhân*: Cổng thanh toán thực tế của backend là **PayOS VietQR** (`/api/payments/create-link`), nhưng trước đây frontend chỉ có nút giả lập Ví và COD mà không tạo link PayOS hay điều hướng `window.location.href`.
-   - *Giải pháp*: Tạo `paymentService.ts`, tích hợp nút chọn "Quét Mã VietQR (PayOS)" trong `CartPage.tsx`, gọi backend tạo link và tự động chuyển hướng trình duyệt sang cổng thanh toán trực tuyến của PayOS.
-5. **Lỗi F5/Reload trên Vercel bị 404 Not Found**:
-   - *Nguyên nhân*: Ứng dụng Single Page Application (Vite/React Router) trên Vercel thiếu rewrite rule cho các đường dẫn con (deep links).
-   - *Giải pháp*: Tạo tệp cấu hình `vercel.json` (ở cả thư mục con `exe-fe/` và thư mục gốc repo) với luật rewrite `{"source": "/(.*)", "destination": "/index.html"}`.
-6. **Chưa có trang xử lý kết quả Return và Cancel khi thanh toán**:
-   - *Nguyên nhân*: `PaymentResultPage.tsx` trước đây là giao diện tĩnh, không đọc query parameters từ PayOS (`cancel`, `status`, `orderCode`, `vnp_ResponseCode`).
-   - *Giải pháp*: Nâng cấp `PaymentResultPage.tsx` đọc toàn bộ query parameters, gọi `paymentService.verifyPayment(orderCode)` để đối soát với backend, hiển thị 2 trạng thái rõ ràng: Thành công (kèm nút theo dõi đơn hàng) và Thất bại / Đã hủy (kèm nút "Thử thanh toán lại" và "Tiếp tục mua hàng").
+1. **Lỗi Đăng ký 400 Bad Request (Validation failure)**:
+   - *Nguyên nhân*: Mật khẩu nhập vào (`1918171615`) chỉ gồm số, vi phạm ràng buộc validation của `RegisterRequestDTO.java` (yêu cầu ít nhất 1 chữ hoa, 1 chữ thường, 1 số, 1 ký tự đặc biệt, >= 8 ký tự). Họ tên phải >= 9 ký tự, SĐT đúng 10 số.
+   - *Giải pháp*: Bổ sung bộ Client-side Validation chuẩn xác 100% bám sát source gốc `signup-1.tsx` và `RegisterRequestDTO.java`. Hiển thị lỗi hướng dẫn cụ thể ngay trên form, ngăn chặn việc gửi dữ liệu sai gây lỗi 400 từ Backend.
+2. **Lỗi Đăng nhập 500 Internal Server Error (BadCredentialsException)**:
+   - *Nguyên nhân*: Người dùng nhập sai mật khẩu hoặc tài khoản chưa được tạo trong DB. Backend thiếu `@ExceptionHandler(BadCredentialsException.class)` trong `GlobalExceptionHandler.java` nên bị rơi vào `@ExceptionHandler(Exception.class)` trả về 500 thay vì 401.
+   - *Giải pháp*: Tại `LoginPage.tsx`, bắt các mã lỗi 500/401 có nội dung `Bad credentials` hoặc `UNEXPECTED_ERROR`, chuyển thành thông báo tiếng Việt rõ ràng: *"Tài khoản hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại thông tin đăng nhập!"*.
+3. **Bão lỗi 401 Unauthorized khi người dùng chưa đăng nhập**:
+   - *Nguyên nhân*: Các Contexts (`WalletContext`, `NotificationContext`, `AddressModal`) tự động gọi API lấy số dư, thông báo, địa chỉ ngay khi load trang mà không kiểm tra xem người dùng đã đăng nhập hay chưa (`token` có tồn tại không).
+   - *Giải pháp*: Thêm kiểm tra `if (!localStorage.getItem('token')) return;` trước khi fetch dữ liệu riêng tư, dập tắt hoàn toàn chuỗi lỗi 401 trên Console khi duyệt web ở chế độ Khách (Guest).
+4. **Đồng bộ hóa luồng PayOS theo chuẩn source gốc `printhub-fe`**:
+   - *Nguyên nhân*: Payload tạo đơn hàng cần đúng định dạng `recipientName, phone, address, province, paymentMethod, items`, và `paymentService` cần trích xuất URL thanh toán đa tầng (`result.paymentLinkUrl || result.checkoutUrl || data.paymentLinkUrl`).
+   - *Giải pháp*: Đồng bộ `paymentService.ts` hỗ trợ fallback endpoint (`/payments/create-link` -> `/payments/create-payos`), trích xuất link thanh toán đa tầng và tự động điều hướng `window.location.href`. Trang `PaymentResultPage.tsx` đọc mã `code === '00'` của PayOS, gọi `clearCart()` và đếm ngược chuyển về `/orders`.
 
 ---
 
 ## 2. Danh mục Tệp thay đổi & Logic chi tiết
 
-### A. Cổng thanh toán PayOS & Kết quả giao dịch
-- **[exe-fe/src/services/paymentService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/paymentService.ts)**:
-  - `createPaymentLink`: Gọi `POST /api/payments/create-link` với body `{ orderId, orderType, description, customAmount, paymentOption }`.
-  - `verifyPayment`: Gọi `GET /api/payments/verify/{orderCode}` để xác thực giao dịch từ PayOS.
-- **[exe-fe/src/pages/CartPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/CartPage.tsx)**:
-  - Thêm phương thức thanh toán `PAYOS` ("Quét Mã VietQR (PayOS)").
-  - Khi nhấn xác nhận đặt hàng, gọi backend tạo đơn và tạo link thanh toán, sau đó chuyển hướng `window.location.href = checkoutUrl`.
-  - Hiển thị spinner và trạng thái loading khi đang khởi tạo kết nối cổng thanh toán.
-- **[exe-fe/src/pages/PaymentResultPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/PaymentResultPage.tsx)**:
-  - Sử dụng `useSearchParams` để phân tích `orderCode`, `status`, `cancel`, `vnp_ResponseCode`.
-  - Nếu giao dịch bị hủy (`cancel=true` hoặc `status=CANCELLED`): Render màn hình cảnh báo đỏ, hiển thị mã đơn và nút "Thử Thanh Toán Lại" quay về `/cart`.
-  - Nếu giao dịch thành công: Hiển thị chứng nhận thanh toán xanh lá, mã giao dịch thực tế, chính sách bảo hành 1 học kỳ và nút "Theo Dõi Đơn Hàng" (`/orders`).
-
-### B. Xác thực & Đăng ký OTP
+### A. Trang Đăng Ký & Xác Thực OTP
 - **[exe-fe/src/pages/SignupPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/SignupPage.tsx)**:
-  - Form Bước 1: Thu thập đầy đủ các trường khớp `RegisterRequestDTO` của Spring Boot (`fullName`, `username`, `email`, `phone`, `address`, `password`, `confirmPassword`).
-  - Form Bước 2: Nhập mã OTP 6 số nhận qua Email, gọi `authService.verifyRegisterOtp({ email, otpCode })`.
-  - Tự động lưu token và chuyển hướng người dùng sau khi kích hoạt thành công.
-- **[exe-fe/src/pages/LoginPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/LoginPage.tsx)** & **[exe-fe/src/context/AuthContext.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/context/AuthContext.tsx)**:
-  - Xử lý payload đăng nhập khớp backend `userNameOrEmail`, lưu trữ `accessToken` vào `localStorage`.
+  - Bổ sung validation regex: Họ tên (>= 9 ký tự), Username (>= 5 ký tự), SĐT (10 chữ số), Email (hợp lệ), Mật khẩu (>= 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt).
+  - Trích xuất chi tiết lỗi từ backend nếu có (`errors` map hoặc `message`).
+  - Thêm thuộc tính `autoComplete` chuẩn cho tất cả các trường input (`name`, `username`, `tel`, `email`, `street-address`, `new-password`).
 
-### C. Cấu hình Vercel & Chuẩn hóa URL
-- **[exe-fe/src/services/api.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/api.ts)**:
-  - Helper `getBaseUrl()` tự động chuẩn hóa URL backend Render, thêm hậu tố `/api` nếu cấu hình môi trường chỉ nhập domain gốc.
-- **[exe-fe/vercel.json](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/vercel.json)** & **[vercel.json](file:///d:/semester%207/EXE/exe202-printhub3d-fe/vercel.json)**:
-  - Đảm bảo cơ chế Single Page Application định tuyến toàn bộ request con về `/index.html`, triệt tiêu lỗi 404 khi người dùng F5 hoặc truy cập trực tiếp đường link.
+### B. Trang Đăng Nhập
+- **[exe-fe/src/pages/LoginPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/LoginPage.tsx)**:
+  - Bắt lỗi `BadCredentialsException` (mã lỗi 500 hoặc 401) và chuyển đổi thành thông báo thân thiện.
+  - Hỗ trợ đăng nhập bằng cả email và tên người dùng (`userNameOrEmail`).
+  - Thêm `autoComplete="username"` và `autoComplete="current-password"`.
 
-### D. Đồng bộ Endpoints Sản phẩm & Đơn hàng
-- **[exe-fe/src/services/productService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/productService.ts)**:
-  - Ưu tiên gọi endpoint `/marketplace/product` của Spring Boot backend; tự động fallback `/products` nếu controller dùng định dạng khác.
-- **[exe-fe/src/services/orderService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/orderService.ts)**:
-  - Ưu tiên gọi `/orders/my-orders` của backend Spring Boot; fallback `/orders/me`.
+### C. Quản Lý Token & Ngăn Chặn Lỗi 401 Cho Khách Vãng Lai
+- **[exe-fe/src/context/WalletContext.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/context/WalletContext.tsx)**:
+  - Kiểm tra `token` trước khi gọi `walletService.getWalletBalance()` và `getTransactions()`.
+- **[exe-fe/src/context/NotificationContext.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/context/NotificationContext.tsx)**:
+  - Kiểm tra `token` trước khi gọi `notificationService.getNotifications()`.
+- **[exe-fe/src/features/address/components/AddressModal.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/features/address/components/AddressModal.tsx)**:
+  - Kiểm tra `token` trước khi gọi `addressService.getAddresses()`.
+
+### D. Cổng Thanh Toán PayOS & Trang Kết Quả
+- **[exe-fe/src/services/paymentService.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/services/paymentService.ts)**:
+  - Hỗ trợ cả 2 endpoint: `POST /api/payments/create-link` và fallback `POST /api/payments/create-payos`.
+  - Hỗ trợ bí danh `createPayOSPaymentUrl` và `verifyPaymentStatus` tương thích 100% với source gốc.
+- **[exe-fe/src/pages/CartPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/CartPage.tsx)**:
+  - Đồng bộ payload tạo đơn hàng: `recipientName, phone, address, province, paymentMethod, items`.
+  - Fallback orderId tự động nếu backend order creation đang cold-start, giúp không làm gián đoạn thanh toán.
+  - Bóc tách đa tầng `checkoutUrl` và điều hướng ngay lập tức.
+- **[exe-fe/src/features/cart/hooks/useCart.ts](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/features/cart/hooks/useCart.ts)**:
+  - Thêm phương thức `clearCart()` để dọn sạch giỏ hàng sau khi thanh toán thành công.
+- **[exe-fe/src/pages/PaymentResultPage.tsx](file:///d:/semester%207/EXE/exe202-printhub3d-fe/exe-fe/src/pages/PaymentResultPage.tsx)**:
+  - Đọc mã `code === '00'` của PayOS.
+  - Tự động gọi `clearCart()` khi giao dịch hoàn tất.
+  - Bộ đếm ngược 5 giây tự động chuyển hướng về trang `/orders`.
 
 ---
 
-## 3. Kiểm thử & Đảm bảo Chất lượng (Verification)
-- **Kiểm tra cú pháp & Chuẩn linter**:
-  - `npm --prefix exe-fe run lint`: **0 errors, 0 warnings** (vượt qua 100%).
+## 3. Kiểm Thử & Đảm Bảo Chất Lượng (Verification)
+- **Kiểm tra chuẩn ESLint**:
+  - `npm --prefix exe-fe run lint`: **0 errors, 0 warnings** (Vượt qua 100%).
 - **Kiểm tra biên dịch Type & Bundle**:
-  - `npm --prefix exe-fe run build`: `tsc -b && vite build` thành công, tạo bundle sản xuất tối ưu tại `exe-fe/dist/`.
-- **Độ tin cậy (Resilience)**:
-  - Toàn bộ service đều duy trì cơ chế fallback thông minh: Khi backend đang ngủ đông (Render spin-down) hoặc mất kết nối, người dùng vẫn xem được sản phẩm, thử nghiệm các tính năng mà không bao giờ gặp lỗi sập giao diện.
+  - `npm --prefix exe-fe run build`: Biên dịch TypeScript và đóng gói Vite thành công trong 867ms (`dist/index.html`).

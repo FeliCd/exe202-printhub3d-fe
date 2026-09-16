@@ -46,8 +46,11 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<SystemNotification[]>(initialNotifications);
 
-  // Thử gọi backend lấy thông báo hệ thống, nếu lỗi dùng mock data
+  // Thử gọi backend lấy thông báo hệ thống (chỉ khi đã đăng nhập), nếu lỗi dùng mock data
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     const fetchNotifications = async () => {
       try {
         const res = await notificationService.getNotifications();

@@ -30,7 +30,19 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setErrorMsg(err?.response?.data?.message || 'Đăng nhập không thành công. Vui lòng kiểm tra email và mật khẩu.');
+      const status = err?.response?.status;
+      const rawMsg = String(err?.response?.data?.message || err?.message || '');
+
+      if (
+        status === 401 ||
+        status === 500 ||
+        rawMsg.toLowerCase().includes('bad credentials') ||
+        rawMsg.toLowerCase().includes('unexpected')
+      ) {
+        setErrorMsg('Tài khoản hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại thông tin đăng nhập!');
+      } else {
+        setErrorMsg(rawMsg || 'Đăng nhập không thành công. Vui lòng thử lại sau.');
+      }
     } finally {
       setLoading(false);
     }
@@ -88,16 +100,17 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-300">Email sinh viên / tài khoản</label>
+            <label className="text-xs font-bold text-slate-300">Email sinh viên / tên đăng nhập</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-3 text-[#94a3b8]" />
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
                 required
                 className="w-full bg-[#111215] border border-[#272930] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
-                placeholder="nhap.email@sinhvien.edu.vn"
+                placeholder="vananh_2026 hoặc email@edu.vn"
               />
             </div>
           </div>
@@ -110,8 +123,9 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 required
-                placeholder="Nhập mật khẩu"
+                placeholder="Nhập mật khẩu của bạn"
                 className="w-full bg-[#111215] border border-[#272930] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
               />
             </div>

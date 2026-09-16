@@ -101,6 +101,10 @@ export function useCart() {
   const discount = couponApplied ? COUPON_DISCOUNT : 0;
   const total = subtotal - discount + SHIPPING_FEE;
 
+  const clearCart = useCallback(() => {
+    setItems([]);
+  }, []);
+
   return {
     items,
     totalItems,
@@ -114,5 +118,6 @@ export function useCart() {
     removeFromCart,
     updateQuantity,
     applyCoupon,
+    clearCart,
   };
 }

@@ -61,8 +61,11 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
   const [newNote, setNewNote] = useState('');
   const [newIsDefault, setNewIsDefault] = useState(false);
 
-  // Thử gọi backend lấy danh sách địa chỉ nếu có, lỗi thì fallback localStorage
+  // Thử gọi backend lấy danh sách địa chỉ nếu có (chỉ khi đã đăng nhập), lỗi thì fallback localStorage
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     const fetchBackendAddresses = async () => {
       try {
         const res = await addressService.getAddresses();

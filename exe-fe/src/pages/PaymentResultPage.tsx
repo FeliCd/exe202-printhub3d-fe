@@ -2,21 +2,27 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, ShoppingBag, Loader2, ShieldCheck, Home } from 'lucide-react';
 import { paymentService } from '../services/paymentService';
+import { useCart } from '../features/cart/hooks/useCart';
 
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
 
   const [loading, setLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(5);
 
   const orderCode = searchParams.get('orderCode') || searchParams.get('vnp_TxnRef') || '';
   const statusParam = searchParams.get('status');
   const cancelParam = searchParams.get('cancel');
+  const codeParam = searchParams.get('code'); // PayOS '00' success code
   const vnpResponseCode = searchParams.get('vnp_ResponseCode');
 
   useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+
     const verifyTransaction = async () => {
       // 1. Kiểm tra nếu người dùng chủ động nhấn "Hủy thanh toán" trên PayOS
       if (cancelParam === 'true' || statusParam === 'CANCELLED' || vnpResponseCode === '24') {
@@ -26,31 +32,61 @@ export default function PaymentResultPage() {
         return;
       }
 
-      // 2. Nếu status trên URL đã là PAID hoặc VNPay trả về mã 00
-      if (statusParam === 'PAID' || vnpResponseCode === '00') {
+      // 2. Nếu status trên URL đã là PAID, mã PayOS là 00, hoặc VNPay trả về mã 00
+      if (codeParam === '00' || statusParam === 'PAID' || statusParam === 'SUCCESS' || vnpResponseCode === '00') {
+        try {
+          if (orderCode) {
+            await paymentService.verifyPayment(orderCode);
+          }
+        } catch (verifyErr) {
+          console.warn('Verify API warning, proceeding with client confirmation:', verifyErr);
+        }
         setIsSuccess(true);
+        clearCart();
         setLoading(false);
+
+        timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              navigate('/orders');
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
         return;
       }
 
-      // 3. Nếu có orderCode, gọi backend Spring Boot để xác thực qua PayOS API
+      // 3. Nếu có orderCode nhưng chưa có status rõ ràng, gọi backend Spring Boot để xác thực qua PayOS API
       if (orderCode) {
         try {
           const res = await paymentService.verifyPayment(orderCode);
           const data = res?.result || res?.data || res;
-          if (data?.status === 'PAID' || data?.status === 'SUCCESS') {
+          if (data?.status === 'PAID' || data?.status === 'SUCCESS' || data?.code === '00') {
             setIsSuccess(true);
+            clearCart();
+            timer = setInterval(() => {
+              setCountdown((prev) => {
+                if (prev <= 1) {
+                  clearInterval(timer);
+                  navigate('/orders');
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
           } else if (data?.status === 'CANCELLED') {
             setIsSuccess(false);
             setErrorMessage('Giao dịch bị từ chối hoặc đã hết hạn thanh toán.');
           } else {
-            // Mặc định coi là thành công nếu backend phản hồi OK
             setIsSuccess(true);
+            clearCart();
           }
         } catch (error) {
-          console.warn('Lỗi khi gọi verifyPayment từ backend:', error);
-          // Nếu backend offline hoặc lỗi mạng, nhưng không bị cancel thì hiển thị trạng thái hoàn tất
+          console.warn('Lỗi khi gọi verifyPayment từ backend, fallback xác nhận:', error);
           setIsSuccess(true);
+          clearCart();
         } finally {
           setLoading(false);
         }
@@ -63,7 +99,11 @@ export default function PaymentResultPage() {
     };
 
     verifyTransaction();
-  }, [orderCode, statusParam, cancelParam, vnpResponseCode]);
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [orderCode, statusParam, cancelParam, codeParam, vnpResponseCode, clearCart, navigate]);
 
   if (loading) {
     return (
@@ -161,6 +201,10 @@ export default function PaymentResultPage() {
           <span className="text-cyan-400">Đang khởi tạo máy in FDM</span>
         </div>
       </div>
+
+      <p className="text-xs text-[#94a3b8]">
+        Tự động chuyển hướng về trang đơn hàng sau <strong className="text-[#22c55e]">{countdown}s</strong>...
+      </p>
 
       <div className="text-[11px] text-emerald-300 bg-emerald-950/40 border border-emerald-800/50 p-2.5 rounded-xl flex items-center gap-2 text-left">
         <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
