@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Factory, CheckCircle2, XCircle, Plus, Star, MapPin } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
+import { adminService } from '../../services/adminService';
 
 interface PartnerFactory {
   id: string;
@@ -17,24 +18,24 @@ interface PartnerFactory {
 const mockFactories: PartnerFactory[] = [
   {
     id: 'FAC-001',
-    name: 'Xưởng In 3D BK-Makerlab (ĐHQG TP.HCM)',
-    location: 'Khu Công Nghệ Phần Mềm ITP, ĐHQG TP.HCM',
+    name: 'BK-Makerlab Xưởng In 3D (ĐHQG TP.HCM)',
+    location: 'Khu phố 6, Linh Trung, Thủ Đức, TP.HCM',
     printersCount: 12,
-    completedJobs: 1420,
+    completedJobs: 1450,
     rating: 4.95,
-    commissionRate: 5,
-    totalEarnings: 84500000,
+    commissionRate: 5, // 5% platform fee
+    totalEarnings: 82500000,
     status: 'ACTIVE',
   },
   {
     id: 'FAC-002',
-    name: 'HUST 3D Print Lab (Bách Khoa Hà Nội)',
+    name: 'HUST 3D Print Lab (Bách Khoa HN)',
     location: 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội',
     printersCount: 8,
-    completedJobs: 980,
+    completedJobs: 890,
     rating: 4.88,
     commissionRate: 5,
-    totalEarnings: 52100000,
+    totalEarnings: 45200000,
     status: 'ACTIVE',
   },
   {
@@ -52,6 +53,21 @@ const mockFactories: PartnerFactory[] = [
 
 export default function AdminFactoriesPage() {
   const [factories, setFactories] = useState<PartnerFactory[]>(mockFactories);
+
+  useEffect(() => {
+    const fetchFactories = async () => {
+      try {
+        const res = await adminService.getFactories();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setFactories(data);
+        }
+      } catch (error) {
+        console.warn('Backend factories API error, using mock factories:', error);
+      }
+    };
+    fetchFactories();
+  }, []);
 
   const toggleFactoryStatus = (id: string) => {
     setFactories(prev =>

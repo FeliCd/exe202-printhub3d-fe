@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, CheckCircle2, XCircle, Wrench } from 'lucide-react';
+import { factoryService } from '../../services/factoryService';
 
 interface QCItem {
   id: string;
@@ -14,24 +15,24 @@ interface QCItem {
 
 const mockQCs: QCItem[] = [
   {
-    id: 'QC-9024',
+    id: 'QC-101',
     orderId: 'ORD-9024',
-    productName: 'Thước Kỹ Thuật PLA Pro 20cm (Khắc Laser MSSV)',
-    printedQty: 2,
-    postProcessSteps: ['Tách chân đệm Brims', 'Chà nhám viền', 'Kiểm tra quang học dung sai ±0.1mm'],
+    productName: 'Thước Kỹ Thuật PLA Pro 20cm (Khắc MSSV 20210123)',
+    printedQty: 1,
+    postProcessSteps: ['Gọt ba-via viền mép', 'Kiểm tra độ thẳng cữ 0.1mm', 'Xử lý nhiệt nhẹ mặt vạch số'],
     qcStatus: 'PENDING_QC',
   },
   {
-    id: 'QC-8812',
+    id: 'QC-102',
     orderId: 'ORD-8812',
-    productName: 'Thước Vuông Chữ T Đồ Án Kiến Trúc 30cm',
+    productName: 'Thước Vuông Chữ T Đồ Án Kiến Trúc 30cm (PETG)',
     printedQty: 3,
-    postProcessSteps: ['Tách Support', 'Sấy khô nhiệt 50°C'],
+    postProcessSteps: ['Đo góc vuông 90° bằng thước eke chuẩn', 'Vát cạnh trượt chì kỹ thuật'],
     qcStatus: 'PASS',
-    inspectedBy: 'KTV. Trần Văn B',
+    inspectedBy: 'KTV. Nguyễn Văn A',
   },
   {
-    id: 'QC-7510',
+    id: 'QC-098',
     orderId: 'ORD-7510',
     productName: 'Thước Kẹp Vernier 150mm Resin UV',
     printedQty: 1,
@@ -45,7 +46,28 @@ const mockQCs: QCItem[] = [
 export default function FactoryQCPage() {
   const [qcs, setQcs] = useState<QCItem[]>(mockQCs);
 
-  const handleSetStatus = (id: string, status: 'PASS' | 'FAIL') => {
+  useEffect(() => {
+    const fetchQC = async () => {
+      try {
+        const res = await factoryService.getQCItems();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setQcs(data);
+        }
+      } catch (error) {
+        console.warn('Backend QC API error, using mock QC data:', error);
+      }
+    };
+    fetchQC();
+  }, []);
+
+  const handleSetStatus = async (id: string, status: 'PASS' | 'FAIL') => {
+    try {
+      await factoryService.updateQCStatus(id, status);
+    } catch (error) {
+      console.warn('Backend updateQCStatus error, updating locally:', error);
+    }
+
     setQcs(prev =>
       prev.map(q =>
         q.id === id

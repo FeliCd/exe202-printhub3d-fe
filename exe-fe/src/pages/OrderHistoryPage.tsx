@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { History, RefreshCw, CheckCircle2, XCircle, Eye } from 'lucide-react';
 import { formatPrice } from '../utils/format';
+import { orderService } from '../services/orderService';
 
 interface PastOrder {
   id: string;
@@ -47,10 +48,26 @@ const mockPastOrders: PastOrder[] = [
 ];
 
 export default function OrderHistoryPage() {
+  const [ordersList, setOrdersList] = useState<PastOrder[]>(mockPastOrders);
   const [tab, setTab] = useState<'ALL' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const navigate = useNavigate();
 
-  const filteredOrders = mockPastOrders.filter(o => {
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await orderService.getOrderHistory();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setOrdersList(data);
+        }
+      } catch (error) {
+        console.warn('Backend order history API error, using mock past orders:', error);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  const filteredOrders = ordersList.filter(o => {
     if (tab === 'COMPLETED') return o.status === 'COMPLETED';
     if (tab === 'CANCELLED') return o.status === 'CANCELLED';
     return true;

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, Upload, CheckCircle2 } from 'lucide-react';
 import type { WarrantyClaim } from '../types';
+import { warrantyService } from '../services/warrantyService';
 
 const initialClaims: WarrantyClaim[] = [
   {
@@ -23,7 +24,22 @@ export default function WarrantyPage() {
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchClaims = async () => {
+      try {
+        const res = await warrantyService.getUserClaims();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setClaims(data);
+        }
+      } catch (error) {
+        console.warn('Backend warranty API error, using mock claims:', error);
+      }
+    };
+    fetchClaims();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newClaim: WarrantyClaim = {
       id: `WAR-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -34,6 +50,13 @@ export default function WarrantyPage() {
       status: 'SUBMITTED',
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     };
+
+    try {
+      await warrantyService.createClaim(newClaim);
+    } catch (error) {
+      console.warn('Backend createClaim API error, saving to local mock state:', error);
+    }
+
     setClaims((prev) => [newClaim, ...prev]);
     setSubmitted(true);
   };

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Package, Clock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { formatPrice } from '../utils/format';
 import type { Order } from '../types';
 import { Link } from 'react-router-dom';
+import { orderService } from '../services/orderService';
 
 const mockOrders: Order[] = [
   {
@@ -99,7 +100,22 @@ const mockOrders: Order[] = [
 ];
 
 export default function OrdersPage() {
-  const [orders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await orderService.getUserOrders();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setOrders(data);
+        }
+      } catch (error) {
+        console.warn('Backend orders API error, using mock orders:', error);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   const getStatusBadge = (status: Order['status']) => {
     switch (status) {

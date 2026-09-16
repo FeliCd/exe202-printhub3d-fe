@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HardDrive, Upload, Printer, Download, Trash2 } from 'lucide-react';
 import type { FileVaultItem } from '../types';
+import { fileVaultService } from '../services/fileVaultService';
 
 const mockVaultFiles: FileVaultItem[] = [
   {
@@ -49,9 +50,29 @@ export default function FileVaultPage() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const res = await fileVaultService.getFiles();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setFiles(data);
+        }
+      } catch (error) {
+        console.warn('Backend file vault API error, using mock vault files:', error);
+      }
+    };
+    fetchFiles();
+  }, []);
+
   const filteredFiles = files.filter(f => f.fileName.toLowerCase().includes(search.toLowerCase()));
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    try {
+      await fileVaultService.deleteFile(id);
+    } catch (error) {
+      console.warn('Backend deleteFile error, deleting locally:', error);
+    }
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 

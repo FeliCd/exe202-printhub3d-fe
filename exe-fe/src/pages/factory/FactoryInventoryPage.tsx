@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Plus, CheckCircle2 } from 'lucide-react';
+import { factoryService } from '../../services/factoryService';
 
 interface FilamentSpool {
   id: string;
@@ -21,7 +22,22 @@ const mockInventory: FilamentSpool[] = [
 ];
 
 export default function FactoryInventoryPage() {
-  const [spools] = useState<FilamentSpool[]>(mockInventory);
+  const [spools, setSpools] = useState<FilamentSpool[]>(mockInventory);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const res = await factoryService.getInventory();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setSpools(data);
+        }
+      } catch (error) {
+        console.warn('Backend inventory API error, using mock inventory:', error);
+      }
+    };
+    fetchInventory();
+  }, []);
 
   return (
     <div className="space-y-6 w-full">

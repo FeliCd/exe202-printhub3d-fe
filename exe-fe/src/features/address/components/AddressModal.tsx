@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Plus, Check, Star, Trash2, X, Building, Phone, User } from 'lucide-react';
+import { addressService } from '../../../services/addressService';
 
 export interface ShippingAddress {
   id: string;
@@ -60,6 +61,22 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
   const [newNote, setNewNote] = useState('');
   const [newIsDefault, setNewIsDefault] = useState(false);
 
+  // Thử gọi backend lấy danh sách địa chỉ nếu có, lỗi thì fallback localStorage
+  useEffect(() => {
+    const fetchBackendAddresses = async () => {
+      try {
+        const res = await addressService.getAddresses();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setAddresses(data);
+        }
+      } catch (error) {
+        console.warn('Backend address API error, using local/mock addresses:', error);
+      }
+    };
+    fetchBackendAddresses();
+  }, []);
+
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem('printhub_shipping_addresses', JSON.stringify(addresses));
@@ -67,7 +84,7 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
 
   if (!isOpen) return null;
 
-  const handleAddNewAddress = (e: React.FormEvent) => {
+  const handleAddNewAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRecipientName.trim() || !newPhone.trim() || !newAddressLine.trim()) return;
 
@@ -80,6 +97,12 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
       note: newNote.trim(),
       isDefault: newIsDefault || addresses.length === 0,
     };
+
+    try {
+      await addressService.createAddress(newAddr);
+    } catch (error) {
+      console.warn('Backend createAddress error, saving to local storage:', error);
+    }
 
     let updated = [...addresses];
     if (newAddr.isDefault) {
@@ -99,18 +122,28 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
     setShowAddForm(false);
   };
 
-  const handleSetDefault = (id: string, e: React.MouseEvent) => {
+  const handleSetDefault = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    try {
+      await addressService.setDefaultAddress(id);
+    } catch (error) {
+      console.warn('Backend setDefaultAddress error, updating locally:', error);
+    }
     setAddresses((prev) =>
       prev.map((a) => ({ ...a, isDefault: a.id === id }))
     );
   };
 
-  const handleDeleteAddress = (id: string, e: React.MouseEvent) => {
+  const handleDeleteAddress = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (addresses.length <= 1) {
       alert('Bạn phải giữ lại ít nhất 1 địa chỉ giao hàng!');
       return;
+    }
+    try {
+      await addressService.deleteAddress(id);
+    } catch (error) {
+      console.warn('Backend deleteAddress error, deleting locally:', error);
     }
     const updated = addresses.filter((a) => a.id !== id);
     if (!updated.some((a) => a.isDefault)) {

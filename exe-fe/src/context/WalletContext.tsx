@@ -1,12 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { WalletTransaction } from '../types';
+import { walletService } from '../services/walletService';
 
 interface WalletContextType {
   balance: number;
   transactions: WalletTransaction[];
-  deposit: (amount: number, method: string) => void;
-  pay: (amount: number, description: string) => boolean;
+  deposit: (amount: number, method: string) => Promise<void>;
+  pay: (amount: number, description: string) => Promise<boolean>;
   refund: (amount: number, description: string) => void;
 }
 
@@ -45,7 +46,39 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [balance, setBalance] = useState<number>(250000);
   const [transactions, setTransactions] = useState<WalletTransaction[]>(initialTransactions);
 
-  const deposit = (amount: number, method: string) => {
+  // Thử gọi backend lấy số dư và lịch sử giao dịch, nếu lỗi dùng mock data
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      try {
+        const [balRes, txnsRes] = await Promise.all([
+          walletService.getWalletBalance(),
+          walletService.getTransactions(),
+        ]);
+        const balData = balRes?.result || balRes?.data || balRes;
+        const txnsData = txnsRes?.result || txnsRes?.data || txnsRes;
+
+        if (typeof balData?.balance === 'number') {
+          setBalance(balData.balance);
+        } else if (typeof balData === 'number') {
+          setBalance(balData);
+        }
+
+        if (Array.isArray(txnsData) && txnsData.length > 0) {
+          setTransactions(txnsData);
+        }
+      } catch (error) {
+        console.warn('Backend wallet API error, falling back to mock wallet data:', error);
+      }
+    };
+    fetchWalletData();
+  }, []);
+
+  const deposit = async (amount: number, method: string) => {
+    try {
+      await walletService.deposit(amount, method);
+    } catch (error) {
+      console.warn('Backend deposit API error, applying mock balance update:', error);
+    }
     setBalance((prev) => prev + amount);
     const newTxn: WalletTransaction = {
       id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -58,8 +91,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setTransactions((prev) => [newTxn, ...prev]);
   };
 
-  const pay = (amount: number, description: string): boolean => {
+  const pay = async (amount: number, description: string): Promise<boolean> => {
     if (balance < amount) return false;
+    try {
+      await walletService.pay(amount, description);
+    } catch (error) {
+      console.warn('Backend pay API error, applying mock balance deduction:', error);
+    }
     setBalance((prev) => prev - amount);
     const newTxn: WalletTransaction = {
       id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,

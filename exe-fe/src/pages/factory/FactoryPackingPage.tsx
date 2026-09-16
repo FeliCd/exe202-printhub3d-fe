@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Truck, Printer, CheckCircle2, Box, Send } from 'lucide-react';
+import { factoryService } from '../../services/factoryService';
 
 interface DispatchPackage {
   id: string;
@@ -16,17 +17,17 @@ const mockPackages: DispatchPackage[] = [
   {
     id: 'PKG-9024',
     orderId: 'ORD-9024',
-    recipientName: 'Nguyễn Văn Anh (20210123)',
-    shippingAddress: 'KTX Khu A, ĐHQG TP.HCM - Phòng 304 Nhà A12',
-    itemSummary: '2x Thước Kỹ Thuật PLA Pro 20cm (Khắc Laser MSSV)',
-    carrier: 'Giao Hàng Hỏa Tốc KTX (BK-Express)',
-    trackingNumber: 'BKX-9024-88',
+    recipientName: 'Nguyễn Văn Anh',
+    shippingAddress: 'Phòng 402 KTX Khu B ĐHQG TP.HCM',
+    itemSummary: '1x Thước PLA Pro 20cm, 1x Thước PETG 30cm',
+    carrier: 'Hỏa Tốc Nội Bộ KTX',
+    trackingNumber: 'PHUB-KTX-9024',
     status: 'READY_TO_PACK',
   },
   {
     id: 'PKG-8812',
     orderId: 'ORD-8812',
-    recipientName: 'Trần Thị B',
+    recipientName: 'Trần Thị Mai',
     shippingAddress: 'KTX Đại Học Bách Khoa - Lý Thường Kiệt P14 Q10',
     itemSummary: '3x Thước Vuông Chữ T 30cm PETG',
     carrier: 'GrabExpress 2h',
@@ -38,13 +39,38 @@ const mockPackages: DispatchPackage[] = [
 export default function FactoryPackingPage() {
   const [packages, setPackages] = useState<DispatchPackage[]>(mockPackages);
 
-  const handlePack = (id: string) => {
+  useEffect(() => {
+    const fetchPacking = async () => {
+      try {
+        const res = await factoryService.getPackingList();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setPackages(data);
+        }
+      } catch (error) {
+        console.warn('Backend packing API error, using mock packages:', error);
+      }
+    };
+    fetchPacking();
+  }, []);
+
+  const handlePack = async (id: string) => {
+    try {
+      await factoryService.updatePackageStatus(id, 'PACKED');
+    } catch (error) {
+      console.warn('Backend updatePackageStatus error, updating locally:', error);
+    }
     setPackages(prev =>
       prev.map(p => (p.id === id ? { ...p, status: 'PACKED' as const } : p))
     );
   };
 
-  const handleDispatch = (id: string) => {
+  const handleDispatch = async (id: string) => {
+    try {
+      await factoryService.updatePackageStatus(id, 'DISPATCHED');
+    } catch (error) {
+      console.warn('Backend updatePackageStatus error, updating locally:', error);
+    }
     setPackages(prev =>
       prev.map(p => (p.id === id ? { ...p, status: 'DISPATCHED' as const } : p))
     );

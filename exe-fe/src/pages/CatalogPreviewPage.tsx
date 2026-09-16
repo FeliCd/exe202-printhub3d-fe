@@ -1,11 +1,29 @@
-import { useState } from 'react';
-import { products } from '../features/products/data/products';
+import { useState, useEffect } from 'react';
+import type { Product } from '../types';
+import { products as mockProducts } from '../features/products/data/products';
 import { formatPrice } from '../utils/format';
 import { Eye, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { productService } from '../services/productService';
 
 export default function CatalogPreviewPage() {
-  const [previewItem, setPreviewItem] = useState<(typeof products)[0] | null>(null);
+  const [productList, setProductList] = useState<Product[]>(mockProducts);
+  const [previewItem, setPreviewItem] = useState<Product | null>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await productService.getProducts();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setProductList(data);
+        }
+      } catch (error) {
+        console.warn('Backend products API error, using mock preview products:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -39,7 +57,7 @@ export default function CatalogPreviewPage() {
 
       {/* Grid Products */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {products.map((p) => (
+        {productList.map((p) => (
           <div
             key={p.id}
             className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] hover:border-[#22c55e]/40 transition space-y-3 flex flex-col justify-between"

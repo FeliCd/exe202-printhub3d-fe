@@ -1,12 +1,31 @@
+import { useState, useEffect } from 'react';
 import type { Product } from '../../../types';
-import { products } from '../data/products';
+import { products as mockProducts } from '../data/products';
 import ProductCard from './ProductCard';
+import { productService } from '../../../services/productService';
 
 interface MainContentProps {
   onAddToCart: (product: Product) => void;
 }
 
 export default function MainContent({ onAddToCart }: MainContentProps) {
+  const [productList, setProductList] = useState<Product[]>(mockProducts);
+
+  // Thử gọi backend lấy danh sách sản phẩm, nếu lỗi dùng mock data
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await productService.getProducts();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setProductList(data);
+        }
+      } catch (error) {
+        console.warn('Backend products API error, falling back to mock products:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
   return (
     <main className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 space-y-6">
       {/* Title & Breadcrumb */}
@@ -100,7 +119,7 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
 
       {/* Products Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-        {products.map((product) => (
+        {productList.map((product) => (
           <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
         ))}
       </section>

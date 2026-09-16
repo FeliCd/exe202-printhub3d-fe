@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Lock, Unlock, ShieldAlert, Search } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
 import type { UserRole } from '../../types';
+import { adminService } from '../../services/adminService';
 
 interface ManagedUser {
   id: string;
@@ -30,12 +31,12 @@ const mockUsers: ManagedUser[] = [
   },
   {
     id: 'USR-002',
-    name: 'BK-Makerlab Xưởng In 3D',
-    email: 'factory.bkmaker@hcmut.edu.vn',
+    name: 'Xưởng In 3D BK-Maker',
+    email: 'bkmaker.partner@printhub.vn',
     role: 'FACTORY',
-    walletBalance: 14850000,
+    walletBalance: 12500000,
     isLocked: false,
-    joinedDate: '2025-11-10',
+    joinedDate: '2025-11-20',
   },
   {
     id: 'USR-003',
@@ -55,15 +56,39 @@ export default function AdminUsersPage() {
   const [usersList, setUsersList] = useState<ManagedUser[]>(mockUsers);
   const [search, setSearch] = useState('');
 
-  const toggleLock = (id: string) => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await adminService.getUsers();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setUsersList(data);
+        }
+      } catch (error) {
+        console.warn('Backend admin users API error, using mock users list:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const toggleLock = async (id: string) => {
+    const userToUpdate = usersList.find(u => u.id === id);
+    const nextState = userToUpdate ? !userToUpdate.isLocked : true;
+    const reason = nextState ? 'Khóa tài khoản bởi Admin quản trị.' : undefined;
+
+    try {
+      await adminService.toggleUserLock(id, nextState, reason);
+    } catch (error) {
+      console.warn('Backend toggleUserLock error, updating locally:', error);
+    }
+
     setUsersList(prev =>
       prev.map(u => {
         if (u.id === id) {
-          const nextState = !u.isLocked;
           return {
             ...u,
             isLocked: nextState,
-            lockReason: nextState ? 'Khóa tài khoản bởi Admin quản trị.' : undefined,
+            lockReason: reason,
           };
         }
         return u;
@@ -71,7 +96,13 @@ export default function AdminUsersPage() {
     );
   };
 
-  const changeRole = (id: string, newRole: UserRole) => {
+  const changeRole = async (id: string, newRole: UserRole) => {
+    try {
+      await adminService.updateUserRole(id, newRole);
+    } catch (error) {
+      console.warn('Backend updateUserRole error, updating locally:', error);
+    }
+
     setUsersList(prev =>
       prev.map(u => (u.id === id ? { ...u, role: newRole } : u))
     );

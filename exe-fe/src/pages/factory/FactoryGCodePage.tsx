@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Play, FileCode, CheckCircle2 } from 'lucide-react';
+import { factoryService } from '../../services/factoryService';
 
 interface GCodeJob {
   id: string;
@@ -18,35 +19,35 @@ const mockGCodes: GCodeJob[] = [
   {
     id: 'GC-9024',
     orderId: 'ORD-9024',
-    gcodeName: 'Thuoc_20cm_Laser_MSSV_x2.gcode',
+    gcodeName: 'Bambu_PLA_Ruler20cm_Engraved_Plate1.gcode',
     slicer: 'Bambu Studio',
-    layerHeight: '0.16mm (Gyroid)',
+    layerHeight: '0.12mm High Detail',
     infill: 30,
-    printTimeHours: 1.4,
-    weightGrams: 42,
-    targetPrinter: 'Bambu Lab X1C #01',
-    status: 'PRINTING',
-  },
-  {
-    id: 'GC-1092',
-    orderId: 'REQ-1092',
-    gcodeName: 'Khung_Robot_PETG_HeavyDuty.gcode',
-    slicer: 'PrusaSlicer',
-    layerHeight: '0.20mm (Honeycomb)',
-    infill: 50,
-    printTimeHours: 6.8,
-    weightGrams: 185,
-    targetPrinter: 'Bambu Lab X1C #02',
+    printTimeHours: 1.5,
+    weightGrams: 45,
+    targetPrinter: 'Bambu Lab X1-Carbon #01',
     status: 'READY',
   },
   {
-    id: 'GC-0881',
+    id: 'GC-8812',
     orderId: 'ORD-8812',
-    gcodeName: 'Banh_Rang_Modulo2_SLA.form',
-    slicer: 'Formlabs PreForm',
-    layerHeight: '0.05mm (Optics)',
-    infill: 100,
+    gcodeName: 'Prusa_PETG_TSquare_Arch_Plate2.gcode',
+    slicer: 'PrusaSlicer',
+    layerHeight: '0.15mm Optimum',
+    infill: 40,
     printTimeHours: 3.2,
+    weightGrams: 110,
+    targetPrinter: 'Prusa MK4 #03',
+    status: 'PRINTING',
+  },
+  {
+    id: 'GC-7510',
+    orderId: 'ORD-7510',
+    gcodeName: 'Formlabs_Resin_VernierCaliper.form',
+    slicer: 'Formlabs PreForm',
+    layerHeight: '0.05mm Micro Detail',
+    infill: 100,
+    printTimeHours: 4.8,
     weightGrams: 28,
     targetPrinter: 'Formlabs Form 3+',
     status: 'READY',
@@ -54,7 +55,22 @@ const mockGCodes: GCodeJob[] = [
 ];
 
 export default function FactoryGCodePage() {
-  const [gcodes] = useState<GCodeJob[]>(mockGCodes);
+  const [gcodes, setGcodes] = useState<GCodeJob[]>(mockGCodes);
+
+  useEffect(() => {
+    const fetchGCodes = async () => {
+      try {
+        const res = await factoryService.getGCodes();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setGcodes(data);
+        }
+      } catch (error) {
+        console.warn('Backend G-code API error, using mock G-codes:', error);
+      }
+    };
+    fetchGCodes();
+  }, []);
 
   return (
     <div className="space-y-6 w-full">

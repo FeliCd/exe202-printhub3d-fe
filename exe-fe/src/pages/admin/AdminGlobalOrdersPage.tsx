@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PackageCheck } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
+import { adminService } from '../../services/adminService';
 
 interface SystemOrder {
   id: string;
@@ -16,27 +17,37 @@ interface SystemOrder {
 const mockSystemOrders: SystemOrder[] = [
   {
     id: 'ORD-9024',
-    buyerName: 'Nguyễn Văn Anh (20210123)',
-    date: '2026-09-01 14:30',
-    itemsSummary: '2x Thước Kỹ Thuật PLA Pro 20cm, 1x Thước Kẹp Vernier',
-    total: 185000,
+    buyerName: 'Nguyễn Văn Anh (HCMUT)',
+    date: '2026-09-03 10:15',
+    itemsSummary: '1x Thước PLA Pro 20cm, 1x Thước PETG 30cm',
+    total: 100000,
     assignedFactory: 'BK-Makerlab Xưởng In 3D (ĐHQG)',
     status: 'PRINTING',
     paymentMethod: 'Ví PrintHub',
   },
   {
     id: 'ORD-8812',
-    buyerName: 'Trần Thị B (20224590)',
+    buyerName: 'Trần Thị Mai (Kiến Trúc)',
     date: '2026-08-20 09:15',
-    itemsSummary: '3x Thước Vuông Chữ T Đồ Án Kiến Trúc 30cm',
+    itemsSummary: '3x Thước Chữ T Đồ Án 30cm',
     total: 165000,
-    assignedFactory: 'HUST 3D Print Lab (Bách Khoa HN)',
+    assignedFactory: '3D Hub Thủ Đức (SPKT)',
     status: 'COMPLETED',
     paymentMethod: 'Banking VietQR',
   },
   {
+    id: 'ORD-8990',
+    buyerName: 'Phạm Đức Nam (Bách Khoa)',
+    date: '2026-09-02 14:00',
+    itemsSummary: '1x Thước Kẹp Vernier 150mm Cơ Khí',
+    total: 95000,
+    assignedFactory: 'Chưa phân bổ xưởng',
+    status: 'PENDING',
+    paymentMethod: 'COD Tiền mặt',
+  },
+  {
     id: 'ORD-7510',
-    buyerName: 'Lê Văn Cường',
+    buyerName: 'Lê Văn Cường (HUST)',
     date: '2026-08-10 16:45',
     itemsSummary: '1x Combo 5 Thước Kỹ Thuật Lớp Cơ Điện',
     total: 210000,
@@ -49,6 +60,21 @@ const mockSystemOrders: SystemOrder[] = [
 export default function AdminGlobalOrdersPage() {
   const [orders, setOrders] = useState<SystemOrder[]>(mockSystemOrders);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+
+  useEffect(() => {
+    const fetchGlobalOrders = async () => {
+      try {
+        const res = await adminService.getGlobalOrders();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setOrders(data);
+        }
+      } catch (error) {
+        console.warn('Backend global orders API error, using mock system orders:', error);
+      }
+    };
+    fetchGlobalOrders();
+  }, []);
 
   const filteredOrders = orders.filter(o => filterStatus === 'ALL' || o.status === filterStatus);
 

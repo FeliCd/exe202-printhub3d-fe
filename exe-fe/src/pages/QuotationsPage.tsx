@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FileText, Clock, CheckCircle2, ArrowRight, MessageSquare, ShieldCheck, Printer } from 'lucide-react';
 import { formatPrice } from '../utils/format';
+import { quotationService } from '../services/quotationService';
 
 interface QuotationItem {
   id: string;
@@ -19,34 +20,34 @@ interface QuotationItem {
 
 const mockQuotes: QuotationItem[] = [
   {
-    id: 'QUOTE-1092',
-    fileName: 'Khung_Robot_Mechatronics_Cap_Do_An.stl',
-    material: 'PETG Chịu Nhiệt',
-    weightGrams: 210,
-    printHours: 8.5,
+    id: 'QUO-1092',
+    fileName: 'Gear_Reducer_Helical_v2.stl',
+    material: 'PETG Siêu Dẻo',
+    weightGrams: 145,
+    printHours: 5.5,
     infill: 40,
-    layerHeight: '0.16mm',
+    layerHeight: '0.12mm (Chi tiết cao)',
     status: 'QUOTED',
-    price: 320000,
-    factoryNotes: 'BK-Makerlab đã duyệt file mesh. Đã tối ưu hướng in chống cong vênh bàn nhiệt.',
-    createdAt: '2026-09-02 10:15',
+    price: 115000,
+    factoryNotes: 'Đã tối ưu góc in 45 độ, bề mặt răng cưa chuẩn dung sai cơ khí ISO 0.1mm.',
+    createdAt: '2026-09-02 10:30',
   },
   {
-    id: 'QUOTE-1088',
-    fileName: 'Thuoc_Ke_Multi_Angle_Custom.obj',
-    material: 'PLA Pro (Black)',
-    weightGrams: 65,
-    printHours: 2.2,
-    infill: 25,
+    id: 'QUO-1089',
+    fileName: 'Robot_Arm_Base_Clamp.step',
+    material: 'ABS Kỹ Thuật (Chịu Nhiệt)',
+    weightGrams: 320,
+    printHours: 12.0,
+    infill: 60,
     layerHeight: '0.20mm',
     status: 'PENDING',
-    createdAt: '2026-09-03 08:30',
+    createdAt: '2026-09-01 16:45',
   },
   {
-    id: 'QUOTE-0995',
-    fileName: 'Banh_Rang_Modulo2_SLA.step',
-    material: 'Resin UV Quang Học',
-    weightGrams: 32,
+    id: 'QUO-1081',
+    fileName: 'Drone_Frame_Arm_Lightweight.stl',
+    material: 'Carbon Fiber PLA',
+    weightGrams: 85,
     printHours: 3.0,
     infill: 100,
     layerHeight: '0.05mm (Siêu mịn)',
@@ -61,7 +62,27 @@ export default function QuotationsPage() {
   const [quotes, setQuotes] = useState<QuotationItem[]>(mockQuotes);
   const navigate = useNavigate();
 
-  const handleAcceptQuote = (id: string) => {
+  useEffect(() => {
+    const fetchQuotes = async () => {
+      try {
+        const res = await quotationService.getQuotations();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setQuotes(data);
+        }
+      } catch (error) {
+        console.warn('Backend quotation API error, using mock quotes:', error);
+      }
+    };
+    fetchQuotes();
+  }, []);
+
+  const handleAcceptQuote = async (id: string) => {
+    try {
+      await quotationService.acceptQuotation(id);
+    } catch (error) {
+      console.warn('Backend acceptQuotation error, updating locally:', error);
+    }
     setQuotes(prev =>
       prev.map(q => (q.id === id ? { ...q, status: 'ACCEPTED' as const } : q))
     );

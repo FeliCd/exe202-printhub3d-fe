@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { SystemNotification } from '../types';
+import { notificationService } from '../services/notificationService';
 
 interface NotificationContextType {
   notifications: SystemNotification[];
@@ -45,15 +46,37 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<SystemNotification[]>(initialNotifications);
 
+  // Thử gọi backend lấy thông báo hệ thống, nếu lỗi dùng mock data
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await notificationService.getNotifications();
+        const data = res?.result || res?.data || res;
+        if (Array.isArray(data) && data.length > 0) {
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.warn('Backend notification API error, falling back to mock notifications:', error);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAsRead = (id: string) => {
+    notificationService.markAsRead(id).catch((err) => {
+      console.warn('Backend markAsRead error:', err);
+    });
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
   const markAllAsRead = () => {
+    notificationService.markAllAsRead().catch((err) => {
+      console.warn('Backend markAllAsRead error:', err);
+    });
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 

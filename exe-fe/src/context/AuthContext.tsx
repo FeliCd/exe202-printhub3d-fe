@@ -1,12 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { User, UserRole } from '../types';
+import { authService } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
   role: UserRole;
   isAuthenticated: boolean;
-  login: (email: string, role: UserRole) => void;
+  login: (email: string, role: UserRole, password?: string) => Promise<void>;
   logout: () => void;
   setRole: (role: UserRole) => void;
   verifyPasscode: (passcode: string) => boolean;
@@ -36,7 +37,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(defaultUser);
   const [storedPasscode, setStoredPasscodeState] = useState<string>('123456');
 
-  const login = (email: string, role: UserRole) => {
+  // Thử gọi backend lấy thông tin user hiện tại nếu có token, nếu lỗi thì giữ mock data
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await authService.getCurrentUser();
+        const data = res?.result || res?.data || res;
+        if (data && (data.email || data.id)) {
+          setUser({
+            ...defaultUser,
+            ...data,
+            name: data.fullName || data.name || defaultUser.name,
+            role: data.role || defaultUser.role,
+          });
+        }
+      } catch (error) {
+        console.warn('Backend getCurrentUser failed, using mock default user:', error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
+  const login = async (email: string, role: UserRole, password?: string) => {
+    try {
+      // Ưu tiên gọi API backend đăng nhập
+      const res = await authService.login({ userNameOrEmail: email, password: password || '123456' });
+      const data = res?.result || res?.data || res;
+      if (data?.user) {
+        setUser({
+          ...defaultUser,
+          ...data.user,
+          role,
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Backend API login error, falling back to mock user data:', error);
+    }
+
+    // Fallback Mock Data nếu API thất bại
     setUser({
       ...defaultUser,
       email,
@@ -46,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
   };
 
