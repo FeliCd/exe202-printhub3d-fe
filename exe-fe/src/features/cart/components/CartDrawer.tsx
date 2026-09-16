@@ -6,6 +6,8 @@ import { formatPrice } from '../../../utils/format';
 import CartItemComponent from './CartItem';
 import { paymentService } from '../../../services/paymentService';
 import { orderService } from '../../../services/orderService';
+import { productService } from '../../../services/productService';
+import { useAuth } from '../../../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface CartDrawerProps {
@@ -24,7 +26,6 @@ interface CartDrawerProps {
   onOpenAddressModal: () => void;
 }
 
-
 export default function CartDrawer({
   isOpen,
   onClose,
@@ -42,6 +43,7 @@ export default function CartDrawer({
 }: CartDrawerProps) {
   const [localCoupon, setLocalCoupon] = useState(couponCode);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
 
@@ -51,40 +53,57 @@ export default function CartDrawer({
     setCheckoutError('');
 
     try {
-      // 1. Khởi tạo đơn hàng Backend để lấy Order ID
-      let orderId = '';
-      try {
-        const orderPayload = {
-          recipientName: 'Sinh viên PrintHub',
-          phone: '0987654321',
-          address: 'KTX Khu B, ĐHQG TP.HCM',
-          province: 'TP.HCM',
-          paymentMethod: 'PAYOS',
-          items: items.map(item => ({
-            productId: item.product.id,
-            quantity: item.quantity,
-            engraving: item.engraving,
-          })),
-          totalAmount: total,
-        };
-        const orderRes = await orderService.createOrder(orderPayload);
-        const orderList = Array.isArray(orderRes?.result)
-          ? orderRes.result
-          : (Array.isArray(orderRes) ? orderRes : [orderRes?.result || orderRes]);
-        orderId = orderList[0]?.id || orderList[0]?.orderId || orderRes?.result?.id || orderRes?.id || '';
-      } catch (orderErr) {
-        console.warn('Backend createOrder không phản hồi hoặc đang cold-start, dùng fallback order ID:', orderErr);
+      // 1. Chuẩn bị danh sách sản phẩm với UUID thật từ backend database
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      let fallbackRealUUID: string | null = null;
+
+      const orderItems = await Promise.all(
+        items.map(async (item) => {
+          let pId = item.product.id;
+          if (!uuidRegex.test(pId)) {
+            if (!fallbackRealUUID) {
+              fallbackRealUUID = await productService.getActiveProductUUID();
+            }
+            if (fallbackRealUUID) {
+              pId = fallbackRealUUID;
+            }
+          }
+          return {
+            productId: pId,
+            quantity: Math.max(1, item.quantity),
+            color: item.colorOption || 'BLUE',
+            engravingText: item.engraving || '',
+          };
+        })
+      );
+
+      const orderPayload = {
+        recipientName: user?.name || 'Khách hàng PrintHub',
+        phone: user?.phone || '0987654321',
+        address: 'KTX Khu B, ĐHQG TP.HCM',
+        province: 'TP.HCM',
+        paymentMethod: 'PAYOS',
+        items: orderItems,
+      };
+
+      console.log('Sending orderPayload to backend:', orderPayload);
+      const orderRes = await orderService.createOrder(orderPayload);
+      const orderList = Array.isArray(orderRes?.result)
+        ? orderRes.result
+        : (Array.isArray(orderRes) ? orderRes : [orderRes?.result || orderRes]);
+      const realOrderId = orderList[0]?.id || orderList[0]?.orderId || orderRes?.result?.id || orderRes?.id;
+
+      if (!realOrderId || !uuidRegex.test(String(realOrderId))) {
+        throw new Error('Máy chủ backend không trả về mã đơn hàng hợp lệ.');
       }
 
-      if (!orderId) {
-        orderId = '550e8400-e29b-41d4-a716-446655440000';
-      }
+      console.log('Order created successfully with ID:', realOrderId);
 
-      // 2. Tạo link thanh toán PayOS
+      // 2. Tạo link thanh toán PayOS với orderId thật từ Database
       const paymentRes = await paymentService.createPaymentLink({
-        orderId,
+        orderId: realOrderId,
         orderType: 'ORDER',
-        description: `Thanh toan don hang ${orderId.substring(0, 8)}`,
+        description: `Thanh toan don hang ${String(realOrderId).substring(0, 8)}`,
         customAmount: total,
         paymentOption: 'FULL',
       });
@@ -98,19 +117,16 @@ export default function CartDrawer({
         paymentRes?.data?.checkoutUrl;
 
       if (checkoutUrl) {
-        // Điều hướng trực tiếp sang cổng thanh toán PayOS
+        console.log('Redirecting to PayOS checkout:', checkoutUrl);
         window.location.href = checkoutUrl;
         return;
       }
 
-      // Fallback: chuyển hướng sang trang /cart
-      onClose();
-      navigate('/cart');
+      throw new Error('Không nhận được đường dẫn thanh toán từ PayOS.');
     } catch (err: any) {
-      console.error('Lỗi khởi tạo PayOS từ Drawer:', err);
-      // Khi lỗi, điều hướng sang /cart để người dùng chọn phương thức thanh toán
-      onClose();
-      navigate('/cart');
+      console.error('Lỗi khi tiến hành thanh toán PayOS từ Drawer:', err);
+      const backendMessage = err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi tạo đơn hàng trên máy chủ';
+      setCheckoutError(backendMessage);
     } finally {
       setIsSubmitting(false);
     }

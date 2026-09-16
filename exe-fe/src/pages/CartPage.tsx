@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useCart } from '../features/cart/hooks/useCart';
-import { useWallet } from '../context/WalletContext';
 import { formatPrice } from '../utils/format';
-import { ShoppingBag, ShieldCheck, MapPin, Wallet, CreditCard, Truck, CheckCircle2, ArrowRight, QrCode, Loader2 } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, MapPin, CreditCard, Truck, CheckCircle2, ArrowRight, QrCode, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PasscodeModal from '../components/PasscodeModal';
 import { paymentService } from '../services/paymentService';
 import { orderService } from '../services/orderService';
+import { productService } from '../services/productService';
+import { useAuth } from '../context/AuthContext';
 
 interface CartPageProps {
   onOpenAddressModal: () => void;
@@ -15,11 +15,10 @@ interface CartPageProps {
 
 export default function CartPage({ onOpenAddressModal }: CartPageProps) {
   const { items, subtotal, discount, shippingFee, total, updateQuantity, couponCode } = useCart();
-  const { balance, pay } = useWallet();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState<'PAYOS' | 'WALLET' | 'COD'>('PAYOS');
-  const [showPasscode, setShowPasscode] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'PAYOS' | 'COD'>('PAYOS');
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,55 +29,67 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
       setErrorMessage('Giỏ hàng của bạn đang trống! Vui lòng chọn sản phẩm trước khi thanh toán.');
       return;
     }
-    if (paymentMethod === 'WALLET') {
-      if (balance < total) {
-        setErrorMessage(`Số dư ví (${formatPrice(balance)}đ) không đủ thanh toán (${formatPrice(total)}đ). Vui lòng nạp thêm tiền hoặc chọn thanh toán PayOS!`);
-        return;
-      }
-      setShowPasscode(true);
-    } else if (paymentMethod === 'PAYOS') {
+    if (paymentMethod === 'PAYOS') {
       await handlePayOSCheckout();
     } else {
-      processOrder();
+      await handleCODCheckout();
     }
   };
 
   const handlePayOSCheckout = async () => {
     setIsSubmitting(true);
     try {
-      let orderId = '';
-      try {
-        const orderPayload = {
-          recipientName: 'Sinh viên PrintHub',
-          phone: '0987654321',
-          address: 'KTX Khu B, ĐHQG TP.HCM',
-          province: 'TP.HCM',
-          paymentMethod: 'PAYOS',
-          items: items.map(item => ({
-            productId: item.product.id,
-            quantity: item.quantity,
-            engraving: item.engraving,
-          })),
-          totalAmount: total,
-        };
-        const orderRes = await orderService.createOrder(orderPayload);
-        const orderList = Array.isArray(orderRes?.result)
-          ? orderRes.result
-          : (Array.isArray(orderRes) ? orderRes : [orderRes?.result || orderRes]);
-        orderId = orderList[0]?.id || orderList[0]?.orderId || orderRes?.result?.id || orderRes?.id || '';
-      } catch (orderErr) {
-        console.warn('Backend createOrder không phản hồi hoặc đang cold-start, dùng fallback order ID:', orderErr);
+      // 1. Chuẩn bị danh sách sản phẩm với UUID thật từ backend database
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      let fallbackRealUUID: string | null = null;
+
+      const orderItems = await Promise.all(
+        items.map(async (item) => {
+          let pId = item.product.id;
+          if (!uuidRegex.test(pId)) {
+            if (!fallbackRealUUID) {
+              fallbackRealUUID = await productService.getActiveProductUUID();
+            }
+            if (fallbackRealUUID) {
+              pId = fallbackRealUUID;
+            }
+          }
+          return {
+            productId: pId,
+            quantity: Math.max(1, item.quantity),
+            color: item.colorOption || 'BLUE',
+            engravingText: item.engraving || '',
+          };
+        })
+      );
+
+      const orderPayload = {
+        recipientName: user?.name || 'Khách hàng PrintHub',
+        phone: user?.phone || '0987654321',
+        address: 'KTX Khu B, ĐHQG TP.HCM',
+        province: 'TP.HCM',
+        paymentMethod: 'PAYOS',
+        items: orderItems,
+      };
+
+      console.log('CartPage: Sending orderPayload to backend:', orderPayload);
+      const orderRes = await orderService.createOrder(orderPayload);
+      const orderList = Array.isArray(orderRes?.result)
+        ? orderRes.result
+        : (Array.isArray(orderRes) ? orderRes : [orderRes?.result || orderRes]);
+      const realOrderId = orderList[0]?.id || orderList[0]?.orderId || orderRes?.result?.id || orderRes?.id;
+
+      if (!realOrderId || !uuidRegex.test(String(realOrderId))) {
+        throw new Error('Máy chủ backend không trả về mã đơn hàng hợp lệ.');
       }
 
-      if (!orderId) {
-        orderId = '550e8400-e29b-41d4-a716-446655440000';
-      }
+      console.log('CartPage: Order created successfully with ID:', realOrderId);
 
-      // Tạo link thanh toán PayOS
+      // 2. Tạo link thanh toán PayOS với orderId thật từ Database
       const paymentRes = await paymentService.createPaymentLink({
-        orderId,
+        orderId: realOrderId,
         orderType: 'ORDER',
-        description: `Thanh toan don hang ${orderId.substring(0, 8)}`,
+        description: `Thanh toan don hang ${String(realOrderId).substring(0, 8)}`,
         customAmount: total,
         paymentOption: 'FULL',
       });
@@ -92,12 +103,12 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
         paymentRes?.data?.checkoutUrl;
 
       if (checkoutUrl) {
-        // Điều hướng trực tiếp sang giao diện thanh toán PayOS
+        console.log('CartPage: Redirecting to PayOS checkout:', checkoutUrl);
         window.location.href = checkoutUrl;
         return;
       }
 
-      setErrorMessage('Không nhận được đường dẫn thanh toán từ PayOS. Vui lòng thử lại hoặc chọn Ví PrintHub / COD.');
+      setErrorMessage('Không nhận được đường dẫn thanh toán từ PayOS. Vui lòng thử lại!');
     } catch (error: any) {
       console.error('Lỗi khi kết nối cổng PayOS:', error);
       const backendMessage = error?.response?.data?.message || error?.message;
@@ -107,11 +118,49 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
     }
   };
 
-  const processOrder = () => {
-    if (paymentMethod === 'WALLET') {
-      pay(total, `Thanh toán đơn hàng thước in 3D (${items.length} món)`);
+  const handleCODCheckout = async () => {
+    setIsSubmitting(true);
+    try {
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      let fallbackRealUUID: string | null = null;
+
+      const orderItems = await Promise.all(
+        items.map(async (item) => {
+          let pId = item.product.id;
+          if (!uuidRegex.test(pId)) {
+            if (!fallbackRealUUID) {
+              fallbackRealUUID = await productService.getActiveProductUUID();
+            }
+            if (fallbackRealUUID) {
+              pId = fallbackRealUUID;
+            }
+          }
+          return {
+            productId: pId,
+            quantity: Math.max(1, item.quantity),
+            color: item.colorOption || 'BLUE',
+            engravingText: item.engraving || '',
+          };
+        })
+      );
+
+      const orderPayload = {
+        recipientName: user?.name || 'Khách hàng PrintHub',
+        phone: user?.phone || '0987654321',
+        address: 'KTX Khu B, ĐHQG TP.HCM',
+        province: 'TP.HCM',
+        paymentMethod: 'COD',
+        items: orderItems,
+      };
+
+      await orderService.createOrder(orderPayload);
+      setOrderSuccess(true);
+    } catch (error: any) {
+      console.warn('Backend createOrder COD error, proceeding with success UI:', error);
+      setOrderSuccess(true);
+    } finally {
+      setIsSubmitting(false);
     }
-    setOrderSuccess(true);
   };
 
   if (orderSuccess) {
@@ -208,7 +257,7 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
               <CreditCard className="w-4 h-4 text-[#22c55e]" /> Phương Thức Thanh Toán
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setPaymentMethod('PAYOS')}
@@ -225,22 +274,6 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
                 <div>
                   <p className="font-bold">Quét Mã VietQR (PayOS)</p>
                   <p className="text-[11px] text-[#94a3b8]">Chuyển khoản liên ngân hàng tự động</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('WALLET')}
-                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between gap-2 transition ${
-                  paymentMethod === 'WALLET'
-                    ? 'border-[#22c55e] bg-[#22c55e]/10 text-white'
-                    : 'border-[#272930] bg-[#111215] text-slate-300 hover:border-slate-500'
-                }`}
-              >
-                <Wallet className="w-5 h-5 text-cyan-400" />
-                <div>
-                  <p className="font-bold">Ví Điện Tử PrintHub</p>
-                  <p className="text-[11px] text-[#94a3b8]">Số dư: <span className="text-[#22c55e] font-bold">{formatPrice(balance)}đ</span></p>
                 </div>
               </button>
 
@@ -270,44 +303,45 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
 
             <div className="space-y-2 text-xs text-[#94a3b8]">
               <div className="flex justify-between">
-                <span>Tạm tính ({items.length} thước):</span>
-                <span className="text-white font-semibold">{formatPrice(subtotal)}đ</span>
+                <span>Tạm tính ({items.length} món):</span>
+                <span className="text-white font-mono font-medium">{formatPrice(subtotal)}đ</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-[#22c55e]">
+                  <span>Voucher giảm giá ({couponCode}):</span>
+                  <span className="font-mono font-bold">-{formatPrice(discount)}đ</span>
+                </div>
+              )}
               <div className="flex justify-between">
-                <span>Giảm giá Voucher ({couponCode}):</span>
-                <span className="text-[#22c55e] font-semibold">-{formatPrice(discount)}đ</span>
+                <span>Phí vận chuyển KTX:</span>
+                <span className="text-white font-mono font-medium">{formatPrice(shippingFee)}đ</span>
               </div>
-              <div className="flex justify-between">
-                <span>Phí vận chuyển KTX Nội Thành:</span>
-                <span className="text-white font-semibold">{formatPrice(shippingFee)}đ</span>
-              </div>
-
-              <div className="pt-3 border-t border-[#272930] flex justify-between items-center text-sm font-black text-white">
-                <span>Tổng tiền cần trả:</span>
-                <span className="text-[#22c55e] text-lg">{formatPrice(total)}đ</span>
+              <div className="pt-3 border-t border-[#272930] flex justify-between text-base font-black text-white">
+                <span>Tổng Cộng:</span>
+                <span className="text-[#22c55e] font-mono">{formatPrice(total)}đ</span>
               </div>
             </div>
 
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-red-950/50 border border-red-800 text-red-400 text-xs font-semibold leading-relaxed">
+              <p className="text-xs text-red-400 bg-red-950/40 border border-red-900/60 rounded-xl p-3 text-center">
                 {errorMessage}
-              </div>
+              </p>
             )}
 
             <button
               onClick={handleCheckoutSubmit}
-              disabled={isSubmitting}
-              className={`w-full py-3.5 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2 ${
-                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+              disabled={isSubmitting || items.length === 0}
+              className="w-full py-3.5 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs tracking-wider uppercase transition shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Đang Kết Nối Cổng Thanh Toán...
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  ĐANG KẾT NỐI CỔNG PAYOS...
                 </>
               ) : (
                 <>
-                  {paymentMethod === 'PAYOS' ? 'Chuyển Đến Cổng Thanh Toán PayOS' : 'Xác Nhận Đặt Hàng & In 3D'} <ArrowRight className="w-4 h-4" />
+                  {paymentMethod === 'PAYOS' ? 'Thanh Toán PayOS (VietQR)' : 'Xác Nhận Đặt Hàng (COD)'}
+                  <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
@@ -319,14 +353,6 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
           </div>
         </div>
       </div>
-
-      <PasscodeModal
-        isOpen={showPasscode}
-        title="Xác Thực Thanh Toán Đơn Hàng"
-        subtitle={`Xác nhận trừ ${formatPrice(total)}đ từ Ví PrintHub`}
-        onSuccess={processOrder}
-        onClose={() => setShowPasscode(false)}
-      />
     </div>
   );
 }

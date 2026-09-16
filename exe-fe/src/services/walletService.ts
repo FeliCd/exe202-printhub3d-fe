@@ -1,23 +1,18 @@
-import { get, post } from './api';
-
+// Backend không có WalletController (chỉ có FinanceController cho Admin), do đó service này chạy mock in-memory
 export const walletService = {
   getWalletBalance: async () => {
-    const response = await get('/wallet/balance');
-    return response.data;
+    return { code: 200, result: { balance: 250000 } };
   },
 
   getTransactions: async () => {
-    const response = await get('/wallet/transactions');
-    return response.data;
+    return { code: 200, result: [] };
   },
 
-  deposit: async (amount: number, method: string) => {
-    const response = await post('/wallet/deposit', { amount, method });
-    return response.data;
+  deposit: async (amount: number, _method: string) => {
+    return { code: 200, result: { amount, status: 'SUCCESS' } };
   },
 
-  pay: async (amount: number, description: string) => {
-    const response = await post('/wallet/pay', { amount, description });
-    return response.data;
+  pay: async (amount: number, _description: string) => {
+    return { code: 200, result: { amount, status: 'SUCCESS' } };
   },
 };

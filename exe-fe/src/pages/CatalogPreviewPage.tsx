@@ -14,9 +14,32 @@ export default function CatalogPreviewPage() {
     const fetchProducts = async () => {
       try {
         const res = await productService.getProducts();
-        const data = res?.result || res?.data || res;
-        if (Array.isArray(data) && data.length > 0) {
-          setProductList(data);
+        const rawList = res?.result?.content || res?.result || res?.data?.content || res?.data || [];
+        if (Array.isArray(rawList) && rawList.length > 0) {
+          const thumbnailTypes: Product['thumbnail'][] = [
+            'ruler-20cm',
+            'ruler-30cm',
+            'ruler-t',
+            'stencil',
+            'caliper',
+            'combo',
+          ];
+          const mapped: Product[] = rawList.map((p: any, idx: number) => ({
+            id: p.id ? String(p.id) : `prod-${idx}`,
+            name: p.title || p.name || 'Thước In 3D Kỹ Thuật',
+            category: p.categoryName || p.category?.categoryName || 'Thước Kẻ & Dụng Cụ 3D',
+            categoryColor: 'text-emerald-400',
+            material: p.material || 'PLA PRO+',
+            originalPrice: p.price ? Math.round(Number(p.price) * 1.2) : 55000,
+            price: p.price ? Number(p.price) : 45000,
+            description: p.description || 'Thước in 3D công nghệ FDM sắc nét, chống gãy vỡ, bảo hành 1 đổi 1.',
+            badgeText: p.status === 'ACTIVE' ? 'SẴN HÀNG' : 'HOT',
+            badgeColor: 'emerald',
+            materialBadge: 'CHÍNH HÃNG',
+            thumbnail: thumbnailTypes[idx % thumbnailTypes.length],
+            imageUrl: p.primaryImageUrl || p.imageUrl || p.images?.[0]?.imageUrl || '',
+          }));
+          setProductList(mapped);
         }
       } catch (error) {
         console.warn('Backend products API error, using mock preview products:', error);

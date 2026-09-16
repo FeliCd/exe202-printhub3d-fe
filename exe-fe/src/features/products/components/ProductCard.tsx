@@ -84,7 +84,15 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <span className="absolute top-3 right-3 bg-[#111215]/80 backdrop-blur text-slate-300 text-[10px] font-semibold px-2 py-0.5 rounded border border-[#272930]">
           {product.materialBadge}
         </span>
-        <ProductThumbnail type={product.thumbnail} />
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <ProductThumbnail type={product.thumbnail} />
+        )}
       </div>
 
       {/* Details */}
