@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../features/cart/hooks/useCart';
 import { formatPrice } from '../utils/format';
 import { ShoppingBag, ShieldCheck, MapPin, CreditCard, Truck, CheckCircle2, ArrowRight, QrCode, Loader2 } from 'lucide-react';
@@ -22,6 +22,88 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Đồng bộ địa chỉ giao hàng động từ tài khoản thật hoặc sổ địa chỉ
+  const [shippingAddress, setShippingAddress] = useState<{
+    recipientName: string;
+    phone: string;
+    addressLine: string;
+    province: string;
+  }>(() => {
+    try {
+      const selected = localStorage.getItem('printhub_selected_address');
+      if (selected) {
+        const parsed = JSON.parse(selected);
+        if (parsed.recipientName && parsed.addressLine) {
+          return {
+            recipientName: parsed.recipientName,
+            phone: parsed.phone || user?.phone || '0987654321',
+            addressLine: parsed.addressLine,
+            province: parsed.province || 'TP.HCM',
+          };
+        }
+      }
+      const saved = localStorage.getItem('printhub_shipping_addresses');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const def = parsed.find((a: any) => a.isDefault) || parsed[0];
+          return {
+            recipientName: def.recipientName || user?.name || 'Khách hàng',
+            phone: def.phone || user?.phone || '0987654321',
+            addressLine: def.addressLine || 'KTX Khu B, ĐHQG TP.HCM',
+            province: def.province || 'TP.HCM',
+          };
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return {
+      recipientName: user?.name || 'Khách hàng PrintHub',
+      phone: user?.phone || '0987654321',
+      addressLine: user?.university ? `KTX ${user.university}, TP.HCM` : 'KTX Khu B, ĐHQG TP.HCM',
+      province: 'TP.HCM',
+    };
+  });
+
+  useEffect(() => {
+    const handleAddressUpdate = () => {
+      try {
+        const selected = localStorage.getItem('printhub_selected_address');
+        if (selected) {
+          const parsed = JSON.parse(selected);
+          if (parsed.recipientName && parsed.addressLine) {
+            setShippingAddress({
+              recipientName: parsed.recipientName,
+              phone: parsed.phone || user?.phone || '0987654321',
+              addressLine: parsed.addressLine,
+              province: parsed.province || 'TP.HCM',
+            });
+            return;
+          }
+        }
+        const saved = localStorage.getItem('printhub_shipping_addresses');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const def = parsed.find((a: any) => a.isDefault) || parsed[0];
+            setShippingAddress({
+              recipientName: def.recipientName || user?.name || 'Khách hàng',
+              phone: def.phone || user?.phone || '0987654321',
+              addressLine: def.addressLine || 'KTX Khu B, ĐHQG TP.HCM',
+              province: def.province || 'TP.HCM',
+            });
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener('printhub_address_changed', handleAddressUpdate);
+    return () => window.removeEventListener('printhub_address_changed', handleAddressUpdate);
+  }, [user]);
 
   const handleCheckoutSubmit = async () => {
     setErrorMessage('');
@@ -64,10 +146,10 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
       );
 
       const orderPayload = {
-        recipientName: user?.name || 'Khách hàng PrintHub',
-        phone: user?.phone || '0987654321',
-        address: 'KTX Khu B, ĐHQG TP.HCM',
-        province: 'TP.HCM',
+        recipientName: shippingAddress.recipientName,
+        phone: shippingAddress.phone,
+        address: shippingAddress.addressLine,
+        province: shippingAddress.province || 'TP.HCM',
         paymentMethod: 'PAYOS',
         items: orderItems,
       };
@@ -145,10 +227,10 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
       );
 
       const orderPayload = {
-        recipientName: user?.name || 'Khách hàng PrintHub',
-        phone: user?.phone || '0987654321',
-        address: 'KTX Khu B, ĐHQG TP.HCM',
-        province: 'TP.HCM',
+        recipientName: shippingAddress.recipientName || user?.name || 'Khách hàng PrintHub',
+        phone: shippingAddress.phone || user?.phone || '0987654321',
+        address: shippingAddress.addressLine || 'KTX Khu B, ĐHQG TP.HCM',
+        province: shippingAddress.province || 'TP.HCM',
         paymentMethod: 'COD',
         items: orderItems,
       };
@@ -246,8 +328,12 @@ export default function CartPage({ onOpenAddressModal }: CartPageProps) {
               </button>
             </div>
             <div className="p-3.5 rounded-xl bg-[#111215] border border-[#272930] text-xs space-y-1">
-              <p className="font-bold text-white">Nguyễn Văn Anh • 0987.654.321</p>
-              <p className="text-[#94a3b8]">Phòng 402, KTX Khu B Đại Học Quốc Gia TP.HCM, Phường Đông Hòa, Dĩ An, Bình Dương.</p>
+              <p className="font-bold text-white">
+                {shippingAddress.recipientName || 'Chưa có tên người nhận'} • {shippingAddress.phone || 'Chưa có số điện thoại'}
+              </p>
+              <p className="text-[#94a3b8]">
+                {shippingAddress.addressLine || 'Chưa có địa chỉ giao hàng'}{shippingAddress.province ? `, ${shippingAddress.province}` : ''}
+              </p>
             </div>
           </div>
 

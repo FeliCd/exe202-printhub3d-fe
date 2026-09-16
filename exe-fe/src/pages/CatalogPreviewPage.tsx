@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import type { Product } from '../types';
-import { products as mockProducts } from '../features/products/data/products';
 import { formatPrice } from '../utils/format';
 import { Eye, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { productService } from '../services/productService';
 
 export default function CatalogPreviewPage() {
-  const [productList, setProductList] = useState<Product[]>(mockProducts);
+  const [productList, setProductList] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [previewItem, setPreviewItem] = useState<Product | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setIsLoading(true);
         const res = await productService.getProducts();
         const rawList = res?.result?.content || res?.result || res?.data?.content || res?.data || [];
         if (Array.isArray(rawList) && rawList.length > 0) {
@@ -40,9 +41,14 @@ export default function CatalogPreviewPage() {
             imageUrl: p.primaryImageUrl || p.imageUrl || p.images?.[0]?.imageUrl || '',
           }));
           setProductList(mapped);
+        } else {
+          setProductList([]);
         }
       } catch (error) {
-        console.warn('Backend products API error, using mock preview products:', error);
+        console.warn('Backend products API error:', error);
+        setProductList([]);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchProducts();
@@ -79,39 +85,56 @@ export default function CatalogPreviewPage() {
       </div>
 
       {/* Grid Products */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {productList.map((p) => (
-          <div
-            key={p.id}
-            className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] hover:border-[#22c55e]/40 transition space-y-3 flex flex-col justify-between"
-          >
-            <div className="h-40 bg-[#111215] rounded-xl flex items-center justify-center border border-[#272930] relative overflow-hidden">
-              <span className="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-                {p.material}
-              </span>
-              <div className="text-center font-mono text-xs text-slate-300 font-bold">
-                📐 Mẫu In 3D: {p.name}
+      {isLoading ? (
+        <div className="py-16 text-center text-slate-400 text-sm">
+          <div className="w-8 h-8 border-2 border-[#22c55e] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          Đang tải danh sách sản phẩm mẫu...
+        </div>
+      ) : productList.length === 0 ? (
+        <div className="py-16 text-center rounded-2xl bg-[#18191d] border border-[#272930] p-8 space-y-3">
+          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+            <Eye className="w-6 h-6" />
+          </div>
+          <h3 className="text-white font-bold text-base">Chưa có sản phẩm xem trước</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            Hệ thống chưa có sản phẩm nào được kích hoạt hiển thị.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {productList.map((p) => (
+            <div
+              key={p.id}
+              className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] hover:border-[#22c55e]/40 transition space-y-3 flex flex-col justify-between"
+            >
+              <div className="h-40 bg-[#111215] rounded-xl flex items-center justify-center border border-[#272930] relative overflow-hidden">
+                <span className="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  {p.material}
+                </span>
+                <div className="text-center font-mono text-xs text-slate-300 font-bold">
+                  📐 Mẫu In 3D: {p.name}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase font-semibold text-[#22c55e]">{p.category}</p>
+                <h3 className="text-sm font-bold text-white truncate">{p.name}</h3>
+                <p className="text-xs text-[#94a3b8] line-clamp-2 mt-1">{p.description}</p>
+              </div>
+
+              <div className="pt-2 border-t border-[#272930] flex items-center justify-between">
+                <span className="text-base font-black text-white">{formatPrice(p.price)}đ</span>
+                <button
+                  onClick={() => setPreviewItem(p)}
+                  className="px-3 py-1.5 rounded-lg bg-[#1e2025] hover:bg-[#272930] text-xs font-semibold text-slate-200 border border-[#272930] flex items-center gap-1"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#22c55e]" /> Xem mẫu 3D
+                </button>
               </div>
             </div>
-
-            <div>
-              <p className="text-[10px] uppercase font-semibold text-[#22c55e]">{p.category}</p>
-              <h3 className="text-sm font-bold text-white truncate">{p.name}</h3>
-              <p className="text-xs text-[#94a3b8] line-clamp-2 mt-1">{p.description}</p>
-            </div>
-
-            <div className="pt-2 border-t border-[#272930] flex items-center justify-between">
-              <span className="text-base font-black text-white">{formatPrice(p.price)}đ</span>
-              <button
-                onClick={() => setPreviewItem(p)}
-                className="px-3 py-1.5 rounded-lg bg-[#1e2025] hover:bg-[#272930] text-xs font-semibold text-slate-200 border border-[#272930] flex items-center gap-1"
-              >
-                <Eye className="w-3.5 h-3.5 text-[#22c55e]" /> Xem mẫu 3D
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Modal Quick Preview */}
       {previewItem && (

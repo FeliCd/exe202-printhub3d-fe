@@ -8,7 +8,6 @@ import {
   LogOut,
   Ruler,
   Layers,
-  Wallet,
   Sparkles,
   Scale,
   BarChart3,
@@ -194,18 +193,6 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
               <span>Theo dõi tiến độ in 3D</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
             </div>
-          </Link>
-
-          <Link
-            to="/wallet"
-            className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
-              isActive('/wallet')
-                ? 'bg-[#18191d] text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
-                : 'text-slate-300 hover:bg-[#18191d] hover:text-white'
-            }`}
-          >
-            <Wallet className="w-4 h-4 text-[#94a3b8]" />
-            <span>Ví điện tử PrintHub</span>
           </Link>
 
           <Link

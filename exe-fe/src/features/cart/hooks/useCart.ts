@@ -1,50 +1,26 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Product, CartItem } from '../../../types';
 
 const SHIPPING_FEE = 15000;
 const COUPON_DISCOUNT = 15000;
 
 export function useCart() {
-  const [items, setItems] = useState<CartItem[]>([
-    {
-      id: 'cart-1',
-      product: {
-        id: 'ruler-pla-20cm',
-        name: 'Thước Kỹ Thuật PLA Pro 20cm',
-        category: 'Khắc tên riêng / MSSV',
-        categoryColor: 'text-emerald-400',
-        material: 'PLA PRO+',
-        originalPrice: 55000,
-        price: 45000,
-        description: '',
-        badgeText: '',
-        badgeColor: 'emerald',
-        materialBadge: 'PLA PRO+',
-        thumbnail: 'ruler-20cm',
-      },
-      quantity: 1,
-      engraving: '20210123 - Nguyễn Văn A',
-    },
-    {
-      id: 'cart-2',
-      product: {
-        id: 'ruler-petg-30cm',
-        name: 'Thước Thẳng Kháng Gãy PETG 30cm',
-        category: 'Nhựa PETG Kháng Va Đập',
-        categoryColor: 'text-cyan-400',
-        material: 'PETG',
-        originalPrice: 70000,
-        price: 55000,
-        description: '',
-        badgeText: '',
-        badgeColor: 'amber',
-        materialBadge: 'PETG CHỐNG GÃY',
-        thumbnail: 'ruler-30cm',
-      },
-      quantity: 1,
-      colorOption: 'Xanh Neon Neon Glow',
-    },
-  ]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('printhub_cart_items');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('printhub_cart_items', JSON.stringify(items));
+    } catch {
+      // ignore
+    }
+  }, [items]);
 
   const [couponCode, setCouponCode] = useState('SINHVIEN2024');
   const [couponApplied, setCouponApplied] = useState(true);

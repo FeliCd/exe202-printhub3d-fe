@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Plus, Check, Star, Trash2, X, Building, Phone, User } from 'lucide-react';
 import { addressService } from '../../../services/addressService';
+import { useAuth } from '../../../context/AuthContext';
 
 export interface ShippingAddress {
   id: string;
@@ -11,25 +12,6 @@ export interface ShippingAddress {
   isDefault: boolean;
 }
 
-const DEFAULT_ADDRESSES: ShippingAddress[] = [
-  {
-    id: 'addr-1',
-    recipientName: 'Nguyễn Văn Anh',
-    phone: '0987.654.321',
-    addressLine: 'Phòng 402, KTX Khu B Đại Học Quốc Gia TP.HCM, Phường Đông Hòa, Dĩ An, Bình Dương',
-    note: 'Giao giờ hành chính hoặc tối',
-    isDefault: true,
-  },
-  {
-    id: 'addr-2',
-    recipientName: 'Nguyễn Văn Anh (Nhà Riêng)',
-    phone: '0987.654.321',
-    addressLine: 'Số 124/8 Đường Tô Hiến Thành, Phường 14, Quận 10, TP. Hồ Chí Minh',
-    note: 'Nhà riêng gần ĐH Bách Khoa',
-    isDefault: false,
-  },
-];
-
 interface AddressModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,21 +19,24 @@ interface AddressModalProps {
 }
 
 export default function AddressModal({ isOpen, onClose, onSelectAddress }: AddressModalProps) {
+  const { user } = useAuth();
+
   const [addresses, setAddresses] = useState<ShippingAddress[]>(() => {
     const saved = localStorage.getItem('printhub_shipping_addresses');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {
-        return DEFAULT_ADDRESSES;
+        // ignore
       }
     }
-    return DEFAULT_ADDRESSES;
+    return [];
   });
 
   const [selectedId, setSelectedId] = useState<string>(() => {
     const def = addresses.find((a) => a.isDefault);
-    return def ? def.id : addresses[0]?.id || 'addr-1';
+    return def ? def.id : addresses[0]?.id || '';
   });
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -61,24 +46,35 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
   const [newNote, setNewNote] = useState('');
   const [newIsDefault, setNewIsDefault] = useState(false);
 
-  // Thử gọi backend lấy danh sách địa chỉ nếu có (chỉ khi đã đăng nhập), lỗi thì fallback localStorage
+  // Tải danh sách địa chỉ từ backend khi modal mở hoặc có token
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     const fetchBackendAddresses = async () => {
       try {
         const res = await addressService.getAddresses();
-        const data = res?.result || res?.data || res;
-        if (Array.isArray(data) && data.length > 0) {
-          setAddresses(data);
+        const rawList = res?.result || res?.data || res;
+        if (Array.isArray(rawList) && rawList.length > 0) {
+          const mapped: ShippingAddress[] = rawList.map((addr: any, idx: number) => ({
+            id: String(addr.id || `addr-${idx}`),
+            recipientName: addr.recipientName || addr.name || user?.name || 'Khách hàng',
+            phone: addr.phone || user?.phone || '',
+            addressLine: addr.street || addr.addressLine || addr.address || '',
+            note: addr.note || '',
+            isDefault: Boolean(addr.isDefault),
+          }));
+          setAddresses(mapped);
+          if (!selectedId && mapped.length > 0) {
+            const def = mapped.find(a => a.isDefault) || mapped[0];
+            setSelectedId(def.id);
+          }
         }
       } catch (error) {
-        console.warn('Backend address API error, using local/mock addresses:', error);
+        console.warn('Backend address API error, using existing addresses:', error);
       }
     };
-    fetchBackendAddresses();
-  }, []);
+    if (isOpen) {
+      fetchBackendAddresses();
+    }
+  }, [isOpen, user]);
 
   // Sync to localStorage
   useEffect(() => {
@@ -159,9 +155,13 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
   };
 
   const handleConfirmSelect = () => {
-    const chosen = addresses.find((a) => a.id === selectedId);
-    if (chosen && onSelectAddress) {
-      onSelectAddress(chosen);
+    const chosen = addresses.find((a) => a.id === selectedId) || addresses[0];
+    if (chosen) {
+      localStorage.setItem('printhub_selected_address', JSON.stringify(chosen));
+      window.dispatchEvent(new Event('printhub_address_changed'));
+      if (onSelectAddress) {
+        onSelectAddress(chosen);
+      }
     }
     onClose();
   };
@@ -256,8 +256,12 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
           {!showAddForm ? (
             <button
               type="button"
-              onClick={() => setShowAddForm(true)}
-              className="w-full py-3 rounded-2xl border border-dashed border-[#39FF14]/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center justify-center gap-2 bg-emerald-950/20 transition active:scale-98"
+              onClick={() => {
+                setNewRecipientName(user?.name || '');
+                setNewPhone(user?.phone || '');
+                setShowAddForm(true);
+              }}
+              className="w-full py-3 rounded-2xl border border-dashed border-[#39FF14]/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center justify-center gap-2 bg-emerald-950/20 transition active:scale-98 cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Thêm Địa Chỉ Giao Hàng Mới
             </button>

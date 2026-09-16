@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import type { Product } from '../../../types';
-import { products as mockProducts } from '../data/products';
 import ProductCard from './ProductCard';
 import { productService } from '../../../services/productService';
 
@@ -9,12 +8,14 @@ interface MainContentProps {
 }
 
 export default function MainContent({ onAddToCart }: MainContentProps) {
-  const [productList, setProductList] = useState<Product[]>(mockProducts);
+  const [productList, setProductList] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Gọi backend lấy danh sách sản phẩm (Spring Page: res.result.content), nếu lỗi fallback mock data
+  // Gọi backend lấy danh sách sản phẩm (Spring Page: res.result.content)
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setIsLoading(true);
         const res = await productService.getProducts();
         const rawList = res?.result?.content || res?.result || res?.data?.content || res?.data || [];
         if (Array.isArray(rawList) && rawList.length > 0) {
@@ -42,9 +43,14 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
             imageUrl: p.primaryImageUrl || p.imageUrl || p.images?.[0]?.imageUrl || '',
           }));
           setProductList(mapped);
+        } else {
+          setProductList([]);
         }
       } catch (error) {
-        console.warn('Backend products API error, falling back to mock products:', error);
+        console.warn('Backend products API error:', error);
+        setProductList([]);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchProducts();
@@ -115,7 +121,7 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-medium">
           <button className="px-3.5 py-2 rounded-full bg-[#22c55e] text-slate-950 font-bold whitespace-nowrap shadow-sm">
-            Tất cả mẫu thước (18)
+            Tất cả mẫu thước ({productList.length})
           </button>
           {['Thước kỹ thuật 15cm - 30cm', 'Thước dẻo chống gãy PETG/TPU', 'Thước đo góc & Thước đo lỗ', 'Thước vẽ hình kỹ thuật (Stencil)'].map(
             (label) => (
@@ -141,11 +147,30 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
       </div>
 
       {/* Products Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-        {productList.map((product) => (
-          <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
-        ))}
-      </section>
+      {isLoading ? (
+        <div className="py-16 text-center text-slate-400 text-sm">
+          <div className="w-8 h-8 border-2 border-[#22c55e] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          Đang tải danh sách sản phẩm từ hệ thống...
+        </div>
+      ) : productList.length === 0 ? (
+        <div className="py-16 text-center rounded-2xl bg-[#18191d] border border-[#272930] p-8 space-y-3">
+          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          </div>
+          <h3 className="text-white font-bold text-base">Chưa có sản phẩm nào</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            Hệ thống đang cập nhật danh mục mẫu thước in 3D mới. Vui lòng quay lại sau!
+          </p>
+        </div>
+      ) : (
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+          {productList.map((product) => (
+            <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
+          ))}
+        </section>
+      )}
     </main>
   );
 }

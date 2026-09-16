@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, ShoppingBag, Search, Wallet, Sparkles, User as UserIcon, Menu } from 'lucide-react';
+import { Bell, ShoppingBag, Search, Sparkles, User as UserIcon, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useWallet } from '../context/WalletContext';
 import { useNotifications } from '../context/NotificationContext';
-import { formatPrice } from '../utils/format';
 import NotificationDropdown from '../components/NotificationDropdown';
 
 interface HeaderProps {
@@ -15,7 +13,6 @@ interface HeaderProps {
 
 export default function Header({ cartCount, onToggleSidebar, onOpenCart }: HeaderProps) {
   const { user } = useAuth();
-  const { balance } = useWallet();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
@@ -80,18 +77,6 @@ export default function Header({ cartCount, onToggleSidebar, onOpenCart }: Heade
       {/* TOP RIGHT: PROFILE - GIỎ HÀNG */}
       {/* ========================================================================= */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        {/* Wallet Balance Badge */}
-        {user && (
-          <Link
-            to="/wallet"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#18191d] hover:bg-[#272930] border border-[#272930] text-xs font-bold text-slate-200 transition"
-            title="Ví điện tử PrintHub"
-          >
-            <Wallet className="w-3.5 h-3.5 text-[#39FF14]" />
-            <span className="font-mono">{formatPrice(balance)}đ</span>
-          </Link>
-        )}
-
         {/* Real-time Notification Bell */}
         <div className="relative">
           <button
