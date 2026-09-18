@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import ErrorBoundary from '../components/ErrorBoundary';
+import { lazy, Suspense, useState } from 'react';
 import { Printer, Upload, MessageSquare, ArrowRight, Sparkles } from 'lucide-react';
-import RulerConfigurator from '../components/3d/RulerConfigurator';
+const RulerConfigurator = lazy(() => import('../components/3d/RulerConfigurator'));
 import { formatPrice } from '../utils/format';
 import type { CustomOrderRequest } from '../types';
 
@@ -70,18 +71,18 @@ export default function CustomOrderPage() {
   return (
     <div className="space-y-6 w-full">
       {/* Page Title & Navigation Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-[#39FF14]">
             <Printer className="w-6 h-6" />
             <h1 className="text-2xl font-black text-white">Yêu Cầu In 3D Tùy Chỉnh &amp; Trình Thiết Kế 3D</h1>
           </div>
-          <p className="text-xs text-[#94a3b8]">
+          <p className="text-sm text-text-muted">
             Thiết kế phôi thước 3D trực quan real-time (React Three Fiber), khắc MSSV nổi và xuất file .STL trực tiếp cho xưởng in.
           </p>
         </div>
 
-        <div className="flex bg-[#18191d] p-1 rounded-2xl border border-[#272930] text-xs font-bold shrink-0">
+        <div className="flex flex-wrap gap-1 bg-surface p-1 rounded-2xl border border-border text-xs font-bold shrink-0">
           <button
             onClick={() => setActiveTab('configurator')}
             className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${
@@ -116,36 +117,36 @@ export default function CustomOrderPage() {
       </div>
 
       {/* 1. 3D CONFIGURATOR VIEWPORT (Requirement 1, 2, 3, 4) */}
-      {activeTab === 'configurator' && <RulerConfigurator />}
+      {activeTab === 'configurator' && <ErrorBoundary><Suspense fallback={<p role="status" className="p-6 text-slate-300">Đang tải trình thiết kế 3D…</p>}><RulerConfigurator /></Suspense></ErrorBoundary>}
 
       {/* 2. UPLOAD FILE FORM */}
       {activeTab === 'upload' && (
-        <form onSubmit={handleCreateRequest} className="p-6 rounded-3xl bg-[#18191d] border border-[#272930] space-y-5 text-xs">
-          <div className="border-2 border-dashed border-[#272930] hover:border-[#39FF14] rounded-2xl p-8 text-center space-y-2 transition cursor-pointer bg-[#111215]">
+        <form onSubmit={handleCreateRequest} className="p-6 rounded-3xl bg-surface border border-border space-y-5 text-xs">
+          <div className="border-2 border-dashed border-border hover:border-[#39FF14] rounded-2xl p-8 text-center space-y-2 transition cursor-pointer bg-surface-inset">
             <Upload className="w-8 h-8 text-[#39FF14] mx-auto" />
             <h3 className="font-bold text-white text-sm">Kéo thả tệp 3D (.STL, .OBJ, .STEP) vào đây</h3>
-            <p className="text-[#94a3b8] text-[11px]">Dung lượng tối đa 100MB per file</p>
+            <p className="text-text-muted text-sm">Dung lượng tối đa 100MB per file</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="font-bold text-slate-200">Tên tệp mô hình 3D:</label>
-              <input
+              <label htmlFor="customorderpage-field-1" className="font-bold text-slate-200">Tên tệp mô hình 3D:</label>
+              <input id="customorderpage-field-1"
                 type="text"
                 required
                 value={fileName}
                 onChange={(e) => setFileName(e.target.value)}
                 placeholder="Khung_Robot_Do_An.stl"
-                className="w-full bg-[#111215] border border-[#272930] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-slate-200">Chất liệu nhựa in 3D:</label>
-              <select
+              <label htmlFor="customorderpage-field-2" className="font-bold text-slate-200">Chất liệu nhựa in 3D:</label>
+              <select id="customorderpage-field-2"
                 value={material}
                 onChange={(e) => setMaterial(e.target.value)}
-                className="w-full bg-[#111215] border border-[#272930] rounded-xl px-3.5 py-2.5 text-white font-bold outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white font-bold outline-none focus:border-[#39FF14]"
               >
                 <option value="PLA PRO+">PLA PRO+ (Siêu bền)</option>
                 <option value="PETG Dẻo">PETG Dẻo Chịu Nhiệt</option>
@@ -156,29 +157,32 @@ export default function CustomOrderPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="font-bold text-slate-200">Màu sắc nhựa:</label>
-              <input
+              <label htmlFor="customorderpage-field-3" className="font-bold text-slate-200">Màu sắc nhựa:</label>
+              <input id="customorderpage-field-3"
                 type="text"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="w-full bg-[#111215] border border-[#272930] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14]"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-200">Mật độ Infill (%):</label>
-              <input
+              <label htmlFor="customorderpage-field-4" className="font-bold text-slate-200">Mật độ Infill (%):</label>
+              <input id="customorderpage-field-4"
                 type="number"
+                min={0}
+                max={100}
+                required
                 value={infill}
                 onChange={(e) => setInfill(Number(e.target.value))}
-                className="w-full bg-[#111215] border border-[#272930] rounded-xl px-3.5 py-2.5 text-white font-mono outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white font-mono outline-none focus:border-[#39FF14]"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-200">Độ mịn Layer:</label>
-              <select
+              <label htmlFor="customorderpage-field-5" className="font-bold text-slate-200">Độ mịn Layer:</label>
+              <select id="customorderpage-field-5"
                 value={layerHeight}
                 onChange={(e) => setLayerHeight(e.target.value)}
-                className="w-full bg-[#111215] border border-[#272930] rounded-xl px-3.5 py-2.5 text-white font-mono outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white font-mono outline-none focus:border-[#39FF14]"
               >
                 <option value="0.16 mm">0.16 mm (Tối ưu độ bền)</option>
                 <option value="0.12 mm">0.12 mm (Mịn đẹp)</option>
@@ -186,13 +190,14 @@ export default function CustomOrderPage() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-200">Số lượng cần in:</label>
-              <input
+              <label htmlFor="customorderpage-field-6" className="font-bold text-slate-200">Số lượng cần in:</label>
+              <input id="customorderpage-field-6"
                 type="number"
+                required
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
                 min={1}
-                className="w-full bg-[#111215] border border-[#272930] rounded-xl px-3.5 py-2.5 text-white font-mono outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white font-mono outline-none focus:border-[#39FF14]"
               />
             </div>
           </div>
@@ -210,27 +215,27 @@ export default function CustomOrderPage() {
       {activeTab === 'list' && (
         <div className="space-y-4">
           {requests.map((r) => (
-            <div key={r.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-3">
-              <div className="flex justify-between items-center border-b border-[#272930] pb-2.5">
+            <div key={r.id} className="p-5 rounded-2xl bg-surface border border-border text-xs space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-2.5">
                 <div>
                   <span className="font-mono text-[#39FF14] font-bold">{r.id}</span>
                   <h3 className="font-bold text-white text-sm">{r.fileName}</h3>
-                  <p className="text-[#94a3b8] text-[11px]">{r.createdAt}</p>
+                  <p className="text-text-muted text-sm">{r.createdAt}</p>
                 </div>
 
                 <div>
                   {r.status === 'PENDING_QUOTE' && (
-                    <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[10px]">
+                    <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-xs">
                       Chờ xưởng báo giá
                     </span>
                   )}
                   {r.status === 'QUOTED' && (
-                    <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[10px]">
+                    <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs">
                       Đã có báo giá ({formatPrice(r.quotedPrice || 0)}đ)
                     </span>
                   )}
                   {r.status === 'IN_PRODUCTION' && (
-                    <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-[10px]">
+                    <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-xs">
                       Đang sản xuất in 3D
                     </span>
                   )}
@@ -238,7 +243,7 @@ export default function CustomOrderPage() {
               </div>
 
               {r.factoryNotes && (
-                <div className="p-3 bg-emerald-950/40 border border-emerald-800/40 text-emerald-300 rounded-xl text-[11px] flex items-start gap-2">
+                <div className="p-3 bg-emerald-950/40 border border-emerald-800/40 text-emerald-300 rounded-xl text-xs flex items-start gap-2">
                   <MessageSquare className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
                   <span>{r.factoryNotes}</span>
                 </div>

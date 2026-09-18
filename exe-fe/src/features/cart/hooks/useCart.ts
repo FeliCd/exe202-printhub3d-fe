@@ -64,9 +64,7 @@ export function useCart() {
 
   const applyCoupon = useCallback((code: string) => {
     setCouponCode(code);
-    if (code.trim()) {
-      setCouponApplied(true);
-    }
+    setCouponApplied(Boolean(code.trim()));
   }, []);
 
   const subtotal = items.reduce(
@@ -74,8 +72,9 @@ export function useCart() {
     0
   );
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const discount = couponApplied ? COUPON_DISCOUNT : 0;
-  const total = subtotal - discount + SHIPPING_FEE;
+  const discount = couponApplied ? Math.min(COUPON_DISCOUNT, subtotal) : 0;
+  const shippingFee = items.length ? SHIPPING_FEE : 0;
+  const total = subtotal - discount + shippingFee;
 
   const clearCart = useCallback(() => {
     setItems([]);
@@ -86,7 +85,7 @@ export function useCart() {
     totalItems,
     subtotal,
     discount,
-    shippingFee: SHIPPING_FEE,
+    shippingFee,
     total,
     couponCode,
     couponApplied,

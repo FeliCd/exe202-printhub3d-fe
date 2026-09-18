@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setRole = (role: UserRole) => {
     if (user) {
-      setUser({ ...user, role });
+      setUser(previous => previous ? { ...previous, role } : previous);
     }
   };
 
@@ -111,14 +111,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setPasscode = (newPasscode: string) => {
     setStoredPasscodeState(newPasscode);
     if (user) {
-      setUser({ ...user, hasPasscode: true });
+      setUser(previous => previous ? { ...previous, hasPasscode: true } : previous);
     }
   };
 
   const updateProfile = (data: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...data });
-    }
+    setUser(previous => previous ? { ...previous, ...data } : previous);
   };
 
   const lockAccount = (reason: string) => {

@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
-import Header from './Header';
+import type { ReactNode } from 'react';
+import AppShell from './AppShell';
 import FactorySidebar from './FactorySidebar';
 
 interface FactoryLayoutProps {
@@ -14,21 +13,10 @@ export default function FactoryLayout({
   onOpenCart,
   children,
 }: FactoryLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
   return (
-    <>
-      <Header
-        cartCount={cartCount}
-        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-        onOpenCart={onOpenCart}
-      />
-      <div className="flex-1 flex overflow-hidden">
-        <FactorySidebar isOpen={sidebarOpen} />
-        <main className="flex-1 w-full overflow-y-auto px-4 lg:px-8 py-6 flex flex-col">
-          {children || <Outlet />}
-        </main>
-      </div>
-    </>
+    <AppShell cartCount={cartCount} onOpenCart={onOpenCart}
+      sidebar={<FactorySidebar isOpen={true} />}>
+      {children}
+    </AppShell>
   );
 }

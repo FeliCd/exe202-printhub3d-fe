@@ -99,7 +99,7 @@ export default function QuotationsPage() {
             <FileText className="w-6 h-6" />
             <h1 className="text-2xl font-black text-white">Quản Lý Báo Giá In 3D (Quotation History)</h1>
           </div>
-          <p className="text-xs text-[#94a3b8]">
+          <p className="text-sm text-text-muted">
             Theo dõi trạng thái báo giá tệp CAD 3D tùy chỉnh. Chấp nhận báo giá để chuyển trực tiếp thành đơn hàng sản xuất.
           </p>
         </div>
@@ -115,27 +115,27 @@ export default function QuotationsPage() {
       {/* List */}
       <div className="space-y-4">
         {quotes.map(q => (
-          <div key={q.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-4">
-            <div className="flex justify-between items-center border-b border-[#272930] pb-3">
+          <div key={q.id} className="p-5 rounded-2xl bg-surface border border-border text-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
               <div>
                 <span className="font-mono text-[#39FF14] font-bold text-sm">{q.id}</span>
                 <h3 className="font-bold text-white text-sm mt-0.5">{q.fileName}</h3>
-                <p className="text-[#94a3b8] text-[11px]">Ngày gửi: {q.createdAt}</p>
+                <p className="text-text-muted text-sm">Ngày gửi: {q.createdAt}</p>
               </div>
 
               <div>
                 {q.status === 'PENDING' && (
-                  <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-xs flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 animate-spin" /> Đang chờ xưởng báo giá
                   </span>
                 )}
                 {q.status === 'QUOTED' && (
-                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Đã có báo giá
                   </span>
                 )}
                 {q.status === 'ACCEPTED' && (
-                  <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-xs flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5" /> Đã chấp nhận &amp; Đặt hàng
                   </span>
                 )}
@@ -143,21 +143,21 @@ export default function QuotationsPage() {
             </div>
 
             {/* Spec Details */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-[#111215] rounded-xl border border-[#272930]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-surface-inset rounded-xl border border-border">
               <div>
-                <span className="text-[#94a3b8] block">Chất liệu:</span>
+                <span className="text-text-muted block">Chất liệu:</span>
                 <strong className="text-white">{q.material}</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Trọng lượng / Giờ in:</span>
+                <span className="text-text-muted block">Trọng lượng / Giờ in:</span>
                 <strong className="text-white">{q.weightGrams}g • {q.printHours}h</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Độ đặc Infill:</span>
+                <span className="text-text-muted block">Độ đặc Infill:</span>
                 <strong className="text-white">{q.infill}%</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Độ mịn Layer:</span>
+                <span className="text-text-muted block">Độ mịn Layer:</span>
                 <strong className="text-[#39FF14] font-mono">{q.layerHeight}</strong>
               </div>
             </div>
@@ -167,17 +167,17 @@ export default function QuotationsPage() {
                 <MessageSquare className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-xs text-[#39FF14]">Ghi chú từ Xưởng In BK-Makerlab:</strong>
-                  <p className="text-[11px] text-slate-200 mt-0.5">{q.factoryNotes}</p>
+                  <p className="text-sm text-slate-200 mt-0.5">{q.factoryNotes}</p>
                 </div>
               </div>
             )}
 
             {/* Price & Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#272930]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border">
               <div>
                 {q.price ? (
                   <div>
-                    <span className="text-[#94a3b8]">Giá gia công đề xuất: </span>
+                    <span className="text-text-muted">Giá gia công đề xuất: </span>
                     <strong className="text-lg font-black text-[#39FF14] font-mono">{formatPrice(q.price)}đ</strong>
                   </div>
                 ) : (

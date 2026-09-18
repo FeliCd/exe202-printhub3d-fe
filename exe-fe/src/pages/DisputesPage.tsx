@@ -58,7 +58,7 @@ export default function DisputesPage() {
           <Scale className="w-6 h-6" />
           <h1 className="text-2xl font-black text-white">Trung Tâm Giải Quyết Tranh Chấp &amp; Khiếu Nại</h1>
         </div>
-        <p className="text-xs text-[#94a3b8]">
+        <p className="text-sm text-text-muted">
           Gửi khiếu nại, làm việc trực tiếp với Quản trị viên Admin &amp; Xưởng sản xuất để nhận bồi hoàn tiền vào Ví.
         </p>
       </div>
@@ -66,44 +66,45 @@ export default function DisputesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Form */}
         <div className="lg:col-span-2 space-y-6">
-          <form onSubmit={handleCreateDispute} className="p-6 rounded-2xl bg-[#18191d] border border-[#272930] space-y-4">
+          <form onSubmit={handleCreateDispute} className="p-6 rounded-2xl bg-surface border border-border space-y-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-red-400" /> Mở Khiếu Nại Đơn Hàng Mới
             </h3>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Mã đơn hàng khiếu nại</label>
-                <input
+                <label htmlFor="disputespage-field-1" className="font-bold text-slate-300">Mã đơn hàng khiếu nại</label>
+                <input id="disputespage-field-1"
                   type="text"
                   required
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
-                  className="w-full bg-[#111215] border border-[#272930] rounded-xl p-2.5 text-white font-mono outline-none"
+                  className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white font-mono outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Số tiền yêu cầu đền bù (VNĐ)</label>
-                <input
+                <label htmlFor="disputespage-field-2" className="font-bold text-slate-300">Số tiền yêu cầu đền bù (VNĐ)</label>
+                <input id="disputespage-field-2"
                   type="number"
+                  min={1}
                   required
                   value={amount}
                   onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
-                  className="w-full bg-[#111215] border border-[#272930] rounded-xl p-2.5 text-white outline-none"
+                  className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none"
                 />
               </div>
             </div>
 
             <div className="space-y-1 text-xs">
-              <label className="font-bold text-slate-300">Lý do khiếu nại &amp; Minh chứng chi tiết</label>
-              <textarea
+              <label htmlFor="disputespage-field-3" className="font-bold text-slate-300">Lý do khiếu nại &amp; Minh chứng chi tiết</label>
+              <textarea id="disputespage-field-3"
                 rows={3}
                 required
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Nêu rõ sai sót của xưởng in (sai kích thước, cong vênh, giao thiếu...)"
-                className="w-full bg-[#111215] border border-[#272930] rounded-xl p-2.5 text-white outline-none"
+                className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none"
               />
             </div>
 
@@ -116,24 +117,24 @@ export default function DisputesPage() {
           </form>
 
           {/* Interactive Chat Box */}
-          <div className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] space-y-4">
+          <div className="p-5 rounded-2xl bg-surface border border-border space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-[#22c55e]" /> Trao Đổi Minh Chứng Trực Tiếp (Tri-party Chat)
             </h3>
 
-            <div className="p-4 rounded-xl bg-[#111215] border border-[#272930] max-h-56 overflow-y-auto space-y-3 text-xs">
+            <div className="p-4 rounded-xl bg-surface-inset border border-border max-h-56 overflow-y-auto space-y-3 text-xs">
               {chatLog.map((c, i) => (
                 <div
                   key={i}
                   className={`p-2.5 rounded-xl max-w-[85%] ${
                     c.sender === 'Khách hàng'
-                      ? 'bg-[#22c55e]/15 border border-[#22c55e]/30 text-emerald-300 ml-auto'
+                      ? 'bg-primary/15 border border-[#22c55e]/30 text-emerald-300 ml-auto'
                       : c.sender === 'Admin PrintHub'
                       ? 'bg-purple-500/15 border border-purple-500/30 text-purple-300'
-                      : 'bg-[#1e2025] border border-[#272930] text-slate-300'
+                      : 'bg-surface-raised border border-border text-slate-300'
                   }`}
                 >
-                  <div className="flex justify-between items-center text-[10px] font-bold opacity-80 mb-0.5">
+                  <div className="flex justify-between items-center text-xs font-bold opacity-80 mb-0.5">
                     <span>{c.sender}</span>
                     <span>{c.time}</span>
                   </div>
@@ -143,14 +144,14 @@ export default function DisputesPage() {
             </div>
 
             <form onSubmit={handleSendChat} className="flex gap-2 text-xs">
-              <input
+              <input aria-label="Gửi phản hồi / hình ảnh chứng cứ..."
                 type="text"
                 value={newMsg}
                 onChange={(e) => setNewMsg(e.target.value)}
                 placeholder="Gửi phản hồi / hình ảnh chứng cứ..."
-                className="flex-1 bg-[#111215] border border-[#272930] rounded-xl px-3 py-2.5 text-white outline-none"
+                className="flex-1 bg-surface-inset border border-border rounded-xl px-3 py-2.5 text-white outline-none"
               />
-              <button type="submit" className="px-4 py-2.5 bg-[#22c55e] text-slate-950 font-bold rounded-xl flex items-center gap-1">
+              <button type="submit" className="px-4 py-2.5 bg-primary text-slate-950 font-bold rounded-xl flex items-center gap-1">
                 <Send className="w-4 h-4" /> Gửi
               </button>
             </form>
@@ -162,16 +163,16 @@ export default function DisputesPage() {
           <h3 className="text-sm font-bold text-white">Danh Sách Khiếu Nại ({disputes.length})</h3>
           <div className="space-y-3">
             {disputes.map((d) => (
-              <div key={d.id} className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-2">
+              <div key={d.id} className="p-4 rounded-2xl bg-surface border border-border text-xs space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-mono font-bold text-red-400">{d.id}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-red-950 text-red-400 text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-red-950 text-red-400 text-xs font-bold">
                     {d.status}
                   </span>
                 </div>
                 <p className="font-bold text-white">Đơn hàng: {d.orderId}</p>
                 <p className="text-emerald-400 font-bold">Số tiền: {formatPrice(d.amount)}đ</p>
-                <p className="text-[#94a3b8] text-[11px]">{d.reason}</p>
+                <p className="text-text-muted text-sm">{d.reason}</p>
               </div>
             ))}
           </div>

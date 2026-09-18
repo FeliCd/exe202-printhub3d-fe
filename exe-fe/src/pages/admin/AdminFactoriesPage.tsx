@@ -83,62 +83,62 @@ export default function AdminFactoriesPage() {
             <Factory className="w-6 h-6" />
             <h1 className="text-2xl font-black text-white">Quản Lý Xưởng In Đối Tác (Platform Partners)</h1>
           </div>
-          <p className="text-xs text-[#94a3b8]">
+          <p className="text-sm text-text-muted">
             Mô hình Sàn đa xưởng (Multi-vendor Platform). Admin quản lý cấp phép xưởng in, tỷ lệ chiết khấu sàn 5% và điểm đánh giá uy tín.
           </p>
         </div>
 
-        <button className="px-4 py-2.5 rounded-xl bg-purple-500 text-white font-black text-xs hover:bg-purple-600 transition flex items-center gap-2 shadow-lg shrink-0">
+        <button disabled aria-description="Chức năng chưa khả dụng trong bản dùng thử" className="px-4 py-2.5 rounded-xl bg-purple-500 text-white font-black text-xs hover:bg-purple-600 transition flex items-center gap-2 shadow-lg shrink-0">
           <Plus className="w-4 h-4" /> Cấp Phép Xưởng In Mới
         </button>
       </div>
 
       <div className="space-y-4">
         {factories.map(f => (
-          <div key={f.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-4">
-            <div className="flex justify-between items-start border-b border-[#272930] pb-3">
+          <div key={f.id} className="p-5 rounded-2xl bg-surface border border-border text-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-border pb-3">
               <div>
                 <span className="font-mono text-purple-400 font-bold">{f.id} • Chiết khấu sàn {f.commissionRate}%</span>
                 <h3 className="font-bold text-white text-base mt-0.5">{f.name}</h3>
-                <p className="text-[#94a3b8] text-[11px] flex items-center gap-1 mt-1">
+                <p className="text-text-muted text-sm flex items-center gap-1 mt-1">
                   <MapPin className="w-3 h-3 text-purple-400 shrink-0" /> {f.location}
                 </p>
               </div>
 
               <div>
                 {f.status === 'ACTIVE' ? (
-                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Đang Hoạt Động
                   </span>
                 ) : (
-                  <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-xs flex items-center gap-1">
                     <XCircle className="w-3.5 h-3.5" /> Tạm Tắt Hoạt Động
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-[#111215] rounded-xl border border-[#272930]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-surface-inset rounded-xl border border-border">
               <div>
-                <span className="text-[#94a3b8] block">Cụm máy in:</span>
+                <span className="text-text-muted block">Cụm máy in:</span>
                 <strong className="text-white">{f.printersCount} máy (FDM/SLA)</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Đơn đã gia công:</span>
+                <span className="text-text-muted block">Đơn đã gia công:</span>
                 <strong className="text-[#39FF14]">{f.completedJobs} đơn hàng</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Đánh giá trung bình:</span>
+                <span className="text-text-muted block">Đánh giá trung bình:</span>
                 <strong className="text-yellow-400 flex items-center gap-1">{f.rating} <Star className="w-3 h-3 fill-yellow-400" /></strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Tổng doanh thu xưởng:</span>
+                <span className="text-text-muted block">Tổng doanh thu xưởng:</span>
                 <strong className="text-cyan-300 font-mono">{formatPrice(f.totalEarnings)}đ</strong>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[#94a3b8]">Trạng thái kiểm định thiết bị: <strong className="text-emerald-400">Đã xác minh ISO 9001</strong></span>
+              <span className="text-text-muted">Trạng thái kiểm định thiết bị: <strong className="text-emerald-400">Đã xác minh ISO 9001</strong></span>
 
               <button
                 onClick={() => toggleFactoryStatus(f.id)}

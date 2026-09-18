@@ -47,39 +47,39 @@ export default function FactoryInventoryPage() {
             <Package className="w-6 h-6" />
             <h1 className="text-2xl font-black text-white">Quản Lý Kho Nhựa &amp; Vật Tư (Filament Inventory)</h1>
           </div>
-          <p className="text-xs text-[#94a3b8]">
+          <p className="text-sm text-text-muted">
             Theo dõi lượng nhựa FDM/SLA thực tế còn tồn trong kho xưởng để đưa ra quyết định nhận các Đơn Hàng Hàng Loạt.
           </p>
         </div>
 
-        <button className="px-4 py-2.5 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs hover:bg-cyan-300 transition flex items-center gap-2 shadow-lg shrink-0">
+        <button disabled aria-description="Chức năng chưa khả dụng trong bản dùng thử" className="px-4 py-2.5 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs hover:bg-cyan-300 transition flex items-center gap-2 shadow-lg shrink-0">
           <Plus className="w-4 h-4" /> Nhập Cuộn Nhựa Mới
         </button>
       </div>
 
       {/* Stock Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] space-y-1">
-          <p className="text-xs text-[#94a3b8]">Tổng Trọng Lượng Nhựa Kho</p>
+        <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+          <p className="text-sm text-text-muted">Tổng Trọng Lượng Nhựa Kho</p>
           <p className="text-2xl font-black text-cyan-400">8.65 kg</p>
-          <span className="text-[10px] text-emerald-400 font-bold">11 cuộn đang gá máy</span>
+          <span className="text-xs text-emerald-400 font-bold">11 cuộn đang gá máy</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] space-y-1">
-          <p className="text-xs text-[#94a3b8]">Nhựa PLA Pro+ Chủ Đạo</p>
+        <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+          <p className="text-sm text-text-muted">Nhựa PLA Pro+ Chủ Đạo</p>
           <p className="text-2xl font-black text-[#39FF14]">7.0 kg</p>
-          <span className="text-[10px] text-[#94a3b8]">Đủ cho ~165 thước 20cm</span>
+          <span className="text-xs text-text-muted">Đủ cho ~165 thước 20cm</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] space-y-1">
-          <p className="text-xs text-[#94a3b8]">Cảnh Báo Sắp Hết Hàng</p>
+        <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+          <p className="text-sm text-text-muted">Cảnh Báo Sắp Hết Hàng</p>
           <p className="text-2xl font-black text-amber-400">2 Loại</p>
-          <span className="text-[10px] text-amber-400 font-bold">PETG Clear &amp; ABS Grey</span>
+          <span className="text-xs text-amber-400 font-bold">PETG Clear &amp; ABS Grey</span>
         </div>
       </div>
 
       {/* Spools Table */}
-      <div className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] space-y-4">
+      <div className="p-5 rounded-2xl bg-surface border border-border space-y-4">
         <h3 className="text-sm font-bold text-white uppercase tracking-wider">Danh Sách Cuộn Nhựa &amp; Resin Trong Kho</h3>
 
         <div className="divide-y divide-[#272930] text-xs">
@@ -91,29 +91,29 @@ export default function FactoryInventoryPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-white text-sm">{spool.material} - {spool.color}</h4>
-                  <p className="text-[#94a3b8] text-[11px]">Thương hiệu: {spool.brand} • Cuộn khả dụng: {spool.spoolCount} cuộn</p>
+                  <p className="text-text-muted text-sm">Thương hiệu: {spool.brand} • Cuộn khả dụng: {spool.spoolCount} cuộn</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <span className="text-[#94a3b8] block text-[11px]">Trọng lượng còn:</span>
+                  <span className="text-text-muted block text-xs">Trọng lượng còn:</span>
                   <strong className="text-white font-mono">{spool.weightRemainingGrams}g / {spool.totalCapacityGrams}g</strong>
                 </div>
 
                 <div>
                   {spool.status === 'IN_STOCK' && (
-                    <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[10px] flex items-center gap-1">
+                    <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Còn Hàng
                     </span>
                   )}
                   {spool.status === 'LOW_STOCK' && (
-                    <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[10px] flex items-center gap-1">
+                    <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-xs flex items-center gap-1">
                       <AlertTriangle className="w-3.5 h-3.5" /> Sắp Hết
                     </span>
                   )}
                   {spool.status === 'OUT_OF_STOCK' && (
-                    <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-[10px]">
+                    <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-xs">
                       Hết Hàng
                     </span>
                   )}

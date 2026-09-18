@@ -64,14 +64,14 @@ export default function SubscriptionsPage() {
           <Sparkles className="w-3.5 h-3.5" /> Gói Hội Viên Ưu Đãi Sinh Viên
         </div>
         <h1 className="text-3xl font-black text-white">Nâng Cấp Gói Hội Viên PrintHub</h1>
-        <p className="text-xs text-[#94a3b8]">
+        <p className="text-sm text-text-muted">
           Tối ưu chi phí đồ án, nhận chiết khấu in 3D lên đến 30% và miễn phí ship KTX hàng tháng.
         </p>
       </div>
 
       {upgraded && (
         <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-bold text-center flex items-center justify-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-[#22c55e]" /> Bạn đã đăng ký thành công Gói Pro Student Member!
+          <ShieldCheck className="w-5 h-5 text-[#22c55e]" /> Bạn đã đăng ký thành công gói {plans.find(plan => plan.id === activePlan)?.name}!
         </div>
       )}
 
@@ -80,14 +80,14 @@ export default function SubscriptionsPage() {
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`p-6 rounded-3xl bg-[#18191d] border relative flex flex-col justify-between space-y-6 transition ${
+            className={`p-6 rounded-3xl bg-surface border relative flex flex-col justify-between space-y-6 transition ${
               plan.isPopular
                 ? 'border-[#22c55e] shadow-2xl shadow-emerald-950/50'
-                : 'border-[#272930] hover:border-slate-500'
+                : 'border-border hover:border-slate-500'
             }`}
           >
             {plan.badge && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#22c55e] text-slate-950 text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-lg">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-slate-950 text-xs font-black uppercase px-3 py-1 rounded-full shadow-lg">
                 {plan.badge}
               </span>
             )}
@@ -95,15 +95,15 @@ export default function SubscriptionsPage() {
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-black text-white">{plan.name}</h3>
-                <p className="text-xs text-[#94a3b8] mt-1">{plan.description}</p>
+                <p className="text-sm text-text-muted mt-1">{plan.description}</p>
               </div>
 
               <div className="text-2xl font-black text-white">
                 {plan.price === 0 ? '0 VNĐ' : `${formatPrice(plan.price)}đ`}
-                <span className="text-xs font-normal text-[#94a3b8]"> /{plan.period}</span>
+                <span className="text-xs font-normal text-text-muted"> /{plan.period}</span>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-[#272930] text-xs">
+              <div className="space-y-2 pt-2 border-t border-border text-xs">
                 {plan.features.map((feat, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-slate-300">
                     <Check className="w-4 h-4 text-[#22c55e] shrink-0" />
@@ -114,14 +114,15 @@ export default function SubscriptionsPage() {
             </div>
 
             <button
+              disabled={activePlan === plan.id}
               onClick={() => {
                 setActivePlan(plan.id);
                 setUpgraded(true);
               }}
               className={`w-full py-3 rounded-xl font-bold text-xs transition ${
                 activePlan === plan.id
-                  ? 'bg-[#22c55e] text-slate-950 shadow-lg shadow-emerald-500/20'
-                  : 'bg-[#1e2025] hover:bg-[#272930] text-white border border-[#272930]'
+                  ? 'bg-primary text-slate-950 shadow-lg shadow-emerald-500/20'
+                  : 'bg-surface-raised hover:bg-[#272930] text-white border border-border'
               }`}
             >
               {activePlan === plan.id ? 'Gói Đang Sử Dụng' : 'Đăng Ký Nâng Cấp'}

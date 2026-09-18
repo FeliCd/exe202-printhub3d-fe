@@ -109,7 +109,7 @@ export default function AdminUsersPage() {
   };
 
   const filteredUsers = usersList.filter(
-    u => u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
+    u => u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()) || u.studentId?.includes(search.trim())
   );
 
   return (
@@ -120,32 +120,33 @@ export default function AdminUsersPage() {
             <Users className="w-6 h-6" />
             <h1 className="text-2xl font-black text-white">Quản Lý Người Dùng &amp; Phân Quyền (User Management)</h1>
           </div>
-          <p className="text-xs text-[#94a3b8]">
+          <p className="text-sm text-text-muted">
             Xem toàn bộ tài khoản Sinh viên, Xưởng in đối tác. Phân quyền vai trò, khóa/mở khóa tài khoản và theo dõi số dư ví.
           </p>
         </div>
       </div>
 
       {/* Search */}
-      <div className="p-4 rounded-2xl bg-[#18191d] border border-[#272930] flex items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-surface border border-border flex items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#94a3b8]" />
-          <input
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-text-muted" />
+          <input aria-label="Tìm tên sinh viên, email, MSSV..."
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm tên sinh viên, email, MSSV..."
-            className="w-full bg-[#111215] border border-[#272930] rounded-xl pl-9 pr-4 py-2 text-xs text-white outline-none focus:border-purple-400"
+            className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2 text-xs text-white outline-none focus:border-purple-400"
           />
         </div>
-        <span className="text-xs text-[#94a3b8]">Tổng số: <strong className="text-white">{filteredUsers.length} tài khoản</strong></span>
+        <span className="text-xs text-text-muted">Tổng số: <strong className="text-white">{filteredUsers.length} tài khoản</strong></span>
       </div>
 
       {/* Users List */}
       <div className="space-y-4">
+        {filteredUsers.length === 0 && <p role="status" className="p-6 text-slate-300">Không tìm thấy tài khoản phù hợp.</p>}
         {filteredUsers.map(u => (
-          <div key={u.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-4">
-            <div className="flex justify-between items-start border-b border-[#272930] pb-3">
+          <div key={u.id} className="p-5 rounded-2xl bg-surface border border-border text-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-border pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 font-black text-sm uppercase">
                   {u.name.substring(0, 2)}
@@ -154,21 +155,22 @@ export default function AdminUsersPage() {
                   <h3 className="font-bold text-white text-sm flex items-center gap-2">
                     {u.name}
                     {u.isLocked && (
-                      <span className="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 text-xs font-bold">
                         ĐÃ KHÓA
                       </span>
                     )}
                   </h3>
-                  <p className="text-[#94a3b8] text-[11px]">{u.email} • {u.university || 'Hệ thống'} {u.studentId ? `(${u.studentId})` : ''}</p>
+                  <p className="text-text-muted text-sm">{u.email} • {u.university || 'Hệ thống'} {u.studentId ? `(${u.studentId})` : ''}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[#94a3b8] text-[11px]">Vai trò:</span>
+                <span className="text-text-muted text-xs">Vai trò:</span>
                 <select
+                  aria-label={`Vai trò của ${u.name}`}
                   value={u.role}
                   onChange={(e) => changeRole(u.id, e.target.value as UserRole)}
-                  className="bg-[#111215] border border-[#272930] rounded-lg px-2.5 py-1 text-xs text-purple-300 font-bold outline-none"
+                  className="bg-surface-inset border border-border rounded-lg px-2.5 py-1 text-xs text-purple-300 font-bold outline-none"
                 >
                   <option value="BUYER">BUYER (Sinh viên)</option>
                   <option value="FACTORY">FACTORY (Xưởng In)</option>
@@ -185,7 +187,7 @@ export default function AdminUsersPage() {
             )}
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-              <div className="flex items-center gap-4 text-[#94a3b8] text-[11px]">
+              <div className="flex items-center gap-4 text-text-muted text-xs">
                 <span>Số dư Ví PrintHub: <strong className="text-[#39FF14] font-mono">{formatPrice(u.walletBalance)}đ</strong></span>
                 <span>Ngày tham gia: <strong className="text-white">{u.joinedDate}</strong></span>
               </div>

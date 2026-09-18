@@ -83,50 +83,50 @@ export default function FactoryPackingPage() {
           <Truck className="w-6 h-6" />
           <h1 className="text-2xl font-black text-white">Đóng Gói &amp; Bàn Giao Vận Chuyển (Packing &amp; Handover)</h1>
         </div>
-        <p className="text-xs text-[#94a3b8]">
+        <p className="text-sm text-text-muted">
           Xác nhận đóng hộp chống sốc, in phôi phiếu xuất kho mã QR / Mã vận đơn và bàn giao cho Shipper KTX.
         </p>
       </div>
 
       <div className="space-y-4">
         {packages.map(pkg => (
-          <div key={pkg.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-4">
-            <div className="flex justify-between items-center border-b border-[#272930] pb-3">
+          <div key={pkg.id} className="p-5 rounded-2xl bg-surface border border-border text-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
               <div>
                 <span className="font-mono text-cyan-400 font-bold">{pkg.id} • Mã đơn {pkg.orderId}</span>
                 <h3 className="font-bold text-white text-sm mt-0.5">{pkg.recipientName}</h3>
-                <p className="text-[#94a3b8] text-[11px]">{pkg.shippingAddress}</p>
+                <p className="text-text-muted text-sm">{pkg.shippingAddress}</p>
               </div>
 
               <div>
                 {pkg.status === 'READY_TO_PACK' && (
-                  <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-xs flex items-center gap-1">
                     <Box className="w-3.5 h-3.5" /> Chờ Đóng Gói Khung Đệm
                   </span>
                 )}
                 {pkg.status === 'PACKED' && (
-                  <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-xs flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Đã Đóng Hộp - Chờ Shipper
                   </span>
                 )}
                 {pkg.status === 'DISPATCHED' && (
-                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
                     <Send className="w-3.5 h-3.5" /> Đã Bàn Giao Vận Chuyển
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="p-3 bg-[#111215] rounded-xl border border-[#272930] space-y-1">
-              <span className="text-[#94a3b8] block">Sản phẩm trong kiện hàng:</span>
+            <div className="p-3 bg-surface-inset rounded-xl border border-border space-y-1">
+              <span className="text-text-muted block">Sản phẩm trong kiện hàng:</span>
               <strong className="text-white">{pkg.itemSummary}</strong>
-              <p className="text-[11px] text-cyan-300 mt-1">Đơn vị vận chuyển: {pkg.carrier} • Mã VD: <span className="font-mono text-white">{pkg.trackingNumber}</span></p>
+              <p className="text-sm text-cyan-300 mt-1">Đơn vị vận chuyển: {pkg.carrier} • Mã VD: <span className="font-mono text-white">{pkg.trackingNumber}</span></p>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#272930]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border">
               <button
                 onClick={() => alert(`Đang in phiếu xuất kho & Mã vận đơn ${pkg.trackingNumber}...`)}
-                className="px-3.5 py-2 rounded-xl bg-[#111215] border border-[#272930] hover:border-cyan-400 text-slate-300 hover:text-white font-bold flex items-center gap-1.5 transition"
+                className="px-3.5 py-2 rounded-xl bg-surface-inset border border-border hover:border-cyan-400 text-slate-300 hover:text-white font-bold flex items-center gap-1.5 transition"
               >
                 <Printer className="w-4 h-4 text-cyan-400" /> In Phiếu Vận Đơn Mã QR
               </button>
@@ -144,7 +144,7 @@ export default function FactoryPackingPage() {
                 {pkg.status === 'PACKED' && (
                   <button
                     onClick={() => handleDispatch(pkg.id)}
-                    className="px-4 py-2 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow-md"
+                    className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow-md"
                   >
                     <Send className="w-4 h-4" /> Bàn Giao Cho Shipper KTX
                   </button>

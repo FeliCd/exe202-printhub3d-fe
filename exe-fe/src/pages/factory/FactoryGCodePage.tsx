@@ -79,29 +79,29 @@ export default function FactoryGCodePage() {
           <FileCode className="w-6 h-6" />
           <h1 className="text-2xl font-black text-white">Thư Viện G-code &amp; Thông Số Kỹ Thuật (Slicing Vault)</h1>
         </div>
-        <p className="text-xs text-[#94a3b8]">
+        <p className="text-sm text-text-muted">
           Quản lý các tệp G-code đã thực hiện cắt lớp (Slicing), thông số Infill %, nhiệt độ nozzle và nạp trực tiếp vào máy in xưởng.
         </p>
       </div>
 
       <div className="space-y-4">
         {gcodes.map(gc => (
-          <div key={gc.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-4">
-            <div className="flex justify-between items-center border-b border-[#272930] pb-3">
+          <div key={gc.id} className="p-5 rounded-2xl bg-surface border border-border text-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
               <div>
                 <span className="font-mono text-cyan-400 font-bold">{gc.id} • Đơn {gc.orderId}</span>
                 <h3 className="font-bold text-white text-sm mt-0.5">{gc.gcodeName}</h3>
-                <p className="text-[#94a3b8] text-[11px]">Slicer dùng: {gc.slicer}</p>
+                <p className="text-text-muted text-sm">Slicer dùng: {gc.slicer}</p>
               </div>
 
               <div>
                 {gc.status === 'PRINTING' && (
-                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
                     <Play className="w-3.5 h-3.5 animate-pulse" /> Đang In Trên Máy
                   </span>
                 )}
                 {gc.status === 'READY' && (
-                  <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-xs flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Sẵn Sàng Nạp G-Code
                   </span>
                 )}
@@ -109,33 +109,33 @@ export default function FactoryGCodePage() {
             </div>
 
             {/* Slicing Details */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-[#111215] rounded-xl border border-[#272930]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-surface-inset rounded-xl border border-border">
               <div>
-                <span className="text-[#94a3b8] block">Độ mịn Layer:</span>
+                <span className="text-text-muted block">Độ mịn Layer:</span>
                 <strong className="text-white font-mono">{gc.layerHeight}</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Mật độ Infill:</span>
+                <span className="text-text-muted block">Mật độ Infill:</span>
                 <strong className="text-white">{gc.infill}%</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Thời gian in dự tính:</span>
+                <span className="text-text-muted block">Thời gian in dự tính:</span>
                 <strong className="text-[#39FF14] font-mono">{gc.printTimeHours} giờ</strong>
               </div>
               <div>
-                <span className="text-[#94a3b8] block">Trọng lượng nhựa:</span>
+                <span className="text-text-muted block">Trọng lượng nhựa:</span>
                 <strong className="text-cyan-300 font-mono">{gc.weightGrams}g</strong>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#272930]">
-              <span className="text-[#94a3b8]">Máy in mục tiêu: <strong className="text-white">{gc.targetPrinter}</strong></span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border">
+              <span className="text-text-muted">Máy in mục tiêu: <strong className="text-white">{gc.targetPrinter}</strong></span>
 
               <div className="flex items-center gap-2">
-                <button className="px-3.5 py-2 rounded-xl bg-[#111215] border border-[#272930] hover:border-cyan-400 text-slate-300 hover:text-white font-bold flex items-center gap-1.5 transition">
+                <button disabled aria-description="Chức năng chưa khả dụng trong bản dùng thử" className="px-3.5 py-2 rounded-xl bg-surface-inset border border-border hover:border-cyan-400 text-slate-300 hover:text-white font-bold flex items-center gap-1.5 transition">
                   <Download className="w-4 h-4 text-cyan-400" /> Tải File G-code
                 </button>
-                <button className="px-4 py-2 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs hover:bg-cyan-300 flex items-center gap-1.5 transition shadow-md">
+                <button disabled aria-description="Chức năng chưa khả dụng trong bản dùng thử" className="px-4 py-2 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs hover:bg-cyan-300 flex items-center gap-1.5 transition shadow-md">
                   <Play className="w-4 h-4" /> Nạp Máy In Ngay
                 </button>
               </div>

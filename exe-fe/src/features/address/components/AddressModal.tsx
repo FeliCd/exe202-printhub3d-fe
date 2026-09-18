@@ -1,16 +1,8 @@
-import { useState, useEffect } from 'react';
+import Modal from '../../../components/Modal';
+import { useState } from 'react';
 import { MapPin, Plus, Check, Star, Trash2, X, Building, Phone, User } from 'lucide-react';
-import { addressService } from '../../../services/addressService';
-import { useAuth } from '../../../context/AuthContext';
 
-export interface ShippingAddress {
-  id: string;
-  recipientName: string;
-  phone: string;
-  addressLine: string;
-  note?: string;
-  isDefault: boolean;
-}
+import { loadAddresses, type ShippingAddress } from '../data';
 
 interface AddressModalProps {
   isOpen: boolean;
@@ -19,24 +11,12 @@ interface AddressModalProps {
 }
 
 export default function AddressModal({ isOpen, onClose, onSelectAddress }: AddressModalProps) {
-  const { user } = useAuth();
-
-  const [addresses, setAddresses] = useState<ShippingAddress[]>(() => {
-    const saved = localStorage.getItem('printhub_shipping_addresses');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {
-        // ignore
-      }
-    }
-    return [];
-  });
+  const [addresses, setAddresses] = useState<ShippingAddress[]>(loadAddresses);
+  const [storageError, setStorageError] = useState('');
 
   const [selectedId, setSelectedId] = useState<string>(() => {
     const def = addresses.find((a) => a.isDefault);
-    return def ? def.id : addresses[0]?.id || '';
+    return def ? def.id : addresses[0]?.id || 'addr-1';
   });
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -46,44 +26,17 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
   const [newNote, setNewNote] = useState('');
   const [newIsDefault, setNewIsDefault] = useState(false);
 
-  // Tải danh sách địa chỉ từ backend khi modal mở hoặc có token
-  useEffect(() => {
-    const fetchBackendAddresses = async () => {
-      try {
-        const res = await addressService.getAddresses();
-        const rawList = res?.result || res?.data || res;
-        if (Array.isArray(rawList) && rawList.length > 0) {
-          const mapped: ShippingAddress[] = rawList.map((addr: any, idx: number) => ({
-            id: String(addr.id || `addr-${idx}`),
-            recipientName: addr.recipientName || addr.name || user?.name || 'Khách hàng',
-            phone: addr.phone || user?.phone || '',
-            addressLine: addr.street || addr.addressLine || addr.address || '',
-            note: addr.note || '',
-            isDefault: Boolean(addr.isDefault),
-          }));
-          setAddresses(mapped);
-          if (!selectedId && mapped.length > 0) {
-            const def = mapped.find(a => a.isDefault) || mapped[0];
-            setSelectedId(def.id);
-          }
-        }
-      } catch (error) {
-        console.warn('Backend address API error, using existing addresses:', error);
-      }
-    };
-    if (isOpen) {
-      fetchBackendAddresses();
-    }
-  }, [isOpen, user]);
-
-  // Sync to localStorage
-  useEffect(() => {
-    localStorage.setItem('printhub_shipping_addresses', JSON.stringify(addresses));
-  }, [addresses]);
+  const saveAddresses = (next: ShippingAddress[]) => {
+    setAddresses(next);
+    try {
+      localStorage.setItem('printhub_shipping_addresses', JSON.stringify(next));
+      setStorageError('');
+    } catch { setStorageError('Kh├┤ng thß╗â l╞░u ─æß╗ïa chß╗ë tr├¬n thiß║┐t bß╗ï. Thay ─æß╗òi chß╗ë d├╣ng trong phi├¬n n├áy.'); }
+  };
 
   if (!isOpen) return null;
 
-  const handleAddNewAddress = async (e: React.FormEvent) => {
+  const handleAddNewAddress = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRecipientName.trim() || !newPhone.trim() || !newAddressLine.trim()) return;
 
@@ -97,19 +50,13 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
       isDefault: newIsDefault || addresses.length === 0,
     };
 
-    try {
-      await addressService.createAddress(newAddr);
-    } catch (error) {
-      console.warn('Backend createAddress error, saving to local storage:', error);
-    }
-
     let updated = [...addresses];
     if (newAddr.isDefault) {
       updated = updated.map((a) => ({ ...a, isDefault: false }));
     }
     updated.push(newAddr);
 
-    setAddresses(updated);
+    saveAddresses(updated);
     setSelectedId(newId);
 
     // Reset form
@@ -121,70 +68,56 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
     setShowAddForm(false);
   };
 
-  const handleSetDefault = async (id: string, e: React.MouseEvent) => {
+  const handleSetDefault = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await addressService.setDefaultAddress(id);
-    } catch (error) {
-      console.warn('Backend setDefaultAddress error, updating locally:', error);
-    }
-    setAddresses((prev) =>
-      prev.map((a) => ({ ...a, isDefault: a.id === id }))
-    );
+    saveAddresses(addresses.map((a) => ({ ...a, isDefault: a.id === id })));
   };
 
-  const handleDeleteAddress = async (id: string, e: React.MouseEvent) => {
+  const handleDeleteAddress = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (addresses.length <= 1) {
-      alert('Bạn phải giữ lại ít nhất 1 địa chỉ giao hàng!');
+      alert('Bß║ín phß║úi giß╗» lß║íi ├¡t nhß║Ñt 1 ─æß╗ïa chß╗ë giao h├áng!');
       return;
     }
-    try {
-      await addressService.deleteAddress(id);
-    } catch (error) {
-      console.warn('Backend deleteAddress error, deleting locally:', error);
-    }
+    if (!window.confirm('X├│a ─æß╗ïa chß╗ë giao h├áng n├áy?')) return;
     const updated = addresses.filter((a) => a.id !== id);
     if (!updated.some((a) => a.isDefault)) {
-      updated[0].isDefault = true;
+      updated[0] = { ...updated[0], isDefault: true };
     }
-    setAddresses(updated);
+    saveAddresses(updated);
     if (selectedId === id) {
       setSelectedId(updated[0].id);
     }
   };
 
   const handleConfirmSelect = () => {
-    const chosen = addresses.find((a) => a.id === selectedId) || addresses[0];
-    if (chosen) {
-      localStorage.setItem('printhub_selected_address', JSON.stringify(chosen));
-      window.dispatchEvent(new Event('printhub_address_changed'));
-      if (onSelectAddress) {
-        onSelectAddress(chosen);
-      }
+    const chosen = addresses.find((a) => a.id === selectedId);
+    if (chosen && onSelectAddress) {
+      onSelectAddress(chosen);
     }
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-[#18191d] border border-[#272930] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <Modal open={isOpen} onClose={onClose} label="Sß╗ò ─æß╗ïa chß╗ë giao h├áng">
+      <div className="w-full max-w-lg bg-surface border border-border rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-4 border-b border-[#272930] flex items-center justify-between bg-[#111215]">
+        <div className="p-4 border-b border-border flex items-center justify-between bg-surface-inset">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[#39FF14]">
               <MapPin className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-base">Sổ Địa Chỉ Giao Hàng KTX / Nhà Riêng</h3>
-              <p className="text-[10px] text-[#94a3b8]">Lưu nhiều địa chỉ &amp; chọn mặc định tiện lợi</p>
+              <h3 className="font-bold text-white text-base">Sß╗ò ─Éß╗ïa Chß╗ë Giao H├áng KTX / Nh├á Ri├¬ng</h3>
+              <p className="text-sm text-text-muted">L╞░u nhiß╗üu ─æß╗ïa chß╗ë &amp; chß╗ìn mß║╖c ─æß╗ïnh tiß╗çn lß╗úi</p>
             </div>
           </div>
-          <button className="text-slate-400 hover:text-white p-1 rounded-lg" onClick={onClose}>
+          <button aria-label="─É├│ng sß╗ò ─æß╗ïa chß╗ë" className="text-slate-400 hover:text-white p-1 rounded-lg" onClick={onClose}>
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {storageError && <p role="status" className="p-4 text-sm text-amber-300">{storageError}</p>}
         {/* Address List Body */}
         <div className="p-4 overflow-y-auto space-y-3 flex-1 text-xs">
           {addresses.map((addr) => {
@@ -196,12 +129,13 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
                 className={`p-4 rounded-2xl border-2 transition cursor-pointer relative space-y-2 ${
                   isSelected
                     ? 'border-[#39FF14] bg-emerald-950/20 text-white'
-                    : 'border-[#272930] bg-[#111215] text-slate-300 hover:border-slate-600'
+                    : 'border-border bg-surface-inset text-slate-300 hover:border-slate-600'
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 font-bold text-sm text-white">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2 font-bold text-sm text-white">
                     <input
+                      aria-label={`Giao ─æß║┐n ${addr.recipientName}, ${addr.addressLine}`}
                       type="radio"
                       name="shipping_addr"
                       checked={isSelected}
@@ -209,22 +143,22 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
                       className="accent-[#39FF14] w-4 h-4 cursor-pointer"
                     />
                     <span>{addr.recipientName}</span>
-                    <span className="text-xs text-[#94a3b8] font-normal">({addr.phone})</span>
+                    <span className="text-xs text-text-muted font-normal">({addr.phone})</span>
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     {addr.isDefault ? (
-                      <span className="px-2 py-0.5 rounded-full bg-[#39FF14] text-slate-950 font-black text-[9px] uppercase tracking-wider">
-                        MẶC ĐỊNH
+                      <span className="px-2 py-0.5 rounded-full bg-[#39FF14] text-slate-950 font-black text-xs uppercase tracking-wider">
+                        Mß║╢C ─Éß╗èNH
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={(e) => handleSetDefault(addr.id, e)}
-                        className="px-2 py-0.5 rounded-full bg-[#18191d] border border-[#272930] hover:border-[#39FF14] text-slate-400 hover:text-[#39FF14] text-[9px] font-bold transition flex items-center gap-1"
-                        title="Đặt làm mặc định"
+                        className="px-2 py-0.5 rounded-full bg-surface border border-border hover:border-[#39FF14] text-slate-400 hover:text-[#39FF14] text-xs font-bold transition flex items-center gap-1"
+                        title="─Éß║╖t l├ám mß║╖c ─æß╗ïnh"
                       >
-                        <Star className="w-3 h-3" /> Đặt mặc định
+                        <Star className="w-3 h-3" /> ─Éß║╖t mß║╖c ─æß╗ïnh
                       </button>
                     )}
 
@@ -232,20 +166,20 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
                       type="button"
                       onClick={(e) => handleDeleteAddress(addr.id, e)}
                       className="p-1 text-slate-500 hover:text-red-400 transition"
-                      title="Xóa địa chỉ"
+                      title="X├│a ─æß╗ïa chß╗ë"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-200 pl-6 leading-relaxed">
+                <p className="text-sm text-slate-200 pl-6 leading-relaxed">
                   {addr.addressLine}
                 </p>
 
                 {addr.note && (
-                  <p className="text-[10px] text-cyan-300 pl-6 italic">
-                    Ghi chú: {addr.note}
+                  <p className="text-sm text-cyan-300 pl-6 italic">
+                    Ghi ch├║: {addr.note}
                   </p>
                 )}
               </div>
@@ -256,20 +190,16 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
           {!showAddForm ? (
             <button
               type="button"
-              onClick={() => {
-                setNewRecipientName(user?.name || '');
-                setNewPhone(user?.phone || '');
-                setShowAddForm(true);
-              }}
-              className="w-full py-3 rounded-2xl border border-dashed border-[#39FF14]/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center justify-center gap-2 bg-emerald-950/20 transition active:scale-98 cursor-pointer"
+              onClick={() => setShowAddForm(true)}
+              className="w-full py-3 rounded-2xl border border-dashed border-[#39FF14]/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center justify-center gap-2 bg-emerald-950/20 transition active:scale-98"
             >
-              <Plus className="w-4 h-4" /> Thêm Địa Chỉ Giao Hàng Mới
+              <Plus className="w-4 h-4" /> Th├¬m ─Éß╗ïa Chß╗ë Giao H├áng Mß╗¢i
             </button>
           ) : (
-            <form onSubmit={handleAddNewAddress} className="p-4 rounded-2xl bg-[#111215] border border-cyan-800/60 space-y-3">
+            <form onSubmit={handleAddNewAddress} className="p-4 rounded-2xl bg-surface-inset border border-cyan-800/60 space-y-3">
               <div className="flex items-center justify-between font-bold text-cyan-300 text-xs uppercase tracking-wider">
                 <span className="flex items-center gap-1.5">
-                  <Building className="w-4 h-4" /> Nhập Thông Tin Địa Chỉ Mới
+                  <Building className="w-4 h-4" /> Nhß║¡p Th├┤ng Tin ─Éß╗ïa Chß╗ë Mß╗¢i
                 </span>
                 <button
                   type="button"
@@ -280,58 +210,58 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                    <User className="w-3 h-3 text-[#39FF14]" /> Tên người nhận
+                  <label htmlFor="addressmodal-field-1" className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                    <User className="w-3 h-3 text-[#39FF14]" /> T├¬n ng╞░ß╗¥i nhß║¡n
                   </label>
-                  <input
+                  <input id="addressmodal-field-1"
                     type="text"
                     required
                     value={newRecipientName}
                     onChange={(e) => setNewRecipientName(e.target.value)}
-                    placeholder="Nguyễn Văn Anh"
-                    className="w-full bg-[#18191d] border border-[#272930] rounded-xl p-2 text-white outline-none focus:border-[#39FF14]"
+                    placeholder="Nguyß╗àn V─ân Anh"
+                    className="w-full bg-surface border border-border rounded-xl p-2 text-white outline-none focus:border-[#39FF14]"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-[#39FF14]" /> Số điện thoại
+                  <label htmlFor="addressmodal-field-2" className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-[#39FF14]" /> Sß╗æ ─æiß╗çn thoß║íi
                   </label>
-                  <input
+                  <input id="addressmodal-field-2"
                     type="text"
                     required
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     placeholder="0987.654.321"
-                    className="w-full bg-[#18191d] border border-[#272930] rounded-xl p-2 text-white font-mono outline-none focus:border-[#39FF14]"
+                    className="w-full bg-surface border border-border rounded-xl p-2 text-white font-mono outline-none focus:border-[#39FF14]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[#39FF14]" /> Địa chỉ chi tiết (KTX / Giảng đường / Nhà riêng)
+                <label htmlFor="addressmodal-field-3" className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-[#39FF14]" /> ─Éß╗ïa chß╗ë chi tiß║┐t (KTX / Giß║úng ─æ╞░ß╗¥ng / Nh├á ri├¬ng)
                 </label>
-                <textarea
+                <textarea id="addressmodal-field-3"
                   rows={2}
                   required
                   value={newAddressLine}
                   onChange={(e) => setNewAddressLine(e.target.value)}
-                  placeholder="Phòng 402, KTX Khu B ĐHQG TP.HCM, Phường Đông Hòa, Dĩ An..."
-                  className="w-full bg-[#18191d] border border-[#272930] rounded-xl p-2 text-white outline-none focus:border-[#39FF14]"
+                  placeholder="Ph├▓ng 402, KTX Khu B ─ÉHQG TP.HCM, Ph╞░ß╗¥ng ─É├┤ng H├▓a, D─⌐ An..."
+                  className="w-full bg-surface border border-border rounded-xl p-2 text-white outline-none focus:border-[#39FF14]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400">Ghi chú giao hàng (Không bắt buộc)</label>
-                <input
+                <label htmlFor="addressmodal-field-4" className="text-xs font-bold text-slate-400">Ghi ch├║ giao h├áng (Kh├┤ng bß║»t buß╗Öc)</label>
+                <input id="addressmodal-field-4"
                   type="text"
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
-                  placeholder="VD: Giao sau 17h chiều hoặc gửi chú bảo vệ KTX"
-                  className="w-full bg-[#18191d] border border-[#272930] rounded-xl p-2 text-white outline-none focus:border-[#39FF14]"
+                  placeholder="VD: Giao sau 17h chiß╗üu hoß║╖c gß╗¡i ch├║ bß║úo vß╗ç KTX"
+                  className="w-full bg-surface border border-border rounded-xl p-2 text-white outline-none focus:border-[#39FF14]"
                 />
               </div>
 
@@ -344,7 +274,7 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
                   className="accent-[#39FF14] w-4 h-4 cursor-pointer"
                 />
                 <label htmlFor="chk_default" className="text-xs text-slate-300 font-bold cursor-pointer">
-                  Đặt làm địa chỉ giao hàng mặc định
+                  ─Éß║╖t l├ám ─æß╗ïa chß╗ë giao h├áng mß║╖c ─æß╗ïnh
                 </label>
               </div>
 
@@ -352,15 +282,15 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="flex-1 py-2 rounded-xl bg-[#18191d] text-slate-300 font-bold text-xs"
+                  className="flex-1 py-2 rounded-xl bg-surface text-slate-300 font-bold text-xs"
                 >
-                  Hủy
+                  Hß╗ºy
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2 rounded-xl bg-[#39FF14] text-slate-950 font-black text-xs uppercase"
                 >
-                  Lưu Địa Chỉ Mới
+                  L╞░u ─Éß╗ïa Chß╗ë Mß╗¢i
                 </button>
               </div>
             </form>
@@ -368,23 +298,23 @@ export default function AddressModal({ isOpen, onClose, onSelectAddress }: Addre
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-[#272930] bg-[#111215] flex items-center justify-between gap-3">
+        <div className="p-4 border-t border-border bg-surface-inset flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl bg-[#18191d] hover:bg-[#272930] text-xs font-bold text-slate-300"
+            className="px-4 py-2.5 rounded-xl bg-surface hover:bg-[#272930] text-xs font-bold text-slate-300"
           >
-            Đóng
+            ─É├│ng
           </button>
           <button
             type="button"
             onClick={handleConfirmSelect}
             className="flex-1 py-2.5 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wide shadow-lg shadow-emerald-950/60 flex items-center justify-center gap-1.5"
           >
-            <Check className="w-4 h-4" /> Xác Nhận Chọn Địa Chỉ Này
+            <Check className="w-4 h-4" /> X├íc Nhß║¡n Chß╗ìn ─Éß╗ïa Chß╗ë N├áy
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

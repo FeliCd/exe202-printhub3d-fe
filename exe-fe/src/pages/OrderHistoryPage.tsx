@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { History, RefreshCw, CheckCircle2, XCircle, Eye } from 'lucide-react';
 import { formatPrice } from '../utils/format';
-import { orderService } from '../services/orderService';
 
 interface PastOrder {
   id: string;
@@ -13,59 +12,52 @@ interface PastOrder {
   paymentMethod: string;
 }
 
+const mockPastOrders: PastOrder[] = [
+  {
+    id: 'ORD-9024',
+    date: '2026-09-01 14:30',
+    items: [
+      { name: 'Th╞░ß╗¢c Kß╗╣ Thuß║¡t 20cm Khß║»c T├¬n/MSSV Laser', qty: 2, price: 45000, material: 'PLA Pro (Green)' },
+      { name: 'Th╞░ß╗¢c Kß║╣p Vernier 150mm C╞í Kh├¡', qty: 1, price: 95000, material: 'Resin UV' },
+    ],
+    total: 185000,
+    status: 'SHIPPING',
+    paymentMethod: 'V├¡ PrintHub',
+  },
+  {
+    id: 'ORD-8812',
+    date: '2026-08-20 09:15',
+    items: [
+      { name: 'Th╞░ß╗¢c Vu├┤ng Chß╗» T ─Éß╗ô ├ün Kiß║┐n Tr├║c 30cm', qty: 3, price: 55000, material: 'PETG Clear' },
+    ],
+    total: 165000,
+    status: 'COMPLETED',
+    paymentMethod: 'Banking VietQR',
+  },
+  {
+    id: 'ORD-7510',
+    date: '2026-07-10 16:45',
+    items: [
+      { name: 'Combo 5 Th╞░ß╗¢c Kß╗╣ Thuß║¡t Lß╗¢p C╞í ─Éiß╗çn', qty: 1, price: 210000, material: 'PLA Pro' },
+    ],
+    total: 210000,
+    status: 'CANCELLED',
+    paymentMethod: 'V├¡ PrintHub',
+  },
+];
+
 export default function OrderHistoryPage() {
-  const [ordersList, setOrdersList] = useState<PastOrder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState<'ALL' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        setIsLoading(true);
-        let res: any;
-        try {
-          res = await orderService.getOrderHistory();
-        } catch {
-          res = await orderService.getUserOrders();
-        }
-        const rawList = res?.result?.content || res?.result || res?.data?.content || res?.data || (Array.isArray(res) ? res : []);
-        if (Array.isArray(rawList) && rawList.length > 0) {
-          const mapped: PastOrder[] = rawList.map((o: any, idx: number) => ({
-            id: o.orderCode || o.code || (o.id ? (String(o.id).length > 12 ? `#${String(o.id).substring(0, 8).toUpperCase()}` : String(o.id)) : `ORD-${idx + 1}`),
-            date: o.createdAt ? new Date(o.createdAt).toLocaleString('vi-VN') : (o.orderDate || o.date || 'Gần đây'),
-            items: Array.isArray(o.items || o.orderDetails) ? (o.items || o.orderDetails).map((it: any) => ({
-              name: it.productName || it.title || it.name || it.product?.name || 'Thước In 3D Kỹ Thuật',
-              qty: it.quantity || 1,
-              price: it.price || it.product?.price || 45000,
-              material: it.material || it.product?.material || 'PLA PRO+',
-            })) : [],
-            total: Number(o.totalAmount || o.total || o.amount || 0),
-            status: (o.status === 'COMPLETED' || o.status === 'CANCELLED' || o.status === 'SHIPPING') ? o.status : 'COMPLETED',
-            paymentMethod: o.paymentMethod || 'PAYOS',
-          }));
-          setOrdersList(mapped);
-        } else {
-          setOrdersList([]);
-        }
-      } catch (error) {
-        console.warn('Backend order history API error:', error);
-        setOrdersList([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchHistory();
-  }, []);
-
-  const filteredOrders = ordersList.filter(o => {
+  const filteredOrders = mockPastOrders.filter(o => {
     if (tab === 'COMPLETED') return o.status === 'COMPLETED';
     if (tab === 'CANCELLED') return o.status === 'CANCELLED';
     return true;
   });
 
   const handleReorder = (orderId: string) => {
-    alert(`Đã thêm lại các sản phẩm của đơn hàng ${orderId} vào giỏ hàng!`);
+    alert(`─É├ú th├¬m lß║íi c├íc sß║ún phß║⌐m cß╗ºa ─æ╞ín h├áng ${orderId} v├áo giß╗Å h├áng!`);
     navigate('/cart');
   };
 
@@ -75,19 +67,19 @@ export default function OrderHistoryPage() {
       <div>
         <div className="flex items-center gap-2 text-[#39FF14]">
           <History className="w-6 h-6" />
-          <h1 className="text-2xl font-black text-white">Lịch Sử Đơn Hàng &amp; Mua Lại (Order History)</h1>
+          <h1 className="text-2xl font-black text-white">Lß╗ïch Sß╗¡ ─É╞ín H├áng &amp; Mua Lß║íi (Order History)</h1>
         </div>
-        <p className="text-xs text-[#94a3b8]">
-          Xem lại toàn bộ lịch sử đơn hàng in 3D đã thực hiện và mua lại (Re-order) chỉ với 1 thao tác bấm.
+        <p className="text-sm text-text-muted">
+          Xem lß║íi to├án bß╗Ö lß╗ïch sß╗¡ ─æ╞ín h├áng in 3D ─æ├ú thß╗▒c hiß╗çn v├á mua lß║íi (Re-order) chß╗ë vß╗¢i 1 thao t├íc bß║Ñm.
         </p>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-[#272930] pb-3">
+      <div className="flex gap-2 border-b border-border pb-3">
         {[
-          { key: 'ALL', label: 'Tất Cả Đơn Hàng' },
-          { key: 'COMPLETED', label: 'Đã Hoàn Thành' },
-          { key: 'CANCELLED', label: 'Đã Hủy' },
+          { key: 'ALL', label: 'Tß║Ñt Cß║ú ─É╞ín H├áng' },
+          { key: 'COMPLETED', label: '─É├ú Ho├án Th├ánh' },
+          { key: 'CANCELLED', label: '─É├ú Hß╗ºy' },
         ].map(t => (
           <button
             key={t.key}
@@ -95,7 +87,7 @@ export default function OrderHistoryPage() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
               tab === t.key
                 ? 'bg-[#39FF14] text-slate-950 shadow-md'
-                : 'bg-[#18191d] text-slate-400 hover:text-white border border-[#272930]'
+                : 'bg-surface text-slate-400 hover:text-white border border-border'
             }`}
           >
             {t.label}
@@ -104,97 +96,72 @@ export default function OrderHistoryPage() {
       </div>
 
       {/* Orders List */}
-      {isLoading ? (
-        <div className="py-16 text-center text-slate-400 text-sm">
-          <div className="w-8 h-8 border-2 border-[#39FF14] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          Đang tải lịch sử đơn hàng...
-        </div>
-      ) : filteredOrders.length === 0 ? (
-        <div className="py-16 text-center rounded-2xl bg-[#18191d] border border-[#272930] p-8 space-y-4">
-          <div className="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
-            <History className="w-7 h-7" />
-          </div>
-          <div>
-            <h3 className="text-white font-bold text-base">Chưa có lịch sử đơn hàng</h3>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
-              Các đơn hàng đã hoàn tất hoặc đã hủy sẽ hiển thị ở đây để bạn xem lại chi tiết và mua lại.
-            </p>
-          </div>
-          <Link
-            to="/catalog"
-            className="inline-block px-5 py-2.5 rounded-xl bg-[#22c55e] text-slate-950 font-bold text-xs hover:bg-[#16a34a] transition"
-          >
-            Xem Danh Mục Sản Phẩm
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredOrders.map(order => (
-            <div key={order.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] space-y-4 text-xs">
-              <div className="flex justify-between items-center border-b border-[#272930] pb-3">
-                <div>
-                  <span className="font-mono text-[#39FF14] font-bold text-sm">{order.id}</span>
-                  <p className="text-[#94a3b8] text-[11px]">Ngày đặt: {order.date} • {order.paymentMethod}</p>
-                </div>
-
-                <div>
-                  {order.status === 'COMPLETED' && (
-                    <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[11px] flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn thành
-                    </span>
-                  )}
-                  {order.status === 'CANCELLED' && (
-                    <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-[11px] flex items-center gap-1">
-                      <XCircle className="w-3.5 h-3.5" /> Đã hủy
-                    </span>
-                  )}
-                  {order.status === 'SHIPPING' && (
-                    <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-[11px] flex items-center gap-1">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Đang giao hàng
-                    </span>
-                  )}
-                </div>
+      <div className="space-y-4">
+        {filteredOrders.map(order => (
+          <div key={order.id} className="p-5 rounded-2xl bg-surface border border-border space-y-4 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <span className="font-mono text-[#39FF14] font-bold text-sm">{order.id}</span>
+                <p className="text-text-muted text-sm">Ng├áy ─æß║╖t: {order.date} ΓÇó {order.paymentMethod}</p>
               </div>
 
-              {/* Items */}
-              <div className="divide-y divide-[#272930]/60">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="py-2.5 flex items-center justify-between gap-3">
-                    <div>
-                      <h4 className="font-bold text-white text-xs">{item.name}</h4>
-                      <p className="text-[#94a3b8] text-[11px]">Chất liệu: {item.material} • Số lượng: {item.qty}</p>
-                    </div>
-                    <strong className="text-slate-200 font-mono text-xs">{formatPrice(item.price * item.qty)}đ</strong>
-                  </div>
-                ))}
-              </div>
-
-              {/* Order Bottom */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#272930]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[#94a3b8]">Tổng giá trị đơn:</span>
-                  <span className="text-base font-black text-[#39FF14] font-mono">{formatPrice(order.total)}đ</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Link
-                    to="/orders"
-                    className="px-3.5 py-2 rounded-xl bg-[#111215] border border-[#272930] hover:border-[#39FF14] text-slate-300 hover:text-white font-bold flex items-center gap-1.5 transition"
-                  >
-                    <Eye className="w-4 h-4 text-[#39FF14]" /> Xem Tiến Độ
-                  </Link>
-                  <button
-                    onClick={() => handleReorder(order.id)}
-                    className="px-4 py-2 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black flex items-center gap-1.5 transition shadow-md shadow-emerald-950/40"
-                  >
-                    <RefreshCw className="w-4 h-4" /> Mua Lại / In Lại
-                  </button>
-                </div>
+              <div>
+                {order.status === 'COMPLETED' && (
+                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Ho├án th├ánh
+                  </span>
+                )}
+                {order.status === 'CANCELLED' && (
+                  <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-xs flex items-center gap-1">
+                    <XCircle className="w-3.5 h-3.5" /> ─É├ú hß╗ºy
+                  </span>
+                )}
+                {order.status === 'SHIPPING' && (
+                  <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-xs flex items-center gap-1">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> ─Éang giao h├áng
+                  </span>
+                )}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            {/* Items */}
+            <div className="divide-y divide-[#272930]/60">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="py-2.5 flex items-center justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-white text-xs">{item.name}</h4>
+                    <p className="text-text-muted text-sm">Chß║Ñt liß╗çu: {item.material} ΓÇó Sß╗æ l╞░ß╗úng: {item.qty}</p>
+                  </div>
+                  <strong className="text-slate-200 font-mono text-xs">{formatPrice(item.price * item.qty)}─æ</strong>
+                </div>
+              ))}
+            </div>
+
+            {/* Order Bottom */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border">
+              <div className="flex items-center gap-2">
+                <span className="text-text-muted">Tß╗òng gi├í trß╗ï ─æ╞ín:</span>
+                <span className="text-base font-black text-[#39FF14] font-mono">{formatPrice(order.total)}─æ</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/orders"
+                  className="px-3.5 py-2 rounded-xl bg-surface-inset border border-border hover:border-[#39FF14] text-slate-300 hover:text-white font-bold flex items-center gap-1.5 transition"
+                >
+                  <Eye className="w-4 h-4 text-[#39FF14]" /> Xem Tiß║┐n ─Éß╗Ö
+                </Link>
+                <button
+                  onClick={() => handleReorder(order.id)}
+                  className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black flex items-center gap-1.5 transition shadow-md shadow-emerald-950/40"
+                >
+                  <RefreshCw className="w-4 h-4" /> Mua Lß║íi / In Lß║íi
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
