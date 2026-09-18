@@ -16,13 +16,13 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
   const [sort, setSort] = useState('default');
   const [compareOpen, setCompareOpen] = useState(false);
   const categories = [
-    { id: 'all', label: `Tß║Ñt cß║ú mß║½u th╞░ß╗¢c (${products.length})` },
-    { id: 'straight', label: 'Th╞░ß╗¢c kß╗╣ thuß║¡t 15cm - 30cm' },
-    { id: 'flexible', label: 'Th╞░ß╗¢c dß║╗o PETG/TPU' },
-    { id: 'angle', label: 'Th╞░ß╗¢c ─æo g├│c & ─æo lß╗ù' },
-    { id: 'stencil', label: 'Th╞░ß╗¢c vß║╜ h├¼nh (Stencil)' },
+    { id: 'all', label: `Tất cả mẫu thước (${products.length})` },
+    { id: 'straight', label: 'Thước kỹ thuật 15cm - 30cm' },
+    { id: 'flexible', label: 'Thước dẻo PETG/TPU' },
+    { id: 'angle', label: 'Thước đo góc & đo lỗ' },
+    { id: 'stencil', label: 'Thước vẽ hình (Stencil)' },
   ];
-  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/─æ/g, 'd').toLowerCase();
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
   const visibleProducts = products.filter(product => {
     const matchesQuery = normalize(`${product.name} ${product.material} ${product.category}`).includes(normalize(query.trim()));
     const matchesCategory = category === 'all'
@@ -41,11 +41,11 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
             <path d="M4 6h16M4 10h16M4 14h16M4 18h16" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
           </svg>
           <h1 className="text-2xl font-black tracking-tight text-white">
-            Th╞░ß╗¢c In 3D Kß╗╣ Thuß║¡t &amp; Custom Theo Y├¬u Cß║ºu
+            Thước In 3D Kỹ Thuật &amp; Custom Theo Yêu Cầu
           </h1>
         </div>
         <p className="text-sm text-text-muted">
-          In trß╗▒c tiß║┐p bß║▒ng vß║¡t liß╗çu nhß╗▒a cao cß║Ñp PLA+/PETG dß║╗o bß╗ün, khß║»c laser t├¬n/MSSV ri├¬ng, bß║úo h├ánh 1 ─æß╗òi 1 suß╗æt kß╗│ hß╗ìc.
+          In trực tiếp bằng vật liệu nhựa cao cấp PLA+/PETG dẻo bền, khắc laser tên/MSSV riêng, bảo hành 1 đổi 1 suốt kỳ học.
         </p>
       </div>
 
@@ -58,9 +58,9 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
             </svg>
           </div>
           <div>
-            <h2 className="text-sm font-bold text-white">Khß║»c t├¬n / MSSV miß╗àn ph├¡ &amp; Bß║úo h├ánh g├úy 1 ─æß╗òi 1 trong 1 hß╗ìc kß╗│!</h2>
+            <h2 className="text-sm font-bold text-white">Khắc tên / MSSV miễn phí &amp; Bảo hành gãy 1 đổi 1 trong 1 học kỳ!</h2>
             <p className="text-sm text-slate-300 mt-0.5">
-              Sß╗¡ dß╗Ñng nhß╗▒a PETG/PLA+ th├ón thiß╗çn m├┤i tr╞░ß╗¥ng, chß╗æng bay sß╗æ vß║ích, kh├┤ng lo thß║Ñt lß║íc khi hß╗ìc thß╗▒c h├ánh x╞░ß╗ƒng v├á ─æß╗ô ├ín.
+              Sử dụng nhựa PETG/PLA+ thân thiện môi trường, chống bay số vạch, không lo thất lạc khi học thực hành xưởng và đồ án.
             </p>
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
           </svg>
-          <span>Cam kß║┐t chuß║⌐n x├íc tß╗½ng 0.1mm</span>
+          <span>Cam kết chuẩn xác từng 0.1mm</span>
         </div>
       </div>
 
@@ -78,15 +78,15 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <span className="text-xs font-extrabold uppercase tracking-widest text-[#22c55e]">
-              C├öNG NGHß╗å IN 3D CH├ìNH X├üC CAO
+              CÔNG NGHỆ IN 3D CHÍNH XÁC CAO
             </span>
-            <h3 className="text-lg font-bold text-white">Th╞░ß╗¢c Kß╗╣ Thuß║¡t ─Éa N─âng T├¡ch Hß╗úp ─Éo G├│c &amp; Stencil FDM Chuß║⌐n X├íc</h3>
+            <h3 className="text-lg font-bold text-white">Thước Kỹ Thuật Đa Năng Tích Hợp Đo Góc &amp; Stencil FDM Chuẩn Xác</h3>
             <p className="text-sm text-text-muted max-w-2xl leading-relaxed">
-              Mß╗ùi sß║ún phß║⌐m ─æ╞░ß╗úc in lß╗¢p d├áy 0.12mm si├¬u mß╗ïn, hiß╗çu chß╗ënh sai sß╗æ quang hß╗ìc v├á kiß╗âm so├ít co ng├│t vß║¡t liß╗çu nhiß╗çt, ─æß║úm bß║úo th╞░ß╗¢c kh├┤ng bß╗ï cong v├¬nh d╞░ß╗¢i ├ính nß║»ng giß║úng ─æ╞░ß╗¥ng.
+              Mỗi sản phẩm được in lớp dày 0.12mm siêu mịn, hiệu chỉnh sai số quang học và kiểm soát co ngót vật liệu nhiệt, đảm bảo thước không bị cong vênh dưới ánh nắng giảng đường.
             </p>
           </div>
           <button onClick={() => setCompareOpen(true)} className="inline-flex items-center gap-2 text-xs font-bold text-slate-900 bg-white hover:bg-slate-200 px-4 py-2.5 rounded-lg transition self-start md:self-center">
-            <span>Xem so s├ính chß║Ñt liß╗çu PLA vs PETG</span>
+            <span>Xem so sánh chất liệu PLA vs PETG</span>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
             </svg>
@@ -96,38 +96,38 @@ export default function MainContent({ onAddToCart }: MainContentProps) {
 
       <div className="space-y-4">
         <label className="block text-sm text-slate-300">
-          T├¼m sß║ún phß║⌐m
+          Tìm sản phẩm
           <input type="search" value={query} onChange={event => setParams(previous => {
             const next = new URLSearchParams(previous);
             if (event.target.value) next.set('q', event.target.value); else next.delete('q');
             return next;
-          }, { replace: true })} placeholder="T├¬n th╞░ß╗¢c, chß║Ñt liß╗çuΓÇª" className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3" />
+          }, { replace: true })} placeholder="Tên thước, chất liệu…" className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3" />
         </label>
-        <div className="flex flex-wrap gap-2" aria-label="Lß╗ìc loß║íi sß║ún phß║⌐m">
+        <div className="flex flex-wrap gap-2" aria-label="Lọc loại sản phẩm">
           {categories.map(item => <button key={item.id} onClick={() => setCategory(item.id)} aria-pressed={category === item.id}
             className={`px-4 py-2 rounded-full text-sm border transition ${category === item.id ? 'bg-primary text-slate-950 border-[#22c55e]' : 'bg-surface text-slate-300 border-border hover:bg-[#272930]'}`}>{item.label}</button>)}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <p role="status" className="text-slate-400">{visibleProducts.length} sß║ún phß║⌐m ph├╣ hß╗úp</p>
-          <label className="flex flex-wrap items-center gap-2 text-slate-300">Sß║»p xß║┐p:
+          <p role="status" className="text-slate-400">{visibleProducts.length} sản phẩm phù hợp</p>
+          <label className="flex flex-wrap items-center gap-2 text-slate-300">Sắp xếp:
             <select value={sort} onChange={event => setSort(event.target.value)} className="bg-surface border border-border rounded-xl px-3 py-2">
-              <option value="default">Thß╗⌐ tß╗▒ danh mß╗Ñc</option>
-              <option value="asc">Gi├í tß╗½ thß║Ñp ─æß║┐n cao</option>
-              <option value="desc">Gi├í tß╗½ cao ─æß║┐n thß║Ñp</option>
+              <option value="default">Thứ tự danh mục</option>
+              <option value="asc">Giá từ thấp đến cao</option>
+              <option value="desc">Giá từ cao đến thấp</option>
             </select>
           </label>
         </div>
       </div>
       {visibleProducts.length === 0 && <div className="p-6 rounded-2xl border border-border text-slate-300">
-        <p>Kh├┤ng t├¼m thß║Ñy sß║ún phß║⌐m ph├╣ hß╗úp. Thß╗¡ tß╗½ kh├│a hoß║╖c loß║íi sß║ún phß║⌐m kh├íc.</p>
-        <button className="mt-3 text-[#39FF14]" onClick={() => { setParams({}); setCategory('all'); }}>X├│a bß╗Ö lß╗ìc</button>
+        <p>Không tìm thấy sản phẩm phù hợp. Thử từ khóa hoặc loại sản phẩm khác.</p>
+        <button className="mt-3 text-[#39FF14]" onClick={() => { setParams({}); setCategory('all'); }}>Xóa bộ lọc</button>
       </div>}
-      <Modal open={compareOpen} onClose={() => setCompareOpen(false)} label="So s├ính chß║Ñt liß╗çu">
+      <Modal open={compareOpen} onClose={() => setCompareOpen(false)} label="So sánh chất liệu">
         <div className="p-6 rounded-2xl bg-surface border border-border space-y-4">
-          <h2 className="text-xl font-semibold">Chß║Ñt liß╗çu trong danh mß╗Ñc</h2>
-          <p><strong>PLA PRO+:</strong> Th╞░ß╗¢c kß╗╣ thuß║¡t 20cm, hß╗ù trß╗ú khß║»c t├¬n/MSSV miß╗àn ph├¡.</p>
-          <p><strong>PETG:</strong> Th╞░ß╗¢c dß║╗o 30cm, thiß║┐t kß║┐ chß╗æng g├úy v├á viß╗ün v├ít cß║ính.</p>
-          <button className="px-4 py-2 bg-primary text-slate-950 rounded-xl" onClick={() => setCompareOpen(false)}>─É├│ng</button>
+          <h2 className="text-xl font-semibold">Chất liệu trong danh mục</h2>
+          <p><strong>PLA PRO+:</strong> Thước kỹ thuật 20cm, hỗ trợ khắc tên/MSSV miễn phí.</p>
+          <p><strong>PETG:</strong> Thước dẻo 30cm, thiết kế chống gãy và viền vát cạnh.</p>
+          <button className="px-4 py-2 bg-primary text-slate-950 rounded-xl" onClick={() => setCompareOpen(false)}>Đóng</button>
         </div>
       </Modal>
 

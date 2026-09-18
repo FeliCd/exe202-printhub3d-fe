@@ -50,11 +50,11 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
           </div>
           <div className="overflow-hidden">
             <p className="text-sm uppercase tracking-wider text-[#39FF14] font-extrabold">
-              T├ái khoß║ún Sinh Vi├¬n
+              Tài khoản Sinh Viên
             </p>
-            <p className="text-sm font-bold text-white truncate">{user?.name || 'Kh├ích h├áng'}</p>
+            <p className="text-sm font-bold text-white truncate">{user?.name || 'Khách hàng'}</p>
             <span className="inline-block mt-1 text-xs px-2.5 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800/40 font-bold">
-              Kh├ích h├áng B2C
+              Khách hàng B2C
             </span>
           </div>
         </div>
@@ -68,24 +68,24 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-[#39FF14] flex items-center gap-1.5">
-                <span>≡ƒôÉ</span> Tß╗░ CUSTOM TH╞»ß╗ÜC 3D
+                <span>📐</span> TỰ CUSTOM THƯỚC 3D
               </span>
               <span className="text-xs font-black bg-[#39FF14] text-slate-950 px-2.5 py-0.5 rounded-full uppercase animate-pulse">
                 HOT
               </span>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed font-medium">
-              Tß╗▒ tß║ío th╞░ß╗¢c theo k├¡ch th╞░ß╗¢c, font khß║»c t├¬n/MSSV ri├¬ng, xem bß║ún dß╗▒ng 3D tß╗⌐c th├¼.
+              Tự tạo thước theo kích thước, font khắc tên/MSSV riêng, xem bản dựng 3D tức thì.
             </p>
           </Link>
         </div>
 
         {/* ========================================================================= */}
-        {/* GROUP 1: MUA Sß║«M & Dß╗èCH Vß╗ñ */}
+        {/* GROUP 1: MUA SẮM & DỊCH VỤ */}
         {/* ========================================================================= */}
         <nav className="space-y-2 pt-2 border-t border-border">
           <p className="px-3 text-sm font-black uppercase tracking-widest text-[#39FF14] mb-2">
-            ≡ƒ¢ì∩╕Å MUA Sß║«M &amp; Dß╗èCH Vß╗ñ
+            🛒 MUA SẮM &amp; DỊCH VỤ
           </p>
 
           <Link
@@ -98,7 +98,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <Box className="w-5 h-5 text-[#39FF14] shrink-0" />
-            <span>Sß║ún phß║⌐m &amp; BST Th╞░ß╗¢c</span>
+            <span>Sản phẩm &amp; BST Thước</span>
           </Link>
 
           <Link
@@ -111,7 +111,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <Printer className="w-5 h-5 text-text-muted shrink-0" />
-            <span>In 3D Theo Y├¬u Cß║ºu</span>
+            <span>In 3D Theo Yêu Cầu</span>
           </Link>
 
           <Link
@@ -124,7 +124,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <Layers className="w-5 h-5 text-text-muted shrink-0" />
-            <span>─Éß║╖t H├áng H├áng Loß║ít</span>
+            <span>Đặt Hàng Hàng Loạt</span>
           </Link>
 
           <Link
@@ -137,16 +137,16 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <Ruler className="w-5 h-5 text-text-muted shrink-0" />
-            <span>C├┤ng cß╗Ñ Th╞░ß╗¢c ─æo 3D</span>
+            <span>Công cụ Thước đo 3D</span>
           </Link>
         </nav>
 
         {/* ========================================================================= */}
-        {/* GROUP 2: QUß║óN L├¥ GIAO Dß╗èCH */}
+        {/* GROUP 2: QUẢN LÝ GIAO DỊCH */}
         {/* ========================================================================= */}
         <nav className="space-y-2 pt-3 border-t border-border">
           <p className="px-3 text-sm font-black uppercase tracking-widest text-[#39FF14] mb-2">
-            ≡ƒôè QUß║óN L├¥ GIAO Dß╗èCH
+            📦 QUẢN LÝ GIAO DỊCH
           </p>
 
           <Link
@@ -160,7 +160,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
           >
             <PackageCheck className="w-5 h-5 text-text-muted shrink-0" />
             <div className="flex-1 flex items-center justify-between">
-              <span>Theo d├╡i tiß║┐n ─æß╗Ö in 3D</span>
+              <span>Theo dõi tiến độ in 3D</span>
               <span className="w-2.5 h-2.5 rounded-full bg-[#39FF14]" />
             </div>
           </Link>
@@ -175,7 +175,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <History className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Lß╗ïch sß╗¡ ─æ╞ín h├áng &amp; In lß║íi</span>
+            <span>Lịch sử đơn hàng &amp; In lại</span>
           </Link>
 
           <Link
@@ -188,7 +188,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <HardDrive className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Quß║ún l├╜ File 3D (Vault)</span>
+            <span>Quản lý File 3D (Vault)</span>
           </Link>
 
           <Link
@@ -201,7 +201,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <FileText className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Quß║ún l├╜ B├ío gi├í 3D</span>
+            <span>Quản lý Báo giá 3D</span>
           </Link>
 
           <Link
@@ -214,7 +214,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <Wallet className="w-5 h-5 text-text-muted shrink-0" />
-            <span>V├¡ ─æiß╗çn tß╗¡ PrintHub</span>
+            <span>Ví điện tử PrintHub</span>
           </Link>
 
           <Link
@@ -227,16 +227,16 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <Sparkles className="w-5 h-5 text-text-muted shrink-0" />
-            <span>G├│i ╞»u ─É├úi Hß╗Öi Vi├¬n</span>
+            <span>Gói Ưu Đãi Hội Viên</span>
           </Link>
         </nav>
 
         {/* ========================================================================= */}
-        {/* GROUP 3: C├ü NH├éN & Hß╗û TRß╗ó */}
+        {/* GROUP 3: CÁ NHÂN & HỖ TRỢ */}
         {/* ========================================================================= */}
         <nav className="space-y-2 pt-3 border-t border-border">
           <p className="px-3 text-sm font-black uppercase tracking-widest text-[#39FF14] mb-2">
-            ≡ƒæñ C├ü NH├éN &amp; Hß╗û TRß╗ó
+            👤 CÁ NHÂN &amp; HỖ TRỢ
           </p>
 
           <Link
@@ -249,7 +249,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <UserIcon className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Trang C├í Nh├ón &amp; Passcode</span>
+            <span>Trang Cá Nhân &amp; Passcode</span>
           </Link>
 
           <button
@@ -261,7 +261,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }}
           >
             <MapPin className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Sß╗ò ─æß╗ïa chß╗ë nhß║¡n h├áng</span>
+            <span>Sổ địa chỉ nhận hàng</span>
           </button>
 
           <Link
@@ -274,7 +274,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <ShieldAlert className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Bß║úo h├ánh 1-─æß╗òi-1 (1 kß╗│)</span>
+            <span>Bảo hành 1-đổi-1 (1 kỳ)</span>
           </Link>
 
           <Link
@@ -287,7 +287,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <Scale className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Khiß║┐u nß║íi &amp; Tranh chß║Ñp</span>
+            <span>Khiếu nại &amp; Tranh chấp</span>
           </Link>
 
           <Link
@@ -300,7 +300,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             }`}
           >
             <HelpCircle className="w-5 h-5 text-text-muted shrink-0" />
-            <span>Trung t├óm Hß╗ù trß╗ú &amp; FAQ</span>
+            <span>Trung tâm Hỗ trợ &amp; FAQ</span>
           </Link>
         </nav>
       </div>
@@ -312,7 +312,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/60 font-bold text-sm transition shadow-sm"
         >
           <LogOut className="w-4 h-4" />
-          <span>─É─âng xuß║Ñt</span>
+          <span>Đăng xuất</span>
         </button>
       </div>
     </aside>

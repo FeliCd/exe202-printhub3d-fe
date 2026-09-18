@@ -25,7 +25,7 @@ const mockVaultFiles: FileVaultItem[] = [
     weightGrams: 185,
     volumeCm3: 154,
     dimensions: { x: 120, y: 120, z: 85 },
-    materialPreference: 'PETG Chi╠úu Nhi├¬╠út (Black)',
+    materialPreference: 'PETG Chịu Nhiệt (Black)',
     uploadedAt: '2026-08-15 10:05',
     lastPrintedAt: '2026-08-20 16:40',
     printCount: 2,
@@ -38,7 +38,7 @@ const mockVaultFiles: FileVaultItem[] = [
     weightGrams: 28,
     volumeCm3: 23,
     dimensions: { x: 45, y: 45, z: 15 },
-    materialPreference: 'Resin UV Quang Hß╗ìc',
+    materialPreference: 'Resin UV Quang Học',
     uploadedAt: '2026-09-02 11:30',
     printCount: 1,
   },
@@ -52,7 +52,7 @@ export default function FileVaultPage() {
   const filteredFiles = files.filter(f => f.fileName.toLowerCase().includes(search.toLowerCase()));
 
   const handleDelete = (id: string) => {
-    if (!window.confirm('X├│a mß╗Ñc n├áy? Thao t├íc n├áy kh├┤ng thß╗â ho├án t├íc trong phi├¬n hiß╗çn tß║íi.')) return;
+    if (!window.confirm('Xóa mục này? Thao tác này không thể hoàn tác trong phiên hiện tại.')) return;
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 
@@ -63,10 +63,10 @@ export default function FileVaultPage() {
         <div>
           <div className="flex items-center gap-2 text-[#39FF14]">
             <HardDrive className="w-6 h-6" />
-            <h1 className="text-2xl font-black text-white">Quß║ún L├╜ File Thiß║┐t Kß║┐ (Th╞░ Viß╗çn 3D Vault)</h1>
+            <h1 className="text-2xl font-black text-white">Quản Lý File Thiết Kế (Thư Viện 3D Vault)</h1>
           </div>
           <p className="text-sm text-text-muted">
-            L╞░u trß╗» kh├┤ng giß╗¢i hß║ín c├íc tß╗çp .STL, .OBJ, .STEP c├í nh├ón. In lß║íi nhanh ch├│ng chß╗ë vß╗¢i 1 c├║ click m├á kh├┤ng cß║ºn tß║úi lß║íi file.
+            Lưu trữ không giới hạn các tệp .STL, .OBJ, .STEP cá nhân. In lại nhanh chóng chỉ với 1 cú click mà không cần tải lại file.
           </p>
         </div>
 
@@ -74,29 +74,29 @@ export default function FileVaultPage() {
           to="/custom"
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#39FF14] text-slate-950 font-black text-xs hover:bg-emerald-400 transition shadow-lg shadow-emerald-950/40 shrink-0"
         >
-          <Upload className="w-4 h-4" /> Tß║úi Tß╗çp 3D Mß╗¢i L├¬n
+          <Upload className="w-4 h-4" /> Tải Tệp 3D Mới Lên
         </Link>
       </div>
 
       {/* Search & Stats Bar */}
       <div className="p-4 rounded-2xl bg-surface border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <input aria-label="T├¼m t├¬n tß╗çp 3D, ─æß╗ïnh dß║íng .STL..."
+        <input aria-label="Tìm tên tệp 3D, định dạng .STL..."
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="T├¼m t├¬n tß╗çp 3D, ─æß╗ïnh dß║íng .STL..."
+          placeholder="Tìm tên tệp 3D, định dạng .STL..."
           className="bg-surface-inset border border-border rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#39FF14] w-full sm:w-80"
         />
 
         <div className="flex items-center gap-4 text-xs font-semibold text-text-muted">
-          <span>Tß╗òng sß╗æ file: <strong className="text-white">{files.length} tß╗çp</strong></span>
-          <span>Dung l╞░ß╗úng ─æ├ú d├╣ng: <strong className="text-[#39FF14]">51.2 MB / 5.0 GB (Free)</strong></span>
+          <span>Tổng số file: <strong className="text-white">{files.length} tệp</strong></span>
+          <span>Dung lượng đã dùng: <strong className="text-[#39FF14]">51.2 MB / 5.0 GB (Free)</strong></span>
         </div>
       </div>
 
       {/* Files List */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filteredFiles.length === 0 && <p role="status" className="col-span-full p-6 text-slate-300">Kh├┤ng c├│ tß╗çp ph├╣ hß╗úp. Thß╗¡ tß╗½ kh├│a kh├íc hoß║╖c tß║úi tß╗çp mß╗¢i.</p>}
+        {filteredFiles.length === 0 && <p role="status" className="col-span-full p-6 text-slate-300">Không có tệp phù hợp. Thử từ khóa khác hoặc tải tệp mới.</p>}
         {filteredFiles.map((file) => (
           <div
             key={file.id}
@@ -112,26 +112,26 @@ export default function FileVaultPage() {
                     <h3 className="font-bold text-white text-xs truncate group-hover:text-[#39FF14] transition" title={file.fileName}>
                       {file.fileName}
                     </h3>
-                    <p className="text-sm text-text-muted">{file.fileSize} ΓÇó ─É├ú in {file.printCount} lß║ºn</p>
+                    <p className="text-sm text-text-muted">{file.fileSize} • Đã in {file.printCount} lần</p>
                   </div>
                 </div>
               </div>
 
               <div className="pt-3 space-y-2 text-xs text-text-muted">
                 <div className="flex justify-between">
-                  <span>Trß╗ìng l╞░ß╗úng dß╗▒ t├¡nh:</span>
+                  <span>Trọng lượng dự tính:</span>
                   <strong className="text-slate-200">{file.weightGrams}g</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span>Thß╗â t├¡ch CAD:</span>
-                  <strong className="text-slate-200">{file.volumeCm3} cm┬│</strong>
+                  <span>Thể tích CAD:</span>
+                  <strong className="text-slate-200">{file.volumeCm3} cm³</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span>K├¡ch th╞░ß╗¢c Bounding Box:</span>
+                  <span>Kích thước Bounding Box:</span>
                   <strong className="text-slate-200 font-mono">{file.dimensions.x}x{file.dimensions.y}x{file.dimensions.z}mm</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span>Vß║¡t liß╗çu hay in:</span>
+                  <span>Vật liệu hay in:</span>
                   <strong className="text-[#39FF14]">{file.materialPreference}</strong>
                 </div>
               </div>
@@ -142,17 +142,17 @@ export default function FileVaultPage() {
                 onClick={() => navigate('/custom')}
                 className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
               >
-                <Printer className="w-4 h-4" /> In Lß║íi Ngay
+                <Printer className="w-4 h-4" /> In Lại Ngay
               </button>
-              <button disabled aria-description="Chß╗⌐c n─âng ch╞░a khß║ú dß╗Ñng trong bß║ún d├╣ng thß╗¡"
-                title="Tß║úi vß╗ü"
+              <button disabled aria-description="Chức năng chưa khả dụng trong bản dùng thử"
+                title="Tải về"
                 className="p-2.5 rounded-xl bg-surface-inset border border-border hover:border-cyan-400 text-slate-300 hover:text-cyan-400 transition"
               >
                 <Download className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleDelete(file.id)}
-                title="X├│a tß╗çp"
+                title="Xóa tệp"
                 className="p-2.5 rounded-xl bg-surface-inset border border-border hover:border-red-500 text-slate-300 hover:text-red-400 transition"
               >
                 <Trash2 className="w-4 h-4" />

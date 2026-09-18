@@ -17,18 +17,18 @@ const mockPastOrders: PastOrder[] = [
     id: 'ORD-9024',
     date: '2026-09-01 14:30',
     items: [
-      { name: 'Th╞░ß╗¢c Kß╗╣ Thuß║¡t 20cm Khß║»c T├¬n/MSSV Laser', qty: 2, price: 45000, material: 'PLA Pro (Green)' },
-      { name: 'Th╞░ß╗¢c Kß║╣p Vernier 150mm C╞í Kh├¡', qty: 1, price: 95000, material: 'Resin UV' },
+      { name: 'Thước Kỹ Thuật 20cm Khắc Tên/MSSV Laser', qty: 2, price: 45000, material: 'PLA Pro (Green)' },
+      { name: 'Thước Kẹp Vernier 150mm Cơ Khí', qty: 1, price: 95000, material: 'Resin UV' },
     ],
     total: 185000,
     status: 'SHIPPING',
-    paymentMethod: 'V├¡ PrintHub',
+    paymentMethod: 'Ví PrintHub',
   },
   {
     id: 'ORD-8812',
     date: '2026-08-20 09:15',
     items: [
-      { name: 'Th╞░ß╗¢c Vu├┤ng Chß╗» T ─Éß╗ô ├ün Kiß║┐n Tr├║c 30cm', qty: 3, price: 55000, material: 'PETG Clear' },
+      { name: 'Thước Vuông Chữ T Đồ Án Kiến Trúc 30cm', qty: 3, price: 55000, material: 'PETG Clear' },
     ],
     total: 165000,
     status: 'COMPLETED',
@@ -38,11 +38,11 @@ const mockPastOrders: PastOrder[] = [
     id: 'ORD-7510',
     date: '2026-07-10 16:45',
     items: [
-      { name: 'Combo 5 Th╞░ß╗¢c Kß╗╣ Thuß║¡t Lß╗¢p C╞í ─Éiß╗çn', qty: 1, price: 210000, material: 'PLA Pro' },
+      { name: 'Combo 5 Thước Kỹ Thuật Lớp Cơ Điện', qty: 1, price: 210000, material: 'PLA Pro' },
     ],
     total: 210000,
     status: 'CANCELLED',
-    paymentMethod: 'V├¡ PrintHub',
+    paymentMethod: 'Ví PrintHub',
   },
 ];
 
@@ -57,7 +57,7 @@ export default function OrderHistoryPage() {
   });
 
   const handleReorder = (orderId: string) => {
-    alert(`─É├ú th├¬m lß║íi c├íc sß║ún phß║⌐m cß╗ºa ─æ╞ín h├áng ${orderId} v├áo giß╗Å h├áng!`);
+    alert(`Đã thêm lại các sản phẩm của đơn hàng ${orderId} vào giỏ hàng!`);
     navigate('/cart');
   };
 
@@ -67,19 +67,19 @@ export default function OrderHistoryPage() {
       <div>
         <div className="flex items-center gap-2 text-[#39FF14]">
           <History className="w-6 h-6" />
-          <h1 className="text-2xl font-black text-white">Lß╗ïch Sß╗¡ ─É╞ín H├áng &amp; Mua Lß║íi (Order History)</h1>
+          <h1 className="text-2xl font-black text-white">Lịch Sử Đơn Hàng &amp; Mua Lại (Order History)</h1>
         </div>
         <p className="text-sm text-text-muted">
-          Xem lß║íi to├án bß╗Ö lß╗ïch sß╗¡ ─æ╞ín h├áng in 3D ─æ├ú thß╗▒c hiß╗çn v├á mua lß║íi (Re-order) chß╗ë vß╗¢i 1 thao t├íc bß║Ñm.
+          Xem lại toàn bộ lịch sử đơn hàng in 3D đã thực hiện và mua lại (Re-order) chỉ với 1 thao tác bấm.
         </p>
       </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-2 border-b border-border pb-3">
         {[
-          { key: 'ALL', label: 'Tß║Ñt Cß║ú ─É╞ín H├áng' },
-          { key: 'COMPLETED', label: '─É├ú Ho├án Th├ánh' },
-          { key: 'CANCELLED', label: '─É├ú Hß╗ºy' },
+          { key: 'ALL', label: 'Tất Cả Đơn Hàng' },
+          { key: 'COMPLETED', label: 'Đã Hoàn Thành' },
+          { key: 'CANCELLED', label: 'Đã Hủy' },
         ].map(t => (
           <button
             key={t.key}
@@ -102,23 +102,23 @@ export default function OrderHistoryPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
               <div>
                 <span className="font-mono text-[#39FF14] font-bold text-sm">{order.id}</span>
-                <p className="text-text-muted text-sm">Ng├áy ─æß║╖t: {order.date} ΓÇó {order.paymentMethod}</p>
+                <p className="text-text-muted text-sm">Ngày đặt: {order.date} • {order.paymentMethod}</p>
               </div>
 
               <div>
                 {order.status === 'COMPLETED' && (
                   <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Ho├án th├ánh
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn thành
                   </span>
                 )}
                 {order.status === 'CANCELLED' && (
                   <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-xs flex items-center gap-1">
-                    <XCircle className="w-3.5 h-3.5" /> ─É├ú hß╗ºy
+                    <XCircle className="w-3.5 h-3.5" /> Đã hủy
                   </span>
                 )}
                 {order.status === 'SHIPPING' && (
                   <span className="px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold text-xs flex items-center gap-1">
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> ─Éang giao h├áng
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Đang giao hàng
                   </span>
                 )}
               </div>
@@ -130,9 +130,9 @@ export default function OrderHistoryPage() {
                 <div key={idx} className="py-2.5 flex items-center justify-between gap-3">
                   <div>
                     <h4 className="font-bold text-white text-xs">{item.name}</h4>
-                    <p className="text-text-muted text-sm">Chß║Ñt liß╗çu: {item.material} ΓÇó Sß╗æ l╞░ß╗úng: {item.qty}</p>
+                    <p className="text-text-muted text-sm">Chất liệu: {item.material} • Số lượng: {item.qty}</p>
                   </div>
-                  <strong className="text-slate-200 font-mono text-xs">{formatPrice(item.price * item.qty)}─æ</strong>
+                  <strong className="text-slate-200 font-mono text-xs">{formatPrice(item.price * item.qty)}đ</strong>
                 </div>
               ))}
             </div>
@@ -140,8 +140,8 @@ export default function OrderHistoryPage() {
             {/* Order Bottom */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border">
               <div className="flex items-center gap-2">
-                <span className="text-text-muted">Tß╗òng gi├í trß╗ï ─æ╞ín:</span>
-                <span className="text-base font-black text-[#39FF14] font-mono">{formatPrice(order.total)}─æ</span>
+                <span className="text-text-muted">Tổng giá trị đơn:</span>
+                <span className="text-base font-black text-[#39FF14] font-mono">{formatPrice(order.total)}đ</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -149,13 +149,13 @@ export default function OrderHistoryPage() {
                   to="/orders"
                   className="px-3.5 py-2 rounded-xl bg-surface-inset border border-border hover:border-[#39FF14] text-slate-300 hover:text-white font-bold flex items-center gap-1.5 transition"
                 >
-                  <Eye className="w-4 h-4 text-[#39FF14]" /> Xem Tiß║┐n ─Éß╗Ö
+                  <Eye className="w-4 h-4 text-[#39FF14]" /> Xem Tiến Độ
                 </Link>
                 <button
                   onClick={() => handleReorder(order.id)}
                   className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black flex items-center gap-1.5 transition shadow-md shadow-emerald-950/40"
                 >
-                  <RefreshCw className="w-4 h-4" /> Mua Lß║íi / In Lß║íi
+                  <RefreshCw className="w-4 h-4" /> Mua Lại / In Lại
                 </button>
               </div>
             </div>
