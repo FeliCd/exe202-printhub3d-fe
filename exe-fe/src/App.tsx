@@ -3,6 +3,7 @@ import AppRoutes from './routes';
 import CartDrawer from './features/cart/components/CartDrawer';
 import AddressModal from './features/address/components/AddressModal';
 import LockOverlayModal from './components/LockOverlayModal';
+import { loadSelectedAddress } from './features/address/data';
 import { useCart } from './features/cart/hooks/useCart';
 
 export default function App() {
@@ -10,6 +11,7 @@ export default function App() {
   const [addressModalOpen, setAddressModalOpen] = useState(false);
 
   const cart = useCart();
+  const [shippingAddress, setShippingAddress] = useState(loadSelectedAddress);
 
   const openCart = useCallback(() => setCartOpen(true), []);
   const closeCart = useCallback(() => setCartOpen(false), []);
@@ -25,8 +27,10 @@ export default function App() {
   );
 
   return (
-    <div className="bg-[#0A0A0A] text-slate-100 h-screen overflow-hidden flex flex-col font-sans selection:bg-[#39FF14] selection:text-black">
+    <div className="bg-[#0A0A0A] text-slate-100 h-dvh overflow-hidden flex flex-col font-sans selection:bg-[#39FF14] selection:text-black">
       <AppRoutes
+        cart={cart}
+        shippingAddress={shippingAddress}
         cartCount={cart.totalItems}
         onOpenCart={openCart}
         onAddToCart={handleAddToCart}
@@ -36,6 +40,7 @@ export default function App() {
       <CartDrawer
         isOpen={cartOpen}
         onClose={closeCart}
+        shippingAddress={shippingAddress}
         items={cart.items}
         totalItems={cart.totalItems}
         subtotal={cart.subtotal}
@@ -49,7 +54,7 @@ export default function App() {
         onOpenAddressModal={openAddressModal}
       />
 
-      <AddressModal isOpen={addressModalOpen} onClose={closeAddressModal} />
+      <AddressModal isOpen={addressModalOpen} onClose={closeAddressModal} onSelectAddress={setShippingAddress} />
       <LockOverlayModal />
     </div>
   );

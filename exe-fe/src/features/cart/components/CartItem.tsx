@@ -30,31 +30,31 @@ export default function CartItem({ item, onUpdateQuantity }: CartItemProps) {
   const label = thumbnailLabelMap[item.product.thumbnail] || item.product.material;
 
   return (
-    <div className="p-3 rounded-xl bg-[#18191d] border border-[#272930] flex items-start gap-3 relative group">
-      <div className={`w-14 h-14 rounded-lg bg-[#1e2025] border border-[#272930] flex items-center justify-center font-mono text-[10px] ${colorClass} shrink-0`}>
+    <div className="p-3 rounded-xl bg-surface border border-border flex items-start gap-3 relative group">
+      <div className={`w-14 h-14 rounded-lg bg-surface-raised border border-border flex items-center justify-center font-mono text-xs ${colorClass} shrink-0`}>
         {label}
       </div>
       <div className="flex-1 text-xs">
         <h5 className="font-bold text-white text-sm">{item.product.name}</h5>
         {item.engraving && (
-          <p className="text-emerald-400 font-medium text-[11px] mt-0.5">Khắc: "{item.engraving}"</p>
+          <p className="text-emerald-400 font-medium text-sm mt-0.5">Khắc: "{item.engraving}"</p>
         )}
         {item.colorOption && (
-          <p className="text-slate-400 font-medium text-[11px] mt-0.5">Màu sắc: {item.colorOption}</p>
+          <p className="text-slate-400 font-medium text-sm mt-0.5">Màu sắc: {item.colorOption}</p>
         )}
         <div className="flex items-center justify-between mt-2">
           <span className="font-bold text-slate-100 text-sm">{formatPrice(item.product.price)}đ</span>
-          <div className="flex items-center border border-[#272930] rounded bg-[#1e2025]">
+          <div className="flex items-center border border-border rounded bg-surface-raised">
             <button
               className="px-2 py-0.5 text-slate-400 hover:text-white"
-              onClick={() => onUpdateQuantity(item.id, -1)}
+              aria-label={`Giảm số lượng ${item.product.name}`} onClick={() => onUpdateQuantity(item.id, -1)}
             >
               -
             </button>
             <span className="px-2 text-xs font-semibold">{item.quantity}</span>
             <button
               className="px-2 py-0.5 text-slate-400 hover:text-white"
-              onClick={() => onUpdateQuantity(item.id, 1)}
+              aria-label={`Tăng số lượng ${item.product.name}`} onClick={() => onUpdateQuantity(item.id, 1)}
             >
               +
             </button>

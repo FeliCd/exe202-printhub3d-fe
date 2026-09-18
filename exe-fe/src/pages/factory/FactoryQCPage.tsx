@@ -89,34 +89,34 @@ export default function FactoryQCPage() {
           <ShieldCheck className="w-6 h-6" />
           <h1 className="text-2xl font-black text-white">Kiểm Soát Chất Lượng (QC) &amp; Xử Lý Sau In</h1>
         </div>
-        <p className="text-xs text-[#94a3b8]">
+        <p className="text-sm text-text-muted">
           Tách support, chà nhám, đo kính hiển vi dung sai và đánh giá Đạt (Pass) / Lỗi (Fail) trước khi xuất kho.
         </p>
       </div>
 
       <div className="space-y-4">
         {qcs.map(q => (
-          <div key={q.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] text-xs space-y-4">
-            <div className="flex justify-between items-center border-b border-[#272930] pb-3">
+          <div key={q.id} className="p-5 rounded-2xl bg-surface border border-border text-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
               <div>
                 <span className="font-mono text-cyan-400 font-bold">{q.id} • Đơn {q.orderId}</span>
                 <h3 className="font-bold text-white text-sm mt-0.5">{q.productName}</h3>
-                <p className="text-[#94a3b8] text-[11px]">Số lượng hoàn thiện: {q.printedQty} cái</p>
+                <p className="text-text-muted text-sm">Số lượng hoàn thiện: {q.printedQty} cái</p>
               </div>
 
               <div>
                 {q.qcStatus === 'PENDING_QC' && (
-                  <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-xs flex items-center gap-1">
                     <Wrench className="w-3.5 h-3.5" /> Đang xử lý sau in (QC)
                   </span>
                 )}
                 {q.qcStatus === 'PASS' && (
-                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-emerald-950 text-[#39FF14] border border-emerald-800 font-bold text-xs flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> ĐẠT CHUẨN QC (PASS)
                   </span>
                 )}
                 {q.qcStatus === 'FAIL' && (
-                  <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-[11px] flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-xs flex items-center gap-1">
                     <XCircle className="w-3.5 h-3.5" /> LỖI SẢN XUẤT (FAIL)
                   </span>
                 )}
@@ -124,11 +124,11 @@ export default function FactoryQCPage() {
             </div>
 
             {/* Steps Checklist */}
-            <div className="p-3 bg-[#111215] rounded-xl border border-[#272930] space-y-1.5">
+            <div className="p-3 bg-surface-inset rounded-xl border border-border space-y-1.5">
               <span className="text-xs font-bold text-slate-300 block">Quy trình xử lý sau in bắt buộc:</span>
               <div className="flex flex-wrap gap-2">
                 {q.postProcessSteps.map((step, idx) => (
-                  <span key={idx} className="px-2.5 py-1 rounded-lg bg-[#18191d] border border-[#272930] text-slate-300 font-semibold text-[11px] flex items-center gap-1">
+                  <span key={idx} className="px-2.5 py-1 rounded-lg bg-surface border border-border text-slate-300 font-semibold text-xs flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-cyan-400" /> {step}
                   </span>
                 ))}
@@ -142,8 +142,8 @@ export default function FactoryQCPage() {
             )}
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#272930]">
-              <span className="text-[#94a3b8] text-[11px]">Kỹ thuật viên QC: <strong className="text-white">{q.inspectedBy || 'Chờ nghiệm thu'}</strong></span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border">
+              <span className="text-text-muted text-xs">Kỹ thuật viên QC: <strong className="text-white">{q.inspectedBy || 'Chờ nghiệm thu'}</strong></span>
 
               {q.qcStatus === 'PENDING_QC' && (
                 <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ export default function FactoryQCPage() {
                   </button>
                   <button
                     onClick={() => handleSetStatus(q.id, 'PASS')}
-                    className="px-4 py-2 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs flex items-center gap-1 transition shadow-md"
+                    className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs flex items-center gap-1 transition shadow-md"
                   >
                     <CheckCircle2 className="w-4 h-4" /> Xác Nhận Đạt (Pass)
                   </button>

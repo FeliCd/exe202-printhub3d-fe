@@ -47,6 +47,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // Không gọi backend cho wallet vì backend không có WalletController (chỉ dùng mock local)
   const deposit = async (amount: number, method: string) => {
+    if (!Number.isFinite(amount) || amount <= 0) return;
     setBalance((prev) => prev + amount);
     const newTxn: WalletTransaction = {
       id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -60,7 +61,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   };
 
   const pay = async (amount: number, description: string): Promise<boolean> => {
-    if (balance < amount) return false;
+    if (!Number.isFinite(amount) || amount <= 0 || balance < amount) return false;
     setBalance((prev) => prev - amount);
     const newTxn: WalletTransaction = {
       id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -75,6 +76,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   };
 
   const refund = (amount: number, description: string) => {
+    if (!Number.isFinite(amount) || amount <= 0) return;
     setBalance((prev) => prev + amount);
     const newTxn: WalletTransaction = {
       id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`,

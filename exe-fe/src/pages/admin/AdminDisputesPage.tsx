@@ -32,22 +32,14 @@ export default function AdminDisputesPage() {
   const { refund } = useWallet();
 
   const handleResolve = (id: string, action: 'FULL' | 'PARTIAL' | 'REJECT') => {
-    setDisputes((prev) =>
-      prev.map((d) => {
-        if (d.id === id) {
-          if (action === 'FULL') {
-            refund(d.amount, `Hoàn tiền 100% khiếu nại ca ${d.id}`);
-            return { ...d, status: 'RESOLVED_REFUND_FULL', adminDecisionNotes: 'Admin duyệt hoàn tiền 100% vào Ví Khách Hàng.' };
-          } else if (action === 'PARTIAL') {
-            refund(d.amount * 0.5, `Hoàn tiền 50% khiếu nại ca ${d.id}`);
-            return { ...d, status: 'RESOLVED_REFUND_PARTIAL', adminDecisionNotes: 'Admin duyệt đền bù 50% giá trị đơn.' };
-          } else {
-            return { ...d, status: 'REJECTED', adminDecisionNotes: 'Admin từ chối khiếu nại do minh chứng chưa đủ căn cứ.' };
-          }
-        }
-        return d;
-      })
-    );
+    const dispute = disputes.find(item => item.id === id);
+    if (!dispute || dispute.adminDecisionNotes) return;
+    if (action !== 'REJECT') refund(dispute.amount * (action === 'FULL' ? 1 : 0.5), `Hoàn tiền khiếu nại ca ${id}`);
+    setDisputes(prev => prev.map(item => item.id !== id ? item : {
+      ...item,
+      status: action === 'FULL' ? 'RESOLVED_REFUND_FULL' : action === 'PARTIAL' ? 'RESOLVED_REFUND_PARTIAL' : 'REJECTED',
+      adminDecisionNotes: action === 'FULL' ? 'Admin duyệt hoàn tiền 100% vào Ví Khách Hàng.' : action === 'PARTIAL' ? 'Admin duyệt đền bù 50% giá trị đơn.' : 'Admin từ chối khiếu nại do minh chứng chưa đủ căn cứ.',
+    }));
   };
 
   return (
@@ -57,23 +49,23 @@ export default function AdminDisputesPage() {
           <Scale className="w-6 h-6" />
           <h1 className="text-2xl font-black text-white">Quản Lý Phê Duyệt Tranh Chấp Admin (Dispute Resolution)</h1>
         </div>
-        <p className="text-xs text-[#94a3b8]">Xem xét minh chứng từ Khách hàng &amp; Xưởng sản xuất để đưa ra phán quyết hoàn tiền đền bù</p>
+        <p className="text-sm text-text-muted">Xem xét minh chứng từ Khách hàng &amp; Xưởng sản xuất để đưa ra phán quyết hoàn tiền đền bù</p>
       </div>
 
       <div className="space-y-4">
         {disputes.map((d) => (
-          <div key={d.id} className="p-5 rounded-2xl bg-[#18191d] border border-[#272930] space-y-4 text-xs">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#272930] pb-3">
+          <div key={d.id} className="p-5 rounded-2xl bg-surface border border-border space-y-4 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
               <div>
                 <span className="font-mono text-red-400 font-bold">{d.id}</span>
                 <span className="text-white font-bold ml-3">Đơn hàng: {d.orderId}</span>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-[10px]">
+              <span className="px-2.5 py-1 rounded-full bg-red-950 text-red-400 border border-red-800 font-bold text-xs">
                 {d.status}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#111215] p-3 rounded-xl border border-[#272930]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-surface-inset p-3 rounded-xl border border-border">
               <div>Khách hàng khiếu nại: <strong className="text-white">{d.buyerName}</strong></div>
               <div>Xưởng in bị tố cáo: <strong className="text-white">{d.factoryName}</strong></div>
               <div>Số tiền khiếu nại: <strong className="text-[#22c55e]">{formatPrice(d.amount)}đ</strong></div>
@@ -86,10 +78,10 @@ export default function AdminDisputesPage() {
                 Phán quyết Admin: {d.adminDecisionNotes}
               </div>
             ) : (
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-[#272930]">
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                 <button
                   onClick={() => handleResolve(d.id, 'FULL')}
-                  className="px-4 py-2 rounded-xl bg-[#22c55e] text-slate-950 font-bold flex items-center gap-1"
+                  className="px-4 py-2 rounded-xl bg-primary text-slate-950 font-bold flex items-center gap-1"
                 >
                   <CheckCircle2 className="w-4 h-4" /> Hoàn Tiền 100% Ví Khách
                 </button>

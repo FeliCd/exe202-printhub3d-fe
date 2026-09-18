@@ -1,3 +1,4 @@
+import Modal from '../Modal';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Text } from '@react-three/drei';
@@ -540,13 +541,15 @@ function DrawingOverlay3D({
   modelWidth: number;
   modelThickness: number;
 }) {
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
   const texture = useMemo(() => {
     if (!canvasElement) return null;
     const tex = new THREE.CanvasTexture(canvasElement);
     tex.needsUpdate = true;
     return tex;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvasElement, drawTextureTrigger]);
+  }, [canvasElement]);
+  useEffect(() => { if (materialRef.current?.map) materialRef.current.map.needsUpdate = true; }, [texture, drawTextureTrigger]);
+  useEffect(() => () => texture?.dispose(), [texture]);
 
   if (!texture) return null;
 
@@ -557,7 +560,7 @@ function DrawingOverlay3D({
       receiveShadow
     >
       <planeGeometry args={[modelLength, modelWidth]} />
-      <meshBasicMaterial map={texture} transparent opacity={0.98} depthWrite={false} />
+      <meshBasicMaterial ref={materialRef} map={texture} transparent opacity={0.98} depthWrite={false} />
     </mesh>
   );
 }
@@ -761,6 +764,7 @@ export default function RulerConfigurator() {
   const groupRef = useRef<THREE.Group>(null);
 
   // Modal & Export States
+  const [exportError, setExportError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
@@ -775,13 +779,14 @@ export default function RulerConfigurator() {
   }, []);
 
   // Smooth Freehand Stroke Drawing Handler (Live Real-Time Update)
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasMouseDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
     setIsDrawing(true);
     const canvas = drawingCanvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) * canvas.width / rect.width;
+    const y = (e.clientY - rect.top) * canvas.height / rect.height;
     lastDrawPosRef.current = { x, y };
 
     const ctx = canvas.getContext('2d');
@@ -794,7 +799,7 @@ export default function RulerConfigurator() {
     }
   };
 
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasMouseMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !lastDrawPosRef.current) return;
     const canvas = drawingCanvasRef.current;
     if (!canvas) return;
@@ -802,8 +807,8 @@ export default function RulerConfigurator() {
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) * canvas.width / rect.width;
+    const y = (e.clientY - rect.top) * canvas.height / rect.height;
 
     ctx.strokeStyle = drawingColor;
     ctx.lineWidth = brushSize * 2;
@@ -910,7 +915,8 @@ export default function RulerConfigurator() {
 
   // STLExporter & Order Action
   const handleConfirmOrder = () => {
-    if (!groupRef.current) return;
+    if (!groupRef.current) { setExportError('Mô hình chưa sẵn sàng. Vui lòng chờ tải xong.'); return; }
+    setExportError('');
     setIsExporting(true);
 
     try {
@@ -923,14 +929,16 @@ export default function RulerConfigurator() {
       const link = document.createElement('a');
       const filename = `PrintHub_Ruler_${studentName.replace(/\s+/g, '_')}_${studentId || '2021'}.stl`;
 
-      link.href = URL.createObjectURL(blob);
+      const downloadUrl = URL.createObjectURL(blob);
+      link.href = downloadUrl;
       link.download = filename;
       link.click();
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 
       setShowOrderModal(true);
     } catch (err) {
       console.error('Lỗi xuất tệp STL 3D:', err);
-      setShowOrderModal(true);
+      setExportError('Không thể xuất tệp STL. Vui lòng thử lại sau khi mô hình tải xong.');
     } finally {
       setIsExporting(false);
     }
@@ -939,26 +947,26 @@ export default function RulerConfigurator() {
   const activeSticker = stickers.find((s) => s.id === activeStickerId);
 
   return (
-    <div className="w-full flex flex-col lg:flex-row bg-[#0A0A0A] rounded-3xl border border-[#272930] overflow-hidden shadow-2xl min-h-[750px]">
+    <div className="w-full flex flex-col xl:flex-row bg-[#0A0A0A] rounded-3xl border border-border overflow-hidden shadow-2xl min-h-[750px]">
       {/* ========================================================================= */}
       {/* 60% VIEWPORT: REAL-TIME 3D CANVAS VIEWPORT */}
       {/* ========================================================================= */}
-      <div className="w-full lg:w-[60%] relative min-h-[400px] lg:min-h-[750px] bg-gradient-to-b from-[#18191d] via-[#111215] to-[#0A0A0A] flex flex-col justify-between p-4 border-b lg:border-b-0 lg:border-r border-[#272930]">
+      <div className="w-full xl:w-[60%] relative min-h-[400px] lg:min-h-[750px] bg-gradient-to-b from-[#18191d] via-[#111215] to-[#0A0A0A] flex flex-col justify-between p-4 border-b lg:border-b-0 lg:border-r border-border">
         {/* Floating Top Badge */}
         <div className="relative z-10 flex items-center justify-between gap-2">
-          <div className="px-3.5 py-1.5 rounded-full bg-[#111215]/90 border border-[#272930] text-[#39FF14] text-xs font-black flex items-center gap-2 backdrop-blur shadow-lg">
+          <div className="px-3.5 py-1.5 rounded-full bg-surface-inset/90 border border-border text-[#39FF14] text-xs font-black flex items-center gap-2 backdrop-blur shadow-lg">
             <Sparkles className="w-4 h-4 animate-pulse" />
             <span>3D Real-time WebGL Engine (R3F)</span>
           </div>
 
           <div className="flex items-center gap-2">
             {stickers.length > 0 && (
-              <span className="px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-800 text-cyan-300 text-[11px] font-bold">
+              <span className="px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-800 text-cyan-300 text-xs font-bold">
                 {stickers.length} Sticker 3D
               </span>
             )}
             {multiColorSurcharge > 0 && (
-              <span className="px-3 py-1 rounded-full bg-purple-950/80 border border-purple-800 text-purple-300 text-[11px] font-bold">
+              <span className="px-3 py-1 rounded-full bg-purple-950/80 border border-purple-800 text-purple-300 text-xs font-bold">
                 + In Đa Màu (+{formatPrice(multiColorSurcharge)}đ)
               </span>
             )}
@@ -968,7 +976,7 @@ export default function RulerConfigurator() {
         {/* 3D R3F Canvas Viewport */}
         <div className="w-full flex-1 relative flex items-center justify-center cursor-grab active:cursor-grabbing">
           <Canvas
-            shadows
+            shadows={{ type: THREE.PCFShadowMap }}
             camera={{ position: [0, 18, 25], fov: 45 }}
             style={{ width: '100%', height: '100%', position: 'absolute' }}
           >
@@ -1032,7 +1040,7 @@ export default function RulerConfigurator() {
         </div>
 
         {/* Canvas Bottom Dimensions */}
-        <div className="relative z-10 flex items-center justify-between text-[11px] text-[#94a3b8] px-2 pt-2 border-t border-[#272930]/60">
+        <div className="relative z-10 flex items-center justify-between text-xs text-text-muted px-2 pt-2 border-t border-border/60">
           <span>🖱️ Xoay 360° &amp; Cuộn chuột để Zoom mô hình 3D</span>
           <span className="font-mono text-[#39FF14]">
             X: {selectedModel.length * 10}mm | Y: {selectedModel.width * 10}mm | Z:{' '}
@@ -1044,7 +1052,7 @@ export default function RulerConfigurator() {
       {/* ========================================================================= */}
       {/* 40% VIEWPORT: CONTROL PANEL FORM & STICKY FOOTER */}
       {/* ========================================================================= */}
-      <div className="w-full lg:w-[40%] p-6 bg-[#111215] flex flex-col justify-between space-y-5 overflow-y-auto max-h-[750px]">
+      <div className="w-full xl:w-[40%] p-6 bg-surface-inset flex flex-col justify-between space-y-5 xl:overflow-y-auto xl:max-h-[750px]">
         <div className="space-y-5">
           {/* Header */}
           <div>
@@ -1054,31 +1062,31 @@ export default function RulerConfigurator() {
                 Cấu Hình Thước In 3D
               </h2>
             </div>
-            <p className="text-xs text-[#94a3b8]">
+            <p className="text-sm text-text-muted">
               Tùy biến phôi thước, vẽ thêm nét vẽ cá nhân &amp; dán sticker 3D độc đáo.
             </p>
           </div>
 
           {/* I. KHU VỰC CHỌN KIỂU DÁNG (<select> DROPDOWN GỌN GÀNG) */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center justify-between">
+            <label htmlFor="rulerconfigurator-field-1" className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Ruler className="w-3.5 h-3.5 text-[#39FF14]" /> I. Chọn Mẫu Phôi Thước 3D
               </span>
               {selectedModel.badge && (
-                <span className="px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-bold text-[10px]">
+                <span className="px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-bold text-xs">
                   {selectedModel.badge}
                 </span>
               )}
             </label>
 
-            <select
+            <select id="rulerconfigurator-field-1"
               value={selectedModel.id}
               onChange={(e) => {
                 const found = RULER_MODELS.find((m) => m.id === e.target.value);
                 if (found) setSelectedModel(found);
               }}
-              className="w-full bg-[#18191d] border border-[#272930] rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none focus:border-[#39FF14]"
+              className="w-full bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none focus:border-[#39FF14]"
             >
               <optgroup label="📚 NHÓM THƯỚC HỌC TẬP & ĐỒ ÁN">
                 {RULER_MODELS.filter((m) => m.category === 'HỌC TẬP & ĐỒ ÁN').map((m) => (
@@ -1107,16 +1115,16 @@ export default function RulerConfigurator() {
           </div>
 
           {/* II. KHU VỰC TÙY CHỈNH MÀU SẮC (3 INDEPENDENT COLOR LAYERS) */}
-          <div className="space-y-3 pt-2 border-t border-[#272930]">
+          <div className="space-y-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                 <Palette className="w-3.5 h-3.5 text-[#39FF14]" /> II. Phối 3 Lớp Màu Độc Lập
               </label>
-              <span className="text-[10px] text-[#94a3b8]">Xưởng sơn/đổi cuộn nhựa</span>
+              <span className="text-xs text-text-muted">Xưởng sơn/đổi cuộn nhựa</span>
             </div>
 
             {/* LAYER 1: Màu Thân Thước */}
-            <div className="space-y-1 bg-[#18191d] p-3 rounded-xl border border-[#272930]">
+            <div className="space-y-1 bg-surface p-3 rounded-xl border border-border">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-white flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: baseColor }} />
@@ -1147,7 +1155,7 @@ export default function RulerConfigurator() {
             </div>
 
             {/* LAYER 2: Màu Nền Biển Chữ */}
-            <div className="space-y-1 bg-[#18191d] p-3 rounded-xl border border-[#272930]">
+            <div className="space-y-1 bg-surface p-3 rounded-xl border border-border">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-white flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: plateColor }} />
@@ -1178,7 +1186,7 @@ export default function RulerConfigurator() {
             </div>
 
             {/* LAYER 3: Màu Chữ Nổi 3D */}
-            <div className="space-y-1 bg-[#18191d] p-3 rounded-xl border border-[#272930]">
+            <div className="space-y-1 bg-surface p-3 rounded-xl border border-border">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-white flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: textColor }} />
@@ -1210,7 +1218,7 @@ export default function RulerConfigurator() {
           </div>
 
           {/* III. KHU VỰC TÙY CHỌN MỚI 1: VẼ THÊM TÙY THÍCH (FREEHAND DRAWING CANVAS PAD) */}
-          <div className="space-y-3 pt-2 border-t border-[#272930]">
+          <div className="space-y-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                 <PenTool className="w-3.5 h-3.5 text-[#39FF14]" /> III. Vẽ Thêm Tùy Thích Lên Thước (Cập nhật 3D Tức Thì)
@@ -1218,25 +1226,28 @@ export default function RulerConfigurator() {
               <button
                 type="button"
                 onClick={handleClearCanvas}
-                className="text-[10px] text-red-400 hover:underline flex items-center gap-1 font-bold"
+                className="text-xs text-red-400 hover:underline flex items-center gap-1 font-bold"
               >
                 <Eraser className="w-3 h-3" /> Xóa nét vẽ
               </button>
             </div>
 
-            <div className="p-3 bg-[#18191d] rounded-xl border border-[#272930] space-y-3 text-xs">
+            <div className="p-3 bg-surface rounded-xl border border-border space-y-3 text-xs">
               {/* Drawing Pad Canvas */}
-              <div className="w-full h-24 bg-[#0A0A0A] rounded-lg border border-[#272930] relative overflow-hidden flex items-center justify-center">
+              <div className="w-full h-24 bg-[#0A0A0A] rounded-lg border border-border relative overflow-hidden flex items-center justify-center">
                 <canvas
                   ref={drawingCanvasRef}
                   width={320}
                   height={80}
-                  onMouseDown={handleCanvasMouseDown}
-                  onMouseMove={handleCanvasMouseMove}
-                  onMouseUp={handleCanvasMouseUp}
+                  onPointerDown={handleCanvasMouseDown}
+                  onPointerMove={handleCanvasMouseMove}
+                  onPointerUp={handleCanvasMouseUp}
+                  onPointerCancel={handleCanvasMouseUp}
+                  onLostPointerCapture={handleCanvasMouseUp}
+                  aria-label="Bảng vẽ tự do trên thước"
                   className="w-full h-full cursor-crosshair touch-none"
                 />
-                <span className="absolute bottom-1 right-2 text-[9px] text-slate-500 pointer-events-none">
+                <span className="absolute bottom-1 right-2 text-xs text-slate-500 pointer-events-none">
                   🖊️ Kéo chuột/ngón tay để vẽ tự do
                 </span>
               </div>
@@ -1244,9 +1255,10 @@ export default function RulerConfigurator() {
               {/* Brush Settings & Color Controls */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] text-slate-300 font-bold">Màu cọ:</span>
+                  <span className="text-xs text-slate-300 font-bold">Màu cọ:</span>
                   <input
                     type="color"
+                    aria-label="Màu cọ vẽ"
                     value={drawingColor}
                     onChange={(e) => setDrawingColor(e.target.value)}
                     className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
@@ -1254,22 +1266,23 @@ export default function RulerConfigurator() {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] text-slate-300 font-bold">Cỡ cọ:</span>
+                  <span className="text-xs text-slate-300 font-bold">Cỡ cọ:</span>
                   <input
                     type="range"
                     min="2"
                     max="10"
+                    aria-label="Kích thước cọ vẽ"
                     value={brushSize}
                     onChange={(e) => setBrushSize(Number(e.target.value))}
-                    className="w-20 accent-[#39FF14] bg-[#111215] cursor-pointer"
+                    className="w-20 accent-[#39FF14] bg-surface-inset cursor-pointer"
                   />
-                  <span className="font-mono text-[10px] text-[#39FF14]">{brushSize}px</span>
+                  <span className="font-mono text-xs text-[#39FF14]">{brushSize}px</span>
                 </div>
               </div>
 
               {/* Quick Preset Doodle Stamps */}
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-400 font-bold block">
+                <span className="text-xs text-slate-400 font-bold block">
                   Dán nhanh họa tiết Doodle:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -1278,7 +1291,7 @@ export default function RulerConfigurator() {
                       key={stamp}
                       type="button"
                       onClick={() => handleAddStamp(stamp)}
-                      className="px-2 py-1 bg-[#111215] border border-[#272930] hover:border-[#39FF14] rounded text-xs transition active:scale-95"
+                      className="px-2 py-1 bg-surface-inset border border-border hover:border-[#39FF14] rounded text-xs transition active:scale-95"
                     >
                       {stamp}
                     </button>
@@ -1289,28 +1302,29 @@ export default function RulerConfigurator() {
           </div>
 
           {/* IV. KHU VỰC TÙY CHỌN MỚI 2: DÁN STICKER 3D NỔI (3D STICKER BADGE LIBRARY) */}
-          <div className="space-y-3 pt-2 border-t border-[#272930]">
+          <div className="space-y-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                 <Sticker className="w-3.5 h-3.5 text-cyan-400" /> IV. Dán Sticker 3D Nổi Lên Thước
               </label>
-              <span className="text-[10px] text-[#94a3b8] font-mono">
+              <span className="text-xs text-text-muted font-mono">
                 {stickers.length} / 5 Sticker
               </span>
             </div>
 
-            <div className="p-3 bg-[#18191d] rounded-xl border border-[#272930] space-y-3 text-xs">
+            <div className="p-3 bg-surface rounded-xl border border-border space-y-3 text-xs">
               {/* Sticker Selector Grid */}
               <div className="grid grid-cols-4 gap-1.5">
                 {STICKER_PRESETS.map((preset) => (
                   <button
                     key={preset.type}
                     type="button"
+                    disabled={stickers.length >= 5}
                     onClick={() => handleAddSticker(preset.type)}
-                    className="p-2 rounded-xl bg-[#111215] border border-[#272930] hover:border-cyan-400 flex flex-col items-center justify-center gap-0.5 text-slate-200 hover:text-white transition active:scale-95 shadow-sm"
+                    className="p-2 rounded-xl bg-surface-inset border border-border hover:border-cyan-400 flex flex-col items-center justify-center gap-0.5 text-slate-200 hover:text-white transition active:scale-95 shadow-sm"
                   >
                     <span className="text-base">{preset.icon}</span>
-                    <span className="text-[9px] font-bold truncate w-full text-center">
+                    <span className="text-xs font-bold truncate w-full text-center">
                       {preset.name.split(' ')[0]}
                     </span>
                   </button>
@@ -1319,8 +1333,8 @@ export default function RulerConfigurator() {
 
               {/* Active Sticker List & Controls */}
               {stickers.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-[#272930]">
-                  <span className="text-[10px] font-bold text-cyan-400 block uppercase tracking-wider">
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <span className="text-xs font-bold text-cyan-400 block uppercase tracking-wider">
                     Danh Sách Sticker 3D Đã Dán:
                   </span>
 
@@ -1328,20 +1342,21 @@ export default function RulerConfigurator() {
                     {stickers.map((st) => (
                       <div
                         key={st.id}
-                        onClick={() => setActiveStickerId(st.id)}
+                        role="group"
+                        aria-label={`Sticker ${st.name}`}
                         className={`p-2 rounded-lg border flex items-center justify-between gap-2 cursor-pointer transition ${
                           activeStickerId === st.id
                             ? 'bg-cyan-950/60 border-cyan-400 text-white'
-                            : 'bg-[#111215] border-[#272930] text-slate-300 hover:border-slate-600'
+                            : 'bg-surface-inset border-border text-slate-300 hover:border-slate-600'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => setActiveStickerId(st.id)} aria-pressed={activeStickerId === st.id} className="flex flex-1 items-center gap-2 text-left">
                           <span
                             className="w-3 h-3 rounded-full border border-white/20 shrink-0"
                             style={{ backgroundColor: st.color }}
                           />
                           <span className="font-bold text-xs">{st.name}</span>
-                        </div>
+                        </button>
 
                         <button
                           type="button"
@@ -1360,8 +1375,8 @@ export default function RulerConfigurator() {
 
                   {/* Active Sticker Adjustments (Position, Scale, Rotation, Color) */}
                   {activeSticker && (
-                    <div className="p-3 bg-[#111215] rounded-xl border border-cyan-900/60 space-y-2.5 text-xs">
-                      <div className="flex items-center justify-between text-[11px] font-bold text-cyan-300">
+                    <div className="p-3 bg-surface-inset rounded-xl border border-cyan-900/60 space-y-2.5 text-xs">
+                      <div className="flex items-center justify-between text-xs font-bold text-cyan-300">
                         <span>Chỉnh sửa: {activeSticker.name}</span>
                         <input
                           type="color"
@@ -1377,7 +1392,7 @@ export default function RulerConfigurator() {
                       <div className="grid grid-cols-2 gap-2">
                         {/* Position X Slider */}
                         <div className="space-y-0.5">
-                          <div className="flex justify-between text-[10px] text-slate-400">
+                          <div className="flex justify-between text-xs text-slate-400">
                             <span>Vị trí ngang (X):</span>
                             <span className="font-mono text-cyan-400">
                               {activeSticker.posX.toFixed(1)}
@@ -1388,19 +1403,20 @@ export default function RulerConfigurator() {
                             min="-8"
                             max="8"
                             step="0.2"
-                            value={activeSticker.posX}
+                            aria-label="Vị trí ngang sticker"
+                    value={activeSticker.posX}
                             onChange={(e) =>
                               handleUpdateSticker(activeSticker.id, {
                                 posX: parseFloat(e.target.value),
                               })
                             }
-                            className="w-full accent-cyan-400 bg-[#18191d] cursor-pointer"
+                            className="w-full accent-cyan-400 bg-surface cursor-pointer"
                           />
                         </div>
 
                         {/* Position Z Slider */}
                         <div className="space-y-0.5">
-                          <div className="flex justify-between text-[10px] text-slate-400">
+                          <div className="flex justify-between text-xs text-slate-400">
                             <span>Vị trí dọc (Z):</span>
                             <span className="font-mono text-cyan-400">
                               {activeSticker.posZ.toFixed(1)}
@@ -1411,19 +1427,20 @@ export default function RulerConfigurator() {
                             min="-2"
                             max="2"
                             step="0.1"
-                            value={activeSticker.posZ}
+                            aria-label="Vị trí dọc sticker"
+                    value={activeSticker.posZ}
                             onChange={(e) =>
                               handleUpdateSticker(activeSticker.id, {
                                 posZ: parseFloat(e.target.value),
                               })
                             }
-                            className="w-full accent-cyan-400 bg-[#18191d] cursor-pointer"
+                            className="w-full accent-cyan-400 bg-surface cursor-pointer"
                           />
                         </div>
 
                         {/* Scale Size Slider */}
                         <div className="space-y-0.5">
-                          <div className="flex justify-between text-[10px] text-slate-400">
+                          <div className="flex justify-between text-xs text-slate-400">
                             <span>Kích thước:</span>
                             <span className="font-mono text-cyan-400">
                               {Math.round(activeSticker.scale * 100)}%
@@ -1434,19 +1451,20 @@ export default function RulerConfigurator() {
                             min="0.5"
                             max="2.0"
                             step="0.1"
-                            value={activeSticker.scale}
+                            aria-label="Kích thước sticker"
+                    value={activeSticker.scale}
                             onChange={(e) =>
                               handleUpdateSticker(activeSticker.id, {
                                 scale: parseFloat(e.target.value),
                               })
                             }
-                            className="w-full accent-cyan-400 bg-[#18191d] cursor-pointer"
+                            className="w-full accent-cyan-400 bg-surface cursor-pointer"
                           />
                         </div>
 
                         {/* Rotation Y Slider */}
                         <div className="space-y-0.5">
-                          <div className="flex justify-between text-[10px] text-slate-400">
+                          <div className="flex justify-between text-xs text-slate-400">
                             <span>Góc xoay:</span>
                             <span className="font-mono text-cyan-400">
                               {activeSticker.rotationY}°
@@ -1457,13 +1475,14 @@ export default function RulerConfigurator() {
                             min="-180"
                             max="180"
                             step="15"
-                            value={activeSticker.rotationY}
+                            aria-label="Góc xoay sticker"
+                    value={activeSticker.rotationY}
                             onChange={(e) =>
                               handleUpdateSticker(activeSticker.id, {
                                 rotationY: parseFloat(e.target.value),
                               })
                             }
-                            className="w-full accent-cyan-400 bg-[#18191d] cursor-pointer"
+                            className="w-full accent-cyan-400 bg-surface cursor-pointer"
                           />
                         </div>
                       </div>
@@ -1475,7 +1494,7 @@ export default function RulerConfigurator() {
           </div>
 
           {/* V. KHU VỰC VỊ TRÍ, KÍCH THƯỚC & GÓC XOAY BIỂN CHỮ 3D */}
-          <div className="space-y-3 pt-2 border-t border-[#272930]">
+          <div className="space-y-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                 <Move className="w-3.5 h-3.5 text-cyan-400" /> V. Vị Trí, Kích Thước &amp; Góc Xoay Biển Chữ 3D
@@ -1483,18 +1502,18 @@ export default function RulerConfigurator() {
               <button
                 type="button"
                 onClick={handleResetPlateTransform}
-                className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1 font-bold"
+                className="text-xs text-cyan-400 hover:underline flex items-center gap-1 font-bold"
               >
                 <RotateCcw className="w-3 h-3" /> Đặt lại mặc định
               </button>
             </div>
 
-            <div className="space-y-3 p-3 bg-[#18191d] rounded-xl border border-[#272930] text-xs">
+            <div className="space-y-3 p-3 bg-surface rounded-xl border border-border text-xs">
               {/* Position & Scale Sliders Grid - Unrestricted Axes */}
               <div className="grid grid-cols-2 gap-3">
                 {/* Position X Offset Slider */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-300">
+                  <div className="flex justify-between text-xs text-slate-300">
                     <span>Vị trí ngang (X):</span>
                     <strong className="font-mono text-cyan-400">
                       {plateOffsetX > 0 ? `+${plateOffsetX}` : plateOffsetX}cm
@@ -1505,11 +1524,12 @@ export default function RulerConfigurator() {
                     min="-15"
                     max="15"
                     step="0.1"
+                    aria-label="Vị trí ngang biển tên"
                     value={plateOffsetX}
                     onChange={(e) => setPlateOffsetX(Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-[#111215] cursor-pointer"
+                    className="w-full accent-cyan-400 bg-surface-inset cursor-pointer"
                   />
-                  <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                  <div className="flex justify-between text-xs text-slate-500 font-mono">
                     <span>-15cm</span>
                     <span>+15cm</span>
                   </div>
@@ -1517,7 +1537,7 @@ export default function RulerConfigurator() {
 
                 {/* Position Z Offset Slider */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-300">
+                  <div className="flex justify-between text-xs text-slate-300">
                     <span>Vị trí dọc (Z):</span>
                     <strong className="font-mono text-cyan-400">
                       {plateOffsetZ > 0 ? `+${plateOffsetZ}` : plateOffsetZ}cm
@@ -1528,11 +1548,12 @@ export default function RulerConfigurator() {
                     min="-4.0"
                     max="4.0"
                     step="0.05"
+                    aria-label="Vị trí dọc biển tên"
                     value={plateOffsetZ}
                     onChange={(e) => setPlateOffsetZ(Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-[#111215] cursor-pointer"
+                    className="w-full accent-cyan-400 bg-surface-inset cursor-pointer"
                   />
-                  <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                  <div className="flex justify-between text-xs text-slate-500 font-mono">
                     <span>-4.0cm</span>
                     <span>+4.0cm</span>
                   </div>
@@ -1540,7 +1561,7 @@ export default function RulerConfigurator() {
 
                 {/* Width Scale X */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-300">
+                  <div className="flex justify-between text-xs text-slate-300">
                     <span>Chiều dài biển:</span>
                     <strong className="font-mono text-cyan-400">{Math.round(plateScaleX * 100)}%</strong>
                   </div>
@@ -1549,11 +1570,12 @@ export default function RulerConfigurator() {
                     min={0.2}
                     max={3.0}
                     step={0.05}
+                    aria-label="Chiều dài biển tên"
                     value={plateScaleX}
                     onChange={(e) => setPlateScaleX(Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-[#111215] cursor-pointer"
+                    className="w-full accent-cyan-400 bg-surface-inset cursor-pointer"
                   />
-                  <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                  <div className="flex justify-between text-xs text-slate-500 font-mono">
                     <span>20% (Tí hon)</span>
                     <span>300% (Khổng lồ)</span>
                   </div>
@@ -1561,7 +1583,7 @@ export default function RulerConfigurator() {
 
                 {/* Height Scale Z */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-300">
+                  <div className="flex justify-between text-xs text-slate-300">
                     <span>Chiều rộng biển:</span>
                     <strong className="font-mono text-cyan-400">{Math.round(plateScaleZ * 100)}%</strong>
                   </div>
@@ -1570,11 +1592,12 @@ export default function RulerConfigurator() {
                     min={0.2}
                     max={3.0}
                     step={0.05}
+                    aria-label="Chiều rộng biển tên"
                     value={plateScaleZ}
                     onChange={(e) => setPlateScaleZ(Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-[#111215] cursor-pointer"
+                    className="w-full accent-cyan-400 bg-surface-inset cursor-pointer"
                   />
-                  <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                  <div className="flex justify-between text-xs text-slate-500 font-mono">
                     <span>20% (Hẹp)</span>
                     <span>300% (Rộng)</span>
                   </div>
@@ -1582,8 +1605,8 @@ export default function RulerConfigurator() {
               </div>
 
               {/* Rotation Angle Y Slider & Presets */}
-              <div className="space-y-1.5 pt-2 border-t border-[#272930]">
-                <div className="flex justify-between text-[11px] text-slate-300">
+              <div className="space-y-1.5 pt-2 border-t border-border">
+                <div className="flex justify-between text-xs text-slate-300">
                   <span className="flex items-center gap-1 font-bold text-[#39FF14]">
                     <RotateCw className="w-3.5 h-3.5" /> Góc xoay biển tên (Rotation Y):
                   </span>
@@ -1594,9 +1617,10 @@ export default function RulerConfigurator() {
                   min={-180}
                   max={180}
                   step={5}
-                  value={plateRotationY}
+                  aria-label="Góc xoay biển tên"
+                    value={plateRotationY}
                   onChange={(e) => setPlateRotationY(Number(e.target.value))}
-                  className="w-full accent-[#39FF14] bg-[#111215] cursor-pointer"
+                  className="w-full accent-[#39FF14] bg-surface-inset cursor-pointer"
                 />
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {[0, 15, 30, 45, 90, 180, -45, -90].map((deg) => (
@@ -1604,10 +1628,10 @@ export default function RulerConfigurator() {
                       key={deg}
                       type="button"
                       onClick={() => setPlateRotationY(deg)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
+                      className={`px-2 py-0.5 rounded text-xs font-mono transition ${
                         plateRotationY === deg
                           ? 'bg-[#39FF14] text-slate-950 font-black'
-                          : 'bg-[#111215] border border-[#272930] text-slate-300 hover:border-cyan-400'
+                          : 'bg-surface-inset border border-border text-slate-300 hover:border-cyan-400'
                       }`}
                     >
                       {deg}°
@@ -1619,17 +1643,17 @@ export default function RulerConfigurator() {
           </div>
 
           {/* VI. KHU VỰC CUSTOM TÙY CHỈNH BIỂN TÊN & FONT CHỮ */}
-          <div className="space-y-3 pt-2 border-t border-[#272930]">
+          <div className="space-y-3 pt-2 border-t border-border">
             <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Type className="w-3.5 h-3.5 text-[#39FF14]" /> VI. Custom Kiểu Dáng Biển Tên &amp; Font Chữ
               </span>
-              <span className="text-[10px] text-cyan-300 font-mono">Tùy biến 3D 100%</span>
+              <span className="text-xs text-cyan-300 font-mono">Tùy biến 3D 100%</span>
             </label>
 
             {/* Kiểu Dáng Khối Biển Tên (Badge Shape) */}
-            <div className="space-y-2 p-3 bg-[#18191d] rounded-xl border border-[#272930] text-xs">
-              <span className="text-[11px] font-bold text-slate-300 block">
+            <div className="space-y-2 p-3 bg-surface rounded-xl border border-border text-xs">
+              <span className="text-xs font-bold text-slate-300 block">
                 1. Kiểu dáng khối biển tên (Badge Shape):
               </span>
               <div className="grid grid-cols-3 gap-1.5">
@@ -1646,10 +1670,10 @@ export default function RulerConfigurator() {
                     onClick={() =>
                       setPlateStyle(st.id as 'box' | 'rounded' | 'hexagon' | 'diamond' | 'none')
                     }
-                    className={`py-1.5 px-2 rounded-lg font-bold text-[11px] border transition ${
+                    className={`py-1.5 px-2 rounded-lg font-bold text-xs border transition ${
                       plateStyle === st.id
                         ? 'bg-[#39FF14] text-slate-950 border-[#39FF14]'
-                        : 'bg-[#111215] border-[#272930] text-slate-300 hover:border-slate-500'
+                        : 'bg-surface-inset border-border text-slate-300 hover:border-slate-500'
                     }`}
                   >
                     {st.name}
@@ -1659,8 +1683,8 @@ export default function RulerConfigurator() {
 
               {/* Border Style Accent & Thickness */}
               {plateStyle !== 'none' && (
-                <div className="pt-2 border-t border-[#272930] space-y-2">
-                  <div className="flex justify-between items-center text-[11px]">
+                <div className="pt-2 border-t border-border space-y-2">
+                  <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-300 font-bold">2. Độ dày nổi của biển tên:</span>
                     <span className="font-mono text-[#39FF14]">{plateThickness.toFixed(2)}cm</span>
                   </div>
@@ -1669,12 +1693,13 @@ export default function RulerConfigurator() {
                     min="0.05"
                     max="0.30"
                     step="0.02"
+                    aria-label="Độ dày biển tên"
                     value={plateThickness}
                     onChange={(e) => setPlateThickness(Number(e.target.value))}
-                    className="w-full accent-[#39FF14] bg-[#111215] cursor-pointer"
+                    className="w-full accent-[#39FF14] bg-surface-inset cursor-pointer"
                   />
 
-                  <div className="flex justify-between items-center text-[11px] pt-1">
+                  <div className="flex justify-between items-center text-xs pt-1">
                     <span className="text-slate-300 font-bold">3. Gờ viền trang trí:</span>
                     <div className="flex gap-1">
                       {[
@@ -1688,10 +1713,10 @@ export default function RulerConfigurator() {
                           onClick={() =>
                             setBorderStyle(b.id as 'none' | 'embossed' | 'beveled')
                           }
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold border transition ${
+                          className={`px-2 py-0.5 rounded text-xs font-bold border transition ${
                             borderStyle === b.id
                               ? 'bg-cyan-400 text-slate-950 border-cyan-400'
-                              : 'bg-[#111215] border-[#272930] text-slate-300 hover:border-slate-600'
+                              : 'bg-surface-inset border-border text-slate-300 hover:border-slate-600'
                           }`}
                         >
                           {b.label}
@@ -1705,9 +1730,10 @@ export default function RulerConfigurator() {
 
             {/* Dropdown Font Chữ */}
             <select
+              aria-label="Kiểu chữ khắc trên thước"
               value={selectedFont}
               onChange={(e) => setSelectedFont(e.target.value)}
-              className="w-full bg-[#18191d] border border-[#272930] rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none focus:border-[#39FF14]"
+              className="w-full bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none focus:border-[#39FF14]"
             >
               {FONT_OPTIONS.map((f) => (
                 <option key={f.id} value={f.id}>
@@ -1717,46 +1743,46 @@ export default function RulerConfigurator() {
             </select>
 
             <div className="space-y-2">
-              <input
+              <input aria-label="Họ và tên sinh viên (Tối đa 20 ký tự)"
                 type="text"
                 maxLength={20}
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 placeholder="Họ và tên sinh viên (Tối đa 20 ký tự)"
-                className="w-full bg-[#18191d] border border-[#272930] rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface border border-border rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#39FF14]"
               />
 
               <div className="grid grid-cols-2 gap-2">
-                <input
+                <input aria-label="MSSV (VD: 20210123)"
                   type="text"
                   maxLength={12}
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   placeholder="MSSV (VD: 20210123)"
-                  className="w-full bg-[#18191d] border border-[#272930] rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#39FF14] font-mono"
+                  className="w-full bg-surface border border-border rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#39FF14] font-mono"
                 />
-                <input
+                <input aria-label="Tên Trường ĐH"
                   type="text"
                   maxLength={15}
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
                   placeholder="Tên Trường ĐH"
-                  className="w-full bg-[#18191d] border border-[#272930] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#39FF14]"
+                  className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#39FF14]"
                 />
               </div>
             </div>
           </div>
 
           {/* VII. THÔNG SỐ INFILL % & NHỰA */}
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#272930] text-xs">
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border text-xs">
             <div>
-              <label className="text-[11px] font-bold text-slate-300 block mb-1">
+              <label htmlFor="rulerconfigurator-field-2" className="text-xs font-bold text-slate-300 block mb-1">
                 Mật độ Infill đặc:
               </label>
-              <select
+              <select id="rulerconfigurator-field-2"
                 value={infillDensity}
                 onChange={(e) => setInfillDensity(Number(e.target.value))}
-                className="w-full bg-[#18191d] border border-[#272930] rounded-xl px-3 py-2 text-white font-bold outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-white font-bold outline-none focus:border-[#39FF14]"
               >
                 <option value={20}>20% (Tiêu chuẩn)</option>
                 <option value={30}>30% (Khuyên dùng đồ án)</option>
@@ -1766,13 +1792,13 @@ export default function RulerConfigurator() {
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-slate-300 block mb-1">
+              <label htmlFor="rulerconfigurator-field-3" className="text-xs font-bold text-slate-300 block mb-1">
                 Loại nhựa gia công:
               </label>
-              <select
+              <select id="rulerconfigurator-field-3"
                 value={materialType}
                 onChange={(e) => setMaterialType(e.target.value)}
-                className="w-full bg-[#18191d] border border-[#272930] rounded-xl px-3 py-2 text-white font-bold outline-none focus:border-[#39FF14]"
+                className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-white font-bold outline-none focus:border-[#39FF14]"
               >
                 <option value="PLA Pro+ (Emerald)">PLA Pro+ (Chống mẻ)</option>
                 <option value="PETG Chịu Nhiệt">PETG Chịu Nhiệt 80°C</option>
@@ -1785,10 +1811,11 @@ export default function RulerConfigurator() {
         {/* ========================================================================= */}
         {/* STICKY FOOTER CTA */}
         {/* ========================================================================= */}
-        <div className="pt-4 border-t border-[#272930] space-y-3 sticky bottom-0 bg-[#111215] z-20">
+        <div className="pt-4 border-t border-border space-y-3 xl:sticky bottom-0 bg-surface-inset z-20">
+          {exportError && <p role="alert" className="text-sm text-red-300">{exportError}</p>}
           {/* Itemized Price Summary */}
           <div className="space-y-1 text-xs">
-            <div className="flex justify-between text-[#94a3b8]">
+            <div className="flex justify-between text-text-muted">
               <span>Giá phôi thước ({selectedModel.name.split(' ')[0]}):</span>
               <span>{formatPrice(selectedModel.basePrice)}đ</span>
             </div>
@@ -1804,7 +1831,7 @@ export default function RulerConfigurator() {
                 <span>+{formatPrice(multiColorSurcharge)}đ</span>
               </div>
             )}
-            <div className="flex justify-between text-[#39FF14] text-base font-black border-t border-[#272930] pt-1">
+            <div className="flex justify-between text-[#39FF14] text-base font-black border-t border-border pt-1">
               <span>TỔNG TIỀN TẠM TÍNH:</span>
               <span className="font-mono text-xl">{formatPrice(totalPrice)}đ</span>
             </div>
@@ -1815,7 +1842,7 @@ export default function RulerConfigurator() {
               type="button"
               onClick={handleConfirmOrder}
               disabled={isExporting}
-              className="px-4 py-3 rounded-xl bg-[#18191d] border border-[#39FF14]/40 hover:border-[#39FF14] text-[#39FF14] font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md shrink-0"
+              className="px-4 py-3 rounded-xl bg-surface border border-[#39FF14]/40 hover:border-[#39FF14] text-[#39FF14] font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-98 shadow-md shrink-0"
             >
               <Download className="w-4 h-4" />
               <span>{isExporting ? 'Đang tạo STL...' : 'Tải STL'}</span>
@@ -1838,9 +1865,10 @@ export default function RulerConfigurator() {
       {/* CHECKOUT ORDER & QR CODE PAYMENT MODAL */}
       {/* ========================================================================= */}
       {showOrderModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#18191d] border border-[#272930] rounded-3xl p-6 max-w-md w-full text-xs space-y-5 shadow-2xl relative">
+        <Modal open={showOrderModal} onClose={() => setShowOrderModal(false)} label="Thông tin thiết kế 3D">
+          <div className="bg-surface border border-border rounded-3xl p-6 max-w-md w-full text-xs space-y-5 shadow-2xl relative">
             <button
+              aria-label="Đóng thông tin thiết kế"
               onClick={() => setShowOrderModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
             >
@@ -1852,40 +1880,40 @@ export default function RulerConfigurator() {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-black text-white">ĐÃ ĐẶT HÀNG THƯỚC 3D THÀNH CÔNG!</h3>
-              <p className="text-[#94a3b8] text-[11px]">
+              <p className="text-text-muted text-sm">
                 Đã tự động đóng gói tệp <strong className="text-[#39FF14]">.STL</strong> và chuyển sang xưởng in BK-Makerlab.
               </p>
             </div>
 
             {/* Order Details */}
-            <div className="p-4 rounded-2xl bg-[#111215] border border-[#272930] space-y-2">
+            <div className="p-4 rounded-2xl bg-surface-inset border border-border space-y-2">
               <div className="flex justify-between">
-                <span className="text-[#94a3b8]">Mẫu thước:</span>
+                <span className="text-text-muted">Mẫu thước:</span>
                 <strong className="text-white">{selectedModel.name}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#94a3b8]">Kiểu Font:</span>
+                <span className="text-text-muted">Kiểu Font:</span>
                 <strong className="text-cyan-300">
                   {FONT_OPTIONS.find((f) => f.id === selectedFont)?.name}
                 </strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#94a3b8]">Khắc tên:</span>
+                <span className="text-text-muted">Khắc tên:</span>
                 <strong className="text-[#39FF14]">{studentName} ({studentId})</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#94a3b8]">Sticker 3D đã dán:</span>
+                <span className="text-text-muted">Sticker 3D đã dán:</span>
                 <strong className="text-cyan-300">{stickers.length} sticker</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#94a3b8]">Phối màu (Base / Plate / Text):</span>
+                <span className="text-text-muted">Phối màu (Base / Plate / Text):</span>
                 <div className="flex items-center gap-1">
                   <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: baseColor }} />
                   <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: plateColor }} />
                   <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: textColor }} />
                 </div>
               </div>
-              <div className="flex justify-between border-t border-[#272930] pt-2 text-sm">
+              <div className="flex justify-between border-t border-border pt-2 text-sm">
                 <span className="font-bold text-white">Tổng thanh toán:</span>
                 <strong className="text-[#39FF14] font-mono">{formatPrice(totalPrice)}đ</strong>
               </div>
@@ -1901,7 +1929,7 @@ export default function RulerConfigurator() {
                   VIETQR 3D
                 </div>
               </div>
-              <p className="text-[10px] text-cyan-200">
+              <p className="text-sm text-cyan-200">
                 Nội dung chuyển khoản: <strong className="text-white font-mono">PRINT3D {studentId}</strong>
               </p>
             </div>
@@ -1913,7 +1941,7 @@ export default function RulerConfigurator() {
               Hoàn Tất &amp; Theo Dõi Tiến Độ Đơn
             </button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

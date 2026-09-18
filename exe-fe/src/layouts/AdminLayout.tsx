@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
-import Header from './Header';
+import type { ReactNode } from 'react';
+import AppShell from './AppShell';
 import AdminSidebar from './AdminSidebar';
 
 interface AdminLayoutProps {
@@ -14,21 +13,10 @@ export default function AdminLayout({
   onOpenCart,
   children,
 }: AdminLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
   return (
-    <>
-      <Header
-        cartCount={cartCount}
-        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-        onOpenCart={onOpenCart}
-      />
-      <div className="flex-1 flex overflow-hidden">
-        <AdminSidebar isOpen={sidebarOpen} />
-        <main className="flex-1 w-full overflow-y-auto px-4 lg:px-8 py-6 flex flex-col">
-          {children || <Outlet />}
-        </main>
-      </div>
-    </>
+    <AppShell cartCount={cartCount} onOpenCart={onOpenCart}
+      sidebar={<AdminSidebar isOpen={true} />}>
+      {children}
+    </AppShell>
   );
 }

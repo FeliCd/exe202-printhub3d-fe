@@ -1,6 +1,9 @@
+import { lazy } from 'react';
+import type { ShippingAddress } from '../features/address/data';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import type { Product } from '../types';
+import type { useCart } from '../features/cart/hooks/useCart';
 
 // Layouts & Guard
 import AuthLayout from '../layouts/AuthLayout';
@@ -11,52 +14,54 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import PageTransition from '../components/PageTransition';
 
 // Auth Pages
-import LoginPage from '../pages/LoginPage';
-import SignupPage from '../pages/SignupPage';
+const LoginPage = lazy(() => import('../pages/LoginPage'));
+const SignupPage = lazy(() => import('../pages/SignupPage'));
 
 // Buyer & Public Pages
 import LandingPage from '../pages/LandingPage';
-import CatalogPreviewPage from '../pages/CatalogPreviewPage';
-import CatalogPage from '../pages/CatalogPage';
-import CartPage from '../pages/CartPage';
-import BulkOrderPage from '../pages/BulkOrderPage';
-import CustomOrderPage from '../pages/CustomOrderPage';
-import OrdersPage from '../pages/OrdersPage';
-import OrderHistoryPage from '../pages/OrderHistoryPage';
-import FileVaultPage from '../pages/FileVaultPage';
-import QuotationsPage from '../pages/QuotationsPage';
-import HelpCenterPage from '../pages/HelpCenterPage';
-import WalletPage from '../pages/WalletPage';
-import PaymentResultPage from '../pages/PaymentResultPage';
-import SubscriptionsPage from '../pages/SubscriptionsPage';
-import WarrantyPage from '../pages/WarrantyPage';
-import DisputesPage from '../pages/DisputesPage';
-import Ruler3DPage from '../pages/Ruler3DPage';
-import ProfilePage from '../pages/ProfilePage';
+const CatalogPreviewPage = lazy(() => import('../pages/CatalogPreviewPage'));
+const CatalogPage = lazy(() => import('../pages/CatalogPage'));
+const CartPage = lazy(() => import('../pages/CartPage'));
+const BulkOrderPage = lazy(() => import('../pages/BulkOrderPage'));
+const CustomOrderPage = lazy(() => import('../pages/CustomOrderPage'));
+const OrdersPage = lazy(() => import('../pages/OrdersPage'));
+const OrderHistoryPage = lazy(() => import('../pages/OrderHistoryPage'));
+const FileVaultPage = lazy(() => import('../pages/FileVaultPage'));
+const QuotationsPage = lazy(() => import('../pages/QuotationsPage'));
+const HelpCenterPage = lazy(() => import('../pages/HelpCenterPage'));
+const WalletPage = lazy(() => import('../pages/WalletPage'));
+const PaymentResultPage = lazy(() => import('../pages/PaymentResultPage'));
+const SubscriptionsPage = lazy(() => import('../pages/SubscriptionsPage'));
+const WarrantyPage = lazy(() => import('../pages/WarrantyPage'));
+const DisputesPage = lazy(() => import('../pages/DisputesPage'));
+const Ruler3DPage = lazy(() => import('../pages/Ruler3DPage'));
+const ProfilePage = lazy(() => import('../pages/ProfilePage'));
 
 // Admin Pages
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
-import AdminProductionPage from '../pages/admin/AdminProductionPage';
-import AdminSubscriptionsPage from '../pages/admin/AdminSubscriptionsPage';
-import AdminDisputesPage from '../pages/admin/AdminDisputesPage';
-import AdminUsersPage from '../pages/admin/AdminUsersPage';
-import AdminProductsPage from '../pages/admin/AdminProductsPage';
-import AdminGlobalOrdersPage from '../pages/admin/AdminGlobalOrdersPage';
-import AdminFinancePage from '../pages/admin/AdminFinancePage';
-import AdminFactoriesPage from '../pages/admin/AdminFactoriesPage';
-import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'));
+const AdminProductionPage = lazy(() => import('../pages/admin/AdminProductionPage'));
+const AdminSubscriptionsPage = lazy(() => import('../pages/admin/AdminSubscriptionsPage'));
+const AdminDisputesPage = lazy(() => import('../pages/admin/AdminDisputesPage'));
+const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'));
+const AdminProductsPage = lazy(() => import('../pages/admin/AdminProductsPage'));
+const AdminGlobalOrdersPage = lazy(() => import('../pages/admin/AdminGlobalOrdersPage'));
+const AdminFinancePage = lazy(() => import('../pages/admin/AdminFinancePage'));
+const AdminFactoriesPage = lazy(() => import('../pages/admin/AdminFactoriesPage'));
+const AdminSettingsPage = lazy(() => import('../pages/admin/AdminSettingsPage'));
 
 // Factory / Maker Pages
-import FactoryDashboardPage from '../pages/factory/FactoryDashboardPage';
-import FactoryOrdersPage from '../pages/factory/FactoryOrdersPage';
-import FactoryPrintersPage from '../pages/factory/FactoryPrintersPage';
-import FactoryPackingPage from '../pages/factory/FactoryPackingPage';
-import FactoryGCodePage from '../pages/factory/FactoryGCodePage';
-import FactoryQCPage from '../pages/factory/FactoryQCPage';
-import FactoryMaintenancePage from '../pages/factory/FactoryMaintenancePage';
-import FactoryInventoryPage from '../pages/factory/FactoryInventoryPage';
+const FactoryDashboardPage = lazy(() => import('../pages/factory/FactoryDashboardPage'));
+const FactoryOrdersPage = lazy(() => import('../pages/factory/FactoryOrdersPage'));
+const FactoryPrintersPage = lazy(() => import('../pages/factory/FactoryPrintersPage'));
+const FactoryPackingPage = lazy(() => import('../pages/factory/FactoryPackingPage'));
+const FactoryGCodePage = lazy(() => import('../pages/factory/FactoryGCodePage'));
+const FactoryQCPage = lazy(() => import('../pages/factory/FactoryQCPage'));
+const FactoryMaintenancePage = lazy(() => import('../pages/factory/FactoryMaintenancePage'));
+const FactoryInventoryPage = lazy(() => import('../pages/factory/FactoryInventoryPage'));
 
 interface AppRoutesProps {
+  shippingAddress: ShippingAddress;
+  cart: ReturnType<typeof useCart>;
   cartCount: number;
   onOpenCart: () => void;
   onAddToCart: (product: Product) => void;
@@ -64,6 +69,8 @@ interface AppRoutesProps {
 }
 
 export default function AppRoutes({
+  cart,
+  shippingAddress,
   cartCount,
   onOpenCart,
   onAddToCart,
@@ -140,7 +147,7 @@ export default function AppRoutes({
           element={
             <AnimatePresence mode="wait">
               <PageTransition key={location.pathname}>
-                <CartPage onOpenAddressModal={onOpenAddressModal} />
+                <CartPage shippingAddress={shippingAddress} cart={cart} onOpenAddressModal={onOpenAddressModal} />
               </PageTransition>
             </AnimatePresence>
           }

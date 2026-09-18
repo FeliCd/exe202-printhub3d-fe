@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { motion, type Variants } from 'framer-motion';
+import { Suspense, type ReactNode } from 'react';
+import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import ErrorBoundary from './ErrorBoundary';
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -29,15 +30,20 @@ const pageVariants: Variants = {
 };
 
 export default function PageTransition({ children }: PageTransitionProps) {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      variants={pageVariants}
+      variants={reducedMotion ? undefined : pageVariants}
       initial="initial"
       animate="animate"
       exit="exit"
-      className="w-full flex-1 flex flex-col"
+      className="w-full min-w-0 flex-1 flex flex-col"
     >
-      {children}
+      <ErrorBoundary>
+        <Suspense fallback={<p role="status" className="p-6 text-slate-300">Đang tải nội dung…</p>}>
+          {children}
+        </Suspense>
+      </ErrorBoundary>
     </motion.div>
   );
 }

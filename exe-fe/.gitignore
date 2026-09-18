@@ -27,4 +27,5 @@ node_modules
 .agents
 .env
 .env.local
-
+._Build_Logs/*
+.env.example
