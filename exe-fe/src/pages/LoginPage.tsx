@@ -30,13 +30,13 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#22c55e] to-emerald-400 flex items-center justify-center text-slate-950 font-black text-xl mx-auto shadow-lg shadow-emerald-900/40">
             3D
           </div>
-          <h2 className="text-2xl font-black text-white">─É─âng Nhß║¡p PrintHub 3D</h2>
-          <p className="text-sm text-text-muted">Hß╗ç thß╗æng dß╗ïch vß╗Ñ in 3D &amp; Th╞░ß╗¢c kß╗╣ thuß║¡t sinh vi├¬n</p>
+          <h2 className="text-2xl font-black text-white">Đăng Nhập PrintHub 3D</h2>
+          <p className="text-sm text-text-muted">Hệ thống dịch vụ in 3D &amp; Thước kỹ thuật sinh viên</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 uppercase">Chß╗ìn Vai Tr├▓ ─É─âng Nhß║¡p Demo</label>
+            <label className="text-xs font-bold text-slate-300 uppercase">Chọn Vai Trò Đăng Nhập Demo</label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
@@ -47,7 +47,7 @@ export default function LoginPage() {
                     : 'bg-surface-inset border-border text-slate-400 hover:text-white'
                 }`}
               >
-                <UserCheck className="w-4 h-4" /> Sinh vi├¬n (Buyer)
+                <UserCheck className="w-4 h-4" /> Sinh viên (Buyer)
               </button>
               <button
                 type="button"
@@ -58,7 +58,7 @@ export default function LoginPage() {
                     : 'bg-surface-inset border-border text-slate-400 hover:text-white'
                 }`}
               >
-                <Factory className="w-4 h-4" /> X╞░ß╗ƒng in
+                <Factory className="w-4 h-4" /> Xưởng in
               </button>
               <button
                 type="button"
@@ -69,13 +69,13 @@ export default function LoginPage() {
                     : 'bg-surface-inset border-border text-slate-400 hover:text-white'
                 }`}
               >
-                <ShieldCheck className="w-4 h-4" /> Quß║ún trß╗ï vi├¬n
+                <ShieldCheck className="w-4 h-4" /> Quản trị viên
               </button>
             </div>
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="loginpage-field-1" className="text-xs font-bold text-slate-300">Email sinh vi├¬n / t├ái khoß║ún</label>
+            <label htmlFor="loginpage-field-1" className="text-xs font-bold text-slate-300">Email sinh viên / tài khoản</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-3 text-text-muted" />
               <input id="loginpage-field-1"
@@ -90,7 +90,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="loginpage-field-2" className="text-xs font-bold text-slate-300">Mß║¡t khß║⌐u</label>
+            <label htmlFor="loginpage-field-2" className="text-xs font-bold text-slate-300">Mật khẩu</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-3 text-text-muted" />
               <input id="loginpage-field-2"
@@ -106,14 +106,14 @@ export default function LoginPage() {
             type="submit"
             className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2"
           >
-            ─É─âng Nhß║¡p Ngay <ArrowRight className="w-4 h-4" />
+            Đăng Nhập Ngay <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <div className="text-center text-xs text-text-muted pt-2 border-t border-border">
-          Ch╞░a c├│ t├ái khoß║ún?{' '}
+          Chưa có tài khoản?{' '}
           <Link to="/signup" className="text-[#22c55e] font-bold hover:underline">
-            Tß║ío t├ái khoß║ún sinh vi├¬n mß╗¢i
+            Tạo tài khoản sinh viên mới
           </Link>
         </div>
       </div>
