@@ -13,7 +13,6 @@ import {
   BarChart3,
   Cpu,
   Eye,
-  Wallet,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -197,18 +196,6 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
           </Link>
 
           <Link
-            to="/wallet"
-            className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
-              isActive('/wallet')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
-                : 'text-slate-300 hover:bg-surface hover:text-white'
-            }`}
-          >
-            <Wallet className="w-4 h-4 text-text-muted" />
-            <span>Ví điện tử PrintHub</span>
-          </Link>
-
-          <Link
             to="/ruler-3d"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/ruler-3d')
@@ -241,7 +228,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             }`}
           >
             <ShieldAlert className="w-4 h-4 text-text-muted" />
-            <span>Bảo hành 1-đổi-1 (1 kỳ)</span>
+            <span>Bảo hành</span>
           </Link>
 
           <Link

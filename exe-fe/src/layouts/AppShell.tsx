@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { X } from 'lucide-react';
 import Header from './Header';
 import Modal from '../components/Modal';
+import Footer from '../components/Footer';
 
 const desktopQuery = '(min-width: 1024px)';
 const subscribe = (listener: () => void) => {
@@ -31,8 +32,9 @@ export default function AppShell({ cartCount, onOpenCart, sidebar, children }: A
         onToggleSidebar={() => desktop ? setDesktopOpen(!desktopOpen) : setMobileOpen(!mobileOpen)} />
       <div className="flex-1 min-h-0 flex overflow-hidden">
         {desktop && desktopOpen && <div id="app-sidebar" className="shrink-0">{sidebar}</div>}
-        <main id="main-content" tabIndex={-1} className="app-content flex-1 min-w-0 overflow-y-auto px-4 lg:px-8 py-6 flex flex-col">
-          <div className="w-full max-w-[1600px] mx-auto flex-1 min-w-0 flex flex-col">{children ?? <Outlet />}</div>
+        <main id="main-content" tabIndex={-1} className="app-content flex-1 min-w-0 overflow-y-auto flex flex-col">
+          <div className="w-full max-w-[1600px] mx-auto flex-1 min-w-0 flex flex-col px-4 lg:px-8 py-6">{children ?? <Outlet />}</div>
+          <Footer />
         </main>
       </div>
       <Modal open={!desktop && mobileOpen} onClose={() => setMobileOpen(false)} label="Điều hướng chính" drawer>

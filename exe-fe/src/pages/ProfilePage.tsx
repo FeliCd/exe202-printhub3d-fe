@@ -5,10 +5,19 @@ import { useAuth } from '../context/AuthContext';
 export default function ProfilePage() {
   const { user, updateProfile, setPasscode } = useAuth();
 
-  const [name, setName] = useState(user?.name || 'Nguyễn Văn Anh');
-  const [phone, setPhone] = useState(user?.phone || '0987.654.321');
-  const [studentId, setStudentId] = useState(user?.studentId || '20210123');
+  const [name, setName] = useState(user?.name || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [studentId, setStudentId] = useState(user?.studentId || '');
   const [university, setUniversity] = useState(user?.university || 'Đại Học Quốc Gia TP.HCM');
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setPhone(user.phone || '');
+      setStudentId(user.studentId || '');
+      setUniversity(user.university || 'Đại Học Quốc Gia TP.HCM');
+    }
+  }, [user]);
 
   const [newPin, setNewPin] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);

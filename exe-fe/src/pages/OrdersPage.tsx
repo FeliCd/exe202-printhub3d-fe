@@ -57,7 +57,7 @@ const mockOrders: Order[] = [
       address: 'Phòng 402, KTX Khu B Đại Học Quốc Gia TP.HCM',
       isDefault: true,
     },
-    paymentMethod: 'WALLET',
+    paymentMethod: 'BANKING',
     printerAssigned: 'Máy In 3D Bambu Lab X1C #04',
     factoryName: 'Xưởng In Bách Khoa Makerlab',
     trackingNumber: 'SPX-BK98212',
@@ -94,7 +94,7 @@ const mockOrders: Order[] = [
       address: 'Phòng 402, KTX Khu B Đại Học Quốc Gia TP.HCM',
       isDefault: true,
     },
-    paymentMethod: 'WALLET',
+    paymentMethod: 'BANKING',
   },
 ];
 

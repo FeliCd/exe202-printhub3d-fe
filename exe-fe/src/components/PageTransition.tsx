@@ -37,7 +37,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="w-full min-w-0 flex-1 flex flex-col"
+      className="w-full min-w-0 flex-1 min-h-0 flex flex-col h-full"
     >
       <ErrorBoundary>
         <Suspense fallback={<p role="status" className="p-6 text-slate-300">Đang tải nội dung…</p>}>

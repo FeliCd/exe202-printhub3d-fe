@@ -23,12 +23,12 @@ const initialNotifications: SystemNotification[] = [
   },
   {
     id: 'n-2',
-    title: 'Biến động số dư ví',
-    message: 'Tài khoản của bạn vừa được cộng +50.000đ tiền hoàn bảo hành đơn #ORD-8710.',
+    title: 'Xác nhận bảo hành thành công',
+    message: 'Đơn bảo hành của bạn đã được xưởng chấp thuận đổi mới theo chính sách 1 học kỳ.',
     timestamp: '2 giờ trước',
     read: false,
-    type: 'WALLET',
-    link: '/wallet',
+    type: 'ORDER',
+    link: '/warranty',
   },
   {
     id: 'n-3',

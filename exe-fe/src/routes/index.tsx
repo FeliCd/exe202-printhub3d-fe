@@ -29,7 +29,7 @@ const OrderHistoryPage = lazy(() => import('../pages/OrderHistoryPage'));
 const FileVaultPage = lazy(() => import('../pages/FileVaultPage'));
 const QuotationsPage = lazy(() => import('../pages/QuotationsPage'));
 const HelpCenterPage = lazy(() => import('../pages/HelpCenterPage'));
-const WalletPage = lazy(() => import('../pages/WalletPage'));
+const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const PaymentResultPage = lazy(() => import('../pages/PaymentResultPage'));
 const SubscriptionsPage = lazy(() => import('../pages/SubscriptionsPage'));
 const WarrantyPage = lazy(() => import('../pages/WarrantyPage'));
@@ -102,7 +102,19 @@ export default function AppRoutes({
         }
       />
 
-      {/* 2. Persistent User Layout Group - Header & Sidebar Stay 100% Mounted */}
+      {/* 2. Dedicated Public Marketing Landing Page (No App Header/Sidebar) */}
+      <Route
+        path="/"
+        element={
+          <AnimatePresence mode="wait">
+            <PageTransition key="landing-page">
+              <LandingPage />
+            </PageTransition>
+          </AnimatePresence>
+        }
+      />
+
+      {/* 3. Persistent User Layout Group - Header & Sidebar Stay 100% Mounted */}
       <Route
         element={
           <UserLayout
@@ -113,15 +125,19 @@ export default function AppRoutes({
         }
       >
         <Route
-          path="/"
+          path="/dashboard"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <LandingPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key="/dashboard">
+                  <DashboardPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
+        <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+
         <Route
           path="/catalog-preview"
           element={
@@ -175,41 +191,49 @@ export default function AppRoutes({
         <Route
           path="/orders"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <OrdersPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <OrdersPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/order-history"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <OrderHistoryPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <OrderHistoryPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/file-vault"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FileVaultPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <FileVaultPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/quotations"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <QuotationsPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <QuotationsPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route
@@ -218,16 +242,6 @@ export default function AppRoutes({
             <AnimatePresence mode="wait">
               <PageTransition key={location.pathname}>
                 <HelpCenterPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/wallet"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <WalletPage />
               </PageTransition>
             </AnimatePresence>
           }
@@ -245,31 +259,37 @@ export default function AppRoutes({
         <Route
           path="/subscriptions"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <SubscriptionsPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <SubscriptionsPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/warranty"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <WarrantyPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <WarrantyPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/disputes"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <DisputesPage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <DisputesPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route
@@ -285,11 +305,13 @@ export default function AppRoutes({
         <Route
           path="/profile"
           element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <ProfilePage />
-              </PageTransition>
-            </AnimatePresence>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <ProfilePage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
       </Route>

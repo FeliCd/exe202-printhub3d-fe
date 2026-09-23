@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Users, Lock, Unlock, ShieldAlert, Search } from 'lucide-react';
-import { formatPrice } from '../../utils/format';
 import type { UserRole } from '../../types';
 import { adminService } from '../../services/adminService';
 
@@ -11,7 +10,6 @@ interface ManagedUser {
   role: UserRole;
   studentId?: string;
   university?: string;
-  walletBalance: number;
   isLocked: boolean;
   lockReason?: string;
   joinedDate: string;
@@ -25,7 +23,6 @@ const mockUsers: ManagedUser[] = [
     role: 'BUYER',
     studentId: '20210123',
     university: 'Đại Học Quốc Gia TP.HCM',
-    walletBalance: 250000,
     isLocked: false,
     joinedDate: '2026-01-15',
   },
@@ -34,7 +31,6 @@ const mockUsers: ManagedUser[] = [
     name: 'Xưởng In 3D BK-Maker',
     email: 'bkmaker.partner@printhub.vn',
     role: 'FACTORY',
-    walletBalance: 12500000,
     isLocked: false,
     joinedDate: '2025-11-20',
   },
@@ -45,7 +41,6 @@ const mockUsers: ManagedUser[] = [
     role: 'BUYER',
     studentId: '20224590',
     university: 'ĐH Bách Khoa Hà Nội',
-    walletBalance: 45000,
     isLocked: true,
     lockReason: 'Vi phạm chính sách: Tạo khiếu nại ảo đền bù thước gãy.',
     joinedDate: '2026-02-01',
@@ -188,7 +183,6 @@ export default function AdminUsersPage() {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <div className="flex items-center gap-4 text-text-muted text-xs">
-                <span>Số dư Ví PrintHub: <strong className="text-[#39FF14] font-mono">{formatPrice(u.walletBalance)}đ</strong></span>
                 <span>Ngày tham gia: <strong className="text-white">{u.joinedDate}</strong></span>
               </div>
 

@@ -154,7 +154,7 @@ export default function WarrantyPage() {
                 type="submit"
                 className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20"
               >
-                Gửi Yêu Cầu Bảo Hành 1-Đổi-1
+                Gửi yêu cầu bảo hành
               </button>
             </form>
           )}

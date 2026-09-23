@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Scale, CheckCircle2, XCircle, DollarSign } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
 import type { Dispute } from '../../types';
-import { useWallet } from '../../context/WalletContext';
 
 const sampleAdminDisputes: Dispute[] = [
   {
@@ -29,16 +28,14 @@ const sampleAdminDisputes: Dispute[] = [
 
 export default function AdminDisputesPage() {
   const [disputes, setDisputes] = useState<Dispute[]>(sampleAdminDisputes);
-  const { refund } = useWallet();
 
   const handleResolve = (id: string, action: 'FULL' | 'PARTIAL' | 'REJECT') => {
     const dispute = disputes.find(item => item.id === id);
     if (!dispute || dispute.adminDecisionNotes) return;
-    if (action !== 'REJECT') refund(dispute.amount * (action === 'FULL' ? 1 : 0.5), `Hoàn tiền khiếu nại ca ${id}`);
     setDisputes(prev => prev.map(item => item.id !== id ? item : {
       ...item,
       status: action === 'FULL' ? 'RESOLVED_REFUND_FULL' : action === 'PARTIAL' ? 'RESOLVED_REFUND_PARTIAL' : 'REJECTED',
-      adminDecisionNotes: action === 'FULL' ? 'Admin duyệt hoàn tiền 100% vào Ví Khách Hàng.' : action === 'PARTIAL' ? 'Admin duyệt đền bù 50% giá trị đơn.' : 'Admin từ chối khiếu nại do minh chứng chưa đủ căn cứ.',
+      adminDecisionNotes: action === 'FULL' ? 'Admin duyệt hoàn tiền 100% qua chuyển khoản ngân hàng.' : action === 'PARTIAL' ? 'Admin duyệt đền bù 50% giá trị đơn.' : 'Admin từ chối khiếu nại do minh chứng chưa đủ căn cứ.',
     }));
   };
 

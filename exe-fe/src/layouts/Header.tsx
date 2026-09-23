@@ -1,12 +1,9 @@
 import { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, ShoppingBag, Search, Sparkles, User as UserIcon, Menu, Wallet } from 'lucide-react';
+import { Bell, ShoppingBag, Search, Sparkles, User as UserIcon, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import NotificationDropdown from '../components/NotificationDropdown';
-import { useWallet } from '../context/WalletContext';
-
-const formatPrice = (n: number) => n.toLocaleString('vi-VN');
 
 interface HeaderProps {
   sidebarOpen?: boolean;
@@ -17,7 +14,6 @@ interface HeaderProps {
 
 export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpenCart }: HeaderProps) {
   const { user } = useAuth();
-  const { balance } = useWallet();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
@@ -87,18 +83,6 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
       {/* TOP RIGHT: PROFILE - GIỎ HÀNG */}
       {/* ========================================================================= */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        {/* Wallet Balance Badge */}
-        {user && (
-          <Link
-            to="/wallet"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-[#272930] border border-border text-xs font-bold text-slate-200 transition"
-            title="Ví điện tử PrintHub"
-          >
-            <Wallet className="w-3.5 h-3.5 text-[#39FF14]" />
-            <span className="font-mono">{formatPrice(balance)}đ</span>
-          </Link>
-        )}
-
         {/* Real-time Notification Bell */}
         <div className="relative">
           <button
@@ -118,12 +102,12 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
           <NotificationDropdown isOpen={notifOpen} onClose={closeNotifications} />
         </div>
 
-        {/* TOP RIGHT: USER PROFILE BADGE */}
+        {/* TOP RIGHT: USER PROFILE BADGE OR LOGIN/SIGNUP */}
         {user ? (
           <Link
             to="/profile"
             className="flex items-center gap-2 p-1 rounded-xl bg-surface hover:bg-[#272930] border border-border transition group"
-            title="Trang cá nhân sinh viên"
+            title="Trang cá nhân"
           >
             <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 flex items-center justify-center font-black text-xs text-white uppercase shrink-0">
               {user.name ? user.name.substring(0, 2) : <UserIcon className="w-4 h-4" />}
@@ -136,12 +120,20 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
             </div>
           </Link>
         ) : (
-          <Link
-            to="/login"
-            className="text-xs font-bold text-[#39FF14] hover:underline px-2 py-1"
-          >
-            Đăng nhập
-          </Link>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Link
+              to="/login"
+              className="px-3 py-1.5 rounded-xl border border-border hover:border-[#39FF14] text-xs font-bold text-slate-200 hover:text-[#39FF14] transition"
+            >
+              Đăng nhập
+            </Link>
+            <Link
+              to="/signup"
+              className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 text-xs font-extrabold transition shadow-md shadow-emerald-500/20"
+            >
+              Đăng ký
+            </Link>
+          </div>
         )}
 
         {/* TOP RIGHT: CART DRAWER BUTTON */}

@@ -16,7 +16,7 @@ export default function SignupPage() {
     e.preventDefault();
     login(email || 'newstudent@hcmut.edu.vn', 'BUYER');
     updateProfile({ name: name.trim(), studentId: studentId.trim(), university: university.trim() });
-    navigate('/catalog');
+    navigate('/dashboard');
   };
 
   return (

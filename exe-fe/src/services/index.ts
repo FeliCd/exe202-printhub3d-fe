@@ -6,7 +6,6 @@ export * from './warrantyService';
 export * from './categoryService';
 export * from './productService';
 export * from './orderService';
-export * from './walletService';
 export * from './quotationService';
 export * from './notificationService';
 export * from './fileVaultService';

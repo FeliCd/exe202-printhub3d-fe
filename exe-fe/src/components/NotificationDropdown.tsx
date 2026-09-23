@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Bell, CheckCheck, PackageCheck, Wallet, ShieldAlert, Sparkles } from 'lucide-react';
+import { Bell, CheckCheck, PackageCheck, ShieldAlert, Sparkles } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,8 +33,6 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
     switch (type) {
       case 'ORDER':
         return <PackageCheck className="w-4 h-4 text-[#22c55e]" />;
-      case 'WALLET':
-        return <Wallet className="w-4 h-4 text-cyan-400" />;
       case 'SECURITY':
         return <ShieldAlert className="w-4 h-4 text-red-400" />;
       default:

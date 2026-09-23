@@ -19,7 +19,7 @@ export default function LoginPage() {
     } else if (role === 'FACTORY') {
       navigate('/factory/dashboard');
     } else {
-      navigate('/catalog');
+      navigate('/dashboard');
     }
   };
 

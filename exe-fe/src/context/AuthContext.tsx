@@ -17,44 +17,40 @@ interface AuthContextType {
   unlockAccount: () => void;
 }
 
-const defaultUser: User = {
-  id: 'user-001',
-  name: 'Nguyễn Văn Anh',
-  email: 'vananh.student@hcmut.edu.vn',
-  phone: '0987.654.321',
-  role: 'BUYER',
-  studentId: '20210123',
-  university: 'Đại Học Quốc Gia TP.HCM',
-  isVerified: true,
-  walletBalance: 250000,
-  hasPasscode: true,
-  isLocked: false,
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(defaultUser);
+  const [user, setUser] = useState<User | null>(null);
   const [storedPasscode, setStoredPasscodeState] = useState<string>('123456');
 
-  // Thử gọi backend lấy thông tin user hiện tại nếu có token, nếu lỗi thì giữ mock data
+  // Lấy thông tin user hiện tại nếu có token trong localStorage
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        setUser(null);
+        return;
+      }
       try {
         const res = await authService.getCurrentUser();
         const data = res?.result || res?.data || res;
         if (data && (data.email || data.id)) {
           setUser({
-            ...defaultUser,
-            ...data,
-            name: data.fullName || data.name || defaultUser.name,
-            role: data.role || defaultUser.role,
+            id: String(data.id || data.userId || 'usr-1'),
+            name: data.fullName || data.name || data.userName || 'Người dùng',
+            email: data.email || '',
+            phone: data.phone || data.phoneNumber || '',
+            role: (data.role as UserRole) || 'BUYER',
+            studentId: data.studentId || '',
+            university: data.university || '',
+            isVerified: true,
+            hasPasscode: true,
+            isLocked: false,
           });
         }
       } catch (error) {
-        console.warn('Backend getCurrentUser failed, using mock default user:', error);
+        console.warn('Lỗi khi lấy thông tin người dùng từ token:', error);
+        setUser(null);
       }
     };
     fetchCurrentUser();
@@ -62,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, role: UserRole, password?: string) => {
     try {
-      // Ưu tiên gọi API backend đăng nhập
+      // Gọi API backend đăng nhập
       const res = await authService.login({ userNameOrEmail: email, password: password || '12345678' });
       const data = res?.result || res?.data || res;
       const token = data?.accessToken || data?.token;
@@ -72,24 +68,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data && (token || data.userId || data.fullName)) {
         const backendRole: UserRole = data.role === 'ADMIN' ? 'ADMIN' : data.role === 'MAKER' || data.role === 'FACTORY' ? 'FACTORY' : 'BUYER';
         setUser({
-          ...defaultUser,
-          id: data.userId ? String(data.userId) : defaultUser.id,
+          id: data.userId ? String(data.userId) : 'user-logged',
+          name: data.fullName || (role === 'ADMIN' ? 'Quản Trị Viên' : role === 'FACTORY' ? 'Xưởng In 3D' : email.split('@')[0]),
           email: data.email || email,
+          phone: data.phone || '0987.654.321',
           role: role || backendRole,
-          name: data.fullName || (role === 'ADMIN' ? 'Admin Quản Trị' : role === 'FACTORY' ? 'Xưởng In 3D BK-Maker' : 'Nguyễn Văn Anh'),
+          studentId: data.studentId || '',
+          university: data.university || '',
+          isVerified: true,
+          hasPasscode: true,
+          isLocked: false,
         });
         return;
       }
     } catch (error) {
-      console.warn('Backend API login error, falling back to mock user data:', error);
+      console.warn('Backend API login error, falling back to mock user data for testing:', error);
     }
 
-    // Fallback Mock Data nếu API thất bại
+    // Fallback nếu API tạm thời không phản hồi trong môi trường dev
     setUser({
-      ...defaultUser,
+      id: `usr-${Date.now()}`,
+      name: role === 'ADMIN' ? 'Quản Trị Viên' : role === 'FACTORY' ? 'Xưởng In 3D' : email.split('@')[0],
       email,
+      phone: '0987.654.321',
       role,
-      name: role === 'ADMIN' ? 'Admin Quản Trị' : role === 'FACTORY' ? 'Xưởng In 3D BK-Maker' : 'Nguyễn Văn Anh',
+      isVerified: true,
+      hasPasscode: true,
+      isLocked: false,
     });
   };
 

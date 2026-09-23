@@ -10,7 +10,6 @@ export interface User {
   studentId?: string;
   university?: string;
   isVerified: boolean;
-  walletBalance: number;
   hasPasscode: boolean;
   isLocked?: boolean;
   lockReason?: string;
@@ -73,7 +72,7 @@ export interface Order {
   totalAmount: number;
   status: OrderStatus;
   shippingAddress: Address;
-  paymentMethod: 'WALLET' | 'COD' | 'BANKING' | 'VNPAY';
+  paymentMethod: 'COD' | 'BANKING' | 'VNPAY';
   trackingNumber?: string;
   estimatedDelivery?: string;
   printerAssigned?: string;
@@ -142,23 +141,13 @@ export interface Dispute {
   createdAt: string;
 }
 
-export interface WalletTransaction {
-  id: string;
-  type: 'DEPOSIT' | 'PAYMENT' | 'REFUND' | 'SUBSCRIPTION';
-  amount: number;
-  description: string;
-  date: string;
-  status: 'SUCCESS' | 'PENDING' | 'FAILED';
-  referenceId?: string;
-}
-
 export interface SystemNotification {
   id: string;
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
-  type: 'ORDER' | 'WALLET' | 'SYSTEM' | 'SECURITY';
+  type: 'ORDER' | 'SYSTEM' | 'SECURITY';
   link?: string;
 }
 

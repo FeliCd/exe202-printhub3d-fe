@@ -1,11 +1,9 @@
 import type { ShippingAddress } from '../features/address/data';
 import { useState } from 'react';
 import type { useCart } from '../features/cart/hooks/useCart';
-import { useWallet } from '../context/WalletContext';
 import { formatPrice } from '../utils/format';
-import { ShoppingBag, ShieldCheck, MapPin, Wallet, CreditCard, Truck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, MapPin, CreditCard, Truck, CheckCircle2, ArrowRight, QrCode } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PasscodeModal from '../components/PasscodeModal';
 
 interface CartPageProps {
   shippingAddress: ShippingAddress;
@@ -15,36 +13,20 @@ interface CartPageProps {
 
 export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: CartPageProps) {
   const { items, subtotal, discount, shippingFee, total, updateQuantity, couponCode } = cart;
-  const { balance, pay } = useWallet();
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState<'WALLET' | 'COD' | 'BANKING' | 'VNPAY'>('WALLET');
-  const [showPasscode, setShowPasscode] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'BANKING'>('COD');
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleCheckoutSubmit = () => {
     if (!items.length) return;
     setErrorMessage('');
-    if (paymentMethod === 'WALLET') {
-      if (balance < total) {
-        setErrorMessage(`Số dư ví (${formatPrice(balance)}đ) không đủ thanh toán (${formatPrice(total)}đ). Vui lòng nạp thêm tiền!`);
-        return;
-      }
-      setShowPasscode(true);
-    } else {
-      processOrder();
-    }
+    processOrder();
   };
 
   const processOrder = () => {
     if (!items.length || orderSuccess) return;
-    if (paymentMethod === 'WALLET') {
-      if (!pay(total, `Thanh toán đơn hàng thước in 3D (${items.length} món)`)) {
-        setErrorMessage('Số dư ví không đủ. Vui lòng kiểm tra lại phương thức thanh toán.');
-        return;
-      }
-    }
     setOrderSuccess(true);
   };
 
@@ -145,21 +127,6 @@ export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <button
-                onClick={() => setPaymentMethod('WALLET')}
-                className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition ${
-                  paymentMethod === 'WALLET'
-                    ? 'border-[#22c55e] bg-primary/10 text-white'
-                    : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
-                }`}
-              >
-                <Wallet className="w-5 h-5 text-[#22c55e] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold">Ví Điện Tử PrintHub</p>
-                  <p className="text-sm text-text-muted">Số dư ví: <span className="text-[#22c55e] font-bold">{formatPrice(balance)}đ</span></p>
-                </div>
-              </button>
-
-              <button
                 onClick={() => setPaymentMethod('COD')}
                 className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition ${
                   paymentMethod === 'COD'
@@ -171,6 +138,21 @@ export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: 
                 <div>
                   <p className="font-bold">Thanh Toán Khi Nhận Hàng (COD)</p>
                   <p className="text-sm text-text-muted">Thanh toán tiền mặt khi ship tới KTX</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setPaymentMethod('BANKING')}
+                className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition ${
+                  paymentMethod === 'BANKING'
+                    ? 'border-[#22c55e] bg-primary/10 text-white'
+                    : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
+                }`}
+              >
+                <QrCode className="w-5 h-5 text-[#22c55e] shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">Chuyển Khoản / Quét QR (PayOS)</p>
+                  <p className="text-sm text-text-muted">Quét mã QR ngân hàng 24/7 tức thì</p>
                 </div>
               </button>
             </div>
@@ -223,14 +205,6 @@ export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: 
           </div>
         </div>
       </div>
-
-      <PasscodeModal
-        isOpen={showPasscode}
-        title="Xác Thực Thanh Toán Đơn Hàng"
-        subtitle={`Xác nhận trừ ${formatPrice(total)}đ từ Ví PrintHub`}
-        onSuccess={processOrder}
-        onClose={() => setShowPasscode(false)}
-      />
     </div>
   );
 }
