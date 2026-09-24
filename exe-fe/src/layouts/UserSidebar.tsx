@@ -75,7 +75,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             </div>
             <div className="overflow-hidden">
               <p className="text-xs uppercase tracking-wider text-[#39FF14] font-extrabold">
-                {user.role === 'ADMIN' ? 'Quản Trị Viên' : user.role === 'FACTORY' ? 'Đối Tác Xưởng' : 'Tài Khoản Sinh Viên'}
+                {user.role === 'ADMIN' ? 'Quản Trị Viên' : 'Tài Khoản Sinh Viên'}
               </p>
               <p className="text-sm font-bold text-white truncate">{user.name}</p>
               <span className="inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800/40 font-bold">

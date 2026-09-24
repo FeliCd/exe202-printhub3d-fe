@@ -1,9 +1,12 @@
 import ErrorBoundary from '../components/ErrorBoundary';
 import { lazy, Suspense, useState } from 'react';
-import { Printer, Upload, MessageSquare, ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Printer, Upload, MessageSquare, ArrowRight, Sparkles, LogIn } from 'lucide-react';
 const RulerConfigurator = lazy(() => import('../components/3d/RulerConfigurator'));
 import { formatPrice } from '../utils/format';
 import type { CustomOrderRequest } from '../types';
+import { useAuth } from '../context/AuthContext';
+
 
 const sampleRequests: CustomOrderRequest[] = [
   {
@@ -37,6 +40,8 @@ const sampleRequests: CustomOrderRequest[] = [
 ];
 
 export default function CustomOrderPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [requests, setRequests] = useState<CustomOrderRequest[]>(sampleRequests);
   const [activeTab, setActiveTab] = useState<'configurator' | 'upload' | 'list'>('configurator');
 
@@ -50,6 +55,10 @@ export default function CustomOrderPage() {
 
   const handleCreateRequest = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/custom');
+      return;
+    }
     const newReq: CustomOrderRequest = {
       id: `REQ-${Math.floor(1000 + Math.random() * 9000)}`,
       fileName: fileName || 'Model_Custom_In3D.stl',
@@ -78,9 +87,10 @@ export default function CustomOrderPage() {
             <h1 className="text-2xl font-black text-white">Yêu Cầu In 3D Tùy Chỉnh &amp; Trình Thiết Kế 3D</h1>
           </div>
           <p className="text-sm text-text-muted">
-            Thiết kế phôi thước 3D trực quan real-time (React Three Fiber), khắc MSSV nổi và xuất file .STL trực tiếp cho xưởng in.
+            Thiết kế phôi thước 3D trực quan real-time (React Three Fiber), khắc MSSV nổi và xuất file .STL trực tiếp cho hệ thống in 3D PrintHub.
           </p>
         </div>
+
 
         <div className="flex flex-wrap gap-1 bg-surface p-1 rounded-2xl border border-border text-xs font-bold shrink-0">
           <button
@@ -204,9 +214,17 @@ export default function CustomOrderPage() {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50"
+            className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 cursor-pointer"
           >
-            Gửi Yêu Cầu Báo Giá Thường <ArrowRight className="w-4 h-4" />
+            {!isAuthenticated ? (
+              <>
+                <LogIn className="w-4 h-4" /> Đăng Nhập Để Gửi Yêu Cầu
+              </>
+            ) : (
+              <>
+                Gửi Yêu Cầu Báo Giá Thường <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
       )}
@@ -226,7 +244,7 @@ export default function CustomOrderPage() {
                 <div>
                   {r.status === 'PENDING_QUOTE' && (
                     <span className="px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-xs">
-                      Chờ xưởng báo giá
+                      Chờ PrintHub báo giá
                     </span>
                   )}
                   {r.status === 'QUOTED' && (

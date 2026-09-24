@@ -71,7 +71,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
         </div>
 
         {/* Admin Navigation Section */}
-        {(role === 'ADMIN' || role === 'FACTORY') && (
+        {role === 'ADMIN' && (
           <div className="space-y-1 text-xs font-semibold pt-2 border-t border-border">
             <p className="px-3 text-sm font-extrabold uppercase tracking-widest text-purple-400 mb-1">
               ⚙️ QUẢN TRỊ &amp; SẢN XUẤT

@@ -18,7 +18,6 @@ export default function ProtectedRoute({ allowedRoles, children }: ProtectedRout
   if (!allowedRoles.includes(role)) {
     // Redirect user to their appropriate role home if trying to access unauthorized role area
     if (role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
-    if (role === 'FACTORY') return <Navigate to="/factory/dashboard" replace />;
     return <Navigate to="/catalog" replace />;
   }
 

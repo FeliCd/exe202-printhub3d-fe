@@ -1,5 +1,8 @@
 import Modal from '../Modal';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { paymentService } from '../../services/paymentService';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -12,7 +15,6 @@ import {
   Type,
   Ruler,
   CheckCircle2,
-  QrCode,
   X,
   Move,
   RotateCcw,
@@ -21,8 +23,12 @@ import {
   Sticker,
   Trash2,
   Eraser,
+  Truck,
+  CreditCard,
+  LogIn,
 } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
+
 
 // Available 3D Printed Plastic Preset Colors
 const COLOR_PRESETS = [
@@ -718,8 +724,14 @@ function EmbossedText3D({
 }
 
 export default function RulerConfigurator() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [modalPaymentMethod, setModalPaymentMethod] = useState<'COD' | 'PAYOS'>('COD');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
   // State 1: Ruler Shape Model
   const [selectedModel, setSelectedModel] = useState<RulerModelOption>(RULER_MODELS[0]);
+
 
   // State 2: 3 Independent Color Layers
   const [baseColor, setBaseColor] = useState<string>('#39FF14'); // Layer 1: Thân thước
@@ -915,9 +927,14 @@ export default function RulerConfigurator() {
 
   // STLExporter & Order Action
   const handleConfirmOrder = () => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/custom');
+      return;
+    }
     if (!groupRef.current) { setExportError('Mô hình chưa sẵn sàng. Vui lòng chờ tải xong.'); return; }
     setExportError('');
     setIsExporting(true);
+
 
     try {
       const exporter = new STLExporter();
@@ -1852,10 +1869,19 @@ export default function RulerConfigurator() {
             <button
               type="button"
               onClick={handleConfirmOrder}
-              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 transition active:scale-98 shadow-xl shadow-emerald-950/80 uppercase tracking-tight"
+              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 transition active:scale-98 shadow-xl shadow-emerald-950/80 uppercase tracking-tight cursor-pointer"
             >
-              <ShoppingBag className="w-5 h-5" />
-              <span>Xác Nhận &amp; Đặt Hàng Ngay</span>
+              {!isAuthenticated ? (
+                <>
+                  <LogIn className="w-5 h-5" />
+                  <span>Đăng Nhập Để Đặt Hàng</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-5 h-5" />
+                  <span>Xác Nhận &amp; Đặt Hàng Ngay</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -1881,7 +1907,7 @@ export default function RulerConfigurator() {
               </div>
               <h3 className="text-lg font-black text-white">ĐÃ ĐẶT HÀNG THƯỚC 3D THÀNH CÔNG!</h3>
               <p className="text-text-muted text-sm">
-                Đã tự động đóng gói tệp <strong className="text-[#39FF14]">.STL</strong> và chuyển sang xưởng in BK-Makerlab.
+                Đã tự động đóng gói tệp <strong className="text-[#39FF14]">.STL</strong> và chuyển vào hệ thống in 3D PrintHub.
               </p>
             </div>
 
@@ -1919,26 +1945,77 @@ export default function RulerConfigurator() {
               </div>
             </div>
 
-            {/* Payment QR Code */}
-            <div className="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-800/60 text-center space-y-2">
-              <div className="flex items-center justify-center gap-1.5 text-cyan-300 font-bold">
-                <QrCode className="w-4 h-4" /> Quét Mã VietQR Để Thanh Toán
+            {/* Payment Method Selection: COD or PayOS */}
+            <div className="space-y-2">
+              <p className="font-bold text-white text-xs">Phương thức thanh toán:</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setModalPaymentMethod('COD')}
+                  className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition ${
+                    modalPaymentMethod === 'COD'
+                      ? 'border-[#39FF14] bg-emerald-950/40 text-white'
+                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
+                  }`}
+                >
+                  <Truck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">COD</p>
+                    <p className="text-[10px] text-text-muted">Khi nhận thước</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setModalPaymentMethod('PAYOS')}
+                  className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition ${
+                    modalPaymentMethod === 'PAYOS'
+                      ? 'border-[#39FF14] bg-emerald-950/40 text-white'
+                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Cổng PayOS</p>
+                    <p className="text-[10px] text-text-muted">Thanh toán ngay</p>
+                  </div>
+                </button>
               </div>
-              <div className="w-32 h-32 bg-white p-2 rounded-xl mx-auto flex items-center justify-center shadow-md">
-                <div className="w-full h-full border-2 border-slate-900 rounded-lg flex items-center justify-center font-mono font-black text-slate-900 text-xs">
-                  VIETQR 3D
-                </div>
-              </div>
-              <p className="text-sm text-cyan-200">
-                Nội dung chuyển khoản: <strong className="text-white font-mono">PRINT3D {studentId}</strong>
-              </p>
             </div>
 
             <button
-              onClick={() => setShowOrderModal(false)}
-              className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-xs transition uppercase"
+              type="button"
+              disabled={isProcessingPayment}
+              onClick={async () => {
+                if (modalPaymentMethod === 'PAYOS') {
+                  setIsProcessingPayment(true);
+                  try {
+                    const payLink = await paymentService.createPaymentLink({
+                      orderType: 'CUSTOM_ORDER',
+                      customAmount: totalPrice,
+                      description: `Thanh toan in 3D ${selectedModel.name.slice(0, 15)}`,
+                    });
+                    const url = payLink?.result?.checkoutUrl || payLink?.checkoutUrl || payLink?.data?.checkoutUrl;
+                    if (url) {
+                      window.location.href = url;
+                      return;
+                    }
+                  } catch (e) {
+                    console.warn('Lỗi kết nối PayOS:', e);
+                  } finally {
+                    setIsProcessingPayment(false);
+                  }
+                }
+                setShowOrderModal(false);
+                navigate('/orders');
+              }}
+              className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-xs transition uppercase flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/50"
             >
-              Hoàn Tất &amp; Theo Dõi Tiến Độ Đơn
+              {modalPaymentMethod === 'PAYOS' ? (
+                isProcessingPayment ? 'Đang Chuyển Đến PayOS...' : 'Thanh Toán Qua Cổng PayOS'
+              ) : (
+                'Xác Nhận Đặt Hàng (COD)'
+              )}
             </button>
           </div>
         </Modal>

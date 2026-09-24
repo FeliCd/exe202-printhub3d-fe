@@ -55,8 +55,8 @@ export default function AdminFinancePage() {
 
         <div className="divide-y divide-[#272930]">
           {[
-            { id: 'TXN-9021', user: 'Nguyễn Văn Anh', type: 'Nạp tiền VietQR', amount: 500000, status: 'Thành công', date: '2026-09-03 09:12' },
-            { id: 'TXN-9020', user: 'BK-Makerlab Xưởng In', type: 'Đối soát chi trả xưởng', amount: 14850000, status: 'Thành công', date: '2026-09-02 18:40' },
+            { id: 'TXN-9021', user: 'Nguyễn Văn Anh', type: 'Thanh toán PayOS', amount: 500000, status: 'Thành công', date: '2026-09-03 09:12' },
+            { id: 'TXN-9020', user: 'Cung ứng nhựa in 3D', type: 'Chi phí vật tư in 3D', amount: 14850000, status: 'Thành công', date: '2026-09-02 18:40' },
             { id: 'TXN-9018', user: 'Lê Văn Cường', type: 'Hoàn tiền hủy đơn', amount: 210000, status: 'Thành công', date: '2026-09-01 11:20' },
           ].map(t => (
             <div key={t.id} className="py-3 flex items-center justify-between gap-3">

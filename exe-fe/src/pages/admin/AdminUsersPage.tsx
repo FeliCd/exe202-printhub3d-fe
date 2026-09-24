@@ -28,9 +28,9 @@ const mockUsers: ManagedUser[] = [
   },
   {
     id: 'USR-002',
-    name: 'Xưởng In 3D BK-Maker',
-    email: 'bkmaker.partner@printhub.vn',
-    role: 'FACTORY',
+    name: 'Kỹ Thuật Viên Vận Hành',
+    email: 'kythuat.admin@printhub.vn',
+    role: 'ADMIN',
     isLocked: false,
     joinedDate: '2025-11-20',
   },
@@ -167,8 +167,7 @@ export default function AdminUsersPage() {
                   onChange={(e) => changeRole(u.id, e.target.value as UserRole)}
                   className="bg-surface-inset border border-border rounded-lg px-2.5 py-1 text-xs text-purple-300 font-bold outline-none"
                 >
-                  <option value="BUYER">BUYER (Sinh viên)</option>
-                  <option value="FACTORY">FACTORY (Xưởng In)</option>
+                  <option value="BUYER">BUYER (Khách hàng / Sinh viên)</option>
                   <option value="ADMIN">ADMIN (Quản trị)</option>
                 </select>
               </div>

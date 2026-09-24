@@ -88,11 +88,11 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
         </nav>
 
         {/* ========================================================================= */}
-        {/* GROUP 2: ĐỐI TÁC & NGƯỜI DÙNG */}
+        {/* GROUP 2: NGƯỜI DÙNG & PHÂN QUYỀN */}
         {/* ========================================================================= */}
         <nav className="space-y-2 pt-3 border-t border-border">
           <p className="px-3 text-sm font-black uppercase tracking-widest text-purple-400 mb-2">
-            👥 ĐỐI TÁC &amp; NGƯỜI DÙNG
+            👥 NGƯỜI DÙNG &amp; PHÂN QUYỀN
           </p>
 
           <Link
@@ -106,19 +106,6 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
           >
             <Users className="w-5 h-5 text-purple-400 shrink-0" />
             <span>Quản Lý Người Dùng &amp; Phân Quyền</span>
-          </Link>
-
-          <Link
-            to="/admin/factories"
-            aria-current={isActive('/admin/factories') ? 'page' : undefined}
-            className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition ${
-              isActive('/admin/factories')
-                ? 'bg-purple-500/20 text-purple-300 border-l-4 border-purple-400 font-bold shadow-md'
-                : 'text-slate-300 hover:bg-surface'
-            }`}
-          >
-            <Factory className="w-5 h-5 text-purple-400 shrink-0" />
-            <span>Quản Lý Xưởng In Đối Tác</span>
           </Link>
         </nav>
 

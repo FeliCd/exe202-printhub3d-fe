@@ -9,7 +9,6 @@ import type { useCart } from '../features/cart/hooks/useCart';
 import AuthLayout from '../layouts/AuthLayout';
 import UserLayout from '../layouts/UserLayout';
 import AdminLayout from '../layouts/AdminLayout';
-import FactoryLayout from '../layouts/FactoryLayout';
 import ProtectedRoute from '../components/ProtectedRoute';
 import PageTransition from '../components/PageTransition';
 
@@ -46,18 +45,7 @@ const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'));
 const AdminProductsPage = lazy(() => import('../pages/admin/AdminProductsPage'));
 const AdminGlobalOrdersPage = lazy(() => import('../pages/admin/AdminGlobalOrdersPage'));
 const AdminFinancePage = lazy(() => import('../pages/admin/AdminFinancePage'));
-const AdminFactoriesPage = lazy(() => import('../pages/admin/AdminFactoriesPage'));
 const AdminSettingsPage = lazy(() => import('../pages/admin/AdminSettingsPage'));
-
-// Factory / Maker Pages
-const FactoryDashboardPage = lazy(() => import('../pages/factory/FactoryDashboardPage'));
-const FactoryOrdersPage = lazy(() => import('../pages/factory/FactoryOrdersPage'));
-const FactoryPrintersPage = lazy(() => import('../pages/factory/FactoryPrintersPage'));
-const FactoryPackingPage = lazy(() => import('../pages/factory/FactoryPackingPage'));
-const FactoryGCodePage = lazy(() => import('../pages/factory/FactoryGCodePage'));
-const FactoryQCPage = lazy(() => import('../pages/factory/FactoryQCPage'));
-const FactoryMaintenancePage = lazy(() => import('../pages/factory/FactoryMaintenancePage'));
-const FactoryInventoryPage = lazy(() => import('../pages/factory/FactoryInventoryPage'));
 
 interface AppRoutesProps {
   shippingAddress: ShippingAddress;
@@ -127,7 +115,7 @@ export default function AppRoutes({
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key="/dashboard">
                   <DashboardPage />
@@ -191,7 +179,7 @@ export default function AppRoutes({
         <Route
           path="/orders"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <OrdersPage />
@@ -203,7 +191,7 @@ export default function AppRoutes({
         <Route
           path="/order-history"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <OrderHistoryPage />
@@ -215,7 +203,7 @@ export default function AppRoutes({
         <Route
           path="/file-vault"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <FileVaultPage />
@@ -227,7 +215,7 @@ export default function AppRoutes({
         <Route
           path="/quotations"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <QuotationsPage />
@@ -259,7 +247,7 @@ export default function AppRoutes({
         <Route
           path="/subscriptions"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <SubscriptionsPage />
@@ -271,7 +259,7 @@ export default function AppRoutes({
         <Route
           path="/warranty"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <WarrantyPage />
@@ -283,7 +271,7 @@ export default function AppRoutes({
         <Route
           path="/disputes"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <DisputesPage />
@@ -305,7 +293,7 @@ export default function AppRoutes({
         <Route
           path="/profile"
           element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN', 'FACTORY']}>
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <ProfilePage />
@@ -316,7 +304,7 @@ export default function AppRoutes({
         />
       </Route>
 
-      {/* 3. Persistent Admin Layout Group - Header & AdminSidebar Stay 100% Mounted */}
+      {/* 4. Persistent Admin Layout Group - Header & AdminSidebar Stay 100% Mounted */}
       <Route
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
@@ -376,23 +364,7 @@ export default function AppRoutes({
         />
         <Route
           path="/admin/factories"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <AdminFactoriesPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <AdminSettingsPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
+          element={<Navigate to="/admin/dashboard" replace />}
         />
         <Route
           path="/admin/production"
@@ -424,97 +396,20 @@ export default function AppRoutes({
             </AnimatePresence>
           }
         />
+        <Route
+          path="/admin/settings"
+          element={
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                <AdminSettingsPage />
+              </PageTransition>
+            </AnimatePresence>
+          }
+        />
       </Route>
 
-      {/* 4. Persistent Factory Layout Group - Header & FactorySidebar Stay 100% Mounted */}
-      <Route
-        element={
-          <ProtectedRoute allowedRoles={['FACTORY', 'ADMIN']}>
-            <FactoryLayout cartCount={cartCount} onOpenCart={onOpenCart} />
-          </ProtectedRoute>
-        }
-      >
-        <Route
-          path="/factory/dashboard"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryDashboardPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/factory/orders"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryOrdersPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/factory/printers"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryPrintersPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/factory/packing"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryPackingPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/factory/gcode"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryGCodePage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/factory/qc"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryQCPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/factory/maintenance"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryMaintenancePage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-        <Route
-          path="/factory/inventory"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <FactoryInventoryPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
-        />
-      </Route>
+      {/* Redirect factory routes to home/dashboard */}
+      <Route path="/factory/*" element={<Navigate to="/dashboard" replace />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

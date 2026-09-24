@@ -2,8 +2,9 @@ import type { ShippingAddress } from '../features/address/data';
 import { useState } from 'react';
 import type { useCart } from '../features/cart/hooks/useCart';
 import { formatPrice } from '../utils/format';
-import { ShoppingBag, ShieldCheck, MapPin, CreditCard, Truck, CheckCircle2, ArrowRight, QrCode } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, MapPin, CreditCard, Truck, CheckCircle2, ArrowRight, AlertCircle, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface CartPageProps {
   shippingAddress: ShippingAddress;
@@ -14,16 +15,22 @@ interface CartPageProps {
 export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: CartPageProps) {
   const { items, subtotal, discount, shippingFee, total, updateQuantity, couponCode } = cart;
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'BANKING'>('COD');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'PAYOS'>('COD');
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleCheckoutSubmit = () => {
     if (!items.length) return;
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/cart');
+      return;
+    }
     setErrorMessage('');
     processOrder();
   };
+
 
   const processOrder = () => {
     if (!items.length || orderSuccess) return;
@@ -142,17 +149,17 @@ export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: 
               </button>
 
               <button
-                onClick={() => setPaymentMethod('BANKING')}
+                onClick={() => setPaymentMethod('PAYOS')}
                 className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition ${
-                  paymentMethod === 'BANKING'
+                  paymentMethod === 'PAYOS'
                     ? 'border-[#22c55e] bg-primary/10 text-white'
                     : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
                 }`}
               >
-                <QrCode className="w-5 h-5 text-[#22c55e] shrink-0 mt-0.5" />
+                <CreditCard className="w-5 h-5 text-[#22c55e] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold">Chuyển Khoản / Quét QR (PayOS)</p>
-                  <p className="text-sm text-text-muted">Quét mã QR ngân hàng 24/7 tức thì</p>
+                  <p className="font-bold">Cổng Thanh Toán PayOS</p>
+                  <p className="text-sm text-text-muted">Cổng thanh toán trực tuyến bảo mật, tức thì</p>
                 </div>
               </button>
             </div>
@@ -163,6 +170,13 @@ export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: 
         <div className="space-y-4">
           <div className="p-5 rounded-2xl bg-surface border border-border space-y-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Tóm Tắt Đơn Hàng</h3>
+
+            {!isAuthenticated && (
+              <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-600/40 text-amber-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                <span>Bạn cần đăng nhập để hoàn tất đơn hàng và hưởng chính sách bảo hành sinh viên.</span>
+              </div>
+            )}
 
             <div className="space-y-2 text-xs text-text-muted">
               <div className="flex justify-between">
@@ -193,9 +207,17 @@ export default function CartPage({ shippingAddress, cart, onOpenAddressModal }: 
             <button
               onClick={handleCheckoutSubmit}
               disabled={items.length === 0}
-              className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              Xác Nhận Đặt Hàng &amp; In 3D <ArrowRight className="w-4 h-4" />
+              {!isAuthenticated ? (
+                <>
+                  <LogIn className="w-4 h-4" /> Đăng Nhập Để Đặt Hàng &amp; In 3D
+                </>
+              ) : (
+                <>
+                  Xác Nhận Đặt Hàng &amp; In 3D <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
 
             <div className="text-xs text-text-muted bg-emerald-950/30 border border-emerald-900/40 p-3 rounded-xl flex items-center gap-2">

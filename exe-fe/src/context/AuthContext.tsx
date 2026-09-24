@@ -7,12 +7,12 @@ interface AuthContextType {
   user: User | null;
   role: UserRole;
   isAuthenticated: boolean;
-  login: (email: string, role: UserRole, password?: string) => Promise<void>;
+  login: (userNameOrEmail: string, password?: string) => Promise<UserRole>;
   logout: () => void;
   setRole: (role: UserRole) => void;
   verifyPasscode: (passcode: string) => boolean;
   setPasscode: (newPasscode: string) => void;
-  updateProfile: (data: Partial<User>) => void;
+  updateProfile: (data: Partial<User>) => Promise<void> | void;
   lockAccount: (reason: string) => void;
   unlockAccount: () => void;
 }
@@ -34,13 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const res = await authService.getCurrentUser();
         const data = res?.result || res?.data || res;
-        if (data && (data.email || data.id)) {
+        if (data && (data.email || data.id || data.userId)) {
+          const detectedRole: UserRole = data.role === 'ADMIN' ? 'ADMIN' : 'BUYER';
           setUser({
             id: String(data.id || data.userId || 'usr-1'),
             name: data.fullName || data.name || data.userName || 'Người dùng',
             email: data.email || '',
             phone: data.phone || data.phoneNumber || '',
-            role: (data.role as UserRole) || 'BUYER',
+            address: data.address || '',
+            role: detectedRole,
             studentId: data.studentId || '',
             university: data.university || '',
             isVerified: true,
@@ -56,46 +58,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchCurrentUser();
   }, []);
 
-  const login = async (email: string, role: UserRole, password?: string) => {
+  const login = async (userNameOrEmail: string, password?: string): Promise<UserRole> => {
     try {
       // Gọi API backend đăng nhập
-      const res = await authService.login({ userNameOrEmail: email, password: password || '12345678' });
+      const res = await authService.login({ userNameOrEmail, password: password || '12345678' });
       const data = res?.result || res?.data || res;
       const token = data?.accessToken || data?.token;
       if (token) {
         localStorage.setItem('token', token);
       }
-      if (data && (token || data.userId || data.fullName)) {
-        const backendRole: UserRole = data.role === 'ADMIN' ? 'ADMIN' : data.role === 'MAKER' || data.role === 'FACTORY' ? 'FACTORY' : 'BUYER';
+      if (data && (token || data.userId || data.fullName || data.role)) {
+        const detectedRole: UserRole = data.role === 'ADMIN' ? 'ADMIN' : 'BUYER';
         setUser({
           id: data.userId ? String(data.userId) : 'user-logged',
-          name: data.fullName || (role === 'ADMIN' ? 'Quản Trị Viên' : role === 'FACTORY' ? 'Xưởng In 3D' : email.split('@')[0]),
-          email: data.email || email,
+          name: data.fullName || (detectedRole === 'ADMIN' ? 'Quản Trị Viên' : (data.username || userNameOrEmail.split('@')[0])),
+          email: data.email || (userNameOrEmail.includes('@') ? userNameOrEmail : `${userNameOrEmail}@printhub3d.com`),
           phone: data.phone || '0987.654.321',
-          role: role || backendRole,
+          address: data.address || '',
+          role: detectedRole,
           studentId: data.studentId || '',
           university: data.university || '',
           isVerified: true,
           hasPasscode: true,
           isLocked: false,
         });
-        return;
+        return detectedRole;
       }
     } catch (error) {
-      console.warn('Backend API login error, falling back to mock user data for testing:', error);
+      console.warn('Backend API login error, falling back to local fallback:', error);
     }
 
     // Fallback nếu API tạm thời không phản hồi trong môi trường dev
+    const fallbackRole: UserRole = userNameOrEmail.toLowerCase().includes('admin') ? 'ADMIN' : 'BUYER';
     setUser({
       id: `usr-${Date.now()}`,
-      name: role === 'ADMIN' ? 'Quản Trị Viên' : role === 'FACTORY' ? 'Xưởng In 3D' : email.split('@')[0],
-      email,
+      name: fallbackRole === 'ADMIN' ? 'Quản Trị Viên' : userNameOrEmail.split('@')[0],
+      email: userNameOrEmail.includes('@') ? userNameOrEmail : `${userNameOrEmail}@student.edu.vn`,
       phone: '0987.654.321',
-      role,
+      address: '',
+      role: fallbackRole,
       isVerified: true,
       hasPasscode: true,
       isLocked: false,
     });
+    return fallbackRole;
   };
 
   const logout = () => {
@@ -120,7 +126,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateProfile = (data: Partial<User>) => {
+  const updateProfile = async (data: Partial<User>) => {
+    try {
+      if (localStorage.getItem('token')) {
+        await authService.updateProfile({
+          fullName: data.name || user?.name,
+          email: data.email || user?.email,
+          phone: data.phone || user?.phone,
+          address: data.address !== undefined ? data.address : user?.address,
+        });
+      }
+    } catch (err) {
+      console.warn('Could not sync updateProfile to backend:', err);
+    }
     setUser(previous => previous ? { ...previous, ...data } : previous);
   };
 

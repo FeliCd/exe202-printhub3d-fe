@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { get, post } from './api';
+import { get, post, put } from './api';
 
 export const authService = {
   login: async (credentials: { userNameOrEmail?: string; username?: string; password?: string }) => {
@@ -36,7 +36,40 @@ export const authService = {
     }
   },
 
+  updateProfile: async (profileData: any) => {
+    const response = await put('/auth/profile', profileData);
+    return response.data;
+  },
+
+  sendForgotPasswordOtp: async (email: string) => {
+    const response = await post(`/auth/forgot-password/send-otp?email=${encodeURIComponent(email)}`, {});
+    return response.data;
+  },
+
+  forgotPassword: async (data: { email: string; otpCode: string; newPassword: string; confirmPassword: string }) => {
+    const response = await post('/auth/forgot-password', data);
+    return response.data;
+  },
+
+  sendResetPasswordOtp: async (email?: string) => {
+    const query = email ? `?email=${encodeURIComponent(email)}` : '';
+    const response = await post(`/auth/reset-password/send-otp${query}`, {});
+    return response.data;
+  },
+
+  resetPassword: async (data: {
+    email: string;
+    oldPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+    otpCode: string;
+  }) => {
+    const response = await post('/auth/reset-password', data);
+    return response.data;
+  },
+
   logout: () => {
     localStorage.removeItem('token');
   },
 };
+

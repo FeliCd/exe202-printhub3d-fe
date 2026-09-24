@@ -166,7 +166,7 @@ export default function QuotationsPage() {
               <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-emerald-300 flex items-start gap-2">
                 <MessageSquare className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
                 <div>
-                  <strong className="block text-xs text-[#39FF14]">Ghi chú từ Xưởng In BK-Makerlab:</strong>
+                  <strong className="block text-xs text-[#39FF14]">Ghi chú từ Đội ngũ kỹ thuật PrintHub 3D:</strong>
                   <p className="text-sm text-slate-200 mt-0.5">{q.factoryNotes}</p>
                 </div>
               </div>

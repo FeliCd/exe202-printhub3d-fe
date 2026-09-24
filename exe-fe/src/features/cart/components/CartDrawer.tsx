@@ -5,6 +5,8 @@ import Modal from '../../../components/Modal';
 import type { CartItem as CartItemType } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import CartItemComponent from './CartItem';
+import { useAuth } from '../../../context/AuthContext';
+
 
 interface CartDrawerProps {
   shippingAddress: ShippingAddress;
@@ -43,8 +45,11 @@ export default function CartDrawer({
   const navigate = useNavigate();
   const [localCoupon, setLocalCoupon] = useState(couponCode);
 
+  const { isAuthenticated } = useAuth();
+
   return (
     <Modal open={isOpen} onClose={onClose} label="Giỏ hàng của bạn" drawer>
+
     <div className="w-full h-full bg-surface-inset border-l border-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between bg-surface">
@@ -156,11 +161,22 @@ export default function CartDrawer({
             <span className="text-[#22c55e] text-base">{formatPrice(total)}đ</span>
           </div>
         </div>
-        <button disabled={!items.length} onClick={() => { onClose(); navigate('/cart'); }} className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2">
+        <button
+          disabled={!items.length}
+          onClick={() => {
+            onClose();
+            if (!isAuthenticated) {
+              navigate('/login?redirect=/cart');
+            } else {
+              navigate('/cart');
+            }
+          }}
+          className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+        >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
           </svg>
-          TIẾN HÀNH ĐẶT HÀNG &amp; IN 3D
+          {!isAuthenticated ? 'ĐĂNG NHẬP ĐỂ ĐẶT HÀNG' : 'TIẾN HÀNH ĐẶT HÀNG & IN 3D'}
         </button>
       </div>
     </div>

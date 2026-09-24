@@ -1,10 +1,11 @@
-export type UserRole = 'BUYER' | 'ADMIN' | 'FACTORY';
+export type UserRole = 'BUYER' | 'ADMIN';
 
 export interface User {
   id: string;
   name: string;
   email: string;
   phone: string;
+  address?: string;
   role: UserRole;
   avatar?: string;
   studentId?: string;

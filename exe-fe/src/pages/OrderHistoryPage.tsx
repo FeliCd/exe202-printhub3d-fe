@@ -32,7 +32,7 @@ const mockPastOrders: PastOrder[] = [
     ],
     total: 165000,
     status: 'COMPLETED',
-    paymentMethod: 'Banking VietQR',
+    paymentMethod: 'Cổng PayOS',
   },
   {
     id: 'ORD-7510',
