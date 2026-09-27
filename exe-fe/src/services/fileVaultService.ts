@@ -1,19 +1,34 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { get, post, remove } from './api';
+import api, { read, send } from './api';
+
+export interface FileDTO {
+  id: string;
+  fileName: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+export async function uploadFile(file: File | Blob, name?: string): Promise<FileDTO> {
+  const data = new FormData();
+  data.append('file', file, name || (file instanceof File ? file.name : 'design.stl'));
+  return send<FileDTO>('/vault/upload', data);
+}
+
+export async function downloadFile(path: string, name: string): Promise<void> {
+  const relative = path.replace(/^\/api/, '');
+  const response = await api.get(relative, { responseType: 'blob' });
+  const url = URL.createObjectURL(response.data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 export const fileVaultService = {
-  getFiles: async () => {
-    const response = await get('/vault/files');
-    return response.data;
-  },
-
-  uploadFile: async (fileData: any) => {
-    const response = await post('/vault/upload', fileData);
-    return response.data;
-  },
-
-  deleteFile: async (id: string) => {
-    const response = await remove(`/vault/files/${id}`);
-    return response.data;
-  },
+  getFiles: () => read<FileDTO[]>('/vault/files'),
+  uploadFile,
+  downloadFile,
+  deleteFile: (id: string) => send(`/vault/files/${id}`, undefined, 'delete'),
 };
+
+export default fileVaultService;

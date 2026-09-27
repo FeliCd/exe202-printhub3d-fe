@@ -9,7 +9,9 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
-  const { user, role, isAuthenticated } = useAuth();
+  const { user, role, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) return <p role="status" className="p-6">Đang khôi phục phiên đăng nhập…</p>;
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;

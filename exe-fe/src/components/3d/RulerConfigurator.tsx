@@ -2,7 +2,8 @@ import Modal from '../Modal';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { paymentService } from '../../services/paymentService';
+import { send, errorText } from '../../services/api';
+import { uploadFile } from '../../services/fileVaultService';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -1940,14 +1941,16 @@ export default function RulerConfigurator() {
                 </div>
               </div>
               <div className="flex justify-between border-t border-border pt-2 text-sm">
-                <span className="font-bold text-white">Tổng thanh toán:</span>
+                <span className="font-bold text-white">Giá tham khảo:</span>
                 <strong className="text-[#39FF14] font-mono">{formatPrice(totalPrice)}đ</strong>
               </div>
             </div>
 
-            {/* Payment Method Selection: COD or PayOS */}
+            {exportError && <p role="alert" className="text-red-300">{exportError}</p>}
+            <p className="text-sm text-slate-300">Thiết kế sẽ được gửi đến xưởng. Bạn xác nhận báo giá trước khi thanh toán.</p>
+            {/* Payment preference */}
             <div className="space-y-2">
-              <p className="font-bold text-white text-xs">Phương thức thanh toán:</p>
+              <p className="font-bold text-white text-xs">Phương thức mong muốn (xác nhận sau báo giá):</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <button
                   type="button"
@@ -1987,34 +1990,27 @@ export default function RulerConfigurator() {
               type="button"
               disabled={isProcessingPayment}
               onClick={async () => {
-                if (modalPaymentMethod === 'PAYOS') {
-                  setIsProcessingPayment(true);
-                  try {
-                    const payLink = await paymentService.createPaymentLink({
-                      orderType: 'CUSTOM_ORDER',
-                      customAmount: totalPrice,
-                      description: `Thanh toan in 3D ${selectedModel.name.slice(0, 15)}`,
-                    });
-                    const url = payLink?.result?.checkoutUrl || payLink?.checkoutUrl || payLink?.data?.checkoutUrl;
-                    if (url) {
-                      window.location.href = url;
-                      return;
-                    }
-                  } catch (e) {
-                    console.warn('Lỗi kết nối PayOS:', e);
-                  } finally {
-                    setIsProcessingPayment(false);
-                  }
-                }
-                setShowOrderModal(false);
-                navigate('/orders');
+                if (!groupRef.current) return;
+                const shippingAddress = window.prompt('Người nhận, số điện thoại và địa chỉ giao hàng:');
+                if (!shippingAddress?.trim()) return;
+                setIsProcessingPayment(true); setExportError('');
+                try {
+                  const exported = new STLExporter().parse(groupRef.current, { binary: true });
+                  const asset = await uploadFile(new Blob([exported.buffer as ArrayBuffer], { type: 'application/octet-stream' }), 'PrintHub-design.stl');
+                  await send('/custom-orders', { fileId: asset.id, quantity: 1, shippingAddress,
+                    requirements: `Mẫu ${selectedModel.name}; vật liệu ${materialType}; infill ${infillDensity}%; hình thức mong muốn ${modalPaymentMethod}.`,
+                    rulerModel: selectedModel.name, customName: studentName, customStudentId: studentId });
+                  setShowOrderModal(false); navigate('/quotations');
+                } catch (e) { setExportError(errorText(e)); }
+                finally { setIsProcessingPayment(false); }
+
               }}
               className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-xs transition uppercase flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/50"
             >
               {modalPaymentMethod === 'PAYOS' ? (
-                isProcessingPayment ? 'Đang Chuyển Đến PayOS...' : 'Thanh Toán Qua Cổng PayOS'
+                isProcessingPayment ? 'Đang gửi thiết kế…' : 'Gửi thiết kế nhận báo giá'
               ) : (
-                'Xác Nhận Đặt Hàng (COD)'
+                'Gửi thiết kế nhận báo giá'
               )}
             </button>
           </div>

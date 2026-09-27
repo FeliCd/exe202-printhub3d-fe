@@ -1,10 +1,6 @@
 import { BarChart3, Printer, DollarSign, AlertTriangle, Cpu, ArrowUpRight } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
-import { useAuth } from '../../context/AuthContext';
-
 export default function AdminDashboardPage() {
-  const { lockAccount } = useAuth();
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -15,13 +11,6 @@ export default function AdminDashboardPage() {
           </div>
           <p className="text-sm text-text-muted">Tổng quan chỉ số doanh thu, công suất máy in 3D và cảnh báo sự cố toàn hệ thống</p>
         </div>
-
-        <button
-          onClick={() => lockAccount('Tài khoản bị gắn cờ vi phạm quy định đền bù chất lượng in.')}
-          className="px-3.5 py-2 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-400 text-xs font-bold flex items-center gap-1.5 transition"
-        >
-          <AlertTriangle className="w-4 h-4" /> Mô Phỏng Khóa Cảnh Báo Tài Khoản
-        </button>
       </div>
 
       {/* Metrics Cards */}

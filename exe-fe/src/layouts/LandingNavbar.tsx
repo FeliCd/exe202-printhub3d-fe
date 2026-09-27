@@ -48,26 +48,26 @@ export default function LandingNavbar() {
         </Link>
 
         {/* ========================================================================= */}
-        {/* CENTER PILL NAVBAR (Matches Center Capsule in Reference) */}
+        {/* CENTER PILL NAVBAR (Full Tiếng Việt) */}
         {/* ========================================================================= */}
         <nav className="hidden lg:flex items-center gap-1 bg-[#12141a]/90 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl shadow-black/60 text-xs font-semibold text-slate-300">
           <button
             onClick={() => handleNavClick('services')}
             className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition cursor-pointer"
           >
-            Services
+            Dịch Vụ
           </button>
           <button
             onClick={() => handleNavClick('why-choose')}
             className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition cursor-pointer"
           >
-            About
+            Về PrintHub
           </button>
           <Link
             to="/catalog"
             className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition"
           >
-            Materials
+            Danh Mục Thước
           </Link>
           <Link
             to="/custom"
@@ -80,19 +80,19 @@ export default function LandingNavbar() {
             to="/ruler-3d"
             className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition"
           >
-            Resources
+            Thước Đo 3D
           </Link>
           <Link
             to="/warranty"
             className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition"
           >
-            Warranty
+            Bảo Hành
           </Link>
           <Link
             to="/help-center"
             className="px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition"
           >
-            FAQ
+            Hỗ Trợ
           </Link>
         </nav>
 
@@ -146,20 +146,20 @@ export default function LandingNavbar() {
               onClick={() => handleNavClick('services')}
               className="text-left px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
             >
-              Services (Dịch vụ)
+              Dịch Vụ
             </button>
             <button
               onClick={() => handleNavClick('why-choose')}
               className="text-left px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
             >
-              About (Về PrintHub)
+              Về PrintHub
             </button>
             <Link
               to="/catalog"
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
             >
-              Materials (Danh mục)
+              Danh Mục Thước
             </Link>
             <Link
               to="/custom"
@@ -187,14 +187,14 @@ export default function LandingNavbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
             >
-              Warranty (Bảo hành)
+              Chính Sách Bảo Hành
             </Link>
             <Link
               to="/help-center"
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
             >
-              FAQ / Trợ Giúp
+              Hỗ Trợ &amp; FAQ
             </Link>
           </div>
 

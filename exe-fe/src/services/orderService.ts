@@ -1,34 +1,43 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { get, post, put } from './api';
+import { read, send } from './api';
+
+export interface OrderItemDTO {
+  productId: string;
+  productTitle: string;
+  quantity: number;
+  unitPrice: number;
+  color?: string;
+  engravingText?: string;
+}
+
+export interface ShippingInfoDTO {
+  recipientName: string;
+  phone: string;
+  address: string;
+  province: string;
+  trackingNumber?: string;
+}
+
+export interface OrderDTO {
+  id: string;
+  buyerName: string;
+  sellerName: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  orderCode?: string;
+  items: OrderItemDTO[];
+  shippingInfo?: ShippingInfoDTO;
+}
 
 export const orderService = {
-  getUserOrders: async () => {
-    try {
-      const response = await get('/orders/my-orders');
-      return response.data;
-    } catch {
-      const response = await get('/orders/me');
-      return response.data;
-    }
-  },
-
-  getOrderHistory: async () => {
-    const response = await get('/orders/history');
-    return response.data;
-  },
-
-  getOrderById: async (id: string) => {
-    const response = await get(`/orders/${id}`);
-    return response.data;
-  },
-
-  createOrder: async (orderData: any) => {
-    const response = await post('/orders', orderData);
-    return response.data;
-  },
-
-  updateOrderStatus: async (id: string, status: string) => {
-    const response = await put(`/orders/${id}/status`, { status });
-    return response.data;
-  },
+  getUserOrders: () => read<OrderDTO[]>('/orders/me'),
+  getOrderHistory: () => read<OrderDTO[]>('/orders/me'),
+  getOrderById: (id: string) => read<OrderDTO>(`/orders/${id}`),
+  createOrder: (data: unknown) => send<OrderDTO[]>('/orders', data),
+  updateOrderStatus: (id: string, status: string) => send(`/orders/${id}/status`, { status }, 'put'),
+  completeRewards: (id: string) => send(`/orders/${id}/complete-rewards`, undefined, 'post'),
 };
+
+export default orderService;

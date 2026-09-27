@@ -1,5 +1,4 @@
 import type { ShippingAddress } from '../../address/data';
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../../components/Modal';
 import type { CartItem as CartItemType } from '../../../types';
@@ -39,11 +38,10 @@ export default function CartDrawer({
   couponCode,
   couponApplied,
   onUpdateQuantity,
-  onApplyCoupon,
   onOpenAddressModal,
 }: CartDrawerProps) {
   const navigate = useNavigate();
-  const [localCoupon, setLocalCoupon] = useState(couponCode);
+
 
   const { isAuthenticated } = useAuth();
 
@@ -77,34 +75,6 @@ export default function CartDrawer({
           ))}
         </div>
 
-        {/* Voucher */}
-        <div className="pt-2">
-          <label htmlFor="cart-coupon" className="block text-xs font-bold text-slate-300 uppercase mb-1.5">Mã Giảm Giá Sinh Viên</label>
-          <div className="flex gap-2">
-            <input
-              id="cart-coupon"
-              className="flex-1 min-w-0 bg-surface border border-border rounded-lg px-3 py-2 text-xs uppercase font-mono text-white focus:border-[#22c55e] outline-none"
-              placeholder="Nhập mã (Vd: SINHVIEN2024)"
-              type="text"
-              value={localCoupon}
-              onChange={(e) => setLocalCoupon(e.target.value)}
-            />
-            <button
-              className="px-4 py-2 bg-surface-raised hover:bg-[#272930] border border-border rounded-lg text-xs font-bold text-[#22c55e] transition"
-              onClick={() => onApplyCoupon(localCoupon)}
-            >
-              Áp dụng
-            </button>
-          </div>
-          {couponApplied && (
-            <p className="text-sm text-emerald-400 mt-1 flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-              </svg>
-              Đã giảm {formatPrice(discount)}đ từ Voucher Tân Sinh Viên!
-            </p>
-          )}
-        </div>
 
         {/* Shipping Address */}
         <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2.5">

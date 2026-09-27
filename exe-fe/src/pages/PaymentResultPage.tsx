@@ -1,31 +1,15 @@
-import { CheckCircle2, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
-export default function PaymentResultPage() {
-  return (
-    <div className="max-w-md mx-auto my-12 p-8 rounded-3xl bg-surface border border-border text-center space-y-5">
-      <div className="w-16 h-16 rounded-full bg-primary/20 text-[#22c55e] flex items-center justify-center mx-auto border border-[#22c55e]/40">
-        <CheckCircle2 className="w-10 h-10" />
-      </div>
-      <div>
-        <h2 className="text-2xl font-black text-white">Thanh Toán Đơn Hàng Thành Công</h2>
-        <p className="text-sm text-text-muted mt-1">PrintHub 3D đã ghi nhận đơn hàng và chuyển sang hệ thống in 3D.</p>
-      </div>
-
-      <div className="p-4 bg-surface-inset border border-border rounded-xl text-xs space-y-1.5 text-left text-text-muted">
-        <div className="flex justify-between"><span className="text-slate-300 font-bold">Mã giao dịch:</span> <span className="font-mono text-white">TXN-902182</span></div>
-        <div className="flex justify-between"><span className="text-slate-300 font-bold">Cổng thanh toán:</span> <span className="text-emerald-400">PayOS</span></div>
-        <div className="flex justify-between"><span className="text-slate-300 font-bold">Trạng thái:</span> <span className="text-emerald-400 font-bold">Thành Công (Success)</span></div>
-      </div>
-
-      <div className="pt-2 flex gap-2">
-        <Link to="/orders" className="flex-1 py-3 rounded-xl bg-primary text-slate-950 font-bold text-xs flex items-center justify-center gap-1">
-          Theo Dõi Đơn Hàng <ArrowRight className="w-4 h-4" />
-        </Link>
-        <Link to="/catalog" className="flex-1 py-3 rounded-xl bg-surface-raised text-slate-200 font-bold text-xs">
-          Đặt In Thước
-        </Link>
-      </div>
-    </div>
-  );
+import { useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useRemote } from '../hooks/useRemote';
+import { Panel, Card, RemoteState, Status, money, secondary } from '../components/DataUI';
+export default function PaymentResultPage(){
+  const [params]=useSearchParams();const code=params.get('orderCode');const {isAuthenticated,isLoading}=useAuth();
+  const remote=useRemote<{status:string;amount:number}>(isAuthenticated&&code?`/payments/verify/${encodeURIComponent(code)}`:null);
+  useEffect(()=>{if(remote.data?.status!=='PENDING')return;const timer=setTimeout(remote.reload,5000);return()=>clearTimeout(timer);},[remote.data?.status,remote.reload,remote.loading]);
+  return <Panel title="Kết quả thanh toán"><Card>{isLoading?<p>Đang khôi phục phiên…</p>:!isAuthenticated?<Link className={secondary} to={`/login?redirect=${encodeURIComponent('/payment-result?'+params.toString())}`}>Đăng nhập để kiểm tra giao dịch</Link>:!code?<p>Thiếu mã giao dịch. Hãy xem trạng thái trong danh sách đơn hàng.</p>:<>
+    <RemoteState {...remote} retry={remote.reload}/>{remote.data&&<><Status value={remote.data.status}/><p>{remote.data.status==='PAID'?'Đã xác nhận thanh toán.':remote.data.status==='PENDING'?'Đang chờ xác nhận thanh toán.':'Giao dịch chưa thanh toán thành công.'}</p><p>Số tiền: {money(remote.data.amount)}</p></>}
+    <button className={secondary} onClick={remote.reload}>Kiểm tra lại</button></>}
+    <div className="flex gap-3"><Link to="/orders" className={secondary}>Đơn hàng</Link><Link to="/quotations" className={secondary}>Yêu cầu in</Link></div>
+  </Card></Panel>;
 }

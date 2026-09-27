@@ -17,6 +17,8 @@ export interface User {
 }
 
 export interface Product {
+  stock?: number;
+  status?: string;
   id: string;
   name: string;
   category: string;

@@ -14,6 +14,7 @@ const getBaseUrl = (): string => {
 
 const api = axios.create({
   baseURL: getBaseUrl(),
+  timeout: 30000,
 });
 
 // Interceptor automatically attaches token if available (except for auth endpoints)
@@ -35,6 +36,7 @@ api.interceptors.response.use(
       if (!isAuthLogin) {
         console.warn('JWT token expired or invalid, clearing localStorage token');
         localStorage.removeItem('token');
+        window.dispatchEvent(new Event('auth:expired'));
       }
     }
     return Promise.reject(error);
@@ -48,5 +50,26 @@ export const post = (endpoint: string, data?: any) => api.post(endpoint, data);
 export const put = (endpoint: string, data?: any, config?: any) => api.put(endpoint, data, config);
 
 export const remove = (endpoint: string) => api.delete(endpoint);
+
+export function unwrap<T>(value: T | { result: T }): T {
+  return value && typeof value === 'object' && 'result' in value ? (value as { result: T }).result : (value as T);
+}
+
+export async function read<T>(path: string): Promise<T> {
+  return unwrap<T>((await api.get(path)).data);
+}
+
+export async function send<T = void>(path: string, data?: unknown, method: 'post' | 'put' | 'delete' = 'post'): Promise<T> {
+  return unwrap<T>((await api.request({ url: path, method, data })).data);
+}
+
+export function errorText(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const body = error.response?.data;
+    if (body?.errors) return Object.values(body.errors).join('. ');
+    return body?.message || body?.detail || (error.response?.status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : 'Không thể kết nối máy chủ. Vui lòng thử lại.');
+  }
+  return error instanceof Error ? error.message : 'Thao tác không thành công.';
+}
 
 export default api;

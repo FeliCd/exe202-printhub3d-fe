@@ -11,8 +11,8 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const redirectPath = searchParams.get('redirect');
 
-  const [userNameOrEmail, setUserNameOrEmail] = useState('buyer1@printhub3d.com');
-  const [password, setPassword] = useState('123456@Abc');
+  const [userNameOrEmail, setUserNameOrEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
     setErrorMsg('');
     try {
       const userRole = await login(userNameOrEmail.trim(), password);
-      if (redirectPath) {
+      if (redirectPath?.startsWith('/') && !redirectPath.startsWith('//')) {
         navigate(redirectPath);
       } else if (userRole === 'ADMIN') {
         navigate('/admin/dashboard');

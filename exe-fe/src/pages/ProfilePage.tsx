@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { User, Lock, CheckCircle2, Save, MapPin, KeyRound, Mail, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { errorText } from '../services/api';
 import { authService } from '../services/authService';
 
 export default function ProfilePage() {
@@ -23,6 +24,8 @@ export default function ProfilePage() {
   }, [user]);
 
   const [newPin, setNewPin] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Change Password with OTP State
@@ -48,14 +51,17 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true); setProfileError(''); setSavedSuccess(false);
+    try {
     await updateProfile({ name, phone, address, studentId, university });
     if (newPin.length === 6) {
-      setPasscode(newPin);
+      await setPasscode(newPin);
       setNewPin('');
     }
     setSavedSuccess(true);
     clearTimeout(successTimer.current);
     successTimer.current = setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (e) { setProfileError(errorText(e)); } finally { setSaving(false); }
   };
 
   const handleSendPasswordOtp = async () => {
@@ -139,6 +145,7 @@ export default function ProfilePage() {
         <p className="text-sm text-text-muted">Cập nhật thông tin sinh viên, cài đặt mã Passcode PIN và cấu hình địa chỉ KTX nhận hàng</p>
       </div>
 
+      {profileError && <p role="alert" className="text-red-300">{profileError}</p>}
       {savedSuccess && (
         <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-[#22c55e]" /> Đã cập nhật thành công thông tin tài khoản, địa chỉ nhận hàng &amp; Mã Passcode!
@@ -240,7 +247,7 @@ export default function ProfilePage() {
           </div>
 
           <button
-            type="submit"
+            type="submit" disabled={saving}
             className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99]"
           >
             <Save className="w-4 h-4" /> Lưu Thay Đổi Thông Tin
@@ -351,7 +358,7 @@ export default function ProfilePage() {
 
           <button
             type="submit"
-            disabled={isChangingPassword}
+            disabled={saving || isChangingPassword}
             className="w-full sm:w-auto px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer transition active:scale-[0.99] disabled:opacity-60"
           >
             {isChangingPassword ? (

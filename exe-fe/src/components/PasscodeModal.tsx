@@ -49,7 +49,7 @@ function PasscodeSession({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredPin = pin.join('');
     if (enteredPin.length < 6) {
@@ -57,7 +57,7 @@ function PasscodeSession({
       return;
     }
 
-    if (verifyPasscode(enteredPin)) {
+    if (await verifyPasscode(enteredPin).catch(() => false)) {
       onSuccess();
       setPin(['', '', '', '', '', '']);
       onClose();

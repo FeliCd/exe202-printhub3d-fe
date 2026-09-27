@@ -77,20 +77,6 @@ export default function SignupPage() {
       setStep('OTP');
     } catch (err: any) {
       const backendMessage = err?.response?.data?.message || err?.message;
-      // Fallback cho môi trường dev nếu backend chưa bật Redis/MailService
-      if (!err?.response || err?.response?.status >= 500) {
-        console.warn('Backend API unavailable or error, creating account locally:', err);
-        await login(email || username, password);
-        updateProfile({
-          name: fullName.trim(),
-          phone: phone.trim(),
-          studentId: studentId.trim(),
-          university: university.trim(),
-          address: address.trim(),
-        });
-        navigate('/dashboard');
-        return;
-      }
       setErrorMsg(backendMessage || 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin.');
     } finally {
       setIsLoading(false);
@@ -116,7 +102,7 @@ export default function SignupPage() {
       setTimeout(async () => {
         try {
           await login(username || email, password);
-          updateProfile({
+          await updateProfile({
             name: fullName.trim(),
             phone: phone.trim(),
             studentId: studentId.trim(),

@@ -1,24 +1,51 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { get, post, put } from './api';
+import { read, send } from './api';
+
+export interface CustomDTO {
+  id: string;
+  buyerName: string;
+  requirements: string;
+  quantity: number;
+  shippingAddress: string;
+  attachmentUrl: string;
+  quotedPrice?: number;
+  status: string;
+  createdAt: string;
+  rulerModel?: string;
+  customName?: string;
+  customStudentId?: string;
+  color?: string;
+  fontStyle?: string;
+  paymentMethod?: string;
+  paymentStatus?: string;
+}
+
+export interface CustomOrderCreateRequest {
+  fileId: string;
+  requirements: string;
+  quantity: number;
+  shippingAddress: string;
+  rulerModel?: string;
+  customName?: string;
+  customStudentId?: string;
+  color?: string;
+  fontStyle?: string;
+}
 
 export const quotationService = {
-  getQuotations: async () => {
-    const response = await get('/quotations');
-    return response.data;
-  },
+  // User endpoints
+  getMyCustomOrders: () => read<CustomDTO[]>('/custom-orders'),
+  createCustomOrder: (data: CustomOrderCreateRequest | unknown) => send<CustomDTO>('/custom-orders', data),
+  updateCustomOrderStatus: (id: string, status: string, paymentMethod?: string) =>
+    send(`/custom-orders/${id}/status`, { status, paymentMethod }, 'put'),
+  cancelCustomOrder: (id: string) =>
+    send(`/custom-orders/${id}/status`, { status: 'CANCELLED' }, 'put'),
+  acceptQuotation: (id: string, paymentMethod: string = 'COD') =>
+    send(`/custom-orders/${id}/status`, { status: 'ACCEPTED', paymentMethod }, 'put'),
 
-  createQuotation: async (data: any) => {
-    const response = await post('/quotations', data);
-    return response.data;
-  },
-
-  acceptQuotation: async (id: string) => {
-    const response = await put(`/quotations/${id}/accept`);
-    return response.data;
-  },
-
-  rejectQuotation: async (id: string, reason?: string) => {
-    const response = await put(`/quotations/${id}/reject`, { reason });
-    return response.data;
-  },
+  // Admin endpoints
+  getAllCustomOrders: () => read<CustomDTO[]>('/admin/custom-orders'),
+  quoteCustomOrder: (id: string, price: number) =>
+    send(`/admin/custom-orders/${id}/quote`, { price }, 'put'),
 };
+
+export default quotationService;

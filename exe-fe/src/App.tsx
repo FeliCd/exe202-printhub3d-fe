@@ -1,4 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useAuth } from './context/AuthContext';
+import { read } from './services/api';
+import { emptyAddress, type ShippingAddress } from './features/address/data';
+import { Notice } from './components/DataUI';
 import AppRoutes from './routes';
 import CartDrawer from './features/cart/components/CartDrawer';
 import AddressModal from './features/address/components/AddressModal';
@@ -7,12 +11,17 @@ import { loadSelectedAddress } from './features/address/data';
 import { useCart } from './features/cart/hooks/useCart';
 
 export default function App() {
+  const { user } = useAuth();
   const [cartOpen, setCartOpen] = useState(false);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
 
   const cart = useCart();
   const [shippingAddress, setShippingAddress] = useState(loadSelectedAddress);
 
+  useEffect(() => { let active = true; setShippingAddress(emptyAddress);
+    if (user) read<ShippingAddress[]>('/addresses').then(rows => { if (active) setShippingAddress(rows.find(a => a.isDefault) || rows[0] || emptyAddress); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [user?.id]);
   const openCart = useCallback(() => setCartOpen(true), []);
   const closeCart = useCallback(() => setCartOpen(false), []);
   const openAddressModal = useCallback(() => setAddressModalOpen(true), []);
@@ -28,6 +37,7 @@ export default function App() {
 
   return (
     <div className="bg-[#0A0A0A] text-slate-100 h-dvh overflow-hidden flex flex-col font-sans selection:bg-[#39FF14] selection:text-black">
+      <Notice error={cart.error} />
       <AppRoutes
         cart={cart}
         shippingAddress={shippingAddress}
