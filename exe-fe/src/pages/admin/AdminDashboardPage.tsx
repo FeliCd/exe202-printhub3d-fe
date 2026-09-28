@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
 
           <div className="divide-y divide-[#272930]/60 text-xs">
             {[
-              { id: 'ORD-9024', item: 'Thước PLA Pro 20cm (Khắc MSSV)', factory: 'BK Makerlab #02', status: '85% (Bambu X1C)' },
+              { id: 'ORD-9024', item: 'Thước PLA Pro 20cm (Khắc MSSV)', factory: 'PrintHub Production Hub #01', status: '85% (Bambu X1C)' },
               { id: 'ORD-9023', item: 'Thước PETG Dẻo 30cm', factory: 'Xưởng In Quận 10', status: '40% (Ender 3 V3)' },
               { id: 'ORD-9020', item: 'Khung Robot Mechatronics Custom', factory: 'Formlabs SLA Hub', status: '15% (Form 3+)' },
             ].map((j, i) => (
@@ -86,7 +86,7 @@ export default function AdminDashboardPage() {
 
           <div className="space-y-2 text-xs">
             <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-300">
-              <p className="font-bold">Xưởng BK-Maker quá hạn đơn #ORD-8910</p>
+              <p className="font-bold">Xưởng In Nội Bộ #01 quá hạn đơn #ORD-8910</p>
               <p className="text-sm opacity-80 mt-0.5">Tự động trừ 10.000đ phí phạt giao trễ vào ví ký quỹ xưởng.</p>
             </div>
             <div className="p-3 rounded-xl bg-red-950/40 border border-red-800/40 text-red-300">

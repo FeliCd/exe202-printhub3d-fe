@@ -31,7 +31,7 @@ const faqs: FAQItem[] = [
   {
     category: 'SHIPPING',
     question: 'Thời gian giao hàng về KTX ĐHQG / Bách Khoa / Sư Phạm Kỹ Thuật?',
-    answer: 'Đối với khu vực KTX ĐHQG TP.HCM (Khu A & Khu B) và các trường Bách Khoa, Sư Phạm Kỹ Thuật, đơn hàng được ship hỏa tốc trong 2-4 giờ từ xưởng in Makerlab gần nhất.',
+    answer: 'Đối với khu vực KTX ĐHQG TP.HCM (Khu A & Khu B) và các trường Bách Khoa, Sư Phạm Kỹ Thuật, đơn hàng được ship hỏa tốc trong 2-4 giờ từ xưởng in PrintHub Lab gần nhất.',
   },
 ];
 

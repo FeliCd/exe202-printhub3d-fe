@@ -40,7 +40,7 @@ export default function Footer() {
               </div>
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
-                <span>Địa chỉ: Xưởng PrintHub MakerLab, Làng Đại Học Quốc Gia TP.HCM</span>
+                <span>Địa chỉ: Trung Tâm In 3D PrintHub Lab, Làng Đại Học Quốc Gia TP.HCM</span>
               </div>
             </div>
 

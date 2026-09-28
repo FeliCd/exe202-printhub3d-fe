@@ -53,6 +53,22 @@ export default function SignupPage() {
       setErrorMsg('Mật khẩu phải có độ dài tối thiểu 8 ký tự.');
       return;
     }
+    if (!/[A-Z]/.test(password)) {
+      setErrorMsg('Mật khẩu phải có ít nhất 1 chữ hoa.');
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setErrorMsg('Mật khẩu phải có ít nhất 1 chữ thường.');
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setErrorMsg('Mật khẩu phải có ít nhất 1 chữ số.');
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setErrorMsg('Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%...).');
+      return;
+    }
     if (!username.trim() || username.trim().length < 5) {
       setErrorMsg('Tên người dùng phải có độ dài từ 5 ký tự trở lên.');
       return;
@@ -76,8 +92,14 @@ export default function SignupPage() {
       await authService.register(payload);
       setStep('OTP');
     } catch (err: any) {
-      const backendMessage = err?.response?.data?.message || err?.message;
-      setErrorMsg(backendMessage || 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin.');
+      const errResponse = err?.response?.data;
+      if (errResponse?.errors) {
+        const errorDetails = Object.values(errResponse.errors).join('. ');
+        setErrorMsg(errorDetails);
+      } else {
+        const backendMessage = errResponse?.message || err?.message;
+        setErrorMsg(backendMessage || 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -316,6 +338,24 @@ export default function SignupPage() {
                 </div>
               </div>
             </div>
+
+            {/* Chỉ báo tiêu chuẩn mật khẩu */}
+            {password && (
+              <div className="grid grid-cols-2 gap-1.5 p-2.5 rounded-xl bg-surface-inset border border-border text-[11px]">
+                <div className={`flex items-center gap-1.5 ${password.length >= 8 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  <span>{password.length >= 8 ? '✓' : '•'}</span> Tối thiểu 8 ký tự
+                </div>
+                <div className={`flex items-center gap-1.5 ${/[A-Z]/.test(password) ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  <span>{/[A-Z]/.test(password) ? '✓' : '•'}</span> Có ít nhất 1 chữ hoa
+                </div>
+                <div className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  <span>{/[0-9]/.test(password) ? '✓' : '•'}</span> Có ít nhất 1 chữ số
+                </div>
+                <div className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  <span>{/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : '•'}</span> Có 1 ký tự đặc biệt
+                </div>
+              </div>
+            )}
 
             <div className="p-3 bg-emerald-950/40 border border-emerald-800/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-[#22c55e] shrink-0" />

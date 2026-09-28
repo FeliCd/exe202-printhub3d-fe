@@ -33,7 +33,7 @@ const initialNotifications: SystemNotification[] = [
   {
     id: 'n-3',
     title: 'Khuyến mãi Gói Hội Viên Pro',
-    message: 'Ưu đãi sinh viên Kỹ thuật: Giảm 20% khi đăng ký gói Maker Student tháng này.',
+    message: 'Ưu đãi sinh viên Kỹ thuật: Giảm 20% khi đăng ký gói Hội viên Sinh viên tháng này.',
     timestamp: '1 ngày trước',
     read: true,
     type: 'SYSTEM',

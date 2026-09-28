@@ -77,28 +77,37 @@ export default function CartDrawer({
 
 
         {/* Shipping Address */}
-        <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-              </svg>
-              Địa chỉ nhận hàng
-            </span>
-            <button className="text-xs text-[#22c55e] hover:underline font-semibold" onClick={onOpenAddressModal}>
-              Thay đổi
+        {shippingAddress?.id ? (
+          <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                </svg>
+                Địa chỉ nhận hàng
+              </span>
+              <button className="text-xs text-[#22c55e] hover:underline font-semibold" onClick={onOpenAddressModal}>
+                Thay đổi
+              </button>
+            </div>
+            <div className="p-2.5 rounded-lg bg-surface-inset border border-border text-xs space-y-1">
+              <div className="flex items-center justify-between font-bold text-slate-200">
+                <span>{shippingAddress.recipientName} • {shippingAddress.phone}</span>
+                <span className="text-xs bg-primary/20 text-[#22c55e] px-1.5 py-0.5 rounded font-bold uppercase">Mặc định</span>
+              </div>
+              <p className="text-text-muted leading-relaxed">
+                {shippingAddress.addressLine}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3 rounded-xl bg-surface border border-border flex items-center justify-between text-xs">
+            <span className="text-text-muted">Chưa chọn địa chỉ nhận hàng</span>
+            <button className="text-[#22c55e] hover:underline font-bold" onClick={onOpenAddressModal}>
+              + Chọn địa chỉ
             </button>
           </div>
-          <div className="p-2.5 rounded-lg bg-surface-inset border border-border text-xs space-y-1">
-            <div className="flex items-center justify-between font-bold text-slate-200">
-              <span>{shippingAddress.recipientName} • {shippingAddress.phone}</span>
-              <span className="text-xs bg-primary/20 text-[#22c55e] px-1.5 py-0.5 rounded font-bold uppercase">Đã chọn</span>
-            </div>
-            <p className="text-text-muted leading-relaxed">
-              {shippingAddress.addressLine}
-            </p>
-          </div>
-        </div>
+        )}
 
         {/* Guarantee Badge */}
         <div className="text-xs text-slate-400 bg-emerald-950/30 border border-emerald-900/40 p-2.5 rounded-lg flex items-center gap-2">

@@ -26,7 +26,7 @@ export default function DashboardPage() {
         <div className="relative z-10 max-w-3xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/60 border border-emerald-700/50 text-[#39FF14] text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-            Bảng Điều Khiển Sinh Viên &amp; Maker
+            Bảng Điều Khiển Sinh Viên
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
