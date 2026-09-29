@@ -23,6 +23,7 @@ const CatalogPage = lazy(() => import('../pages/CatalogPage'));
 const CartPage = lazy(() => import('../pages/CartPage'));
 const BulkOrderPage = lazy(() => import('../pages/BulkOrderPage'));
 const CustomOrderPage = lazy(() => import('../pages/CustomOrderPage'));
+const CustomOrderCheckoutPage = lazy(() => import('../pages/CustomOrderCheckoutPage'));
 const OrdersPage = lazy(() => import('../pages/OrdersPage'));
 const OrderHistoryPage = lazy(() => import('../pages/OrderHistoryPage'));
 const QuotationsPage = lazy(() => import('../pages/QuotationsPage'));
@@ -173,6 +174,21 @@ export default function AppRoutes({
                 <CustomOrderPage />
               </PageTransition>
             </AnimatePresence>
+          }
+        />
+        <Route
+          path="/custom/checkout"
+          element={
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <CustomOrderCheckoutPage
+                    shippingAddress={shippingAddress}
+                    onOpenAddressModal={onOpenAddressModal}
+                  />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
           }
         />
         <Route

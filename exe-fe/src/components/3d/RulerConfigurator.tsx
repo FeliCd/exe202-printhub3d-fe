@@ -1,8 +1,7 @@
-import Modal from '../Modal';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { send, post, errorText } from '../../services/api';
+import { post } from '../../services/api';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -14,8 +13,6 @@ import {
   Palette,
   Type,
   Ruler,
-  CheckCircle2,
-  X,
   Move,
   RotateCcw,
   RotateCw,
@@ -23,8 +20,6 @@ import {
   Sticker,
   Trash2,
   Eraser,
-  Truck,
-  CreditCard,
   LogIn,
 } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
@@ -726,8 +721,6 @@ function EmbossedText3D({
 export default function RulerConfigurator() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [modalPaymentMethod, setModalPaymentMethod] = useState<'COD' | 'PAYOS'>('COD');
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // State 1: Ruler Shape Model
   const [selectedModel, setSelectedModel] = useState<RulerModelOption>(RULER_MODELS[0]);
@@ -778,7 +771,6 @@ export default function RulerConfigurator() {
   // Modal & Export States
   const [exportError, setExportError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const [showOrderModal, setShowOrderModal] = useState(false);
 
   // Initialize Canvas Pad Background & Store Canvas State
   useEffect(() => {
@@ -925,37 +917,61 @@ export default function RulerConfigurator() {
     return price;
   }, [selectedModel, infillDensity, materialType, multiColorSurcharge]);
 
-  // STLExporter & Order Action
-  const handleConfirmOrder = () => {
+  // STLExporter & Order Action -> Redirect to Multi-Step Checkout Page
+  const handleConfirmOrder = async () => {
     if (!isAuthenticated) {
       navigate('/login?redirect=/custom');
       return;
     }
-    if (!groupRef.current) { setExportError('Mô hình chưa sẵn sàng. Vui lòng chờ tải xong.'); return; }
+    if (!groupRef.current) {
+      setExportError('Mô hình chưa sẵn sàng. Vui lòng chờ tải xong.');
+      return;
+    }
     setExportError('');
     setIsExporting(true);
-
 
     try {
       const exporter = new STLExporter();
       const stlResult = exporter.parse(groupRef.current, { binary: true });
 
+      const fileName = `PrintHub_Ruler_${studentName.replace(/\s+/g, '_')}_${studentId || '2021'}.stl`;
       const blob = new Blob([stlResult.buffer as ArrayBuffer], {
         type: 'application/octet-stream',
       });
-      const link = document.createElement('a');
-      const filename = `PrintHub_Ruler_${studentName.replace(/\s+/g, '_')}_${studentId || '2021'}.stl`;
 
-      const downloadUrl = URL.createObjectURL(blob);
-      link.href = downloadUrl;
-      link.download = filename;
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      // Upload STL file to Cloudinary raw endpoint
+      const formData = new FormData();
+      formData.append('file', blob, fileName);
+      formData.append('folder', 'printhub3d/custom_prints');
+      const uploadRes = await post('/upload/raw', formData);
+      const attachmentUrl =
+        (uploadRes as any)?.data?.result ||
+        (uploadRes as any)?.data ||
+        (uploadRes as any)?.result;
 
-      setShowOrderModal(true);
+      const orderConfig = {
+        selectedModel,
+        studentName,
+        studentId,
+        university,
+        fontId: selectedFont,
+        fontName: FONT_OPTIONS.find((f) => f.id === selectedFont)?.name || selectedFont,
+        baseColor,
+        plateColor,
+        textColor,
+        materialType,
+        infillDensity,
+        stickersCount: stickers.length,
+        estimatedPrice: totalPrice,
+        attachmentUrl,
+        fileName,
+      };
+
+      sessionStorage.setItem('printhub_custom_ruler_order', JSON.stringify(orderConfig));
+      navigate('/custom/checkout', { state: { orderConfig } });
     } catch (err) {
-      console.error('Lỗi xuất tệp STL 3D:', err);
-      setExportError('Không thể xuất tệp STL. Vui lòng thử lại sau khi mô hình tải xong.');
+      console.error('Lỗi đóng gói tệp STL 3D:', err);
+      setExportError('Không thể đóng gói tệp STL hoặc kết nối máy chủ. Vui lòng thử lại.');
     } finally {
       setIsExporting(false);
     }
@@ -1869,9 +1885,12 @@ export default function RulerConfigurator() {
             <button
               type="button"
               onClick={handleConfirmOrder}
-              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 transition active:scale-98 shadow-xl shadow-emerald-950/80 uppercase tracking-tight cursor-pointer"
+              disabled={isExporting}
+              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 transition active:scale-98 shadow-xl shadow-emerald-950/80 uppercase tracking-tight cursor-pointer disabled:opacity-50"
             >
-              {!isAuthenticated ? (
+              {isExporting ? (
+                <span>Đang đóng gói thiết kế…</span>
+              ) : !isAuthenticated ? (
                 <>
                   <LogIn className="w-5 h-5" />
                   <span>Đăng Nhập Để Đặt Hàng</span>
@@ -1879,153 +1898,13 @@ export default function RulerConfigurator() {
               ) : (
                 <>
                   <ShoppingBag className="w-5 h-5" />
-                  <span>Xác Nhận &amp; Đặt Hàng Ngay</span>
+                  <span>Tiến Hành Đặt In Thước 3D</span>
                 </>
               )}
             </button>
           </div>
         </div>
       </div>
-
-      {/* ========================================================================= */}
-      {/* CHECKOUT ORDER & QR CODE PAYMENT MODAL */}
-      {/* ========================================================================= */}
-      {showOrderModal && (
-        <Modal open={showOrderModal} onClose={() => setShowOrderModal(false)} label="Thông tin thiết kế 3D">
-          <div className="bg-surface border border-border rounded-3xl p-6 max-w-md w-full text-xs space-y-5 shadow-2xl relative">
-            <button
-              aria-label="Đóng thông tin thiết kế"
-              onClick={() => setShowOrderModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="text-center space-y-1">
-              <div className="w-12 h-12 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[#39FF14] mx-auto mb-2">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-black text-white">ĐÃ ĐẶT HÀNG THƯỚC 3D THÀNH CÔNG!</h3>
-              <p className="text-text-muted text-sm">
-                Đã tự động đóng gói tệp <strong className="text-[#39FF14]">.STL</strong> và chuyển vào hệ thống in 3D PrintHub.
-              </p>
-            </div>
-
-            {/* Order Details */}
-            <div className="p-4 rounded-2xl bg-surface-inset border border-border space-y-2">
-              <div className="flex justify-between">
-                <span className="text-text-muted">Mẫu thước:</span>
-                <strong className="text-white">{selectedModel.name}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Kiểu Font:</span>
-                <strong className="text-cyan-300">
-                  {FONT_OPTIONS.find((f) => f.id === selectedFont)?.name}
-                </strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Khắc tên:</span>
-                <strong className="text-[#39FF14]">{studentName} ({studentId})</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Sticker 3D đã dán:</span>
-                <strong className="text-cyan-300">{stickers.length} sticker</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Phối màu (Base / Plate / Text):</span>
-                <div className="flex items-center gap-1">
-                  <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: baseColor }} />
-                  <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: plateColor }} />
-                  <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: textColor }} />
-                </div>
-              </div>
-              <div className="flex justify-between border-t border-border pt-2 text-sm">
-                <span className="font-bold text-white">Giá tham khảo:</span>
-                <strong className="text-[#39FF14] font-mono">{formatPrice(totalPrice)}đ</strong>
-              </div>
-            </div>
-
-            {exportError && <p role="alert" className="text-red-300">{exportError}</p>}
-            <p className="text-sm text-slate-300">Thiết kế sẽ được gửi đến xưởng. Bạn xác nhận báo giá trước khi thanh toán.</p>
-            {/* Payment preference */}
-            <div className="space-y-2">
-              <p className="font-bold text-white text-xs">Phương thức mong muốn (xác nhận sau báo giá):</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setModalPaymentMethod('COD')}
-                  className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition ${
-                    modalPaymentMethod === 'COD'
-                      ? 'border-[#39FF14] bg-emerald-950/40 text-white'
-                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
-                  }`}
-                >
-                  <Truck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">COD</p>
-                    <p className="text-[10px] text-text-muted">Khi nhận thước</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setModalPaymentMethod('PAYOS')}
-                  className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition ${
-                    modalPaymentMethod === 'PAYOS'
-                      ? 'border-[#39FF14] bg-emerald-950/40 text-white'
-                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">Cổng PayOS</p>
-                    <p className="text-[10px] text-text-muted">Thanh toán ngay</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              disabled={isProcessingPayment}
-              onClick={async () => {
-                if (!groupRef.current) return;
-                const shippingAddress = window.prompt('Người nhận, số điện thoại và địa chỉ giao hàng:');
-                if (!shippingAddress?.trim()) return;
-                setIsProcessingPayment(true); setExportError('');
-                try {
-                  const exported = new STLExporter().parse(groupRef.current, { binary: true });
-                  const formData = new FormData();
-                  formData.append('file', new Blob([exported.buffer as ArrayBuffer], { type: 'application/octet-stream' }), 'PrintHub-design.stl');
-                  formData.append('folder', 'printhub3d/custom_prints');
-                  const uploadRes = await post('/upload/raw', formData);
-                  const attachmentUrl = (uploadRes as any)?.data?.result || (uploadRes as any)?.data || (uploadRes as any)?.result;
-                  await send('/custom-orders', {
-                    attachmentUrl,
-                    quantity: 1,
-                    shippingAddress,
-                    requirements: `Mẫu ${selectedModel.name}; vật liệu ${materialType}; infill ${infillDensity}%; hình thức mong muốn ${modalPaymentMethod}.`,
-                    rulerModel: selectedModel.name,
-                    customName: studentName,
-                    customStudentId: studentId
-                  });
-                  setShowOrderModal(false);
-                  navigate('/quotations');
-                } catch (e) { setExportError(errorText(e)); }
-                finally { setIsProcessingPayment(false); }
-
-              }}
-              className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black text-xs transition uppercase flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/50"
-            >
-              {modalPaymentMethod === 'PAYOS' ? (
-                isProcessingPayment ? 'Đang gửi thiết kế…' : 'Gửi thiết kế nhận báo giá'
-              ) : (
-                'Gửi thiết kế nhận báo giá'
-              )}
-            </button>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
