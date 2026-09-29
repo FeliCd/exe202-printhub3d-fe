@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -38,17 +38,15 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Tự động mở rộng nhóm accordion chứa route đang active
-  useEffect(() => {
-    const path = location.pathname;
-    if (['/catalog', '/custom', '/bulk-order', '/ruler-3d'].includes(path)) {
-      setOpenGroups((prev) => ({ ...prev, shopping: true }));
-    } else if (['/orders', '/order-history', '/quotations', '/subscriptions'].includes(path)) {
-      setOpenGroups((prev) => ({ ...prev, transactions: true }));
-    } else if (['/profile', '/warranty', '/disputes', '/help-center'].includes(path)) {
-      setOpenGroups((prev) => ({ ...prev, account: true }));
-    }
-  }, [location.pathname]);
+  const routeGroup = ['/catalog', '/custom', '/bulk-order', '/ruler-3d'].includes(location.pathname)
+    ? 'shopping'
+    : ['/orders', '/order-history', '/file-vault', '/quotations', '/subscriptions'].includes(location.pathname)
+      ? 'transactions'
+      : ['/profile', '/warranty', '/disputes', '/help-center'].includes(location.pathname)
+        ? 'account'
+        : null;
+
+  const isGroupOpen = (group: keyof typeof openGroups) => openGroups[group] || routeGroup === group;
 
   const toggleGroup = (group: keyof typeof openGroups) => {
     setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
@@ -135,12 +133,12 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             <span className="flex items-center gap-2">🛒 MUA SẮM &amp; DỊCH VỤ</span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-200 text-[#39FF14] ${
-                openGroups.shopping ? 'rotate-180' : ''
+                isGroupOpen('shopping') ? 'rotate-180' : ''
               }`}
             />
           </button>
 
-          {openGroups.shopping && (
+          {isGroupOpen('shopping') && (
             <nav className="space-y-1 mt-1 pl-1">
               <Link
                 to="/catalog"
@@ -209,12 +207,12 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             <span className="flex items-center gap-2">📦 QUẢN LÝ GIAO DỊCH</span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-200 text-[#39FF14] ${
-                openGroups.transactions ? 'rotate-180' : ''
+                isGroupOpen('transactions') ? 'rotate-180' : ''
               }`}
             />
           </button>
 
-          {openGroups.transactions && (
+          {isGroupOpen('transactions') && (
             <nav className="space-y-1 mt-1 pl-1">
               <Link
                 to="/orders"
@@ -286,12 +284,12 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
             <span className="flex items-center gap-2">👤 CÁ NHÂN &amp; HỖ TRỢ</span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-200 text-[#39FF14] ${
-                openGroups.account ? 'rotate-180' : ''
+                isGroupOpen('account') ? 'rotate-180' : ''
               }`}
             />
           </button>
 
-          {openGroups.account && (
+          {isGroupOpen('account') && (
             <nav className="space-y-1 mt-1 pl-1">
               <Link
                 to="/profile"

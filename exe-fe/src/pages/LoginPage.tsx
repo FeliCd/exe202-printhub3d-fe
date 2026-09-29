@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
+import { getApiErrorMessage } from '../utils/apiError';
 import Modal from '../components/Modal';
 import { Lock, Mail, ArrowRight, Loader2, AlertCircle, KeyRound, CheckCircle2, X } from 'lucide-react';
 
@@ -43,8 +44,8 @@ export default function LoginPage() {
       } else {
         navigate('/dashboard');
       }
-    } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || err?.message || 'Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản hoặc mật khẩu.');
+    } catch (err: unknown) {
+      setErrorMsg(getApiErrorMessage(err, 'Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản hoặc mật khẩu.'));
     } finally {
       setIsLoading(false);
     }
@@ -61,8 +62,8 @@ export default function LoginPage() {
     try {
       await authService.sendForgotPasswordOtp(forgotEmail.trim());
       setForgotStep('otp');
-    } catch (err: any) {
-      setForgotError(err?.response?.data?.message || err?.message || 'Không thể gửi mã OTP. Vui lòng kiểm tra lại email.');
+    } catch (err: unknown) {
+      setForgotError(getApiErrorMessage(err, 'Không thể gửi mã OTP. Vui lòng kiểm tra lại email.'));
     } finally {
       setForgotLoading(false);
     }
@@ -92,8 +93,8 @@ export default function LoginPage() {
         confirmPassword: forgotConfirmPassword,
       });
       setForgotStep('success');
-    } catch (err: any) {
-      setForgotError(err?.response?.data?.message || err?.message || 'Đặt lại mật khẩu thất bại. Vui lòng kiểm tra mã OTP.');
+    } catch (err: unknown) {
+      setForgotError(getApiErrorMessage(err, 'Đặt lại mật khẩu thất bại. Vui lòng kiểm tra mã OTP.'));
     } finally {
       setForgotLoading(false);
     }

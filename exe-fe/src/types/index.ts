@@ -19,6 +19,7 @@ export interface User {
 export interface Product {
   stock?: number;
   status?: string;
+  rulerDesign?: import('../features/ruler-studio/model').Design;
   id: string;
   name: string;
   category: string;

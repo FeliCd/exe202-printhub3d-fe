@@ -38,6 +38,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
   const checkout = () =>
     action.run(async () => {
+      if (cart.items.some(item => item.product.rulerDesign)) {
+        throw new Error('Thiết kế thước được lưu trên thiết bị này. Chưa thể thanh toán cấu hình Ruler Studio: cần tích hợp tiếp nhận artwork và xác nhận giá sản xuất.');
+      }
       if (!isAuthenticated) {
         navigate('/login?redirect=/cart');
         return;
@@ -260,6 +263,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
               <div className="flex justify-between items-center gap-4">
                 <div>
                   <h2 className="font-semibold text-white">{i.product.name}</h2>
+                  {i.product.rulerDesign && <div className="text-xs text-emerald-300"><p>{i.product.description}</p><button className="underline py-2" onClick={() => navigate('/custom', { state: { rulerDesign: i.product.rulerDesign } })}>Chỉnh sửa bản sao thiết kế</button></div>}
                   <p className="text-xs text-slate-400 mt-1">
                     {money(i.product.price)} × {i.quantity}
                   </p>
