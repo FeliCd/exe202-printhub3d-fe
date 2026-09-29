@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, ShoppingBag, Search, Sparkles, User as UserIcon, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -16,6 +16,8 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
 
   const [notifOpen, setNotifOpen] = useState(false);
 
@@ -70,13 +72,15 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         </div>
 
         {/* Quick Menu Button: Tự Design Thước 3D */}
-        <Link
-          to="/custom"
-          className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-950 to-cyan-950 border border-emerald-500/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-md"
-        >
-          <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-          <span>Tự Design Thước 3D</span>
-        </Link>
+        {!isAdmin && (
+          <Link
+            to="/custom"
+            className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-950 to-cyan-950 border border-emerald-500/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-md"
+          >
+            <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+            <span>Tự Design Thước 3D</span>
+          </Link>
+        )}
       </div>
 
       {/* ========================================================================= */}
@@ -137,18 +141,20 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         )}
 
         {/* TOP RIGHT: CART DRAWER BUTTON */}
-        <button
-          className="flex items-center gap-2 bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-emerald-950/60 active:scale-95 transition"
-          onClick={onOpenCart}
-          title="Xem giỏ hàng"
-          aria-label={`Giỏ hàng, ${cartCount} sản phẩm`}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span className="hidden sm:inline">Giỏ Hàng</span>
-          <span className="px-1.5 py-0.5 rounded-md bg-slate-950 text-[#39FF14] font-mono text-xs">
-            {cartCount}
-          </span>
-        </button>
+        {!isAdmin && (
+          <button
+            className="flex items-center gap-2 bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-emerald-950/60 active:scale-95 transition"
+            onClick={onOpenCart}
+            title="Xem giỏ hàng"
+            aria-label={`Giỏ hàng, ${cartCount} sản phẩm`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span className="hidden sm:inline">Giỏ Hàng</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-950 text-[#39FF14] font-mono text-xs">
+              {cartCount}
+            </span>
+          </button>
+        )}
       </div>
     </header>
   );

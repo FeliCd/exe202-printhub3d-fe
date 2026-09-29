@@ -10,6 +10,8 @@ import {
   DollarSign,
   Factory,
   Settings,
+  Tag,
+  FileEdit,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -127,7 +129,33 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
             }`}
           >
             <Package className="w-5 h-5 text-purple-400 shrink-0" />
-            <span>Quản Lý Sản Phẩm &amp; Danh Mục</span>
+            <span>Quản Lý Sản Phẩm Sàn</span>
+          </Link>
+
+          <Link
+            to="/admin/categories"
+            aria-current={isActive('/admin/categories') ? 'page' : undefined}
+            className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              isActive('/admin/categories')
+                ? 'bg-purple-500/20 text-purple-300 border-l-4 border-purple-400 font-bold shadow-md'
+                : 'text-slate-300 hover:bg-surface'
+            }`}
+          >
+            <Tag className="w-5 h-5 text-purple-400 shrink-0" />
+            <span>Quản Lý Danh Mục</span>
+          </Link>
+
+          <Link
+            to="/admin/custom-orders"
+            aria-current={isActive('/admin/custom-orders') ? 'page' : undefined}
+            className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              isActive('/admin/custom-orders')
+                ? 'bg-purple-500/20 text-purple-300 border-l-4 border-purple-400 font-bold shadow-md'
+                : 'text-slate-300 hover:bg-surface'
+            }`}
+          >
+            <FileEdit className="w-5 h-5 text-purple-400 shrink-0" />
+            <span>Báo Giá Đơn In Custom</span>
           </Link>
 
           <Link
