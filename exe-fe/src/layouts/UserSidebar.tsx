@@ -13,7 +13,6 @@ import {
   Sparkles,
   Scale,
   User as UserIcon,
-  HardDrive,
   History,
   FileText,
   HelpCircle,
@@ -44,7 +43,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
     const path = location.pathname;
     if (['/catalog', '/custom', '/bulk-order', '/ruler-3d'].includes(path)) {
       setOpenGroups((prev) => ({ ...prev, shopping: true }));
-    } else if (['/orders', '/order-history', '/file-vault', '/quotations', '/subscriptions'].includes(path)) {
+    } else if (['/orders', '/order-history', '/quotations', '/subscriptions'].includes(path)) {
       setOpenGroups((prev) => ({ ...prev, transactions: true }));
     } else if (['/profile', '/warranty', '/disputes', '/help-center'].includes(path)) {
       setOpenGroups((prev) => ({ ...prev, account: true }));
@@ -244,19 +243,6 @@ export default function UserSidebar({ isOpen, onOpenAddressModal }: UserSidebarP
               >
                 <History className="w-4 h-4 text-text-muted shrink-0" />
                 <span>Lịch sử đơn hàng &amp; In lại</span>
-              </Link>
-
-              <Link
-                to="/file-vault"
-                aria-current={isActive('/file-vault') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/file-vault')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <HardDrive className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Quản lý File 3D (Vault)</span>
               </Link>
 
               <Link

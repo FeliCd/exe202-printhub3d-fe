@@ -4,7 +4,6 @@ import {
   PackageCheck,
   Printer,
   ShieldCheck,
-  HardDrive,
   ArrowRight,
   Sparkles,
   Layers,
@@ -75,17 +74,17 @@ export default function DashboardPage() {
         </Link>
 
         <Link
-          to="/file-vault"
+          to="/quotations"
           className="p-5 rounded-2xl bg-surface border border-border hover:border-cyan-400/50 transition group space-y-2"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-text-muted">File 3D Trong Kho</span>
+            <span className="text-xs font-bold text-text-muted">Báo Giá In Theo Yêu Cầu</span>
             <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-              <HardDrive className="w-4 h-4" />
+              <Sparkles className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white group-hover:text-cyan-400 transition">3 Tệp STL</p>
-          <p className="text-[11px] text-text-muted">Sẵn sàng in lại tức thì</p>
+          <p className="text-2xl font-black text-white group-hover:text-cyan-400 transition">Tiến Trình In</p>
+          <p className="text-[11px] text-text-muted">Kiểm tra báo giá &amp; duyệt in</p>
         </Link>
 
         <Link

@@ -2,8 +2,7 @@ import Modal from '../Modal';
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { send, errorText } from '../../services/api';
-import { uploadFile } from '../../services/fileVaultService';
+import { send, post, errorText } from '../../services/api';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -1996,11 +1995,22 @@ export default function RulerConfigurator() {
                 setIsProcessingPayment(true); setExportError('');
                 try {
                   const exported = new STLExporter().parse(groupRef.current, { binary: true });
-                  const asset = await uploadFile(new Blob([exported.buffer as ArrayBuffer], { type: 'application/octet-stream' }), 'PrintHub-design.stl');
-                  await send('/custom-orders', { fileId: asset.id, quantity: 1, shippingAddress,
+                  const formData = new FormData();
+                  formData.append('file', new Blob([exported.buffer as ArrayBuffer], { type: 'application/octet-stream' }), 'PrintHub-design.stl');
+                  formData.append('folder', 'printhub3d/custom_prints');
+                  const uploadRes = await post('/upload/raw', formData);
+                  const attachmentUrl = (uploadRes as any)?.data?.result || (uploadRes as any)?.data || (uploadRes as any)?.result;
+                  await send('/custom-orders', {
+                    attachmentUrl,
+                    quantity: 1,
+                    shippingAddress,
                     requirements: `Mẫu ${selectedModel.name}; vật liệu ${materialType}; infill ${infillDensity}%; hình thức mong muốn ${modalPaymentMethod}.`,
-                    rulerModel: selectedModel.name, customName: studentName, customStudentId: studentId });
-                  setShowOrderModal(false); navigate('/quotations');
+                    rulerModel: selectedModel.name,
+                    customName: studentName,
+                    customStudentId: studentId
+                  });
+                  setShowOrderModal(false);
+                  navigate('/quotations');
                 } catch (e) { setExportError(errorText(e)); }
                 finally { setIsProcessingPayment(false); }
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
-import { send } from '../../services/api';
-import { uploadFile, downloadFile } from '../../services/fileVaultService';
+import { send, post } from '../../services/api';
+import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
 import type { CustomDTO } from '../../services/quotationService';
 import { Panel, Card, Notice, RemoteState, Status, button, secondary, field, money } from '../../components/DataUI';
@@ -15,7 +15,15 @@ export function CustomRequestForm({ bulk = false, onCreated }: { bulk?: boolean;
   if(!isAuthenticated)return <p><Link className="text-emerald-300" to={`/login?redirect=${bulk?'/bulk-order':'/custom'}`}>Đăng nhập</Link> để gửi yêu cầu in.</p>;
   return <Card><form className="space-y-3" onSubmit={async e=>{e.preventDefault();setSuccess('');let completed=0;
     const ok=await action.run(async()=>{if(!files.length)throw new Error('Chọn ít nhất một tệp thiết kế.');
-      for(const file of files){const asset=await uploadFile(file);await send('/custom-orders',{fileId:asset.id,requirements,quantity,shippingAddress:address});completed++;setFiles(previous=>previous.filter(f=>f!==file));}
+      for(const file of files){
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'printhub3d/custom_prints');
+        const res = await post('/upload/raw', formData);
+        const attachmentUrl = res.data?.result || res.data;
+        await send('/custom-orders',{attachmentUrl,requirements,quantity,shippingAddress:address});
+        completed++;setFiles(previous=>previous.filter(f=>f!==file));
+      }
     });
     if(ok){setSuccess(`Đã gửi ${completed} yêu cầu. Theo dõi báo giá ở mục Báo giá.`);setRequirements('');}
     else if(completed)setSuccess(`Đã gửi ${completed} yêu cầu. Các tệp còn lại chưa gửi, bạn có thể thử lại.`);
@@ -37,7 +45,13 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
     {remote.data?.map(c=><Card key={c.id}><div className="flex flex-wrap gap-3 justify-between"><h2 className="break-all">#{c.id}</h2><Status value={c.status}/></div>
       <p>{c.buyerName} · Số lượng {c.quantity}</p><p className="whitespace-pre-wrap">{c.requirements}</p><p>{c.shippingAddress}</p>
       {c.rulerModel&&<p>Mẫu {c.rulerModel} · {c.customName} · {c.customStudentId} · {c.color} · {c.fontStyle}</p>}
-      <button className={secondary} disabled={action.busy} onClick={()=>void action.run(()=>downloadFile(c.attachmentUrl,`design-${c.id}.stl`))}>Tải thiết kế</button>
+      <button className={secondary} disabled={action.busy} onClick={()=>{
+        if (c.attachmentUrl?.startsWith('http')) {
+          window.open(c.attachmentUrl, '_blank');
+        } else {
+          void action.run(()=>downloadFile(c.attachmentUrl,`design-${c.id}.stl`));
+        }
+      }}>Tải thiết kế</button>
       {c.quotedPrice!=null&&<p className="text-emerald-300 font-bold">Báo giá toàn bộ: {money(c.quotedPrice)}</p>}
       {admin&&['REQUESTED','QUOTED'].includes(c.status)&&<form className="flex gap-2" onSubmit={e=>{e.preventDefault();void action.run(()=>send(`/admin/custom-orders/${c.id}/quote`,{price:Number(prices[c.id])},'put'));}}><input className={field} type="number" min={1} step={1} required aria-label="Giá báo toàn bộ đơn" placeholder="Giá toàn bộ (VND)" value={prices[c.id]||''} onChange={e=>setPrices({...prices,[c.id]:e.target.value})}/><button className={button} disabled={action.busy}>Gửi báo giá</button></form>}
       <div className="flex gap-2 flex-wrap">

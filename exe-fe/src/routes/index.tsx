@@ -25,7 +25,6 @@ const BulkOrderPage = lazy(() => import('../pages/BulkOrderPage'));
 const CustomOrderPage = lazy(() => import('../pages/CustomOrderPage'));
 const OrdersPage = lazy(() => import('../pages/OrdersPage'));
 const OrderHistoryPage = lazy(() => import('../pages/OrderHistoryPage'));
-const FileVaultPage = lazy(() => import('../pages/FileVaultPage'));
 const QuotationsPage = lazy(() => import('../pages/QuotationsPage'));
 const HelpCenterPage = lazy(() => import('../pages/HelpCenterPage'));
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
@@ -200,18 +199,7 @@ export default function AppRoutes({
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/file-vault"
-          element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
-              <AnimatePresence mode="wait">
-                <PageTransition key={location.pathname}>
-                  <FileVaultPage />
-                </PageTransition>
-              </AnimatePresence>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/file-vault" element={<Navigate to="/quotations" replace />} />
         <Route
           path="/quotations"
           element={
