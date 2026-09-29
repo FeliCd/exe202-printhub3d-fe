@@ -249,14 +249,14 @@ export default function AdminProductsPage() {
           <table className="w-full text-left text-xs text-slate-300">
             <thead className="bg-surface-inset text-slate-400 uppercase border-b border-border">
               <tr>
-                <th className="px-4 py-3 font-bold w-16">Ảnh</th>
-                <th className="px-4 py-3 font-bold">Tên Sản Phẩm</th>
-                <th className="px-4 py-3 font-bold">Danh Mục</th>
-                <th className="px-4 py-3 font-bold">Phân Loại</th>
-                <th className="px-4 py-3 font-bold">Đơn Giá</th>
-                <th className="px-4 py-3 font-bold">Tồn Kho</th>
-                <th className="px-4 py-3 font-bold">Trạng Thái</th>
-                <th className="px-4 py-3 font-bold text-right w-28">Thao Tác</th>
+                <th className="px-4 py-3 font-bold w-16 whitespace-nowrap">Ảnh</th>
+                <th className="px-4 py-3 font-bold min-w-[200px]">Tên Sản Phẩm</th>
+                <th className="px-4 py-3 font-bold whitespace-nowrap min-w-[150px]">Danh Mục</th>
+                <th className="px-4 py-3 font-bold whitespace-nowrap">Phân Loại</th>
+                <th className="px-4 py-3 font-bold whitespace-nowrap">Đơn Giá</th>
+                <th className="px-4 py-3 font-bold whitespace-nowrap">Tồn Kho</th>
+                <th className="px-4 py-3 font-bold whitespace-nowrap">Trạng Thái</th>
+                <th className="px-4 py-3 font-bold text-right w-28 whitespace-nowrap">Thao Tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#272930]">
@@ -279,7 +279,7 @@ export default function AdminProductsPage() {
                   return (
                     <tr key={p.id} className="hover:bg-surface-inset/60 transition">
                       {/* Image Thumbnail */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="w-12 h-12 rounded-xl bg-surface-inset border border-border overflow-hidden flex items-center justify-center shrink-0">
                           {imgUrl ? (
                             <img
@@ -303,26 +303,29 @@ export default function AdminProductsPage() {
                       </td>
 
                       {/* Category */}
-                      <td className="px-4 py-3">
-                        <span className="px-2.5 py-1 rounded-md bg-purple-950 text-purple-300 font-semibold border border-purple-800 text-xs">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          className="inline-flex items-center px-2.5 py-1 rounded-md bg-purple-950/80 text-purple-300 font-semibold border border-purple-800/80 text-xs whitespace-nowrap shadow-sm"
+                          title={p.categoryName || 'Mặc định'}
+                        >
                           {p.categoryName || 'Mặc định'}
                         </span>
                       </td>
 
                       {/* Type */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className="text-xs font-semibold text-slate-300">
                           {p.type === 'DIGITAL' ? 'File 3D Số' : 'Thước Vật Lý'}
                         </span>
                       </td>
 
                       {/* Price */}
-                      <td className="px-4 py-3 font-mono font-bold text-[#39FF14] text-sm">
+                      <td className="px-4 py-3 font-mono font-bold text-[#39FF14] text-sm whitespace-nowrap">
                         {formatPrice(p.price)}đ
                       </td>
 
                       {/* Stock with Warning */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         {p.stock <= 5 ? (
                           <span className="flex items-center gap-1 font-bold text-amber-400">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {p.stock} (Sắp hết)
@@ -335,14 +338,14 @@ export default function AdminProductsPage() {
                       </td>
 
                       {/* Status */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
                           <CheckCircle2 className="w-3 h-3" /> Đang bán
                         </span>
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3 text-right space-x-1.5">
+                      <td className="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">
                         <button
                           onClick={() => openEdit(p)}
                           className="p-2 rounded-lg bg-surface border border-border hover:border-purple-400 text-purple-300 hover:text-white transition"
