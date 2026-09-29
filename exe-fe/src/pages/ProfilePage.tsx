@@ -3,8 +3,14 @@ import { User, Lock, CheckCircle2, Save, MapPin, KeyRound, Mail, AlertCircle, Lo
 import { useAuth } from '../context/AuthContext';
 import { errorText } from '../services/api';
 import { authService } from '../services/authService';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function ProfilePage() {
+  const { user } = useAuth();
+  return <ProfilePageContent key={user?.id ?? 'guest'} />;
+}
+
+function ProfilePageContent() {
   const { user, updateProfile, setPasscode } = useAuth();
 
   const [name, setName] = useState(user?.name || '');
@@ -12,16 +18,6 @@ export default function ProfilePage() {
   const [address, setAddress] = useState(user?.address || '');
   const [studentId, setStudentId] = useState(user?.studentId || '');
   const [university, setUniversity] = useState(user?.university || 'Đại Học Quốc Gia TP.HCM');
-
-  useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-      setPhone(user.phone || '');
-      setAddress(user.address || '');
-      setStudentId(user.studentId || '');
-      setUniversity(user.university || 'Đại Học Quốc Gia TP.HCM');
-    }
-  }, [user]);
 
   const [newPin, setNewPin] = useState('');
   const [profileError, setProfileError] = useState('');
@@ -86,8 +82,8 @@ export default function ProfilePage() {
           return prev - 1;
         });
       }, 1000);
-    } catch (err: any) {
-      setChangePasswordError(err?.response?.data?.message || err?.message || 'Không thể gửi mã OTP. Vui lòng thử lại sau.');
+    } catch (err: unknown) {
+      setChangePasswordError(getApiErrorMessage(err, 'Không thể gửi mã OTP. Vui lòng thử lại sau.'));
     } finally {
       setIsSendingOtp(false);
     }
@@ -128,8 +124,8 @@ export default function ProfilePage() {
       setNewPassword('');
       setConfirmPassword('');
       setPasswordOtp('');
-    } catch (err: any) {
-      setChangePasswordError(err?.response?.data?.message || err?.message || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu cũ và mã OTP.');
+    } catch (err: unknown) {
+      setChangePasswordError(getApiErrorMessage(err, 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu cũ và mã OTP.'));
     } finally {
       setIsChangingPassword(false);
     }
@@ -376,4 +372,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

@@ -3,9 +3,11 @@ import type { Product, CartItem } from '../../../types';
 import { useAuth } from '../../../context/AuthContext';
 import { read, send, errorText } from '../../../services/api';
 import { productView, type ProductDTO } from '../../../services/productService';
+import { catalogueItems, localDesigns } from './cartPayload';
 const guestKey = 'printhub_guest_cart';
-function loadGuest(): CartItem[] {
-  try { const rows = JSON.parse(localStorage.getItem(guestKey) || '[]'); return Array.isArray(rows) ? rows.filter(i => i?.product?.id && Number.isInteger(i.quantity) && i.quantity > 0) : []; } catch { return []; }
+const designKey = (id: string) => `printhub_design_cart_${id}`;
+function loadGuest(key = guestKey): CartItem[] {
+  try { const rows = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(rows) ? rows.filter(i => i?.product?.id && Number.isInteger(i.quantity) && i.quantity > 0) : []; } catch { return []; }
 }
 export function useCart() {
   const { user, isLoading } = useAuth();
@@ -21,10 +23,16 @@ export function useCart() {
       if (!user) { const guest = loadGuest(); if (active) { itemsRef.current = guest; setItems(guest); } return; }
       const rows = await read<{ id: string; quantity: number; product: ProductDTO }[]>('/cart');
       const merged: CartItem[] = rows.map(i => ({ id: `cart-${i.product.id}`, product: productView(i.product), quantity: i.quantity }));
+      merged.push(...localDesigns(loadGuest(designKey(user.id))));
       const guest = loadGuest();
       for (const item of guest) { const existing = merged.find(i => i.product.id === item.product.id); if (existing) existing.quantity = Math.min(999, existing.quantity + item.quantity); else merged.push({ ...item, id: `cart-${item.product.id}` }); }
       if (!active) return;
-      if (guest.length) { await send('/cart', { items: merged.map(i => ({ productId: i.product.id, quantity: i.quantity })) }, 'put'); localStorage.removeItem(guestKey); }
+      if (guest.length) {
+        if (catalogueItems(guest).length) await send('/cart', { items: catalogueItems(merged) }, 'put');
+        if (!active) return;
+        localStorage.setItem(designKey(user.id), JSON.stringify(localDesigns(merged)));
+        localStorage.removeItem(guestKey);
+      }
       if (active) { itemsRef.current = merged; setItems(merged); }
     })().catch(e => { if (active) setError(errorText(e)); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -33,10 +41,11 @@ export function useCart() {
     if (loading) { setError('Giỏ hàng đang tải. Vui lòng thử lại.'); return; }
     itemsRef.current = next; setItems(next); setError('');
     if (!user) { localStorage.setItem(guestKey, JSON.stringify(next)); return; }
+    localStorage.setItem(designKey(user.id), JSON.stringify(localDesigns(next)));
     const id = user.id; pending.current++; setSaving(true);
     queue.current = queue.current.catch(() => undefined).then(async () => {
       if (identity.current !== id) return;
-      await send('/cart', { items: next.map(i => ({ productId: i.product.id, quantity: i.quantity })) }, 'put');
+      await send('/cart', { items: catalogueItems(next) }, 'put');
     }).catch(e => { if (identity.current === id) setError(`Chưa lưu được giỏ hàng: ${errorText(e)}`); })
       .finally(() => { pending.current--; if (!pending.current) setSaving(false); });
   };
