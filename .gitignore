@@ -26,3 +26,6 @@ dist-ssr/
 *.sw?
 .agents/
 .agents
+# Large zip files
+exe-fe.zip
+*.zip
