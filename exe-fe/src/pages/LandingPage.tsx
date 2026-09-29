@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Printer,
@@ -15,6 +16,15 @@ import LandingNavbar from '../layouts/LandingNavbar';
 import Footer from '../components/Footer';
 
 export default function LandingPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.has('cancel') || params.has('orderCode') || params.has('status')) {
+      navigate('/payment-result' + location.search, { replace: true });
+    }
+  }, [location.search, navigate]);
 
   return (
     <div className="w-full h-full overflow-y-auto overflow-x-hidden bg-[#090a0d] text-white flex flex-col font-sans selection:bg-[#39FF14] selection:text-black">

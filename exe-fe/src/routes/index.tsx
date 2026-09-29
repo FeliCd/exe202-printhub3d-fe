@@ -245,6 +245,16 @@ export default function AppRoutes({
           }
         />
         <Route
+          path="/payment-cancel"
+          element={
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                <PaymentResultPage />
+              </PageTransition>
+            </AnimatePresence>
+          }
+        />
+        <Route
           path="/subscriptions"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
