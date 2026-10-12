@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 220" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Background Gradient: Deep Cyber Navy / Blue-Black -->
+    <radialGradient id="hBgGlow" cx="20%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#0f1f38" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#090e1b" stop-opacity="0.98" />
+      <stop offset="100%" stop-color="#05070e" />
+    </radialGradient>
+
+    <!-- Border Gradient -->
+    <linearGradient id="hBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.7" />
+      <stop offset="35%" stop-color="#10b981" stop-opacity="0.9" />
+      <stop offset="70%" stop-color="#39ff14" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.3" />
+    </linearGradient>
+
+    <!-- Ruler Body Gradient -->
+    <linearGradient id="hRulerBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#0b1120" />
+    </linearGradient>
+
+    <!-- Neon Glow Filter -->
+    <filter id="hNeonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur1" />
+      <feGaussianBlur stdDeviation="8" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Container Box with Deep Navy / Black Background -->
+  <rect x="6" y="6" width="808" height="208" rx="28" fill="url(#hBgGlow)" stroke="url(#hBorderGrad)" stroke-width="1.8" />
+
+  <!-- Subtle Cyber Tech Grid in Background -->
+  <g stroke="#38bdf8" stroke-opacity="0.04" stroke-width="1">
+    <line x1="240" y1="20" x2="240" y2="200" />
+    <line x1="380" y1="20" x2="380" y2="200" />
+    <line x1="520" y1="20" x2="520" y2="200" />
+    <line x1="660" y1="20" x2="660" y2="200" />
+    <line x1="220" y1="65" x2="800" y2="65" />
+    <line x1="220" y1="155" x2="800" y2="155" />
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- LEFT: ICON MARK (Isometric 3D Cube + Precision Ruler)    -->
+  <!-- ======================================================== -->
+  <g transform="translate(115, 110)">
+    <!-- Icon Container Pill -->
+    <rect x="-82" y="-82" width="164" height="164" rx="36" fill="#0d1424" stroke="url(#hBorderGrad)" stroke-width="1.8" />
+    
+    <!-- 3D Cube Top Face -->
+    <polygon points="0,-48 44,-24 0,0 -44,-24" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2" stroke-opacity="0.5" />
+    <!-- 3D Cube Right Face with layers -->
+    <polygon points="0,0 44,-24 44,28 0,52" fill="#064e3b" fill-opacity="0.3" stroke="#10b981" stroke-width="1.2" />
+    <line x1="0" y1="13" x2="44" y2="-11" stroke="#39ff14" stroke-opacity="0.4" stroke-width="1" />
+    <line x1="0" y1="26" x2="44" y2="2" stroke="#39ff14" stroke-opacity="0.4" stroke-width="1" />
+    <line x1="0" y1="39" x2="44" y2="15" stroke="#39ff14" stroke-opacity="0.4" stroke-width="1" />
+
+    <!-- Main Diagonal Technical Ruler (CÂY THƯỚC KỸ THUẬT) -->
+    <g transform="translate(-48, 52) rotate(-42)">
+      <!-- Ruler Base -->
+      <rect x="0" y="0" width="138" height="24" rx="4" fill="url(#hRulerBody)" stroke="#334155" stroke-width="1" />
+      <rect x="0" y="0" width="138" height="3" rx="1.5" fill="#39ff14" />
+      
+      <!-- Ruler Hanging Hole -->
+      <circle cx="10" cy="12" r="4.5" fill="#0a0f1d" stroke="#38bdf8" stroke-width="1.2" />
+
+      <!-- Graduation Ticks -->
+      <g stroke="#39ff14" stroke-width="1" stroke-linecap="round">
+        <!-- 0 -->
+        <line x1="22" y1="3" x2="22" y2="13" stroke="#38bdf8" stroke-width="1.4" />
+        <line x1="26" y1="3" x2="26" y2="6.5" stroke-opacity="0.7" />
+        <line x1="30" y1="3" x2="30" y2="6.5" stroke-opacity="0.7" />
+        <line x1="34" y1="3" x2="34" y2="6.5" stroke-opacity="0.7" />
+        <line x1="38" y1="3" x2="38" y2="9.5" stroke-width="1.2" />
+        <line x1="42" y1="3" x2="42" y2="6.5" stroke-opacity="0.7" />
+        <line x1="46" y1="3" x2="46" y2="6.5" stroke-opacity="0.7" />
+        <line x1="50" y1="3" x2="50" y2="6.5" stroke-opacity="0.7" />
+        <!-- 1 -->
+        <line x1="54" y1="3" x2="54" y2="13" stroke-width="1.4" />
+        <line x1="58" y1="3" x2="58" y2="6.5" stroke-opacity="0.7" />
+        <line x1="62" y1="3" x2="62" y2="6.5" stroke-opacity="0.7" />
+        <line x1="66" y1="3" x2="66" y2="6.5" stroke-opacity="0.7" />
+        <line x1="70" y1="3" x2="70" y2="9.5" stroke-width="1.2" />
+        <line x1="74" y1="3" x2="74" y2="6.5" stroke-opacity="0.7" />
+        <line x1="78" y1="3" x2="78" y2="6.5" stroke-opacity="0.7" />
+        <line x1="82" y1="3" x2="82" y2="6.5" stroke-opacity="0.7" />
+        <!-- 2 -->
+        <line x1="86" y1="3" x2="86" y2="13" stroke-width="1.4" />
+        <line x1="90" y1="3" x2="90" y2="6.5" stroke-opacity="0.7" />
+        <line x1="94" y1="3" x2="94" y2="6.5" stroke-opacity="0.7" />
+        <line x1="98" y1="3" x2="98" y2="6.5" stroke-opacity="0.7" />
+        <line x1="102" y1="3" x2="102" y2="9.5" stroke-width="1.2" />
+        <line x1="106" y1="3" x2="106" y2="6.5" stroke-opacity="0.7" />
+        <line x1="110" y1="3" x2="110" y2="6.5" stroke-opacity="0.7" />
+        <line x1="114" y1="3" x2="114" y2="6.5" stroke-opacity="0.7" />
+        <!-- 3 -->
+        <line x1="118" y1="3" x2="118" y2="13" stroke-width="1.4" />
+        <line x1="122" y1="3" x2="122" y2="6.5" stroke-opacity="0.7" />
+        <line x1="126" y1="3" x2="126" y2="6.5" stroke-opacity="0.7" />
+        <line x1="130" y1="3" x2="130" y2="9.5" stroke-width="1.2" />
+      </g>
+      <!-- Numbers -->
+      <g fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="5" font-weight="700">
+        <text x="21" y="19">0</text>
+        <text x="53" y="19">1</text>
+        <text x="85" y="19">2</text>
+        <text x="117" y="19">3</text>
+      </g>
+    </g>
+
+    <!-- Laser Point Glow at Center Origin -->
+    <circle cx="0" cy="0" r="2.5" fill="#ffffff" />
+    <circle cx="0" cy="0" r="6" fill="#39ff14" opacity="0.8" filter="url(#hNeonGlow)" />
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- RIGHT: BRAND NAME & TECHNICAL TAGLINE                    -->
+  <!-- ======================================================== -->
+  <g transform="translate(235, 75)">
+    <!-- Small Category Pill -->
+    <rect x="0" y="-36" width="220" height="22" rx="11" fill="#111827" stroke="#10b981" stroke-width="1" stroke-opacity="0.6" />
+    <text x="14" y="-21" fill="#39ff14" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="700" letter-spacing="1.5">
+      PRECISION RULER &amp; 3D LAB
+    </text>
+
+    <!-- Main Title: PRINTHUB 3D -->
+    <text x="0" y="32" font-family="'Montserrat', system-ui, sans-serif" font-weight="900" font-size="44" letter-spacing="2">
+      <tspan fill="#ffffff">PRINTHUB </tspan>
+      <tspan fill="#39ff14" filter="url(#hNeonGlow)">3D</tspan>
+    </text>
+
+    <!-- Subtitle: Tiếng Việt / Chuyên môn -->
+    <text x="2" y="60" fill="#94a3b8" font-family="'Montserrat', system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="1.2">
+      CHẾ TÁC THƯỚC KỸ THUẬT &amp; DỊCH VỤ IN 3D CHUẨN XÁC 0.1MM
+    </text>
+
+    <!-- Technical Badges -->
+    <g transform="translate(2, 80)">
+      <rect x="0" y="0" width="84" height="20" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <text x="8" y="14" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700">± 0.1mm CAD</text>
+
+      <rect x="94" y="0" width="98" height="20" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <text x="102" y="14" fill="#34d399" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700">LASER CNC 3D</text>
+
+      <rect x="202" y="0" width="102" height="20" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <text x="210" y="14" fill="#a78bfa" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700">VERNIER &amp; EKE</text>
+
+      <rect x="314" y="0" width="96" height="20" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <text x="322" y="14" fill="#f59e0b" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700">BẢO HÀNH 1-ĐỔI-1</text>
+    </g>
+  </g>
+</svg>

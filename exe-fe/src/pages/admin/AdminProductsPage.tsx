@@ -1,6 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Package, Plus, Search, Edit3, EyeOff, CheckCircle2, RotateCcw, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { get, send } from '../../services/api';
+import { useState, useEffect, useRef } from 'react';
+import {
+  Package,
+  Plus,
+  Search,
+  Edit3,
+  EyeOff,
+  CheckCircle2,
+  RotateCcw,
+  X,
+  Image as ImageIcon,
+  AlertCircle,
+  Upload,
+} from 'lucide-react';
+import { get, send, uploadFormData } from '../../services/api';
 import { formatPrice } from '../../utils/format';
 
 interface Category {
@@ -48,6 +60,11 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // File Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const fetchCategories = async () => {
     try {
       const res = await get('/categories');
@@ -73,9 +90,10 @@ export default function AdminProductsPage() {
         setTotalPages(data.totalPages || 1);
       } else if (Array.isArray(data)) {
         setProducts(data);
+        setTotalPages(1);
       }
     } catch (err) {
-      console.error('Lỗi tải sản phẩm:', err);
+      console.error('Lỗi tải danh sách sản phẩm:', err);
     } finally {
       setLoading(false);
     }
@@ -98,11 +116,13 @@ export default function AdminProductsPage() {
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setUploadError(null);
     setModalOpen(true);
   };
 
   const openEdit = (p: ProductItem) => {
     setEditingId(p.id);
+    setUploadError(null);
     setForm({
       title: p.title,
       description: p.description || '',
@@ -113,6 +133,32 @@ export default function AdminProductsPage() {
       imageUrl: p.primaryImageUrl || (p.imageUrls && p.imageUrls[0]) || '',
     });
     setModalOpen(true);
+  };
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await uploadFormData<string | { result?: string; url?: string }>('/upload/image', formData);
+      const uploadedUrl = typeof res === 'string' ? res : (res?.result || res?.url || '');
+      if (uploadedUrl) {
+        setForm((prev) => ({ ...prev, imageUrl: uploadedUrl }));
+      } else {
+        setUploadError('Không nhận được URL ảnh phản hồi từ máy chủ');
+      }
+    } catch (err: unknown) {
+      console.error('Lỗi tải ảnh lên Cloudinary:', err);
+      const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: string }).message) : 'Tải ảnh thất bại';
+      setUploadError(msg);
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,8 +206,8 @@ export default function AdminProductsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-purple-400">
-            <Package className="w-6 h-6" />
+          <div className="flex items-center gap-2 text-[#39FF14]">
+            <Package className="w-6 h-6 drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" />
             <h1 className="text-2xl font-black text-white">Quản Lý Sản Phẩm Sàn (Product Catalog)</h1>
           </div>
           <p className="text-sm text-text-muted">
@@ -171,15 +217,15 @@ export default function AdminProductsPage() {
 
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs transition shadow-md shadow-purple-900/30 self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs transition active:scale-95 shadow-[0_0_15px_rgba(57,255,20,0.35)] self-start sm:self-auto cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 stroke-[3]" />
           <span>Thêm Sản Phẩm Mới</span>
         </button>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="p-4 rounded-2xl bg-surface border border-border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs">
+      <div className="p-4 rounded-2xl bg-surface border border-border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs shadow-md">
         <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-text-muted" />
           <input
@@ -187,7 +233,7 @@ export default function AdminProductsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm tên sản phẩm, mã SKU..."
-            className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white outline-none focus:border-purple-400"
+            className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14] transition"
           />
         </form>
 
@@ -198,7 +244,7 @@ export default function AdminProductsPage() {
               setSelectedCategory(e.target.value);
               setPage(0);
             }}
-            className="bg-surface-inset border border-border rounded-xl px-3 py-2.5 text-xs text-slate-200 outline-none focus:border-purple-400"
+            className="bg-surface-inset border border-border rounded-xl px-3 py-2.5 text-xs text-slate-200 outline-none focus:border-[#39FF14] transition"
           >
             <option value="">Tất cả danh mục</option>
             {categories.map((c) => (
@@ -214,11 +260,11 @@ export default function AdminProductsPage() {
               setSelectedType(e.target.value);
               setPage(0);
             }}
-            className="bg-surface-inset border border-border rounded-xl px-3 py-2.5 text-xs text-slate-200 outline-none focus:border-purple-400"
+            className="bg-surface-inset border border-border rounded-xl px-3 py-2.5 text-xs text-slate-200 outline-none focus:border-[#39FF14] transition"
           >
             <option value="">Tất cả phân loại</option>
             <option value="PHYSICAL">Thước 3D Vật lý (In thành phẩm)</option>
-            <option value="DIGITAL">File Mô hình 3D (Tải số)</option>
+            <option value="DIGITAL">File Mô hình 3D (.STL / .OBJ)</option>
           </select>
 
           <button
@@ -227,26 +273,19 @@ export default function AdminProductsPage() {
               setSelectedCategory('');
               setSelectedType('');
               setPage(0);
-              fetchProducts();
             }}
-            title="Làm mới bộ lọc"
-            className="p-2.5 rounded-xl bg-surface-inset border border-border hover:border-purple-400 text-slate-300 hover:text-white transition"
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-surface-inset hover:bg-surface border border-border text-slate-400 hover:text-white transition"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5 text-[#39FF14]" />
+            <span>Đặt lại</span>
           </button>
         </div>
       </div>
 
-      {/* Product Data Table */}
-      <div className="p-5 rounded-2xl bg-surface border border-border space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-            Danh Sách Sản Phẩm Trong Kho ({products.length})
-          </h3>
-        </div>
-
+      {/* Product Table */}
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-lg p-1">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
+          <table className="w-full text-left text-xs">
             <thead className="bg-surface-inset text-slate-400 uppercase border-b border-border">
               <tr>
                 <th className="px-4 py-3 font-bold w-16 whitespace-nowrap">Ảnh</th>
@@ -259,11 +298,11 @@ export default function AdminProductsPage() {
                 <th className="px-4 py-3 font-bold text-right w-28 whitespace-nowrap">Thao Tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#272930]">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center text-text-muted">
-                    <RotateCcw className="w-5 h-5 animate-spin mx-auto mb-2 text-purple-400" />
+                    <RotateCcw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#39FF14]" />
                     Đang tải dữ liệu sản phẩm...
                   </td>
                 </tr>
@@ -305,7 +344,7 @@ export default function AdminProductsPage() {
                       {/* Category */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
-                          className="inline-flex items-center px-2.5 py-1 rounded-md bg-purple-950/80 text-purple-300 font-semibold border border-purple-800/80 text-xs whitespace-nowrap shadow-sm"
+                          className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#39FF14]/10 text-[#39FF14] font-semibold border border-[#39FF14]/30 text-xs whitespace-nowrap shadow-sm"
                           title={p.categoryName || 'Mặc định'}
                         >
                           {p.categoryName || 'Mặc định'}
@@ -339,7 +378,7 @@ export default function AdminProductsPage() {
 
                       {/* Status */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30">
                           <CheckCircle2 className="w-3 h-3" /> Đang bán
                         </span>
                       </td>
@@ -348,14 +387,14 @@ export default function AdminProductsPage() {
                       <td className="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">
                         <button
                           onClick={() => openEdit(p)}
-                          className="p-2 rounded-lg bg-surface border border-border hover:border-purple-400 text-purple-300 hover:text-white transition"
+                          className="p-2 rounded-lg bg-surface border border-border hover:border-[#39FF14] text-[#39FF14] hover:bg-[#39FF14]/10 transition cursor-pointer"
                           title="Chỉnh sửa chi tiết"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleToggleActive(p)}
-                          className="p-2 rounded-lg bg-surface border border-border hover:border-red-500 text-slate-400 hover:text-red-400 transition"
+                          className="p-2 rounded-lg bg-surface border border-border hover:border-red-500 text-slate-400 hover:text-red-400 transition cursor-pointer"
                           title="Ngừng bán / Ẩn sản phẩm"
                         >
                           <EyeOff className="w-3.5 h-3.5" />
@@ -370,20 +409,20 @@ export default function AdminProductsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-slate-400">
+        <div className="flex items-center justify-between p-3 border-t border-border text-xs text-slate-400">
           <span>Trang {page + 1} / {totalPages || 1}</span>
           <div className="flex items-center gap-2">
             <button
               disabled={page <= 0}
               onClick={() => setPage(page - 1)}
-              className="px-3 py-1.5 rounded-lg bg-surface-inset border border-border disabled:opacity-40 text-slate-200 hover:text-white font-bold"
+              className="px-3 py-1.5 rounded-lg bg-surface-inset border border-border disabled:opacity-40 text-slate-200 hover:text-white font-bold cursor-pointer"
             >
               Trước
             </button>
             <button
               disabled={page + 1 >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="px-3 py-1.5 rounded-lg bg-surface-inset border border-border disabled:opacity-40 text-slate-200 hover:text-white font-bold"
+              className="px-3 py-1.5 rounded-lg bg-surface-inset border border-border disabled:opacity-40 text-slate-200 hover:text-white font-bold cursor-pointer"
             >
               Sau
             </button>
@@ -391,18 +430,18 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Modal Thêm & Chỉnh Sửa Sản Phẩm (Form 2 Cột Cao Cấp) */}
+      {/* Modal Thêm & Chỉnh Sửa Sản Phẩm */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-surface border border-border rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl bg-surface border border-border hover:border-[#39FF14]/40 rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Package className="w-4 h-4 text-purple-400" />
+                <Package className="w-4 h-4 text-[#39FF14]" />
                 {editingId ? 'Chỉnh Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -419,7 +458,7 @@ export default function AdminProductsPage() {
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     placeholder="VD: Thước Eke Parabol Khắc Tên Sinh Viên Bambu Lab..."
-                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs"
+                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14] text-xs transition"
                   />
                 </div>
 
@@ -430,7 +469,7 @@ export default function AdminProductsPage() {
                     required
                     value={form.categoryId}
                     onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs"
+                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition"
                   >
                     <option value="">Chọn danh mục</option>
                     {categories.map((c) => (
@@ -447,7 +486,7 @@ export default function AdminProductsPage() {
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs"
+                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition"
                   >
                     <option value="PHYSICAL">Thước 3D Vật lý (In gia công thành phẩm)</option>
                     <option value="DIGITAL">File Mô hình 3D (.STL / .OBJ tải số)</option>
@@ -464,7 +503,7 @@ export default function AdminProductsPage() {
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
                     placeholder="VD: 45000"
-                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs font-mono"
+                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14] text-xs font-mono transition"
                   />
                 </div>
 
@@ -478,27 +517,61 @@ export default function AdminProductsPage() {
                     value={form.stock}
                     onChange={(e) => setForm({ ...form, stock: e.target.value })}
                     placeholder="VD: 100"
-                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs font-mono"
+                    className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14] text-xs font-mono transition"
                   />
                 </div>
 
-                {/* URL Ảnh đại diện & Preview */}
+                {/* URL Ảnh đại diện & Tải ảnh từ máy tính lên Cloudinary */}
                 <div className="sm:col-span-2 space-y-2">
-                  <label className="font-bold text-slate-300">Đường dẫn hình ảnh đại diện (URL)</label>
-                  <div className="flex gap-3 items-center">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-300">Hình ảnh đại diện sản phẩm</label>
+                    <span className="text-[11px] text-slate-400">Khuyên dùng tỷ lệ 1:1, dung lượng &lt; 50MB</span>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadImage}
+                    className="hidden"
+                  />
+
+                  <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
                     <input
                       type="url"
                       value={form.imageUrl}
                       onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                      placeholder="https://res.cloudinary.com/..."
-                      className="flex-1 bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs"
+                      placeholder="Dán URL ảnh hoặc bấm Tải ảnh từ máy..."
+                      className="flex-1 bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14] text-xs transition"
                     />
+
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      className="px-3.5 py-2.5 rounded-xl border border-[#39FF14]/40 hover:border-[#39FF14] bg-[#39FF14]/10 hover:bg-[#39FF14]/20 text-[#39FF14] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {uploadingImage ? (
+                        <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#39FF14]" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5 text-[#39FF14]" />
+                      )}
+                      <span>{uploadingImage ? 'Đang tải lên...' : 'Tải ảnh từ máy'}</span>
+                    </button>
+
                     {form.imageUrl && (
-                      <div className="w-11 h-11 rounded-xl bg-surface-inset border border-border overflow-hidden shrink-0">
+                      <div className="w-11 h-11 rounded-xl bg-surface-inset border border-[#39FF14]/40 overflow-hidden shrink-0 shadow-sm">
                         <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>
+
+                  {uploadError && (
+                    <p className="text-[11px] text-rose-400 font-medium flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>{uploadError}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Mô tả chi tiết */}
@@ -509,7 +582,7 @@ export default function AdminProductsPage() {
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                     placeholder="Vật liệu in PLA/PETG, độ dày 2mm, độ chính xác vạch đo 0.1mm..."
-                    className="w-full bg-surface-inset border border-border rounded-xl p-3 text-white outline-none focus:border-purple-400 text-xs resize-none"
+                    className="w-full bg-surface-inset border border-border rounded-xl p-3 text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14] text-xs resize-none transition"
                   />
                 </div>
               </div>
@@ -519,16 +592,16 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface-inset border border-border text-slate-300 hover:text-white text-xs font-bold transition"
+                  className="px-4 py-2 rounded-xl bg-surface-inset border border-border text-slate-300 hover:text-white text-xs font-bold transition cursor-pointer"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
-                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-md shadow-purple-900/30 flex items-center gap-1.5"
+                  disabled={saving || uploadingImage}
+                  className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 text-xs font-black transition shadow-[0_0_15px_rgba(57,255,20,0.35)] flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
-                  {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin" />}
+                  {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin text-slate-950" />}
                   <span>{editingId ? 'Cập Nhật Sản Phẩm' : 'Lưu Sản Phẩm Mới'}</span>
                 </button>
               </div>
