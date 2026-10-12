@@ -1,4 +1,4 @@
-import api, { read, send } from './api';
+import api, { read, send, uploadFormData } from './api';
 
 export interface FileDTO {
   id: string;
@@ -10,7 +10,7 @@ export interface FileDTO {
 export async function uploadFile(file: File | Blob, name?: string): Promise<FileDTO> {
   const data = new FormData();
   data.append('file', file, name || (file instanceof File ? file.name : 'design.stl'));
-  return send<FileDTO>('/vault/upload', data);
+  return uploadFormData<FileDTO>('/vault/upload', data);
 }
 
 export async function downloadFile(path: string, name: string): Promise<void> {

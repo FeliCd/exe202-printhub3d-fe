@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrintHub 3D — Logo Thiết Kế Cây Thước & Xanh Đen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #07090e;
+      --bg-surface: #0e121b;
+      --bg-card: #131926;
+      --border: #1e2638;
+      --neon-green: #39ff14;
+      --emerald: #10b981;
+      --cyan: #22d3ee;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 20% 15%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 40%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--neon-green);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    h1 span.highlight {
+      background: linear-gradient(135deg, #39ff14, #22d3ee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .grid-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 32px;
+      margin-bottom: 50px;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .card:hover {
+      border-color: rgba(34, 211, 238, 0.4);
+      transform: translateY(-4px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      color: var(--cyan);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+    }
+
+    .logo-stage {
+      background: #080c14;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .logo-stage img {
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,0.7));
+    }
+
+    .concept-points {
+      list-style: none;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .concept-points li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .concept-points li::before {
+      content: "✔";
+      color: var(--neon-green);
+      font-weight: bold;
+    }
+
+    .card-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: var(--cyan);
+    }
+
+    /* Live Header Bar Simulation */
+    .mock-header {
+      background: rgba(10, 11, 14, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+
+    .mock-nav-links {
+      display: flex;
+      gap: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .mock-nav-links span:hover { color: #fff; cursor: pointer; }
+
+    .color-swatches {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 40px;
+      padding: 24px;
+      background: var(--bg-surface);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .swatch-color {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-tag">
+        <span>📐</span> Brand Identity • PrintHub 3D
+      </div>
+      <h1>Bộ Logo Dự Án <span class="highlight">PrintHub 3D</span></h1>
+      <p class="subtitle">
+        Thiết kế theo đúng yêu cầu: Phối màu <strong>xanh đen cyber-industrial</strong> đặc trưng của website, kết hợp <strong>cây thước kỹ thuật (precision technical ruler)</strong> với các vạch chia milimet sắc nét và khối in 3D công nghệ cao.
+      </p>
+    </header>
+
+    <!-- LIVE HEADER SIMULATION -->
+    <div style="margin-bottom: 12px; font-size: 13px; font-weight: 700; color: var(--cyan); letter-spacing: 1px;">
+      MÔ PHỎNG KHI ĐẶT TRÊN HEADER WEB HIỆN TẠI (XANH ĐEN):
+    </div>
+    <div class="mock-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="/logo-printhub.svg" alt="PrintHub 3D Logo" style="width: 44px; height: 44px; border-radius: 10px;" />
+        <div>
+          <div style="font-weight: 900; font-size: 1.15rem; letter-spacing: 1.5px; line-height: 1;">
+            PRINTHUB <span style="color: var(--neon-green)">3D</span>
+          </div>
+          <div style="font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase;">
+            3D Printing &amp; Technical Ruler
+          </div>
+        </div>
+      </div>
+      <div class="mock-nav-links">
+        <span style="color: var(--neon-green);">Dịch Vụ</span>
+        <span>Mẫu Thước 3D</span>
+        <span>Khắc Laser CNC</span>
+        <span>Báo Giá Tức Thì</span>
+      </div>
+      <button class="btn btn-primary" style="flex: none; padding: 10px 20px; font-size: 13px;">
+        Đặt Thước In 3D
+      </button>
+    </div>
+
+    <!-- MAIN SHOWCASE GRID -->
+    <div class="grid-showcase">
+      <!-- 1. ISOMETRIC CORNER RULER (RECOMMENDED) -->
+      <div class="card" style="border-color: rgba(57, 255, 20, 0.35);">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⭐</span> Mẫu 1: Thước Đo Góc 3D & Khối In (Khuyên dùng)
+          </div>
+          <span class="card-badge" style="color: var(--neon-green); border-color: rgba(57,255,20,0.4);">SVG 512x512</span>
+        </div>
+        <div class="logo-stage">
+          <img src="/logo-cube-ruler.svg" alt="PrintHub 3D Corner Ruler Logo" style="width: 250px; height: 250px;" />
+        </div>
+        <ul class="concept-points">
+          <li><strong>Cây thước kỹ thuật 3D:</strong> Thước đo góc 3 chiều ôm trọn khối lập phương in 3D, vạch chia milimet sắc nét trên các trục X, Y, Z.</li>
+          <li><strong>Khối lập phương Cyber:</strong> Thể hiện công nghệ in sợi 3D FDM, độ chính xác cơ khí ±0.1mm.</li>
+          <li><strong>Màu xanh đen chuẩn web:</strong> Phối màu Cyber Black (#030508) và Navy (#0C1626) với ánh Neon Laser (#39FF14) & Cyan (#22D3EE).</li>
+          <li><strong>Tính ứng dụng cao:</strong> Cực kỳ tối giản, dễ nhận diện làm Favicon, App Icon hay in lên thân thước thật.</li>
+        </ul>
+        <div class="card-actions">
+          <a href="/logo-cube-ruler.svg" download="logo-cube-ruler.svg" class="btn btn-primary">
+            Tải SVG (Mẫu 1)
+          </a>
+          <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('/logo-cube-ruler.svg'); alert('Đã sao chép đường dẫn Mẫu 1!');">
+            Sao Chép URL
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. STANDALONE BADGE MARK -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🛡️</span> Mẫu 2: Huy Hiệu Kỹ Thuật (Shield Badge)
+          </div>
+          <span class="card-badge">SVG 512x512</span>
+        </div>
+        <div class="logo-stage">
+          <img src="/logo-printhub.svg" alt="PrintHub 3D Badge Logo" style="width: 250px; height: 250px;" />
+        </div>
+        <ul class="concept-points">
+          <li><strong>Cây thước kỹ thuật đặt chéo:</strong> Thước kim loại khắc số 0-6cm, lỗ treo thước cơ khí, tia laser định vị.</li>
+          <li><strong>Chi tiết in 3D:</strong> Bàn in lưới CAD và các lớp sợi nhựa in FDM.</li>
+          <li><strong>Góc đo Eke:</strong> Thước eke phụ tạo phong cách đồ án sinh viên kỹ thuật.</li>
+          <li><strong>Phong cách:</strong> Cyber Shield vững chãi, cao cấp.</li>
+        </ul>
+        <div class="card-actions">
+          <a href="/logo-printhub.svg" download="logo-printhub.svg" class="btn btn-primary">
+            Tải SVG (Mẫu 2)
+          </a>
+          <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('/logo-printhub.svg'); alert('Đã sao chép đường dẫn Mẫu 2!');">
+            Sao Chép URL
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. FULL HORIZONTAL LOGO -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📐</span> Mẫu 3: Logo Ngang (Horizontal Brandmark)
+          </div>
+          <span class="card-badge">SVG 820x220</span>
+        </div>
+        <div class="logo-stage">
+          <img src="/logo-horizontal.svg" alt="PrintHub 3D Horizontal Logo" style="width: 100%; max-width: 480px;" />
+        </div>
+        <ul class="concept-points">
+          <li><strong>Tích hợp chữ thương hiệu:</strong> Phông chữ chữ khối hiện đại PRINTHUB kết hợp số 3D phát sáng neon.</li>
+          <li><strong>Tagline chuyên nghiệp:</strong> "Chế tác thước kỹ thuật & Dịch vụ in 3D chuẩn xác 0.1mm".</li>
+          <li><strong>Dùng cho:</strong> Header, Landing Page, Báo giá in thước cho sinh viên, Banner.</li>
+          <li><strong>Badge kỹ thuật:</strong> Các nhãn ±0.1mm CAD, Laser CNC, Vernier Caliper & Eke.</li>
+        </ul>
+        <div class="card-actions">
+          <a href="/logo-horizontal.svg" download="logo-horizontal.svg" class="btn btn-primary">
+            Tải SVG (Mẫu 3)
+          </a>
+          <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('/logo-horizontal.svg'); alert('Đã sao chép đường dẫn Mẫu 3!');">
+            Sao Chép URL
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLOR PALETTE BREAKDOWN -->
+    <div class="color-swatches">
+      <div class="swatch">
+        <div class="swatch-color" style="background: #060913;"></div>
+        <span>Cyber Black: #060913</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #0f1f38;"></div>
+        <span>Navy Surface: #0F1F38</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #1e293b;"></div>
+        <span>Titanium Slate: #1E293B</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #39ff14; box-shadow: 0 0 10px #39ff14;"></div>
+        <span>Neon Laser: #39FF14</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #10b981;"></div>
+        <span>Emerald Green: #10B981</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #22d3ee; box-shadow: 0 0 10px #22d3ee;"></div>
+        <span>Electric Cyan: #22D3EE</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

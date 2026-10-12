@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
           id: String(u.id),
           name: u.name || 'Người dùng',
           email: u.email || 'Chưa cập nhật',
-          role: u.role || 'USER',
+          role: u.role === 'ADMIN' ? 'ADMIN' : 'BUYER',
           studentId: u.studentId,
           university: u.university,
           isLocked: Boolean(u.isLocked),
@@ -182,12 +182,11 @@ export default function AdminUsersPage() {
                 <span className="text-text-muted text-xs">Vai trò:</span>
                 <select
                   aria-label={`Vai trò của ${u.name}`}
-                  value={u.role}
+                  value={u.role === 'ADMIN' ? 'ADMIN' : 'BUYER'}
                   onChange={(e) => changeRole(u.id, e.target.value)}
-                  className="bg-surface-inset border border-border rounded-lg px-2.5 py-1 text-xs text-purple-300 font-bold outline-none"
+                  className="bg-surface-inset border border-border rounded-lg px-2.5 py-1 text-xs text-emerald-400 font-bold outline-none focus:border-emerald-500"
                 >
-                  <option value="USER">USER (Khách hàng / Sinh viên)</option>
-                  <option value="BUYER">BUYER (Khách mua hàng)</option>
+                  <option value="BUYER">BUYER (Khách mua hàng / Sinh viên)</option>
                   <option value="ADMIN">ADMIN (Quản trị viên)</option>
                 </select>
               </div>

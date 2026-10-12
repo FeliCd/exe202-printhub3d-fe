@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
-import { send, post } from '../../services/api';
+import { send, uploadFormData } from '../../services/api';
 import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
 import type { CustomDTO } from '../../services/quotationService';
@@ -341,8 +341,8 @@ export function CustomRequestForm({
               const formData = new FormData();
               formData.append('file', file);
               formData.append('folder', 'printhub3d/custom_prints');
-              const res = await post('/upload/raw', formData);
-              const attachmentUrl = res.data?.result || res.data;
+              const res = await uploadFormData<string | { result?: string }>('/upload/raw', formData);
+              const attachmentUrl = typeof res === 'string' ? res : (res?.result || '');
               await send('/custom-orders', {
                 attachmentUrl,
                 requirements,

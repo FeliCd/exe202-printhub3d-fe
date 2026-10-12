@@ -1,0 +1,314 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Background Gradient: Deep Cyber Navy / Blue-Black -->
+    <radialGradient id="bgGlow" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#0f1f38" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#0a0f1d" stop-opacity="0.98" />
+      <stop offset="100%" stop-color="#060913" />
+    </radialGradient>
+
+    <!-- Border Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.8" />
+      <stop offset="30%" stop-color="#10b981" stop-opacity="0.9" />
+      <stop offset="70%" stop-color="#39ff14" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.4" />
+    </linearGradient>
+
+    <!-- Ruler Body Gradient (Metallic Dark Navy / Slate Carbon) -->
+    <linearGradient id="rulerBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="40%" stop-color="#111827" />
+      <stop offset="75%" stop-color="#0b1120" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+
+    <!-- Ruler Bevel Edge Highlight -->
+    <linearGradient id="rulerEdgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#39ff14" />
+    </linearGradient>
+
+    <!-- 3D Cube Top Face -->
+    <linearGradient id="cubeTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- 3D Cube Right Face (Printing Layers) -->
+    <linearGradient id="cubeRightGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.25" />
+      <stop offset="50%" stop-color="#059669" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#022c22" stop-opacity="0.4" />
+    </linearGradient>
+
+    <!-- Neon Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur1" />
+      <feGaussianBlur stdDeviation="12" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Soft Drop Shadow -->
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
+    </filter>
+
+    <!-- Laser Point Glow -->
+    <filter id="laserGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ========================================== -->
+  <!-- 1. BADGE BACKGROUND (Cyber Shield Hexagon) -->
+  <!-- ========================================== -->
+  <g filter="url(#dropShadow)">
+    <!-- Outer Shield Container -->
+    <rect x="24" y="24" width="464" height="464" rx="88" fill="url(#bgGlow)" stroke="url(#borderGrad)" stroke-width="2.5" />
+    
+    <!-- Subtle Inner Border Highlight -->
+    <rect x="36" y="36" width="440" height="440" rx="76" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.15" stroke-dasharray="8 6" />
+
+    <!-- Corner Tech Crosshairs (CAD Origin Coordinates) -->
+    <g stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.4">
+      <path d="M56 68 H76 M66 58 V78" />
+      <path d="M436 68 H456 M446 58 V78" />
+      <path d="M56 444 H76 M66 434 V454" />
+      <path d="M436 444 H456 M446 434 V454" />
+    </g>
+    <text x="78" y="72" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1">X:0.00 Y:0.00</text>
+    <text x="362" y="72" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1">PRINTHUB 3D</text>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 2. 3D ISOMETRIC PRINT PLATFORM (Background) -->
+  <!-- ========================================== -->
+  <g transform="translate(256, 250)">
+    <!-- Grid on the Ground Plate -->
+    <g stroke="#22d3ee" stroke-opacity="0.12" stroke-width="1.2">
+      <!-- Ground perspective lines -->
+      <line x1="-150" y1="90" x2="0" y2="180" />
+      <line x1="150" y1="90" x2="0" y2="180" />
+      <line x1="-100" y1="60" x2="50" y2="150" />
+      <line x1="100" y1="60" x2="-50" y2="150" />
+      <line x1="-50" y1="30" x2="100" y2="120" />
+      <line x1="50" y1="30" x2="-100" y2="120" />
+    </g>
+
+    <!-- Isometric 3D Cube Top Face (Build Surface) -->
+    <polygon points="0,-130 115,-65 0,0 -115,-65" fill="url(#cubeTopGrad)" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.4" />
+
+    <!-- Isometric Grid on Top Face -->
+    <g stroke="#22d3ee" stroke-opacity="0.25" stroke-width="1">
+      <line x1="-58" y1="-98" x2="58" y2="-32" />
+      <line x1="-29" y1="-114" x2="87" y2="-48" />
+      <line x1="-87" y1="-82" x2="29" y2="-16" />
+      
+      <line x1="58" y1="-98" x2="-58" y2="-32" />
+      <line x1="29" y1="-114" x2="-87" y2="-48" />
+      <line x1="87" y1="-82" x2="-29" y2="-16" />
+    </g>
+
+    <!-- 3D Cube Right Face (Sliced Layers - Công nghệ in 3D FDM) -->
+    <polygon points="0,0 115,-65 115,70 0,135" fill="url(#cubeRightGrad)" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.5" />
+
+    <!-- Horizontal 3D Print Layer Lines on Right Face -->
+    <g stroke="#39ff14" stroke-opacity="0.4" stroke-width="1.2">
+      <line x1="0" y1="18" x2="115" y2="-47" />
+      <line x1="0" y1="36" x2="115" y2="-29" />
+      <line x1="0" y1="54" x2="115" y2="-11" />
+      <line x1="0" y1="72" x2="115" y2="7" />
+      <line x1="0" y1="90" x2="115" y2="25" />
+      <line x1="0" y1="108" x2="115" y2="43" />
+      <line x1="0" y1="126" x2="115" y2="61" />
+    </g>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 3. MAIN HIGHLIGHT: THE PRECISION RULER (CÂY THƯỚC KỸ THUẬT) -->
+  <!-- ========================================== -->
+  <!-- 
+       A high-precision technical steel ruler angled diagonally at -35deg across the mark.
+       It features mm/cm laser-etched graduations, numbers, bevel edge, hang-hole, and neon green ticks.
+  -->
+  <g transform="translate(130, 360) rotate(-42)" filter="url(#dropShadow)">
+    <!-- Ruler Shadow Base -->
+    <rect x="-8" y="-4" width="376" height="58" rx="8" fill="#000000" opacity="0.6" />
+
+    <!-- Ruler Outer Body (Anodized Cyber Navy Steel) -->
+    <rect x="-4" y="0" width="368" height="52" rx="7" fill="url(#rulerBodyGrad)" stroke="#334155" stroke-width="1.5" />
+
+    <!-- Top Bevel Edge with Vibrant Neon Cyan/Green Glow -->
+    <rect x="-4" y="0" width="368" height="6" rx="3" fill="url(#rulerEdgeGrad)" />
+
+    <!-- Metallic Reflection Strip along the center of the ruler -->
+    <rect x="0" y="24" width="360" height="2" fill="#ffffff" opacity="0.08" />
+
+    <!-- Circular Hanging Hole (Lỗ treo thước kỹ thuật đặc trưng) -->
+    <g transform="translate(24, 26)">
+      <circle cx="0" cy="0" r="10" fill="#0a0f1d" stroke="url(#borderGrad)" stroke-width="2" />
+      <circle cx="0" cy="0" r="6" fill="#060913" />
+      <!-- Subtle crosshair on the hole -->
+      <line x1="-12" y1="0" x2="-8" y2="0" stroke="#38bdf8" stroke-width="1" opacity="0.6" />
+      <line x1="8" y1="0" x2="12" y2="0" stroke="#38bdf8" stroke-width="1" opacity="0.6" />
+    </g>
+
+    <!-- ======================================================== -->
+    <!-- RULER GRADUATIONS / VẠCH THƯỚC KỸ THUẬT (0 to 12 CM) -->
+    <!-- ======================================================== -->
+    <!-- Major ticks (cm), Medium ticks (5mm), and Minor ticks (1mm) -->
+    <g stroke="#39ff14" stroke-width="1.6" stroke-linecap="round">
+      <!-- 0 cm -->
+      <line x1="52" y1="6" x2="52" y2="28" stroke="#38bdf8" stroke-width="2.2" />
+      <line x1="57" y1="6" x2="57" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="62" y1="6" x2="62" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="67" y1="6" x2="67" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="72" y1="6" x2="72" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="77" y1="6" x2="77" y2="19" stroke-width="1.5" /> <!-- 5mm -->
+      <line x1="82" y1="6" x2="82" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="87" y1="6" x2="87" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="92" y1="6" x2="92" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="97" y1="6" x2="97" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+
+      <!-- 1 cm -->
+      <line x1="102" y1="6" x2="102" y2="26" stroke-width="2" />
+      <line x1="107" y1="6" x2="107" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="112" y1="6" x2="112" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="117" y1="6" x2="117" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="122" y1="6" x2="122" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="127" y1="6" x2="127" y2="19" stroke-width="1.5" /> <!-- 5mm -->
+      <line x1="132" y1="6" x2="132" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="137" y1="6" x2="137" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="142" y1="6" x2="142" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="147" y1="6" x2="147" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+
+      <!-- 2 cm -->
+      <line x1="152" y1="6" x2="152" y2="26" stroke-width="2" />
+      <line x1="157" y1="6" x2="157" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="162" y1="6" x2="162" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="167" y1="6" x2="167" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="172" y1="6" x2="172" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="177" y1="6" x2="177" y2="19" stroke-width="1.5" /> <!-- 5mm -->
+      <line x1="182" y1="6" x2="182" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="187" y1="6" x2="187" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="192" y1="6" x2="192" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="197" y1="6" x2="197" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+
+      <!-- 3 cm -->
+      <line x1="202" y1="6" x2="202" y2="26" stroke-width="2" />
+      <line x1="207" y1="6" x2="207" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="212" y1="6" x2="212" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="217" y1="6" x2="217" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="222" y1="6" x2="222" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="227" y1="6" x2="227" y2="19" stroke-width="1.5" /> <!-- 5mm -->
+      <line x1="232" y1="6" x2="232" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="237" y1="6" x2="237" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="242" y1="6" x2="242" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="247" y1="6" x2="247" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+
+      <!-- 4 cm -->
+      <line x1="252" y1="6" x2="252" y2="26" stroke-width="2" />
+      <line x1="257" y1="6" x2="257" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="262" y1="6" x2="262" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="267" y1="6" x2="267" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="272" y1="6" x2="272" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="277" y1="6" x2="277" y2="19" stroke-width="1.5" /> <!-- 5mm -->
+      <line x1="282" y1="6" x2="282" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="287" y1="6" x2="287" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="292" y1="6" x2="292" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="297" y1="6" x2="297" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+
+      <!-- 5 cm -->
+      <line x1="302" y1="6" x2="302" y2="26" stroke-width="2" />
+      <line x1="307" y1="6" x2="307" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="312" y1="6" x2="312" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="317" y1="6" x2="317" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="322" y1="6" x2="322" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="327" y1="6" x2="327" y2="19" stroke-width="1.5" />
+      <line x1="332" y1="6" x2="332" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="337" y1="6" x2="337" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="342" y1="6" x2="342" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+      <line x1="347" y1="6" x2="347" y2="13" stroke-width="1.1" stroke-opacity="0.7" />
+
+      <!-- 6 cm -->
+      <line x1="352" y1="6" x2="352" y2="28" stroke="#38bdf8" stroke-width="2.2" />
+    </g>
+
+    <!-- Laser Engraved Metric Numbers on Ruler Body -->
+    <g fill="#94a3b8" font-family="'JetBrains Mono', 'Montserrat', monospace" font-size="9" font-weight="700">
+      <text x="49" y="40">0</text>
+      <text x="99" y="40">1</text>
+      <text x="149" y="40">2</text>
+      <text x="199" y="40">3</text>
+      <text x="249" y="40">4</text>
+      <text x="299" y="40">5</text>
+      <text x="348" y="40">6</text>
+    </g>
+
+    <text x="210" y="48" fill="#39ff14" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="700" letter-spacing="1">STAINLESS ±0.1mm</text>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 4. SECONDARY TECHNICAL TRIANGLE (EKE RULER / CALIPER) -->
+  <!-- ========================================== -->
+  <!-- Eke ruler complement to create an engineering drafting aesthetic -->
+  <g transform="translate(140, 150)" stroke="#10b981" stroke-width="1.8" fill="none">
+    <path d="M0,0 L90,-50 L90,60 Z" stroke="#38bdf8" stroke-opacity="0.6" stroke-width="2" fill="#0c1729" fill-opacity="0.5" />
+    <path d="M25,-12 L70,-38 L70,30 Z" stroke="#39ff14" stroke-opacity="0.5" stroke-width="1.2" />
+    <!-- Ticks on eke hypotenuse -->
+    <g stroke="#39ff14" stroke-width="1.2" stroke-opacity="0.8">
+      <line x1="15" y1="-8" x2="19" y2="-15" />
+      <line x1="30" y1="-17" x2="34" y2="-24" />
+      <line x1="45" y1="-25" x2="49" y2="-32" />
+      <line x1="60" y1="-33" x2="64" y2="-40" />
+      <line x1="75" y1="-42" x2="79" y2="-49" />
+    </g>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 5. 3D PRINT NOZZLE & LASER BEAM (Vòi in 3D & Tia Laser chuẩn xác) -->
+  <!-- ========================================== -->
+  <g transform="translate(256, 120)">
+    <!-- Hotend Extruder Nozzle -->
+    <path d="M-16,-30 L16,-30 L14,-8 L4,6 L-4,6 L-14,-8 Z" fill="#334155" stroke="#64748b" stroke-width="1.5" />
+    <path d="M-6,6 L6,6 L2,16 L-2,16 Z" fill="#eab308" stroke="#ca8a04" stroke-width="1" />
+    
+    <!-- Laser Beam Pulse -->
+    <line x1="0" y1="16" x2="0" y2="128" stroke="#39ff14" stroke-width="2" filter="url(#neonGlow)" />
+    <line x1="0" y1="16" x2="0" y2="128" stroke="#ffffff" stroke-width="0.8" />
+
+    <!-- Laser Contact Point on Build Surface -->
+    <circle cx="0" cy="128" r="4" fill="#ffffff" filter="url(#laserGlow)" />
+    <circle cx="0" cy="128" r="8" fill="#39ff14" opacity="0.6" filter="url(#neonGlow)" />
+    
+    <!-- Concentric Target Calibration Rings -->
+    <ellipse cx="0" cy="128" rx="28" ry="14" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3 3" opacity="0.7" />
+    <ellipse cx="0" cy="128" rx="44" ry="22" fill="none" stroke="#10b981" stroke-width="0.8" stroke-opacity="0.4" />
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 6. BRAND TYPOGRAPHY / LOGO BADGE TEXT -->
+  <!-- ========================================== -->
+  <g transform="translate(256, 442)" text-anchor="middle">
+    <!-- Brand Name: PRINTHUB 3D -->
+    <text y="0" font-family="'Montserrat', system-ui, sans-serif" font-weight="900" font-size="28" letter-spacing="4">
+      <tspan fill="#ffffff">PRINTHUB </tspan>
+      <tspan fill="#39ff14" filter="url(#neonGlow)">3D</tspan>
+    </text>
+
+    <!-- Subtitle: PRECISION RULER & 3D PRINTING -->
+    <text y="18" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" letter-spacing="3.5">
+      PRECISION RULER &amp; 3D PRINT
+    </text>
+  </g>
+</svg>
