@@ -1,3 +1,4 @@
+import { fitText } from "./text";
 import { fonts, type Design, type Surface, type Stroke } from "./model";
 import { getRuler } from "./library/registry";
 import { getProfile, profilePath } from "./geometry/profiles";
@@ -72,7 +73,7 @@ export function paintSurface(
   background = false,
 ) {
   const [sw, sh] = surfaceSize(d, surface),
-    resolution = Math.min(100, 4096 / Math.max(sw, sh)),
+    resolution = Math.min(180, 4096 / Math.max(sw, sh)),
     w = Math.round(sw * resolution),
     h = Math.max(64, Math.round(sh * resolution));
   if (canvas.width !== w || canvas.height !== h) {
@@ -123,7 +124,11 @@ export function paintSurface(
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = l.color;
-      ctx.fillText(l.text, 0, 0, w * 0.85);
+      if (l.kind === "text") {
+        const availableWidth = Math.max(1, w * Math.min(l.x, 1 - l.x) * 1.8);
+        const availableHeight = Math.max(1, h * Math.min(l.y, 1 - l.y) * 1.6);
+        paintText(ctx, l.text, fonts[l.font], l.size * Math.min(h, w * 0.3), 0, 0, availableWidth, availableHeight, base);
+      } else ctx.fillText(l.text, 0, 0, w * 0.85);
       ctx.restore();
     });
   // Measurement information is always composited last, on an opaque protected strip.
@@ -132,15 +137,33 @@ export function paintSurface(
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.font = `600 ${h * 0.32}px ${fonts[d.tag.font]}`;
-      ctx.shadowColor = "#0008";
-      ctx.shadowBlur = 2;
-      ctx.shadowOffsetY = d.tag.mode === "raised" ? 2 : -2;
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
       ctx.fillStyle = d.tag.textColor;
-      ctx.fillText(d.tag.text, w / 2, h / 2, w * 0.88);
+      paintText(ctx, d.tag.text, fonts[d.tag.font], h * 0.32, w / 2, h / 2, w * 0.84, h * 0.75, base);
     }
   } else paintMarkings(ctx, d, w, h);
   ctx.restore();
 }
+function paintText(ctx: CanvasRenderingContext2D, text: string, family: string, size: number,
+  x: number, y: number, width: number, height: number, base: string) {
+  const layout = fitText(text, width, height, size, (value, fontSize) => {
+    ctx.font = `600 ${fontSize}px ${family}`;
+    return ctx.measureText(value).width;
+  });
+  ctx.font = `600 ${layout.size}px ${family}`;
+  const rgb = base.replace('#', '');
+  const luminance = parseInt(rgb.slice(0, 2), 16) * 0.2126 + parseInt(rgb.slice(2, 4), 16) * 0.7152 + parseInt(rgb.slice(4, 6), 16) * 0.0722;
+  ctx.strokeStyle = luminance > 140 ? '#000000' : '#FFFFFF';
+  ctx.lineWidth = Math.max(0.6, layout.size * 0.035);
+  ctx.lineJoin = 'round';
+  layout.lines.forEach((line, index) => {
+    const lineY = y + (index - (layout.lines.length - 1) / 2) * layout.lineHeight;
+    ctx.strokeText(line, x, lineY);
+    ctx.fillText(line, x, lineY);
+  });
+}
+
 function paintMarkings(
   ctx: CanvasRenderingContext2D,
   d: Design,

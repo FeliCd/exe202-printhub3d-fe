@@ -1,3 +1,4 @@
+import { translateCustom as tr } from './language';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls } from "@react-three/drei";
@@ -149,13 +150,13 @@ function Artwork({
       userData={{ artwork: true }}
     >
       <planeGeometry args={[w, h]} />
-      <meshStandardMaterial
+      <meshBasicMaterial
+        toneMapped={false}
         map={texture}
         transparent
         depthWrite={false}
         polygonOffset
         polygonOffsetFactor={-2}
-        roughness={0.65}
       />
     </mesh>
   );
@@ -439,13 +440,12 @@ export default function Scene({
   return (
     <section
       className={`studio-preview ${light ? "dark-product-bg" : "light-product-bg"}`}
-      aria-label="Interactive 3D ruler preview"
+      aria-label={tr("Interactive 3D ruler preview")}
     >
       <div className="studio-preview-heading">
-        <span>PRINT HUB / DESIGN STUDIO</span>
+        <span>{tr("PRINT HUB / DESIGN STUDIO")}</span>
         <strong>
-          {ruler.name} · {design.length} cm
-        </strong>
+          {ruler.name} · {design.length} {tr("cm")} </strong>
       </div>
       <div className={`studio-canvas ${reduced ? "" : "studio-enter"}`}>
         <Canvas
@@ -507,7 +507,7 @@ export default function Scene({
         </Canvas>
       </div>
       <div className="studio-preview-footer">
-        <div className="studio-camera" aria-label="Camera presets">
+        <div className="studio-camera" aria-label={tr("Camera presets")}>
           {(["Hero", "Top", "45°", "Side", "Bottom"] as View[]).map((v) => (
             <button
               key={v}
@@ -518,7 +518,7 @@ export default function Scene({
                 setSerial((s) => s + 1);
               }}
             >
-              {v}
+              {tr(v)}
             </button>
           ))}
           <button
@@ -527,9 +527,7 @@ export default function Scene({
               setManualSurfaceSerial(surfaceSerial);
               setSerial((s) => s + 1);
             }}
-          >
-            Reset view
-          </button>
+          > {tr("Reset view")} </button>
         </div>
         <div className="studio-row">
           <label>
@@ -537,36 +535,29 @@ export default function Scene({
               type="checkbox"
               checked={dimensions}
               onChange={(e) => setDimensions(e.target.checked)}
-            />{" "}
-            Dimensions
-          </label>
-          <button onClick={exportSTL}>Export STL</button>
+            />{" "} {tr("Dimensions")} </label>
+          <button onClick={exportSTL}>{tr("Export STL")}</button>
         </div>
         {dimensions && (
-          <p className="studio-dimensions">
-            Body {(profile.width * 10).toFixed(0)} ×{" "}
+          <p className="studio-dimensions"> {tr("Body")} {(profile.width * 10).toFixed(0)} ×{" "}
             {(profile.height * 10).toFixed(0)} ×{" "}
             {(ruler.geometryType === "triangular-scale"
               ? ((profile.height * Math.sqrt(3)) / 2) * 10
               : profile.thickness * 10
-            ).toFixed(1)}{" "}
-            mm ·{" "}
+            ).toFixed(1)}{" "} {tr("mm ·")}{" "}
             {ruler.geometryType.includes("curve")
-              ? "Tracing guide"
+              ? tr("Tracing guide")
               : ruler.geometryType === "protractor"
                 ? "0–180°"
                 : design.measurementSystem === "imperial"
-                  ? "1/16 inch"
+                  ? tr("1/16 inch")
                   : design.scaleId !== "1:1"
                     ? `${design.scaleId} scale`
-                    : "1 mm graduations"}
+                    : tr("1 mm graduations")}
           </p>
         )}
-        <p className="studio-hint">
-          Drag to orbit · Scroll to zoom. STL contains the solid body and tag;
-          export the design JSON to retain surface artwork.
-        </p>
-        {error && <p role="alert">{error}</p>}
+        <p className="studio-hint"> {tr("Drag to orbit · Scroll to zoom. STL contains the solid body and tag; export the design JSON to retain surface artwork.")} </p>
+        {error && <p role="alert">{tr(error)}</p>}
       </div>
     </section>
   );

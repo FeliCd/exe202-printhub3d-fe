@@ -1,3 +1,4 @@
+import { translateCustom as tr } from '../language';
 import { useMemo, useState } from "react";
 import Modal from "../../../components/Modal";
 import {
@@ -102,38 +103,34 @@ export default function RulerLibrary({
         setConfirm(false);
         onClose();
       }}
-      label="Ruler Library"
+      label={tr("Ruler Library")}
     >
       <section className="ruler-library ruler-studio">
         <header className="library-header">
           <div>
-            <span>FIND YOUR NEXT TOOL</span>
-            <h2>Ruler Library</h2>
-            <p>Explore ruler families · Tìm loại thước phù hợp</p>
+            <span>{tr("FIND YOUR NEXT TOOL")}</span>
+            <h2>{tr("Ruler Library")}</h2>
+            <p>{tr("Explore ruler families · Tìm loại thước phù hợp")}</p>
           </div>
-          <button onClick={onClose} aria-label="Close ruler library">
+          <button onClick={onClose} aria-label={tr("Close ruler library")}>
             ✕
           </button>
         </header>
         <div className="library-search">
-          <label>
-            Search rulers
-            <input
+          <label> {tr("Search rulers")} <input
               autoFocus
               type="search"
               maxLength={160}
-              placeholder="Search rulers… / Tìm thước…"
+              placeholder={tr("Search rulers… / Tìm thước…")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </label>
-          <label>
-            Measurement
-            <select value={system} onChange={(e) => setSystem(e.target.value)}>
-              <option value="all">All systems</option>
-              <option value="metric">Metric · mm/cm</option>
-              <option value="imperial">Imperial · inch</option>
-              <option value="dual">Metric + imperial</option>
+          <label> {tr("Measurement")} <select value={system} onChange={(e) => setSystem(e.target.value)}>
+              <option value="all">{tr("All systems")}</option>
+              <option value="metric">{tr("Metric · mm/cm")}</option>
+              <option value="imperial">{tr("Imperial · inch")}</option>
+              <option value="dual">{tr("Metric + imperial")}</option>
             </select>
           </label>
           <label className="library-check">
@@ -141,24 +138,22 @@ export default function RulerLibrary({
               type="checkbox"
               checked={available}
               onChange={(e) => setAvailable(e.target.checked)}
-            />{" "}
-            Designable now
-          </label>
+            />{" "} {tr("Designable now")} </label>
         </div>
-        <nav className="library-categories" aria-label="Ruler categories">
+        <nav className="library-categories" aria-label={tr("Ruler categories")}>
           {categories.map((c) => (
             <button
-              key={c}
+              key={tr(c)}
               aria-pressed={category === c}
               onClick={() => setCategory(c)}
             >
-              {c}
+              {tr(c)}
             </button>
           ))}
         </nav>
         <div className="library-body">
           <div className="library-results">
-            <p role="status">{results.length} rulers found</p>
+            <p role="status">{results.length} {tr("rulers found")}</p>
             {results.length ? (
               <div className="library-grid">
                 {results.map((r) => (
@@ -175,20 +170,19 @@ export default function RulerLibrary({
                     <strong>{r.name}</strong>
                     <span>{r.vietnameseName}</span>
                     <small>
-                      {r.category} · {r.defaultDimensions.length / 10} cm
-                    </small>
+                      {tr(r.category)} · {r.defaultDimensions.length / 10} {tr("cm")} </small>
                     <small>
                       {r.availability === "designable"
-                        ? "Design ready"
-                        : "Coming later"}
+                        ? tr("Design ready")
+                        : tr("Coming later")}
                     </small>
                   </button>
                 ))}
               </div>
             ) : (
               <div className="library-empty">
-                <h3>No rulers found for “{query}”</h3>
-                <p>Try Straight, Triangle, Scale, Curve or Sewing.</p>
+                <h3>{tr("No rulers found for “")}{query}”</h3>
+                <p>{tr("Try Straight, Triangle, Scale, Curve or Sewing.")}</p>
                 <button
                   onClick={() => {
                     setQuery("");
@@ -196,19 +190,16 @@ export default function RulerLibrary({
                     setSystem("all");
                     setAvailable(false);
                   }}
-                >
-                  Clear search & filters
-                </button>
+                > {tr("Clear search & filters")} </button>
               </div>
             )}
           </div>
-          <aside className="library-preview" aria-label="Ruler quick preview">
+          <aside className="library-preview" aria-label={tr("Ruler quick preview")}>
             <RulerThumbnail ruler={preview} />
             <h3>{preview.name}</h3>
             <p>{preview.vietnameseName}</p>
             <p>{preview.description}</p>
-            <p className="studio-hint">
-              Sizes:{" "}
+            <p className="studio-hint"> {tr("Sizes:")}{" "}
               {preview.supportedLengths.map((n) => `${n / 10} cm`).join(" · ")}
             </p>
             <p className="studio-hint">
@@ -218,23 +209,15 @@ export default function RulerLibrary({
             </p>
             <p className="studio-hint">
               {preview.customizableRegions.map((r) => r.label).join(" · ")}
-              {preview.supportsNameTag ? " · Name tag" : ""}
+              {preview.supportsNameTag ? tr(" · Name tag") : ""}
             </p>
             {confirm ? (
               <div className="library-confirm" role="status">
-                <strong>Change ruler?</strong>
-                <p>
-                  This shape has different printable regions. Keep compatible
-                  artwork (layers move inside the new shape; drawings are
-                  clipped to its outline), or start fresh. Unsupported tag
-                  artwork stays in the design and can be restored by choosing a
-                  tag-compatible ruler. Undo restores the whole previous design.
-                </p>
-                <button onClick={() => choose(true)}>
-                  Keep compatible customization
-                </button>
-                <button onClick={() => choose(false)}>Start fresh</button>
-                <button onClick={() => setConfirm(false)}>Cancel</button>
+                <strong>{tr("Change ruler?")}</strong>
+                <p> {tr("This shape has different printable regions. Keep compatible artwork (layers move inside the new shape; drawings are clipped to its outline), or start fresh. Unsupported tag artwork stays in the design and can be restored by choosing a tag-compatible ruler. Undo restores the whole previous design.")} </p>
+                <button onClick={() => choose(true)}> {tr("Keep compatible customization")} </button>
+                <button onClick={() => choose(false)}>{tr("Start fresh")}</button>
+                <button onClick={() => setConfirm(false)}>{tr("Cancel")}</button>
               </div>
             ) : (
               <button
@@ -243,14 +226,11 @@ export default function RulerLibrary({
                 onClick={select}
               >
                 {preview.availability === "designable"
-                  ? "Select Ruler"
-                  : "Coming later"}
+                  ? tr("Select Ruler")
+                  : tr("Coming later")}
               </button>
             )}
-            <p className="studio-hint">
-              New ruler types and sizes need a production quote. Large rulers
-              may require a larger print bed.
-            </p>
+            <p className="studio-hint"> {tr("New ruler types and sizes need a production quote. Large rulers may require a larger print bed.")} </p>
           </aside>
         </div>
       </section>

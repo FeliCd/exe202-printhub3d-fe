@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import { translateCustom as tr, useCustomLanguage } from './language';
+import { TEXT_LIMIT, characters, limitText } from "./text";
+import { useId, useState, type ReactNode } from "react";
 import { getRuler, scaleDefinitions } from "./library/registry";
 import {
   applyTemplate,
@@ -10,6 +12,28 @@ import {
   type Surface,
   type Tab,
 } from "./model";
+function LimitedTextInput({ value, onChange }: {
+  value: string;
+  onChange: (text: string) => void;
+}) {
+  const [overLimit, setOverLimit] = useState(false);
+  const warningId = useId();
+  return <>
+    <input
+      value={value}
+      aria-describedby={overLimit ? warningId : undefined}
+      onChange={(event) => {
+        const text = event.target.value;
+        setOverLimit(characters(text).length > TEXT_LIMIT);
+        onChange(limitText(text));
+      }}
+    />
+    {overLimit && <p id={warningId} role="alert" className="text-xs text-amber-300">
+      {tr('Maximum 100 characters. Only the first 100 characters were kept.')}
+    </p>}
+  </>;
+}
+
 export function Field({
   label,
   children,
@@ -19,7 +43,7 @@ export function Field({
 }) {
   return (
     <label className="studio-field">
-      <span>{label}</span>
+      <span>{tr(label)}</span>
       {children}
     </label>
   );
@@ -57,6 +81,7 @@ export default function Panels({
   selected,
   select,
 }: Props) {
+  const { language } = useCustomLanguage();
   const ruler = getRuler(d.rulerId);
   const tag = (patch: Partial<Design["tag"]>) =>
     change({ ...d, tag: { ...d.tag, ...patch } });
@@ -98,9 +123,9 @@ export default function Panels({
     >
       {tab === "Ruler" && (
         <>
-          <h2>{ruler.name}</h2>
+          <h2>{language === 'vi' ? ruler.vietnameseName : ruler.name}</h2>
           <p>{ruler.description}</p>
-          <Field label="Length">
+          <Field label={tr("Length")}>
             <select
               value={d.length}
               onChange={(e) =>
@@ -112,13 +137,12 @@ export default function Panels({
             >
               {ruler.supportedLengths.map((n) => (
                 <option key={n} value={n / 10}>
-                  {n / 10} cm
-                </option>
+                  {n / 10} {tr("cm")} </option>
               ))}
             </select>
           </Field>
           {ruler.scaleIds.length > 0 && (
-            <Field label="Drawing scale">
+            <Field label={tr("Drawing scale")}>
               <select
                 value={d.scaleId}
                 onChange={(e) => change({ ...d, scaleId: e.target.value })}
@@ -127,14 +151,13 @@ export default function Panels({
                   .filter((s) => ruler.scaleIds.includes(s.id))
                   .map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.label} · represented metres
-                    </option>
+                      {s.label} {tr("· represented metres")} </option>
                   ))}
               </select>
             </Field>
           )}
           {ruler.id === "adjustable-set-square" && (
-            <Field label="Fixed printed angle">
+            <Field label={tr("Fixed printed angle")}>
               <select
                 value={d.angle}
                 onChange={(e) =>
@@ -149,23 +172,22 @@ export default function Panels({
               </select>
             </Field>
           )}
-          <p className="studio-hint">
-            Measurement: {d.measurementSystem} ·{" "}
+          <p className="studio-hint"> {tr("Measurement:")} {d.measurementSystem} ·{" "}
             {ruler.customizableRegions.map((r) => r.label).join(" / ")}
           </p>
-          <Field label="Material">
+          <Field label={tr("Material")}>
             <select
               value={d.material}
               onChange={(e) =>
                 change({ ...d, material: e.target.value as Design["material"] })
               }
             >
-              <option value="PLA">PLA · soft matte</option>
-              <option value="PETG">PETG · satin gloss</option>
+              <option value="PLA">{tr("PLA · soft matte")}</option>
+              <option value="PETG">{tr("PETG · satin gloss")}</option>
             </select>
           </Field>
           <ColorField
-            label="Ruler color"
+            label={tr("Ruler color")}
             value={d.color}
             onChange={(color) => change({ ...d, color })}
           />
@@ -187,7 +209,7 @@ export default function Panels({
               />
             ))}
           </div>
-          <Field label="Infill">
+          <Field label={tr("Infill")}>
             <select
               value={d.infill}
               onChange={(e) => change({ ...d, infill: +e.target.value })}
@@ -202,43 +224,38 @@ export default function Panels({
         </>
       )}
       {tab === "Name Tag" && !ruler.supportsNameTag && (
-        <p>
-          This ruler has no flat name-tag mounting region. Any existing tag is
-          retained in your design and becomes available on a compatible ruler.
-        </p>
+        <p> {tr("This ruler has no flat name-tag mounting region. Any existing tag is retained in your design and becomes available on a compatible ruler.")} </p>
       )}
       {tab === "Name Tag" && ruler.supportsNameTag && (
         <>
-          <h2>Put your name on it</h2>
+          <h2>{tr("Put your name on it")}</h2>
           <label className="studio-row">
             <input
               type="checkbox"
               checked={d.tag.enabled}
               onChange={(e) => tag({ enabled: e.target.checked })}
-            />{" "}
-            Show name tag
-          </label>
-          <Field label="Name (28 characters)">
-            <input
-              maxLength={28}
+            />{" "} {tr("Show name tag")} </label>
+          <Field label={tr("Name (100 characters)")}>
+            <LimitedTextInput
               value={d.tag.text}
-              onChange={(e) => tag({ text: e.target.value })}
+              onChange={(text) => tag({ text })}
             />
           </Field>
-          <Field label="Tag shape">
+          <p className="studio-hint">{characters(d.tag.text).length}{tr("/100 · Text updates live on the 3D name tag.")}</p>
+          <Field label={tr("Tag shape")}>
             <select
               value={d.tag.shape}
               onChange={(e) =>
                 tag({ shape: e.target.value as Design["tag"]["shape"] })
               }
             >
-              <option value="rounded">Rounded rectangle</option>
-              <option value="capsule">Capsule</option>
-              <option value="badge">Badge</option>
-              <option value="square">Soft square</option>
+              <option value="rounded">{tr("Rounded rectangle")}</option>
+              <option value="capsule">{tr("Capsule")}</option>
+              <option value="badge">{tr("Badge")}</option>
+              <option value="square">{tr("Soft square")}</option>
             </select>
           </Field>
-          <Field label="Name font">
+          <Field label={tr("Name font")}>
             <select
               value={d.tag.font}
               onChange={(e) =>
@@ -246,31 +263,31 @@ export default function Panels({
               }
             >
               {Object.keys(fonts).map((f) => (
-                <option key={f}>{f}</option>
+                <option key={f} value={f}>{tr(f)}</option>
               ))}
             </select>
           </Field>
           <div className="studio-row">
             <ColorField
-              label="Tag color"
+              label={tr("Tag color")}
               value={d.tag.color}
               onChange={(color) => tag({ color })}
             />
             <ColorField
-              label="Name color"
+              label={tr("Name color")}
               value={d.tag.textColor}
               onChange={(textColor) => tag({ textColor })}
             />
           </div>
-          <Field label="Finish">
+          <Field label={tr("Finish")}>
             <select
               value={d.tag.mode}
               onChange={(e) =>
                 tag({ mode: e.target.value as Design["tag"]["mode"] })
               }
             >
-              <option value="raised">Raised</option>
-              <option value="engraved">Engraved appearance</option>
+              <option value="raised">{tr("Raised")}</option>
+              <option value="engraved">{tr("Engraved appearance")}</option>
             </select>
           </Field>
           <div className="studio-row">
@@ -280,15 +297,15 @@ export default function Panels({
               ["Right", 0.75],
             ].map(([label, x]) => (
               <button
-                key={label}
+                key={tr(String(label))}
                 aria-pressed={d.tag.x === x}
                 onClick={() => tag({ x: Number(x) })}
               >
-                {label}
+                {tr(String(label))}
               </button>
             ))}
           </div>
-          <Field label="Tag position">
+          <Field label={tr("Tag position")}>
             <input
               type="range"
               min=".25"
@@ -298,26 +315,21 @@ export default function Panels({
               onChange={(e) => tag({ x: +e.target.value })}
             />
           </Field>
-          <p className="studio-hint">
-            Letter relief is a visual finish. Exported STL includes the tag
-            body, not engraved or raised lettering.
-          </p>
+          <p className="studio-hint"> {tr("Letter relief is a visual finish. Exported STL includes the tag body, not engraved or raised lettering.")} </p>
         </>
       )}
       {(tab === "Text" || tab === "Stickers") && (
         <>
           <h2>
             {tab === "Text"
-              ? "A few words, your way"
-              : "Small details. Big personality."}
+              ? tr("A few words, your way")
+              : tr("Small details. Big personality.")}
           </h2>
           {tab === "Text" ? (
             <button
               disabled={d.layers.length >= 24 || !ruler.supportsText}
               onClick={() => add("text", "Your text")}
-            >
-              + Add text
-            </button>
+            > {tr("+ Add text")} </button>
           ) : (
             <div className="studio-stickers">
               {[
@@ -331,9 +343,9 @@ export default function Panels({
                 ["☺", "Smile"],
               ].map(([symbol, label]) => (
                 <button
-                  key={label}
+                  key={tr(String(label))}
                   aria-label={`Add ${label}`}
-                  title={label}
+                  title={tr(String(label))}
                   disabled={d.layers.length >= 24 || !ruler.supportsSticker}
                   onClick={() => add("sticker", symbol)}
                 >
@@ -351,20 +363,21 @@ export default function Panels({
                   aria-pressed={selected === l.id}
                   onClick={() => select(l.id)}
                 >
-                  {l.kind === "text" ? "T" : "◇"} {l.text || "Empty text"}
+                  {l.kind === "text" ? tr("T") : "◇"} {l.text || tr("Empty text")}
                 </button>
               ))}
           </div>
           {layer && (
             <>
-              <Field label="Layer text">
-                <input
+              <Field label={tr("Layer text")}>
+                <LimitedTextInput
+                  key={layer.id}
                   value={layer.text}
-                  maxLength={40}
-                  onChange={(e) => update({ text: e.target.value })}
+                  onChange={(text) => update({ text })}
                 />
               </Field>
-              <Field label="Layer font">
+              <p className="studio-hint">{characters(layer.text).length}{tr("/100 · Text updates live on the selected surface.")}</p>
+              <Field label={tr("Layer font")}>
                 <select
                   value={layer.font}
                   onChange={(e) =>
@@ -372,12 +385,12 @@ export default function Panels({
                   }
                 >
                   {Object.keys(fonts).map((f) => (
-                    <option key={f}>{f}</option>
+                    <option key={f} value={f}>{tr(f)}</option>
                   ))}
                 </select>
               </Field>
               <ColorField
-                label="Layer color"
+                label={tr("Layer color")}
                 value={layer.color}
                 onChange={(color) => update({ color })}
               />
@@ -431,15 +444,11 @@ export default function Panels({
                     change({ ...d, layers: [...d.layers, copy] });
                     select(copy.id);
                   }}
-                >
-                  Duplicate layer
-                </button>
+                > {tr("Duplicate layer")} </button>
                 <button
                   aria-pressed={layer.flip}
                   onClick={() => update({ flip: !layer.flip })}
-                >
-                  Flip
-                </button>
+                > {tr("Flip")} </button>
                 <button
                   onClick={() => {
                     change({
@@ -448,9 +457,7 @@ export default function Panels({
                     });
                     select("");
                   }}
-                >
-                  Delete
-                </button>
+                > {tr("Delete")} </button>
               </div>
             </>
           )}
@@ -458,25 +465,19 @@ export default function Panels({
       )}
       {tab === "Draw" && (
         <>
-          <h2>Leave your mark</h2>
-          <p>
-            Draw on the surface below the preview. Your strokes stay editable
-            and travel with the saved design.
-          </p>
-          <p>Use Undo / Redo above to restore a stroke or a cleared drawing.</p>
+          <h2>{tr("Leave your mark")}</h2>
+          <p> {tr("Draw on the surface below the preview. Your strokes stay editable and travel with the saved design.")} </p>
+          <p>{tr("Use Undo / Redo above to restore a stroke or a cleared drawing.")}</p>
         </>
       )}
       {tab === "Templates" && (
         <>
-          <h2>Start with a mood</h2>
-          <p>
-            Templates replace colors, layers and ink. Your name and ruler size
-            stay. Undo restores your previous design.
-          </p>
+          <h2>{tr("Start with a mood")}</h2>
+          <p> {tr("Templates replace colors, layers and ink. Your name and ruler size stay. Undo restores your previous design.")} </p>
           <div className="studio-templates">
             {templates.map((t) => (
               <button
-                key={t[0]}
+                key={tr(t[0])}
                 aria-pressed={d.template === t[0]}
                 onClick={() => {
                   change(applyTemplate(d, t[0]));
@@ -484,9 +485,9 @@ export default function Panels({
                 }}
               >
                 <span style={{ background: t[1], color: t[2] }}>
-                  0 ┃ 1 ┃ 2 <b>{t[4] || "Aa"}</b>
+                  0 ┃ 1 ┃ 2 <b>{t[4] || tr("Aa")}</b>
                 </span>
-                {t[0]}
+                {tr(t[0])}
               </button>
             ))}
           </div>

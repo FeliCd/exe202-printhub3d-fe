@@ -26,7 +26,7 @@ test("invalid saved designs are bounded and cannot inject colors or non-finite c
   assert.equal(d.length, 20);
   assert.match(d.color, /^#[0-9a-f]{6}$/i);
   assert.equal(d.layers.length, 24);
-  assert.equal(d.tag.text.length, 28);
+  assert.equal(d.tag.text.length, 100);
   assert.ok(
     d.layers.every(
       (l) =>

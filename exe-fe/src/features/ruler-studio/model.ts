@@ -1,3 +1,4 @@
+import { limitText } from "./text.ts";
 import {
   defaultRulerId,
   getRuler,
@@ -152,7 +153,7 @@ export function normalizeDesign(value: unknown): Design {
       shape: ["rounded", "capsule", "badge", "square"].includes(String(t.shape))
         ? (t.shape as Design["tag"]["shape"])
         : "capsule",
-      text: str(t.text, base.tag.text, 28),
+      text: limitText(typeof t.text === "string" ? t.text : base.tag.text),
       font: font(t.font),
       color: color(t.color, base.tag.color),
       textColor: color(t.textColor, base.tag.textColor),
@@ -167,7 +168,7 @@ export function normalizeDesign(value: unknown): Design {
           id: str(l.id, uid(), 80),
           kind: l.kind === "sticker" ? "sticker" : "text",
           surface: surfaceId(l.surface),
-          text: str(l.text, "Text"),
+          text: limitText(typeof l.text === "string" ? l.text : "Text"),
           x: num(l.x, 0.5, 0.04, 0.96),
           y: num(l.y, 0.6, 0.1, 0.9),
           size: num(l.size, 0.12, 0.04, 0.45),

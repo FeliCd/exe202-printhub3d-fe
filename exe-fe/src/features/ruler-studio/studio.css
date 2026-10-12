@@ -435,6 +435,13 @@
   flex: 1;
   min-width: 160px;
 }
+.studio-ruler-info .studio-page-controls {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+.studio-ruler-info .studio-page-controls h1 {
+  order: -2;
+}
 .studio-ruler-info span,
 .studio-ruler-info small {
   color: #bdbdbd;

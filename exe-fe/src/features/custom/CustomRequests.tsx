@@ -187,7 +187,7 @@ function formatDate(dateStr?: string | null) {
   }
 }
 
-function renderStatusBadge(status?: string) {
+function renderStatusBadge(status?: string, tr: (text: string) => string = text => text) {
   const s = (status || 'REQUESTED').toUpperCase();
   switch (s) {
     case 'REQUESTED':
@@ -195,14 +195,14 @@ function renderStatusBadge(status?: string) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-amber-500/50 bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20 shadow-sm">
           <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400" />
-          <span>Chờ báo giá</span>
+          <span>{tr("Chờ báo giá")}</span>
         </span>
       );
     case 'QUOTED':
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/60 bg-primary/20 text-primary ring-1 ring-primary/40 shadow-sm animate-pulse">
           <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>Đã có báo giá</span>
+          <span>{tr("Đã có báo giá")}</span>
         </span>
       );
     case 'ACCEPTED':
@@ -210,42 +210,42 @@ function renderStatusBadge(status?: string) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/50 bg-primary/15 text-primary ring-1 ring-primary/20 shadow-sm">
           <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-          <span>Đã chấp nhận</span>
+          <span>{tr("Đã chấp nhận")}</span>
         </span>
       );
     case 'PAID':
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/50 bg-primary/15 text-primary shadow-sm">
           <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-          <span>Đã thanh toán</span>
+          <span>{tr("Đã thanh toán")}</span>
         </span>
       );
     case 'PREPARING':
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/50 bg-indigo-500/15 text-indigo-300 shadow-sm">
           <Box className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Chuẩn bị phôi in</span>
+          <span>{tr("Chuẩn bị phôi in")}</span>
         </span>
       );
     case 'PRINTING':
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-purple-500/60 bg-purple-500/20 text-purple-300 ring-1 ring-purple-500/40 shadow-sm">
           <Printer className="w-3.5 h-3.5 text-purple-400 animate-bounce" />
-          <span>Đang in 3D</span>
+          <span>{tr("Đang in 3D")}</span>
         </span>
       );
     case 'SHIPPING':
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-blue-500/50 bg-blue-500/15 text-blue-300 shadow-sm">
           <Truck className="w-3.5 h-3.5 text-blue-400" />
-          <span>Đang giao hàng</span>
+          <span>{tr("Đang giao hàng")}</span>
         </span>
       );
     case 'COMPLETED':
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/60 bg-primary/20 text-primary shadow-sm">
           <Check className="w-3.5 h-3.5 text-primary" />
-          <span>Hoàn thành</span>
+          <span>{tr("Hoàn thành")}</span>
         </span>
       );
     case 'CANCELLED':
@@ -253,7 +253,7 @@ function renderStatusBadge(status?: string) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-rose-500/50 bg-rose-500/10 text-rose-400 shadow-sm">
           <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-          <span>Đã hủy</span>
+          <span>{tr("Đã hủy")}</span>
         </span>
       );
     default:
@@ -271,9 +271,11 @@ function renderStatusBadge(status?: string) {
 export function CustomRequestForm({
   bulk = false,
   onCreated,
+  translate: tr = text => text,
 }: {
   bulk?: boolean;
   onCreated?: () => void;
+  translate?: (text: string) => string;
 }) {
   const { isAuthenticated } = useAuth();
   const action = useAction(onCreated);
@@ -289,15 +291,12 @@ export function CustomRequestForm({
         <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary mx-auto">
           <User className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-bold text-white">Yêu cầu đăng nhập</h3>
-        <p className="text-sm text-slate-400">
-          Vui lòng đăng nhập để gửi tệp thiết kế 3D và nhận báo giá từ xưởng PrintHub.
-        </p>
+        <h3 className="text-lg font-bold text-white">{tr("Yêu cầu đăng nhập")}</h3>
+        <p className="text-sm text-slate-400"> {tr("Vui lòng đăng nhập để gửi tệp thiết kế 3D và nhận báo giá từ xưởng PrintHub.")} </p>
         <Link
           to={`/login?redirect=${bulk ? '/bulk-order' : '/custom'}`}
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 transition shadow-lg shadow-primary/20 text-sm"
-        >
-          Đăng nhập ngay <ArrowRight className="w-4 h-4" />
+        > {tr("Đăng nhập ngay")} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     );
@@ -313,11 +312,9 @@ export function CustomRequestForm({
         </div>
         <div>
           <h2 className="text-xl font-black text-white">
-            {bulk ? 'Gửi Lô Thiết Kế Nhận Báo Giá Số Lượng Lớn' : 'Gửi Tệp Thiết Kế 3D Yêu Cầu Báo Giá'}
+            {bulk ? tr("Gửi Lô Thiết Kế Nhận Báo Giá Số Lượng Lớn") : tr("Gửi Tệp Thiết Kế 3D Yêu Cầu Báo Giá")}
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Tải lên file STL/OBJ/STEP để kỹ thuật viên thẩm định kết cấu in và gửi báo giá chính xác.
-          </p>
+          <p className="text-xs text-slate-400 mt-0.5"> {tr("Tải lên file STL/OBJ/STEP để kỹ thuật viên thẩm định kết cấu in và gửi báo giá chính xác.")} </p>
         </div>
       </div>
 
@@ -364,8 +361,7 @@ export function CustomRequestForm({
         {/* File Dropzone */}
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <FileCode className="w-4 h-4 text-primary" />
-            Tệp thiết kế 3D (.STL, .OBJ, .STEP) <span className="text-rose-400">*</span>
+            <FileCode className="w-4 h-4 text-primary" /> {tr("Tệp thiết kế 3D (.STL, .OBJ, .STEP)")} <span className="text-rose-400">*</span>
           </label>
           <div className="relative border-2 border-dashed border-border hover:border-primary/50 transition rounded-2xl p-6 text-center bg-surface-inset/60">
             <input
@@ -378,12 +374,9 @@ export function CustomRequestForm({
             />
             <div className="space-y-2 pointer-events-none">
               <Download className="w-8 h-8 text-primary mx-auto opacity-80" />
-              <p className="text-sm font-semibold text-white">
-                Kéo thả file thiết kế vào đây hoặc <span className="text-primary underline">chọn tệp</span>
+              <p className="text-sm font-semibold text-white"> {tr("Kéo thả file thiết kế vào đây hoặc")} <span className="text-primary underline">{tr("chọn tệp")}</span>
               </p>
-              <p className="text-xs text-slate-400">
-                Hỗ trợ STL, OBJ, STEP (tối đa 20MB mỗi tệp)
-              </p>
+              <p className="text-xs text-slate-400"> {tr("Hỗ trợ STL, OBJ, STEP (tối đa 20MB mỗi tệp)")} </p>
             </div>
           </div>
           {files.length > 0 && (
@@ -395,7 +388,7 @@ export function CustomRequestForm({
                 >
                   <FileCode className="w-3.5 h-3.5 text-primary" />
                   <span className="font-mono">{f.name}</span>
-                  <span className="text-[10px] text-slate-500">({(f.size / 1024 / 1024).toFixed(2)} MB)</span>
+                  <span className="text-[10px] text-slate-500">({(f.size / 1024 / 1024).toFixed(2)} {tr("MB)")}</span>
                 </span>
               ))}
             </div>
@@ -405,8 +398,7 @@ export function CustomRequestForm({
         {/* Quantity */}
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-primary" />
-            Số lượng in (cây / cái) <span className="text-rose-400">*</span>
+            <Layers className="w-4 h-4 text-primary" /> {tr("Số lượng in (cây / cái)")} <span className="text-rose-400">*</span>
           </label>
           <input
             type="number"
@@ -422,14 +414,13 @@ export function CustomRequestForm({
         {/* Technical Requirements */}
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Ruler className="w-4 h-4 text-purple-400" />
-            Yêu cầu kỹ thuật & Vật liệu <span className="text-rose-400">*</span>
+            <Ruler className="w-4 h-4 text-purple-400" /> {tr("Yêu cầu kỹ thuật & Vật liệu")} <span className="text-rose-400">*</span>
           </label>
           <textarea
             rows={3}
             maxLength={4000}
             required
-            placeholder="Ví dụ: Thước dài 20cm, nhựa PLA Pro+ màu Emerald, độ đặc Infill 20%, khắc tên 'Nguyễn Văn A' laser chìm..."
+            placeholder={tr("Ví dụ: Thước dài 20cm, nhựa PLA Pro+ màu Emerald, độ đặc Infill 20%, khắc tên 'Nguyễn Văn A' laser chìm...")}
             value={requirements}
             onChange={e => setRequirements(e.target.value)}
             className="w-full rounded-xl border border-border bg-surface-inset p-3 text-sm text-white focus:outline-none focus:border-primary"
@@ -439,14 +430,13 @@ export function CustomRequestForm({
         {/* Shipping Address */}
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            Thông tin người nhận & Địa chỉ giao hàng <span className="text-rose-400">*</span>
+            <MapPin className="w-4 h-4 text-primary" /> {tr("Thông tin người nhận & Địa chỉ giao hàng")} <span className="text-rose-400">*</span>
           </label>
           <textarea
             rows={2}
             maxLength={1000}
             required
-            placeholder="Ví dụ: Lê Quốc Khánh · 0786954657 · Khu Công Nghệ Cao, P. Long Thạnh Mỹ, TP. Thủ Đức"
+            placeholder={tr("Ví dụ: Lê Quốc Khánh · 0786954657 · Khu Công Nghệ Cao, P. Long Thạnh Mỹ, TP. Thủ Đức")}
             value={address}
             onChange={e => setAddress(e.target.value)}
             className="w-full rounded-xl border border-border bg-surface-inset p-3 text-sm text-white focus:outline-none focus:border-primary"
@@ -460,7 +450,7 @@ export function CustomRequestForm({
             className="w-full py-3.5 rounded-xl bg-primary text-slate-950 font-black hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm shadow-xl shadow-primary/20 uppercase tracking-tight cursor-pointer disabled:opacity-50"
           >
             <Send className="w-4 h-4" />
-            <span>{action.busy ? 'Đang tải file & gửi yêu cầu...' : 'Gửi Yêu Cầu Báo Giá'}</span>
+            <span>{action.busy ? tr("Đang tải file & gửi yêu cầu...") : tr("Gửi Yêu Cầu Báo Giá")}</span>
           </button>
         </div>
       </form>
@@ -471,7 +461,7 @@ export function CustomRequestForm({
 /* ========================================================================= */
 /* 3. CUSTOM REQUESTS - BEAUTIFIED LISTING PAGE                              */
 /* ========================================================================= */
-export function CustomRequests({ admin = false }: { admin?: boolean }) {
+export function CustomRequests({ admin = false, translate: tr = text => text }: { admin?: boolean; translate?: (text: string) => string }) {
   const remote = useRemote<CustomDTO[]>(admin ? '/admin/custom-orders' : '/custom-orders');
   const action = useAction(remote.reload);
   const [prices, setPrices] = useState<Record<string, string>>({});
@@ -530,12 +520,12 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
             </span>
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                {admin ? 'Quản Trị Báo Giá & Yêu Cầu In 3D' : 'Báo Giá & Tiến Độ Yêu Cầu In 3D'}
+                {admin ? tr("Quản Trị Báo Giá & Yêu Cầu In 3D") : tr("Báo Giá & Tiến Độ Yêu Cầu In 3D")}
               </h1>
               <p className="text-xs sm:text-sm text-slate-400 mt-1">
                 {admin
-                  ? 'Tiếp nhận tệp thiết kế CAD/STL, báo giá đơn hàng và điều phối tiến độ máy in.'
-                  : 'Theo dõi trực quan tiến độ thẩm định file 3D, báo giá từ xưởng và quy trình gia công.'}
+                  ? tr("Tiếp nhận tệp thiết kế CAD/STL, báo giá đơn hàng và điều phối tiến độ máy in.")
+                  : tr("Theo dõi trực quan tiến độ thẩm định file 3D, báo giá từ xưởng và quy trình gia công.")}
               </p>
             </div>
           </div>
@@ -546,10 +536,10 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
             onClick={() => remote.reload()}
             disabled={remote.loading}
             className="px-4 py-2.5 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center gap-2 text-xs font-semibold cursor-pointer disabled:opacity-50"
-            title="Tải lại danh sách"
+            title={tr("Tải lại danh sách")}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${remote.loading ? 'animate-spin text-primary' : ''}`} />
-            <span>Làm mới</span>
+            <span>{tr("Làm mới")}</span>
           </button>
 
           {!admin && (
@@ -558,7 +548,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
               className="px-4 py-2.5 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 active:scale-[0.98] transition flex items-center gap-2 text-xs shadow-lg shadow-primary/20"
             >
               <PlusCircle className="w-3.5 h-3.5" />
-              <span>Thiết kế thước mới</span>
+              <span>{tr("Thiết kế thước mới")}</span>
             </Link>
           )}
         </div>
@@ -587,7 +577,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                   : 'border border-border bg-surface hover:border-slate-600 text-slate-400 hover:text-white'
               }`}
             >
-              <span>{tab.label}</span>
+              <span>{tr(tab.label)}</span>
               <span
                 className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold ${
                   isActive ? 'bg-black/30 text-slate-950' : 'bg-surface-inset text-slate-300'
@@ -606,7 +596,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
       {remote.loading && (
         <div className="p-12 text-center rounded-3xl border border-border bg-surface space-y-3">
           <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto" />
-          <p className="text-sm text-slate-400">Đang tải danh sách yêu cầu in 3D...</p>
+          <p className="text-sm text-slate-400">{tr("Đang tải danh sách yêu cầu in 3D...")}</p>
         </div>
       )}
 
@@ -617,11 +607,11 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
             <Ruler className="w-8 h-8 opacity-40" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white">Chưa có yêu cầu nào trong mục này</h3>
+            <h3 className="text-lg font-bold text-white">{tr("Chưa có yêu cầu nào trong mục này")}</h3>
             <p className="text-xs text-slate-400">
               {activeFilter === 'ALL'
-                ? 'Bạn chưa gửi yêu cầu gia công thước in 3D nào. Hãy bắt đầu tạo thước ngay!'
-                : 'Không có đơn in 3D nào khớp với bộ lọc đã chọn.'}
+                ? tr("Bạn chưa gửi yêu cầu gia công thước in 3D nào. Hãy bắt đầu tạo thước ngay!")
+                : tr("Không có đơn in 3D nào khớp với bộ lọc đã chọn.")}
             </p>
           </div>
           {!admin && (
@@ -629,8 +619,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
               to="/custom"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 transition shadow-lg shadow-primary/20 text-xs"
             >
-              <PlusCircle className="w-4 h-4" /> Mở công cụ thiết kế Thước 3D
-            </Link>
+              <PlusCircle className="w-4 h-4" /> {tr("Mở công cụ thiết kế Thước 3D")} </Link>
           )}
         </div>
       )}
@@ -665,18 +654,16 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                       <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
                         {req.modelName}
                       </h2>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-surface-inset border border-border text-xs font-mono font-bold text-primary">
-                        Số lượng: x{c.quantity || 1} cây
-                      </span>
+                      <span className="px-2.5 py-0.5 rounded-lg bg-surface-inset border border-border text-xs font-mono font-bold text-primary"> {tr("Số lượng: x")}{c.quantity || 1} {tr("cây")} </span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
                       <button
                         onClick={() => copyToClipboard(c.id)}
                         className="inline-flex items-center gap-1.5 font-mono text-slate-300 hover:text-white bg-surface-inset px-2.5 py-1 rounded-lg border border-border/60 transition"
-                        title="Sao chép mã yêu cầu"
+                        title={tr("Sao chép mã yêu cầu")}
                       >
-                        <span className="text-slate-500">Mã đơn:</span>
+                        <span className="text-slate-500">{tr("Mã đơn:")}</span>
                         <span>#{c.id.substring(0, 8)}...</span>
                         {copiedId === c.id ? (
                           <Check className="w-3 h-3 text-primary" />
@@ -694,14 +681,14 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
 
                       {admin && c.buyerName && (
                         <span className="inline-flex items-center gap-1 text-slate-300 font-semibold">
-                          <User className="w-3 h-3 text-primary" /> Khách: {c.buyerName}
+                          <User className="w-3 h-3 text-primary" /> {tr("Khách:")} {c.buyerName}
                         </span>
                       )}
                     </div>
                   </div>
 
                   <div className="shrink-0 flex items-center gap-2">
-                    {renderStatusBadge(c.status)}
+                    {renderStatusBadge(c.status, tr)}
                   </div>
                 </div>
 
@@ -713,19 +700,18 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                   <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                        <Layers className="w-4 h-4" /> Thông Số Kỹ Thuật 3D
-                      </div>
+                        <Layers className="w-4 h-4" /> {tr("Thông Số Kỹ Thuật 3D")} </div>
 
                       <div className="space-y-2 text-xs">
                         <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
-                          <span className="text-slate-400">Vật liệu in:</span>
+                          <span className="text-slate-400">{tr("Vật liệu in:")}</span>
                           <span className="font-semibold text-white">{req.material}</span>
                         </div>
 
                         {/* Infill Density Meter */}
                         <div className="space-y-1 pb-1.5 border-b border-border/40">
                           <div className="flex justify-between items-center">
-                            <span className="text-slate-400">Độ đặc Infill:</span>
+                            <span className="text-slate-400">{tr("Độ đặc Infill:")}</span>
                             <span className="font-mono font-bold text-primary">{req.infill}</span>
                           </div>
                           <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
@@ -738,13 +724,13 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
 
                         {req.stickersCount && (
                           <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
-                            <span className="text-slate-400">Sticker trang trí:</span>
+                            <span className="text-slate-400">{tr("Sticker trang trí:")}</span>
                             <span className="font-bold text-purple-300">{req.stickersCount}</span>
                           </div>
                         )}
 
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400">Thanh toán dự kiến:</span>
+                          <span className="text-slate-400">{tr("Thanh toán dự kiến:")}</span>
                           <span className="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-border text-[11px]">
                             {req.preferredPayment}
                           </span>
@@ -767,7 +753,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         className="w-full py-2 px-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary transition flex items-center justify-center gap-2 text-xs font-bold cursor-pointer disabled:opacity-50"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        <span>Tải file 3D (.STL)</span>
+                        <span>{tr("Tải file 3D (.STL)")}</span>
                       </button>
                     </div>
                   </div>
@@ -776,12 +762,11 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                   <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
-                        <Palette className="w-4 h-4" /> Bảng Màu & Khắc Laser
-                      </div>
+                        <Palette className="w-4 h-4" /> {tr("Bảng Màu & Khắc Laser")} </div>
 
                       {/* 3-Layer Color Swatches */}
                       <div className="space-y-1.5">
-                        <span className="text-[11px] text-slate-400 font-medium">Bảng màu 3 lớp:</span>
+                        <span className="text-[11px] text-slate-400 font-medium">{tr("Bảng màu 3 lớp:")}</span>
                         <div className="grid grid-cols-3 gap-1.5">
                           {/* Body Color */}
                           <div className="p-1.5 rounded-lg bg-surface border border-border/80 flex flex-col items-center gap-1 text-center">
@@ -789,7 +774,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                               className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
                               style={{ backgroundColor: req.bodyColor }}
                             />
-                            <span className="text-[10px] text-slate-400">Thân</span>
+                            <span className="text-[10px] text-slate-400">{tr("Thân")}</span>
                             <span className="font-mono text-[9px] text-white truncate max-w-full font-bold">
                               {req.bodyColor}
                             </span>
@@ -801,7 +786,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                               className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
                               style={{ backgroundColor: req.plateColor }}
                             />
-                            <span className="text-[10px] text-slate-400">Mặt biển</span>
+                            <span className="text-[10px] text-slate-400">{tr("Mặt biển")}</span>
                             <span className="font-mono text-[9px] text-white truncate max-w-full font-bold">
                               {req.plateColor}
                             </span>
@@ -813,7 +798,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                               className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
                               style={{ backgroundColor: req.textColor }}
                             />
-                            <span className="text-[10px] text-slate-400">Chữ số</span>
+                            <span className="text-[10px] text-slate-400">{tr("Chữ số")}</span>
                             <span className="font-mono text-[9px] text-white truncate max-w-full font-bold">
                               {req.textColor}
                             </span>
@@ -830,7 +815,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
 
                       {/* Laser Engraving Plate */}
                       <div className="space-y-1 pt-1">
-                        <span className="text-[11px] text-slate-400 font-medium">Khắc laser cá nhân hóa:</span>
+                        <span className="text-[11px] text-slate-400 font-medium">{tr("Khắc laser cá nhân hóa:")}</span>
                         {req.engraveName || req.studentId ? (
                           <div className="p-2.5 rounded-xl border border-amber-500/30 bg-amber-950/20 font-mono text-xs space-y-1">
                             <div className="flex items-center justify-between">
@@ -838,28 +823,24 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                                 {req.engraveName}
                               </span>
                               {req.studentId && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">
-                                  MSSV: {req.studentId}
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30"> {tr("MSSV:")} {req.studentId}
                                 </span>
                               )}
                             </div>
                             {req.fontName && (
-                              <p className="text-[10px] text-amber-400/70 font-sans">
-                                Kiểu chữ: {req.fontName}
+                              <p className="text-[10px] text-amber-400/70 font-sans"> {tr("Kiểu chữ:")} {req.fontName}
                               </p>
                             )}
                           </div>
                         ) : (
-                          <div className="p-2 rounded-xl border border-border/60 bg-surface text-slate-500 text-xs italic text-center">
-                            Không yêu cầu khắc laser
-                          </div>
+                          <div className="p-2 rounded-xl border border-border/60 bg-surface text-slate-500 text-xs italic text-center"> {tr("Không yêu cầu khắc laser")} </div>
                         )}
                       </div>
                     </div>
 
                     {req.notes && (
                       <div className="pt-2 text-[11px] text-slate-300 italic bg-surface p-2 rounded-lg border border-border/60">
-                        <strong className="text-slate-400 not-italic">Ghi chú:</strong> {req.notes}
+                        <strong className="text-slate-400 not-italic">{tr("Ghi chú:")}</strong> {req.notes}
                       </div>
                     )}
                   </div>
@@ -868,8 +849,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                   <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                        <MapPin className="w-4 h-4" /> Địa Chỉ Nhận Hàng
-                      </div>
+                        <MapPin className="w-4 h-4" /> {tr("Địa Chỉ Nhận Hàng")} </div>
 
                       <div className="space-y-2 text-xs">
                         <div className="p-3 rounded-xl border border-border/70 bg-surface space-y-1.5">
@@ -895,7 +875,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                     <div className="space-y-1 text-[11px] text-slate-400 pt-2">
                       <div className="flex items-center gap-1.5 text-slate-300">
                         <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                        <span>Chính sách: Miễn phí in lại nếu có lỗi kích thước/gãy vỡ do vận chuyển.</span>
+                        <span>{tr("Chính sách: Miễn phí in lại nếu có lỗi kích thước/gãy vỡ do vận chuyển.")}</span>
                       </div>
                     </div>
                   </div>
@@ -913,12 +893,8 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         <Clock className="w-5 h-5 animate-pulse" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-amber-300">
-                          Xưởng PrintHub 3D đang phân tích file STL & thẩm định báo giá
-                        </h4>
-                        <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
-                          Kỹ thuật viên đang kiểm tra thông số cắt lớp (slicing), độ mịn lớp in 0.16mm và khối lượng nhựa PLA. Báo giá chính xác kèm thời gian bàn giao sẽ xuất hiện tại đây!
-                        </p>
+                        <h4 className="text-sm font-bold text-amber-300"> {tr("Xưởng PrintHub 3D đang phân tích file STL & thẩm định báo giá")} </h4>
+                        <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed"> {tr("Kỹ thuật viên đang kiểm tra thông số cắt lớp (slicing), độ mịn lớp in 0.16mm và khối lượng nhựa PLA. Báo giá chính xác kèm thời gian bàn giao sẽ xuất hiện tại đây!")} </p>
                       </div>
                     </div>
 
@@ -935,8 +911,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         }}
                         className="px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-950/20 hover:bg-rose-900/40 text-rose-300 transition text-xs font-bold flex items-center gap-1.5 shrink-0 cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Hủy yêu cầu
-                      </button>
+                        <Trash2 className="w-3.5 h-3.5" /> {tr("Hủy yêu cầu")} </button>
                     )}
                   </div>
                 )}
@@ -946,19 +921,15 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                   <div className="rounded-2xl border-2 border-primary/60 bg-gradient-to-r from-primary/10 via-surface-inset to-primary/10 p-4 sm:p-5 shadow-lg shadow-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/40">
-                          Báo giá trọn gói
-                        </span>
-                        <span className="text-xs text-slate-400">Cho {c.quantity || 1} sản phẩm hoàn thiện</span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/40"> {tr("Báo giá trọn gói")} </span>
+                        <span className="text-xs text-slate-400">{tr("Cho")} {c.quantity || 1} {tr("sản phẩm hoàn thiện")}</span>
                       </div>
                       <div className="flex items-baseline gap-2 pt-1">
                         <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary font-mono tracking-tight">
                           {money(c.quotedPrice || 0)}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-300">
-                        Đã bao gồm: Vật liệu sợi in PLA Pro+, gia công in FDM độ chính xác cao và khắc laser tên/MSSV.
-                      </p>
+                      <p className="text-xs text-slate-300"> {tr("Đã bao gồm: Vật liệu sợi in PLA Pro+, gia công in FDM độ chính xác cao và khắc laser tên/MSSV.")} </p>
                     </div>
 
                     {!admin && (
@@ -970,12 +941,8 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                             value={orderMethod}
                             onChange={e => setMethod({ ...method, [c.id]: e.target.value })}
                           >
-                            <option value="PAYOS" className="bg-[#18191d] text-white">
-                              Thanh toán PayOS (VietQR)
-                            </option>
-                            <option value="COD" className="bg-[#18191d] text-white">
-                              Thanh toán khi nhận (COD)
-                            </option>
+                            <option value="PAYOS" className="bg-[#18191d] text-white"> {tr("Thanh toán PayOS (VietQR)")} </option>
+                            <option value="COD" className="bg-[#18191d] text-white"> {tr("Thanh toán khi nhận (COD)")} </option>
                           </select>
                         </div>
 
@@ -994,7 +961,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                           className="px-6 py-3 rounded-xl bg-primary text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-xl shadow-primary/25 cursor-pointer disabled:opacity-50"
                         >
                           <CheckCircle2 className="w-4 h-4" />
-                          <span>Chấp Nhận & Đặt In</span>
+                          <span>{tr("Chấp Nhận & Đặt In")}</span>
                         </button>
 
                         <button
@@ -1008,7 +975,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                             }
                           }}
                           className="px-3.5 py-3 rounded-xl border border-border hover:border-rose-500/60 bg-surface-inset text-slate-400 hover:text-rose-300 transition text-xs cursor-pointer"
-                          title="Hủy yêu cầu"
+                          title={tr("Hủy yêu cầu")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1025,12 +992,8 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         <QrCode className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-white">
-                          Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS
-                        </h4>
-                        <p className="text-xs text-slate-300 mt-0.5">
-                          Số tiền: <strong className="text-primary font-mono">{money(c.quotedPrice || 0)}</strong>. Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.
-                        </p>
+                        <h4 className="text-sm font-bold text-white"> {tr("Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS")} </h4>
+                        <p className="text-xs text-slate-300 mt-0.5"> {tr("Số tiền:")} <strong className="text-primary font-mono">{money(c.quotedPrice || 0)}</strong>{tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")} </p>
                       </div>
                     </div>
 
@@ -1042,7 +1005,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         className="px-6 py-2.5 rounded-xl bg-primary text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-primary/25 cursor-pointer disabled:opacity-50 shrink-0"
                       >
                         <CreditCard className="w-4 h-4" />
-                        <span>Thanh toán ngay</span>
+                        <span>{tr("Thanh toán ngay")}</span>
                       </button>
                     )}
                   </div>
@@ -1055,47 +1018,36 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                       <span className="text-slate-300 flex items-center gap-2">
                         {c.status === 'PRINTING' && <Printer className="w-4 h-4 text-purple-400 animate-spin-slow" />}
                         {c.status === 'SHIPPING' && <Truck className="w-4 h-4 text-blue-400" />}
-                        {c.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-primary" />}
-                        Tiến độ sản xuất & Bàn giao:
-                      </span>
+                        {c.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-primary" />} {tr("Tiến độ sản xuất & Bàn giao:")} </span>
                       {c.quotedPrice && (
-                        <span className="text-primary font-mono font-bold">
-                          Giá chốt: {money(c.quotedPrice)} ({c.paymentMethod})
+                        <span className="text-primary font-mono font-bold"> {tr("Giá chốt:")} {money(c.quotedPrice)} ({c.paymentMethod})
                         </span>
                       )}
                     </div>
 
                     <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
-                      <div className="p-2 rounded-xl bg-primary/4 border border-primary/40 text-primary font-bold">
-                        1. Đã duyệt file
-                      </div>
+                      <div className="p-2 rounded-xl bg-primary/4 border border-primary/40 text-primary font-bold"> {tr("1. Đã duyệt file")} </div>
                       <div
                         className={`p-2 rounded-xl border font-bold ${
                           ['PRINTING', 'SHIPPING', 'COMPLETED'].includes(c.status)
                             ? 'bg-purple-950/40 border-purple-500/50 text-purple-300 ring-1 ring-purple-500/30'
                             : 'bg-surface-inset border-border text-slate-500'
                         }`}
-                      >
-                        2. Đang in 3D
-                      </div>
+                      > {tr("2. Đang in 3D")} </div>
                       <div
                         className={`p-2 rounded-xl border font-bold ${
                           ['SHIPPING', 'COMPLETED'].includes(c.status)
                             ? 'bg-blue-950/40 border-blue-500/50 text-blue-300 ring-1 ring-blue-500/30'
                             : 'bg-surface-inset border-border text-slate-500'
                         }`}
-                      >
-                        3. Đang giao hàng
-                      </div>
+                      > {tr("3. Đang giao hàng")} </div>
                       <div
                         className={`p-2 rounded-xl border font-bold ${
                           c.status === 'COMPLETED'
                             ? 'bg-primary/5 border-primary/50 text-primary ring-1 ring-primary/30'
                             : 'bg-surface-inset border-border text-slate-500'
                         }`}
-                      >
-                        4. Hoàn tất
-                      </div>
+                      > {tr("4. Hoàn tất")} </div>
                     </div>
                   </div>
                 )}
@@ -1106,8 +1058,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                 {admin && (
                   <div className="pt-4 border-t border-border/80 flex flex-wrap items-center justify-between gap-4 bg-surface-inset/40 p-4 rounded-2xl">
                     <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4" /> Bảng điều khiển quản trị viên xưởng:
-                    </div>
+                      <ShieldCheck className="w-4 h-4" /> {tr("Bảng điều khiển quản trị viên xưởng:")} </div>
 
                     {['REQUESTED', 'QUOTED'].includes(c.status) && (
                       <form
@@ -1129,7 +1080,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                           min={1}
                           step={1000}
                           required
-                          placeholder="Nhập giá trọn gói (VND)"
+                          placeholder={tr("Nhập giá trọn gói (VND)")}
                           value={prices[c.id] || ''}
                           onChange={e => setPrices({ ...prices, [c.id]: e.target.value })}
                           className="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary font-mono w-44"
@@ -1138,9 +1089,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                           type="submit"
                           disabled={action.busy}
                           className="px-4 py-1.5 rounded-xl bg-primary text-slate-950 text-xs font-bold hover:brightness-110 transition cursor-pointer disabled:opacity-50"
-                        >
-                          Gửi báo giá
-                        </button>
+                        > {tr("Gửi báo giá")} </button>
                       </form>
                     )}
 
@@ -1162,7 +1111,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         }}
                         className="px-4 py-1.5 rounded-xl border border-primary/50 bg-primary/20 text-primary text-xs font-bold hover:bg-primary/30 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                       >
-                        <span>Chuyển sang: {next(c)}</span>
+                        <span>{tr("Chuyển sang:")} {next(c)}</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     )}

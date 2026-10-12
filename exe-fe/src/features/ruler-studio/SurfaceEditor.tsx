@@ -1,3 +1,4 @@
+import { translateCustom as tr } from './language';
 import { useEffect, useRef, useState } from "react";
 import {
   clamp,
@@ -138,19 +139,19 @@ export default function SurfaceEditor({
       strokes: design.strokes.filter((s) => s.surface !== surface),
     });
   return (
-    <section className="studio-editor" aria-label="Surface editor">
+    <section className="studio-editor" aria-label={tr("Surface editor")}>
       <div className="studio-row">
-        <strong>{region?.label ?? "Surface"} · 2D editor</strong>
+        <strong>{tr(region?.label ?? "Surface")} {tr("· 2D editor")}</strong>
         <span>
-          {drawing ? "Live on 3D as you draw" : "Select and drag layers"}
+          {drawing ? tr("Live on 3D as you draw") : tr("Select and drag layers")}
         </span>
       </div>
-      <div className="editor-zoom" aria-label="2D view controls">
+      <div className="editor-zoom" aria-label={tr("2D view controls")}>
         <button
           onClick={() =>
             setZoom((z) => Math.min(4, (z || fitWidth / (sw * 40)) * 1.5))
           }
-          aria-label="Zoom in 2D"
+          aria-label={tr("Zoom in 2D")}
         >
           +
         </button>
@@ -158,30 +159,24 @@ export default function SurfaceEditor({
           onClick={() =>
             setZoom((z) => Math.max(0.05, (z || fitWidth / (sw * 40)) / 1.5))
           }
-          aria-label="Zoom out 2D"
+          aria-label={tr("Zoom out 2D")}
         >
           −
         </button>
-        <button onClick={() => setZoom(0)} aria-pressed={zoom === 0}>
-          Fit
-        </button>
+        <button onClick={() => setZoom(0)} aria-pressed={zoom === 0}> {tr("Fit")} </button>
         <button onClick={() => setZoom(1)} aria-pressed={zoom === 1}>
           100%
         </button>
         <button
           aria-pressed={tool === "pan"}
           onClick={() => setTool(tool === "pan" ? "brush" : "pan")}
-        >
-          Pan
-        </button>
+        > {tr("Pan")} </button>
         <label>
           <input
             type="checkbox"
             checked={safe}
             onChange={(e) => setSafe(e.target.checked)}
-          />{" "}
-          Show safe area
-        </label>
+          />{" "} {tr("Show safe area")} </label>
       </div>
       <div className="editor-scroll" ref={scroller}>
         <div
@@ -253,13 +248,13 @@ export default function SurfaceEditor({
         >
           <canvas
             ref={canvas}
-            aria-label={`${region?.label ?? "Surface"} drawing canvas`}
+            aria-label={`${tr(region?.label ?? "Surface")} drawing canvas`}
           />
           {safe && surface !== "tag" && (
             <svg
               className="safe-area-overlay"
               viewBox={`0 0 ${sw} ${sh}`}
-              aria-label="Printable boundary and protected markings"
+              aria-label={tr("Printable boundary and protected markings")}
             >
               <path
                 d={profilePath(profile)}
@@ -328,34 +323,26 @@ export default function SurfaceEditor({
         </div>
       </div>
       {drawing && (
-        <div className="drawing-toolbar" aria-label="Drawing tools">
+        <div className="drawing-toolbar" aria-label={tr("Drawing tools")}>
           <button
             aria-pressed={tool === "brush"}
             disabled={!region?.supportsDrawing}
             onClick={() => setTool("brush")}
-          >
-            Brush
-          </button>
+          > {tr("Brush")} </button>
           <button
             aria-pressed={tool === "eraser"}
             disabled={!region?.supportsDrawing}
             onClick={() => setTool("eraser")}
-          >
-            Eraser
-          </button>
-          <label>
-            Color
-            <input
-              aria-label="Brush color"
+          > {tr("Eraser")} </button>
+          <label> {tr("Color")} <input
+              aria-label={tr("Brush color")}
               type="color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
             />
           </label>
-          <label className="brush-size">
-            Size
-            <input
-              aria-label="Brush size"
+          <label className="brush-size"> {tr("Size")} <input
+              aria-label={tr("Brush size")}
               type="range"
               min=".005"
               max=".08"
@@ -364,28 +351,21 @@ export default function SurfaceEditor({
               onChange={(e) => setSize(+e.target.value)}
             />
           </label>
-          <button disabled={!canUndo} onClick={undo}>
-            Undo stroke
-          </button>
-          <button disabled={!canRedo} onClick={redo}>
-            Redo stroke
-          </button>
+          <button disabled={!canUndo} onClick={undo}> {tr("Undo stroke")} </button>
+          <button disabled={!canRedo} onClick={redo}> {tr("Redo stroke")} </button>
           <button
             disabled={!design.strokes.some((s) => s.surface === surface)}
             onClick={clear}
-          >
-            Clear ink
-          </button>
+          > {tr("Clear ink")} </button>
         </div>
       )}
       <p className="studio-hint">
         {!region?.supportsDrawing
-          ? "This ruler protects its entire surface from customization."
+          ? tr("This ruler protects its entire surface from customization.")
           : safe
-            ? "Green: printable boundary · Amber: protected scale · Purple: name tag"
-            : "Measurement marks stay protected. Zoom and pan for detailed work."}{" "}
-        {design.strokes.length}/100 strokes · {design.layers.length}/24 layers
-      </p>
+            ? tr("Green: printable boundary · Amber: protected scale · Purple: name tag")
+            : tr("Measurement marks stay protected. Zoom and pan for detailed work.")}{" "}
+        {design.strokes.length}{tr("/100 strokes ·")} {design.layers.length}{tr("/24 layers")} </p>
     </section>
   );
 }

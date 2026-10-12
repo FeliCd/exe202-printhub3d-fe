@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from "react";
+import { translateCustom as tr, useCustomLanguage } from './language';
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import type { Product } from "../../types";
 import { formatPrice } from "../../utils/format";
 import {
@@ -26,10 +27,13 @@ import { getProfile } from "./geometry/profiles";
 export default function RulerStudio({
   onAddToCart,
   initialDesign,
+  headerControls,
 }: {
   onAddToCart: (product: Product) => void;
   initialDesign?: Design;
+  headerControls?: ReactNode;
 }) {
+  const { language } = useCustomLanguage();
   const {
     design,
     change,
@@ -84,7 +88,7 @@ export default function RulerStudio({
     if (price.requiresQuote) return;
     onAddToCart({
       id: `ruler-design-${uid()}`,
-      name: `${ruler.name} · ${design.length} cm · ${design.name}`,
+      name: `${language === 'vi' ? ruler.vietnameseName : ruler.name} · ${design.length} cm · ${design.name}`,
       category: "Custom ruler",
       categoryColor: "emerald",
       material: design.material,
@@ -115,35 +119,29 @@ export default function RulerStudio({
       onPointerCancelCapture={end}
     >
       <div className="studio-ruler-info">
+        {headerControls}
         <div>
-          <span>Ruler</span>
+          <span>{tr("Ruler")}</span>
           <strong>
-            {ruler.name} · {design.length} cm
-          </strong>
-          <small>{ruler.vietnameseName}</small>
+            {language === 'vi' ? ruler.vietnameseName : ruler.name} · {design.length} {tr("cm")} </strong>
+          <small>{language === 'vi' ? ruler.name : ruler.vietnameseName}</small>
         </div>
-        <button onClick={() => setLibraryOpen(true)}>Change Ruler</button>
+        <button onClick={() => setLibraryOpen(true)}>{tr("Change Ruler")}</button>
         <span className="save-status">
-          {isSaved ? "Design saved ✓" : "Unsaved design"}
+          {isSaved ? tr("Design saved ✓") : tr("Unsaved design")}
         </span>
       </div>
       <header className="studio-toolbar">
-        <label className="studio-name">
-          Design name
-          <input
-            aria-label="Design name"
+        <label className="studio-name"> {tr("Design name")} <input
+            aria-label={tr("Design name")}
             maxLength={40}
             value={design.name}
             onChange={(e) => change({ ...design, name: e.target.value })}
           />
         </label>
         <div className="studio-row">
-          <button disabled={!canUndo} onClick={undo} title="Ctrl/Cmd+Z">
-            Undo
-          </button>
-          <button disabled={!canRedo} onClick={redo} title="Ctrl/Cmd+Shift+Z">
-            Redo
-          </button>
+          <button disabled={!canUndo} onClick={undo} title={tr("Ctrl/Cmd+Z")}> {tr("Undo")} </button>
+          <button disabled={!canRedo} onClick={redo} title={tr("Ctrl/Cmd+Shift+Z")}> {tr("Redo")} </button>
           <button
             onClick={() =>
               setMessage(
@@ -152,9 +150,7 @@ export default function RulerStudio({
                   : "Could not save: device storage is full or unavailable.",
               )
             }
-          >
-            Save
-          </button>
+          > {tr("Save")} </button>
           <button
             onClick={() => {
               setMessage(
@@ -164,9 +160,7 @@ export default function RulerStudio({
               );
               select("");
             }}
-          >
-            Restore saved
-          </button>
+          > {tr("Restore saved")} </button>
           <button
             onClick={() => {
               change({
@@ -178,18 +172,14 @@ export default function RulerStudio({
                 "Working copy created. Save to replace the saved draft, or export to keep both.",
               );
             }}
-          >
-            Duplicate
-          </button>
+          > {tr("Duplicate")} </button>
           <button
             onClick={() => {
               change(freshDesign());
               select("");
               setMessage("Design reset. Undo restores your previous design.");
             }}
-          >
-            Reset
-          </button>
+          > {tr("Reset")} </button>
           <button
             onClick={() =>
               downloadBlob(
@@ -199,9 +189,7 @@ export default function RulerStudio({
                 "printhub-design.json",
               )
             }
-          >
-            Export design
-          </button>
+          > {tr("Export design")} </button>
         </div>
       </header>
       {tab === "Draw" && (
@@ -209,15 +197,11 @@ export default function RulerStudio({
           <button
             aria-pressed={mobileWorkspace === "edit"}
             onClick={() => setMobileWorkspace("edit")}
-          >
-            2D Edit
-          </button>
+          > {tr("2D Edit")} </button>
           <button
             aria-pressed={mobileWorkspace === "view"}
             onClick={() => setMobileWorkspace("view")}
-          >
-            3D View
-          </button>
+          > {tr("3D View")} </button>
         </div>
       )}
       <div className="studio-layout" ref={workspace}>
@@ -229,15 +213,15 @@ export default function RulerStudio({
             surfaceSerial={surfaceSerial}
           />
           <div className="studio-edit-workspace">
-            <div className="studio-surface-tabs" aria-label="Editing surface">
-              <span>Surface</span>
+            <div className="studio-surface-tabs" aria-label={tr("Editing surface")}>
+              <span>{tr("Surface")}</span>
               {surfaces.map((s) => (
                 <button
                   key={s.id}
                   aria-pressed={activeSurface === s.id}
                   onClick={() => changeSurface(s.id)}
                 >
-                  {s.label}
+                  {tr(s.label)}
                 </button>
               ))}
             </div>
@@ -261,7 +245,7 @@ export default function RulerStudio({
           <div
             className="studio-tabs"
             role="tablist"
-            aria-label="Customization categories"
+            aria-label={tr("Customization categories")}
           >
             {tabs.map((t) => (
               <button
@@ -291,7 +275,7 @@ export default function RulerStudio({
                   document.getElementById(`studio-tab-${tabs[index]}`)?.focus();
                 }}
               >
-                {t}
+                {tr(t)}
               </button>
             ))}
           </div>
@@ -306,17 +290,17 @@ export default function RulerStudio({
           <footer className="studio-price">
             <details>
               <summary>
-                {price.requiresQuote ? "Production pricing" : "Estimated price"}{" "}
+                {price.requiresQuote ? tr("Production pricing") : tr("Estimated price")}{" "}
                 <strong>
                   {price.requiresQuote
-                    ? "Quote required"
+                    ? tr("Quote required")
                     : `${formatPrice(price.total)}đ`}
                 </strong>
               </summary>
               {!price.requiresQuote &&
                 price.lines.map(([label, value]) => (
                   <div className="studio-row" key={label}>
-                    <span>{label}</span>
+                    <span>{tr(label)}</span>
                     <span>{formatPrice(value)}đ</span>
                   </div>
                 ))}
@@ -329,29 +313,27 @@ export default function RulerStudio({
                   )
                 }
               >
-                {isSaved ? "Saved ✓" : "Save design"}
+                {isSaved ? tr("Saved ✓") : tr("Save design")}
               </button>
             )}
             <button
               className="studio-primary"
               onClick={add}
               disabled={price.requiresQuote}
-            >
-              Add design to cart <span>↗</span>
+            > {tr("Add design to cart")} <span>↗</span>
             </button>
             <p>
               {price.requiresQuote
-                ? "Save or export this design for a production quote. This ruler has no confirmed price yet."
-                : "Artwork pricing requires production confirmation. Save your design before leaving."}
+                ? tr("Save or export this design for a production quote. This ruler has no confirmed price yet.")
+                : tr("Artwork pricing requires production confirmation. Save your design before leaving.")}
             </p>
           </footer>
         </aside>
       </div>
       <div className="studio-status">
-        <label>
-          Import saved design{" "}
+        <label> {tr("Import saved design")}{" "}
           <input
-            aria-label="Import design JSON"
+            aria-label={tr("Import design JSON")}
             type="file"
             accept=".json,application/json"
             onChange={async (e) => {
@@ -381,7 +363,7 @@ export default function RulerStudio({
             }}
           />
         </label>
-        <p role="status">{message || "Design locally. Make it personal."}</p>
+        <p role="status">{tr(message || "Design locally. Make it personal.")}</p>
       </div>
       <RulerLibrary
         open={libraryOpen}
