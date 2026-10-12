@@ -181,7 +181,7 @@ export default function SignupPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Nguyễn Văn Anh"
-                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                   />
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function SignupPage() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     placeholder="nguyenvananh"
-                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none font-mono"
+                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none font-mono"
                   />
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function SignupPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="vananh@hcmut.edu.vn"
-                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                   />
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function SignupPage() {
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="0912345678"
                     pattern="[0-9]{10}"
-                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none font-mono"
+                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none font-mono"
                   />
                 </div>
               </div>
@@ -263,7 +263,7 @@ export default function SignupPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Ví dụ: Phòng 302, KTX Khu B ĐHQG TP.HCM (hoặc để trống)"
-                  className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                  className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                 />
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function SignupPage() {
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   placeholder="20210123 (để nhận voucher)"
-                  className="w-full bg-surface-inset border border-border rounded-xl px-3 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none font-mono"
+                  className="w-full bg-surface-inset border border-border rounded-xl px-3 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none font-mono"
                 />
               </div>
               <div className="space-y-1">
@@ -294,7 +294,7 @@ export default function SignupPage() {
                     type="text"
                     value={university}
                     onChange={(e) => setUniversity(e.target.value)}
-                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                   />
                 </div>
               </div>
@@ -315,7 +315,7 @@ export default function SignupPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Tối thiểu 8 ký tự"
-                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                   />
                 </div>
               </div>
@@ -333,7 +333,7 @@ export default function SignupPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Nhập lại mật khẩu"
-                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                    className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                   />
                 </div>
               </div>
@@ -342,30 +342,30 @@ export default function SignupPage() {
             {/* Chỉ báo tiêu chuẩn mật khẩu */}
             {password && (
               <div className="grid grid-cols-2 gap-1.5 p-2.5 rounded-xl bg-surface-inset border border-border text-[11px]">
-                <div className={`flex items-center gap-1.5 ${password.length >= 8 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                <div className={`flex items-center gap-1.5 ${password.length >= 8 ? 'text-primary' : 'text-slate-400'}`}>
                   <span>{password.length >= 8 ? '✓' : '•'}</span> Tối thiểu 8 ký tự
                 </div>
-                <div className={`flex items-center gap-1.5 ${/[A-Z]/.test(password) ? 'text-emerald-400' : 'text-slate-400'}`}>
+                <div className={`flex items-center gap-1.5 ${/[A-Z]/.test(password) ? 'text-primary' : 'text-slate-400'}`}>
                   <span>{/[A-Z]/.test(password) ? '✓' : '•'}</span> Có ít nhất 1 chữ hoa
                 </div>
-                <div className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? 'text-emerald-400' : 'text-slate-400'}`}>
+                <div className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? 'text-primary' : 'text-slate-400'}`}>
                   <span>{/[0-9]/.test(password) ? '✓' : '•'}</span> Có ít nhất 1 chữ số
                 </div>
-                <div className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'text-emerald-400' : 'text-slate-400'}`}>
+                <div className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'text-primary' : 'text-slate-400'}`}>
                   <span>{/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? '✓' : '•'}</span> Có 1 ký tự đặc biệt
                 </div>
               </div>
             )}
 
-            <div className="p-3 bg-emerald-950/40 border border-emerald-800/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#22c55e] shrink-0" />
+            <div className="p-3 bg-primary/5 border border-primary/40 rounded-xl text-xs text-primary flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#39FF14] shrink-0" />
               <span>Tài khoản tự động kích hoạt gói Bảo Hành 1 Học Kỳ khi đăng ký!</span>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+              className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-primary/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
             >
               {isLoading ? (
                 <>
@@ -382,8 +382,8 @@ export default function SignupPage() {
           /* Màn hình nhập OTP kích hoạt */
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             {otpSuccess ? (
-              <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-bold text-center space-y-2 animate-in fade-in">
-                <CheckCircle2 className="w-8 h-8 text-[#22c55e] mx-auto" />
+              <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 text-primary text-xs font-bold text-center space-y-2 animate-in fade-in">
+                <CheckCircle2 className="w-8 h-8 text-[#39FF14] mx-auto" />
                 <p>Tài khoản đã được kích hoạt thành công!</p>
                 <p className="text-text-muted font-normal text-[11px]">Đang đăng nhập vào hệ thống...</p>
               </div>
@@ -404,7 +404,7 @@ export default function SignupPage() {
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                       placeholder="123456"
-                      className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-center tracking-widest text-lg font-mono text-white focus:border-[#22c55e] outline-none"
+                      className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-center tracking-widest text-lg font-mono text-white focus:border-[#39FF14] outline-none"
                     />
                   </div>
                 </div>
@@ -412,7 +412,7 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={isVerifyingOtp}
-                  className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                  className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-primary/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                 >
                   {isVerifyingOtp ? (
                     <>
@@ -436,7 +436,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="text-[#22c55e] font-bold hover:underline"
+                    className="text-[#39FF14] font-bold hover:underline"
                   >
                     Gửi lại mã OTP
                   </button>
@@ -448,7 +448,7 @@ export default function SignupPage() {
 
         <div className="text-center text-xs text-text-muted pt-2 border-t border-border">
           Đã có tài khoản?{' '}
-          <Link to="/login" className="text-[#22c55e] font-bold hover:underline">
+          <Link to="/login" className="text-[#39FF14] font-bold hover:underline">
             Đăng nhập ngay
           </Link>
         </div>

@@ -4,7 +4,8 @@ import { send, post } from '../../services/api';
 import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
 import type { CustomDTO } from '../../services/quotationService';
-import { Notice, money } from '../../components/DataUI';
+import { Notice } from '../../components/DataUI';
+import { money } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import {
@@ -199,23 +200,23 @@ function renderStatusBadge(status?: string) {
       );
     case 'QUOTED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-cyan-500/60 bg-cyan-500/20 text-cyan-300 ring-1 ring-cyan-500/40 shadow-sm animate-pulse">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/60 bg-primary/20 text-primary ring-1 ring-primary/40 shadow-sm animate-pulse">
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
           <span>Đã có báo giá</span>
         </span>
       );
     case 'ACCEPTED':
     case 'APPROVED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/20 shadow-sm">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/50 bg-primary/15 text-primary ring-1 ring-primary/20 shadow-sm">
+          <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
           <span>Đã chấp nhận</span>
         </span>
       );
     case 'PAID':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 shadow-sm">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/50 bg-primary/15 text-primary shadow-sm">
+          <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
           <span>Đã thanh toán</span>
         </span>
       );
@@ -242,8 +243,8 @@ function renderStatusBadge(status?: string) {
       );
     case 'COMPLETED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/60 bg-emerald-500/20 text-emerald-300 shadow-sm">
-          <Check className="w-3.5 h-3.5 text-emerald-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/60 bg-primary/20 text-primary shadow-sm">
+          <Check className="w-3.5 h-3.5 text-primary" />
           <span>Hoàn thành</span>
         </span>
       );
@@ -322,8 +323,8 @@ export function CustomRequestForm({
 
       <Notice error={action.error} />
       {success && (
-        <div className="my-4 p-4 rounded-2xl border border-emerald-500/40 bg-emerald-950/20 text-emerald-300 text-sm flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="my-4 p-4 rounded-2xl border border-primary/40 bg-primary/2 text-primary text-sm flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
           <span>{success}</span>
         </div>
       )}
@@ -404,7 +405,7 @@ export function CustomRequestForm({
         {/* Quantity */}
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-cyan-400" />
+            <Layers className="w-4 h-4 text-primary" />
             Số lượng in (cây / cái) <span className="text-rose-400">*</span>
           </label>
           <input
@@ -438,7 +439,7 @@ export function CustomRequestForm({
         {/* Shipping Address */}
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-emerald-400" />
+            <MapPin className="w-4 h-4 text-primary" />
             Thông tin người nhận & Địa chỉ giao hàng <span className="text-rose-400">*</span>
           </label>
           <textarea
@@ -570,9 +571,9 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
         {[
           { key: 'ALL', label: 'Tất cả', count: counts.ALL },
           { key: 'REQUESTED', label: 'Chờ báo giá', count: counts.REQUESTED, color: 'text-amber-400' },
-          { key: 'QUOTED', label: 'Đã báo giá', count: counts.QUOTED, color: 'text-cyan-400' },
+          { key: 'QUOTED', label: 'Đã báo giá', count: counts.QUOTED, color: 'text-primary' },
           { key: 'PROCESSING', label: 'Đang sản xuất', count: counts.PROCESSING, color: 'text-purple-400' },
-          { key: 'COMPLETED', label: 'Đã hoàn thành', count: counts.COMPLETED, color: 'text-emerald-400' },
+          { key: 'COMPLETED', label: 'Đã hoàn thành', count: counts.COMPLETED, color: 'text-primary' },
           { key: 'CANCELLED', label: 'Đã hủy', count: counts.CANCELLED, color: 'text-rose-400' },
         ].map(tab => {
           const isActive = activeFilter === tab.key;
@@ -649,7 +650,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
               className="rounded-3xl border border-border/80 bg-surface hover:border-slate-600 transition-all duration-300 shadow-xl overflow-hidden relative group"
             >
               {/* Subtle neon gradient top accent line */}
-              <div className="h-1 w-full bg-gradient-to-r from-primary via-cyan-400 to-purple-500 opacity-70 group-hover:opacity-100 transition" />
+              <div className="h-1 w-full bg-gradient-to-r from-primary via-primary to-purple-500 opacity-70 group-hover:opacity-100 transition" />
 
               <div className="p-5 sm:p-7 space-y-6">
                 {/* ------------------------------------------------------------- */}
@@ -678,7 +679,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         <span className="text-slate-500">Mã đơn:</span>
                         <span>#{c.id.substring(0, 8)}...</span>
                         {copiedId === c.id ? (
-                          <Check className="w-3 h-3 text-emerald-400" />
+                          <Check className="w-3 h-3 text-primary" />
                         ) : (
                           <Copy className="w-3 h-3 opacity-60" />
                         )}
@@ -711,7 +712,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                   {/* MODULE 1: IN ẤN & THÔNG SỐ KỸ THUẬT */}
                   <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
                         <Layers className="w-4 h-4" /> Thông Số Kỹ Thuật 3D
                       </div>
 
@@ -725,11 +726,11 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                         <div className="space-y-1 pb-1.5 border-b border-border/40">
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400">Độ đặc Infill:</span>
-                            <span className="font-mono font-bold text-cyan-300">{req.infill}</span>
+                            <span className="font-mono font-bold text-primary">{req.infill}</span>
                           </div>
                           <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full"
+                              className="h-full bg-gradient-to-r from-primary to-primary rounded-full"
                               style={{ width: `${Math.min(100, Math.max(15, req.infillNum))}%` }}
                             />
                           </div>
@@ -866,7 +867,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                   {/* MODULE 3: ĐỊA CHỈ GIAO HÀNG & TIẾN TRÌNH */}
                   <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
                         <MapPin className="w-4 h-4" /> Địa Chỉ Nhận Hàng
                       </div>
 
@@ -878,7 +879,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                             </span>
                             {ship.phone && (
                               <span className="text-slate-300 font-mono bg-surface-inset px-2 py-0.5 rounded border border-border text-[11px] flex items-center gap-1">
-                                <Phone className="w-2.5 h-2.5 text-emerald-400" /> {ship.phone}
+                                <Phone className="w-2.5 h-2.5 text-primary" /> {ship.phone}
                               </span>
                             )}
                           </div>
@@ -942,16 +943,16 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
 
                 {/* 2. STATUS: QUOTED (Đã có báo giá từ Admin) */}
                 {c.status === 'QUOTED' && (
-                  <div className="rounded-2xl border-2 border-emerald-500/60 bg-gradient-to-r from-emerald-950/50 via-surface-inset to-cyan-950/40 p-4 sm:p-5 shadow-lg shadow-emerald-950/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                  <div className="rounded-2xl border-2 border-primary/60 bg-gradient-to-r from-primary/10 via-surface-inset to-primary/10 p-4 sm:p-5 shadow-lg shadow-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/40">
                           Báo giá trọn gói
                         </span>
                         <span className="text-xs text-slate-400">Cho {c.quantity || 1} sản phẩm hoàn thiện</span>
                       </div>
                       <div className="flex items-baseline gap-2 pt-1">
-                        <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 font-mono tracking-tight">
+                        <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary font-mono tracking-tight">
                           {money(c.quotedPrice || 0)}
                         </span>
                       </div>
@@ -963,7 +964,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                     {!admin && (
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                         <div className="flex items-center gap-2 bg-surface-inset border border-border px-3 py-2 rounded-xl">
-                          <CreditCard className="w-4 h-4 text-cyan-400 shrink-0" />
+                          <CreditCard className="w-4 h-4 text-primary shrink-0" />
                           <select
                             className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
                             value={orderMethod}
@@ -1054,18 +1055,18 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                       <span className="text-slate-300 flex items-center gap-2">
                         {c.status === 'PRINTING' && <Printer className="w-4 h-4 text-purple-400 animate-spin-slow" />}
                         {c.status === 'SHIPPING' && <Truck className="w-4 h-4 text-blue-400" />}
-                        {c.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                        {c.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-primary" />}
                         Tiến độ sản xuất & Bàn giao:
                       </span>
                       {c.quotedPrice && (
-                        <span className="text-emerald-400 font-mono font-bold">
+                        <span className="text-primary font-mono font-bold">
                           Giá chốt: {money(c.quotedPrice)} ({c.paymentMethod})
                         </span>
                       )}
                     </div>
 
                     <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
-                      <div className="p-2 rounded-xl bg-emerald-950/30 border border-emerald-500/40 text-emerald-300 font-bold">
+                      <div className="p-2 rounded-xl bg-primary/4 border border-primary/40 text-primary font-bold">
                         1. Đã duyệt file
                       </div>
                       <div
@@ -1089,7 +1090,7 @@ export function CustomRequests({ admin = false }: { admin?: boolean }) {
                       <div
                         className={`p-2 rounded-xl border font-bold ${
                           c.status === 'COMPLETED'
-                            ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300 ring-1 ring-emerald-500/30'
+                            ? 'bg-primary/5 border-primary/50 text-primary ring-1 ring-primary/30'
                             : 'bg-surface-inset border-border text-slate-500'
                         }`}
                       >

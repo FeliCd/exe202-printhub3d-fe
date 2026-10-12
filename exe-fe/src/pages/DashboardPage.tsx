@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useRemote } from '../hooks/useRemote';
+import { RemoteState, Notice } from '../components/DataUI';
+import { summarizeOrders } from '../features/orders/summary';
+import type { OrderDTO } from '../services/orderService';
 import {
   PackageCheck,
   Printer,
@@ -13,17 +17,20 @@ import {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const orders = useRemote<OrderDTO[]>(user ? '/orders/me' : null, user?.id);
+  const summary = orders.data === null ? null : summarizeOrders(orders.data);
+  const orderCount = (count: number | undefined) => orders.loading ? 'Đang tải…' : count === undefined ? 'Chưa có dữ liệu' : `${count} đơn hàng`;
 
   return (
     <div className="space-y-8 pb-10 w-full animate-in fade-in duration-300">
       {/* ========================================================================= */}
       {/* 1. WELCOME BANNER */}
       {/* ========================================================================= */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-emerald-950 via-[#14171c] to-[#0f1115] border border-border p-6 sm:p-8 overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative rounded-3xl bg-gradient-to-r from-primary/10 via-[#14171c] to-[#0f1115] border border-border p-6 sm:p-8 overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/60 border border-emerald-700/50 text-[#39FF14] text-xs font-bold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/7 border border-primary/50 text-[#39FF14] text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 animate-pulse" />
             Bảng Điều Khiển Sinh Viên
           </div>
@@ -33,13 +40,13 @@ export default function DashboardPage() {
           </h1>
 
           <p className="text-sm text-text-muted leading-relaxed">
-            Theo dõi tiến độ máy in 3D thời gian thực, quản lý kho file mô hình STL/STEP và gửi yêu cầu bảo hành 1 học kỳ nhanh chóng.
+            Xem trạng thái đơn hàng, quản lý yêu cầu in và gửi yêu cầu bảo hành của bạn.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <Link
               to="/custom"
-              className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition"
+              className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition"
             >
               <Printer className="w-4 h-4" /> Báo Giá File 3D Mới
             </Link>
@@ -56,34 +63,36 @@ export default function DashboardPage() {
       {/* ========================================================================= */}
       {/* 2. OVERVIEW STATS CARDS */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <RemoteState loading={orders.loading} error={orders.error} retry={orders.reload} />
+      <Notice error={orders.data !== null && !summary ? 'Chưa đọc được dữ liệu đơn hàng. Vui lòng thử tải lại.' : undefined} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" aria-busy={orders.loading}>
         <Link
           to="/orders"
           className="p-5 rounded-2xl bg-surface border border-border hover:border-[#39FF14]/50 transition group space-y-2"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-text-muted">Đang In 3D</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-[#39FF14] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-[#39FF14] flex items-center justify-center">
               <PackageCheck className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white group-hover:text-[#39FF14] transition">1 Đơn Hàng</p>
-          <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
-            <Clock className="w-3 h-3" /> Dự kiến giao hôm nay
+          <p className="text-2xl font-black text-white group-hover:text-[#39FF14] transition">{orderCount(summary?.printing)}</p>
+          <p className="text-[11px] text-primary font-medium flex items-center gap-1">
+            <Clock className="w-3 h-3" /> Xem tiến độ đơn hàng
           </p>
         </Link>
 
         <Link
           to="/quotations"
-          className="p-5 rounded-2xl bg-surface border border-border hover:border-cyan-400/50 transition group space-y-2"
+          className="p-5 rounded-2xl bg-surface border border-border hover:border-primary/50 transition group space-y-2"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-text-muted">Báo Giá In Theo Yêu Cầu</span>
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white group-hover:text-cyan-400 transition">Tiến Trình In</p>
+          <p className="text-2xl font-black text-white group-hover:text-primary transition">Tiến Trình In</p>
           <p className="text-[11px] text-text-muted">Kiểm tra báo giá &amp; duyệt in</p>
         </Link>
 
@@ -97,7 +106,7 @@ export default function DashboardPage() {
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white group-hover:text-purple-400 transition">4 Món Thước</p>
+          <p className="text-2xl font-black text-white group-hover:text-purple-400 transition">{orderCount(summary?.completed)}</p>
           <p className="text-[11px] text-text-muted">Xem lịch sử đặt hàng</p>
         </Link>
 
@@ -106,13 +115,13 @@ export default function DashboardPage() {
           className="p-5 rounded-2xl bg-surface border border-border hover:border-amber-400/50 transition group space-y-2"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-text-muted">Bảo Hành 1 Kỳ</span>
+            <span className="text-xs font-bold text-text-muted">Hỗ trợ bảo hành</span>
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-black text-white group-hover:text-amber-400 transition">Đang Bảo Vệ</p>
-          <p className="text-[11px] text-emerald-400 font-medium">Bảo hành 1-đổi-1</p>
+          <p className="text-xl font-bold text-white group-hover:text-amber-400 transition">Gửi yêu cầu</p>
+          <p className="text-xs text-text-muted">Kiểm tra điều kiện theo đơn hàng</p>
         </Link>
       </div>
 
@@ -121,7 +130,7 @@ export default function DashboardPage() {
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 rounded-2xl bg-surface border border-border space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-[#22c55e]/30 flex items-center justify-center text-[#39FF14]">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14]">
             <Sparkles className="w-5 h-5" />
           </div>
           <h3 className="text-base font-bold text-white">Tự Custom Khắc Tên</h3>
@@ -134,14 +143,14 @@ export default function DashboardPage() {
         </div>
 
         <div className="p-6 rounded-2xl bg-surface border border-border space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
             <Layers className="w-5 h-5" />
           </div>
           <h3 className="text-base font-bold text-white">Đặt In Số Lượng Lớn</h3>
           <p className="text-xs text-text-muted leading-relaxed">
             Ưu đãi giảm giá lên tới 35% cho các đơn hàng theo lớp, khoa viện hoặc đồ án tốt nghiệp kỹ thuật.
           </p>
-          <Link to="/bulk-order" className="text-xs font-bold text-cyan-400 inline-flex items-center gap-1 hover:underline pt-1">
+          <Link to="/bulk-order" className="text-xs font-bold text-primary inline-flex items-center gap-1 hover:underline pt-1">
             Đặt in số lượng lớn <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

@@ -43,10 +43,10 @@ export default function CatalogPreviewPage() {
         {products.map((p) => (
           <div
             key={p.id}
-            className="p-4 rounded-2xl bg-surface border border-border hover:border-[#22c55e]/40 transition space-y-3 flex flex-col justify-between"
+            className="p-4 rounded-2xl bg-surface border border-border hover:border-[#39FF14]/40 transition space-y-3 flex flex-col justify-between"
           >
             <div className="h-40 bg-surface-inset rounded-xl flex items-center justify-center border border-border relative overflow-hidden">
-              <span className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+              <span className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded bg-primary/12 text-primary border border-primary/30">
                 {p.material}
               </span>
               <div className="text-center font-mono text-xs text-slate-300 font-bold">
@@ -55,7 +55,7 @@ export default function CatalogPreviewPage() {
             </div>
 
             <div>
-              <p className="text-sm uppercase font-semibold text-[#22c55e]">{p.category}</p>
+              <p className="text-sm uppercase font-semibold text-[#39FF14]">{p.category}</p>
               <h3 className="text-sm font-bold text-white truncate">{p.name}</h3>
               <p className="text-sm text-text-muted line-clamp-2 mt-1">{p.description}</p>
             </div>
@@ -66,7 +66,7 @@ export default function CatalogPreviewPage() {
                 onClick={() => setPreviewItem(p)}
                 className="px-3 py-1.5 rounded-lg bg-surface-raised hover:bg-[#272930] text-xs font-semibold text-slate-200 border border-border flex items-center gap-1"
               >
-                <Eye className="w-3.5 h-3.5 text-[#22c55e]" /> Xem mẫu 3D
+                <Eye className="w-3.5 h-3.5 text-[#39FF14]" /> Xem mẫu 3D
               </button>
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function CatalogPreviewPage() {
             <div className="space-y-2 text-xs text-text-muted">
               <div className="p-3 bg-surface-inset rounded-xl border border-border space-y-1">
                 <p className="text-white font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#22c55e]" /> Vật liệu in: {previewItem.material}
+                  <CheckCircle2 className="w-4 h-4 text-[#39FF14]" /> Vật liệu in: {previewItem.material}
                 </p>
                 <p>• Độ chia vạch nhỏ nhất: 0.5mm (Công nghệ dập chìm chống sờn)</p>
                 <p>• Dung sai quang học: ±0.05mm</p>

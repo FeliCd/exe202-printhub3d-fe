@@ -184,7 +184,7 @@ export default function ChangePasswordModal({
         {/* Header */}
         <div className="p-5 border-b border-border flex items-center justify-between bg-surface">
           <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-[#39FF14]">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-[#39FF14]">
               <KeyRound className="w-4 h-4" />
             </div>
             <div>
@@ -205,7 +205,7 @@ export default function ChangePasswordModal({
         <div className="p-6 space-y-5">
           {/* Thông báo thành công */}
           {successMsg && (
-            <div className="p-3.5 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-bold flex items-center gap-2">
+            <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs font-bold flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-[#39FF14] shrink-0" />
               <span>{successMsg}</span>
             </div>
@@ -256,7 +256,7 @@ export default function ChangePasswordModal({
                 <button
                   type="submit"
                   disabled={isSendingOtp}
-                  className="py-2.5 px-6 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
+                  className="py-2.5 px-6 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer"
                 >
                   {isSendingOtp ? (
                     <>
@@ -358,7 +358,7 @@ export default function ChangePasswordModal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="py-2.5 px-6 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
+                  className="py-2.5 px-6 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>

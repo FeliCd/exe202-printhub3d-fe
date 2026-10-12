@@ -25,16 +25,12 @@ interface UserSidebarProps {
   onOpenAddressModal: () => void;
 }
 
-export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddressModal }: UserSidebarProps) {
+type SidebarGroup = 'shopping' | 'transactions' | 'account';
+
+export default function UserSidebar({ isOpen }: UserSidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const [openGroups, setOpenGroups] = useState({
-    shopping: true,
-    transactions: false,
-    account: false,
-  });
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -46,9 +42,16 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
         ? 'account'
         : null;
 
-  const isGroupOpen = (group: keyof typeof openGroups) => openGroups[group] || routeGroup === group;
+  // Route selects the initial group only; navigation must preserve manual toggles.
+  const [openGroups, setOpenGroups] = useState<Record<SidebarGroup, boolean>>(() => ({
+    shopping: routeGroup === 'shopping' || routeGroup === null,
+    transactions: routeGroup === 'transactions',
+    account: routeGroup === 'account',
+  }));
 
-  const toggleGroup = (group: keyof typeof openGroups) => {
+  const isGroupOpen = (group: SidebarGroup) => openGroups[group];
+
+  const toggleGroup = (group: SidebarGroup) => {
     setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
   };
 
@@ -59,15 +62,15 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
 
   return (
     <aside
-      className={`w-72 bg-surface-inset border-r border-border flex-shrink-0 flex flex-col justify-between h-full transition-all duration-300 ease-in-out ${
+      className={`w-72 bg-surface-inset border-r border-border flex-shrink-0 flex flex-col justify-between h-full min-h-0 transition-all duration-300 ease-in-out ${
         isOpen ? '' : '-translate-x-full hidden'
       }`}
     >
-      <div className="p-4 space-y-5 overflow-y-auto flex-1">
+      <div className="sidebar-scroll p-4 space-y-5 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden flex-1">
         {/* User Account Card / Guest Welcome */}
         {user ? (
           <div className="p-4 rounded-2xl bg-surface border border-border/80 flex items-center gap-3.5 shadow-md">
-            <div className="w-11 h-11 rounded-full bg-emerald-500/20 border border-[#22c55e]/40 flex items-center justify-center text-[#39FF14] font-black text-base uppercase shrink-0">
+            <div className="w-11 h-11 rounded-full bg-primary/20 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] font-black text-base uppercase shrink-0">
               {user.name ? user.name.substring(0, 2) : <UserIcon className="w-5 h-5" />}
             </div>
             <div className="overflow-hidden">
@@ -75,7 +78,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
                 {user.role === 'ADMIN' ? 'Quản Trị Viên' : 'Tài Khoản Sinh Viên'}
               </p>
               <p className="text-sm font-bold text-white truncate">{user.name}</p>
-              <span className="inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800/40 font-bold">
+              <span className="inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-md bg-primary/12 text-primary border border-primary/40 font-bold">
                 {user.studentId ? `MSSV: ${user.studentId}` : 'Đã Xác Thực'}
               </span>
             </div>
@@ -101,7 +104,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
         )}
 
         {/* Custom 3D Ruler CTA (Pinned Outside Groups) */}
-        <div className="p-0.5 rounded-2xl bg-gradient-to-r from-[#22c55e] via-emerald-400 to-teal-400 shadow-lg">
+        <div className="p-0.5 rounded-2xl bg-gradient-to-r from-[#39FF14] via-primary to-primary shadow-lg">
           <Link
             className="flex flex-col gap-1.5 p-3.5 rounded-[14px] bg-surface-inset hover:bg-surface transition group"
             to="/custom"
@@ -128,71 +131,81 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
           <button
             type="button"
             onClick={() => toggleGroup('shopping')}
+            aria-expanded={isGroupOpen('shopping')}
+            aria-controls="sidebar-shopping-panel"
             className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-[#39FF14] hover:bg-surface/50 transition cursor-pointer"
           >
             <span className="flex items-center gap-2">🛒 MUA SẮM &amp; DỊCH VỤ</span>
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 text-[#39FF14] ${
+              className={`w-4 h-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none text-[#39FF14] ${
                 isGroupOpen('shopping') ? 'rotate-180' : ''
               }`}
             />
           </button>
 
-          {isGroupOpen('shopping') && (
-            <nav className="space-y-1 mt-1 pl-1">
-              <Link
-                to="/catalog"
-                aria-current={isActive('/catalog') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/catalog')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <Box className="w-4 h-4 text-[#39FF14] shrink-0" />
-                <span>Sản phẩm &amp; BST Thước</span>
-              </Link>
+          <div
+            id="sidebar-shopping-panel"
+            className="sidebar-group-panel"
+            data-open={isGroupOpen('shopping')}
+            aria-hidden={!isGroupOpen('shopping')}
+            inert={!isGroupOpen('shopping')}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <nav className="space-y-1 mt-1 pl-1">
+                <Link
+                  to="/catalog"
+                  aria-current={isActive('/catalog') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/catalog')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <Box className="w-4 h-4 text-[#39FF14] shrink-0" />
+                  <span>Sản phẩm &amp; BST Thước</span>
+                </Link>
 
-              <Link
-                to="/custom"
-                aria-current={isActive('/custom') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/custom')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <Printer className="w-4 h-4 text-text-muted shrink-0" />
-                <span>In 3D Theo Yêu Cầu</span>
-              </Link>
+                <Link
+                  to="/custom"
+                  aria-current={isActive('/custom') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/custom')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <Printer className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>In 3D Theo Yêu Cầu</span>
+                </Link>
 
-              <Link
-                to="/bulk-order"
-                aria-current={isActive('/bulk-order') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/bulk-order')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <Layers className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Đặt Hàng Hàng Loạt</span>
-              </Link>
+                <Link
+                  to="/bulk-order"
+                  aria-current={isActive('/bulk-order') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/bulk-order')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Đặt Hàng Hàng Loạt</span>
+                </Link>
 
-              <Link
-                to="/ruler-3d"
-                aria-current={isActive('/ruler-3d') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/ruler-3d')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <Ruler className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Công cụ Thước đo 3D</span>
-              </Link>
-            </nav>
-          )}
+                <Link
+                  to="/ruler-3d"
+                  aria-current={isActive('/ruler-3d') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/ruler-3d')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <Ruler className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Công cụ Thước đo 3D</span>
+                </Link>
+              </nav>
+            </div>
+          </div>
         </div>
 
         {/* ========================================================================= */}
@@ -202,74 +215,84 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
           <button
             type="button"
             onClick={() => toggleGroup('transactions')}
+            aria-expanded={isGroupOpen('transactions')}
+            aria-controls="sidebar-transactions-panel"
             className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-[#39FF14] hover:bg-surface/50 transition cursor-pointer"
           >
             <span className="flex items-center gap-2">📦 QUẢN LÝ GIAO DỊCH</span>
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 text-[#39FF14] ${
+              className={`w-4 h-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none text-[#39FF14] ${
                 isGroupOpen('transactions') ? 'rotate-180' : ''
               }`}
             />
           </button>
 
-          {isGroupOpen('transactions') && (
-            <nav className="space-y-1 mt-1 pl-1">
-              <Link
-                to="/orders"
-                aria-current={isActive('/orders') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/orders')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <PackageCheck className="w-4 h-4 text-text-muted shrink-0" />
-                <div className="flex-1 flex items-center justify-between">
-                  <span>Theo dõi tiến độ in 3D</span>
-                  <span className="w-2 h-2 rounded-full bg-[#39FF14]" />
-                </div>
-              </Link>
+          <div
+            id="sidebar-transactions-panel"
+            className="sidebar-group-panel"
+            data-open={isGroupOpen('transactions')}
+            aria-hidden={!isGroupOpen('transactions')}
+            inert={!isGroupOpen('transactions')}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <nav className="space-y-1 mt-1 pl-1">
+                <Link
+                  to="/orders"
+                  aria-current={isActive('/orders') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/orders')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <PackageCheck className="w-4 h-4 text-text-muted shrink-0" />
+                  <div className="flex-1 flex items-center justify-between">
+                    <span>Theo dõi tiến độ in 3D</span>
+                    <span className="w-2 h-2 rounded-full bg-[#39FF14]" />
+                  </div>
+                </Link>
 
-              <Link
-                to="/order-history"
-                aria-current={isActive('/order-history') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/order-history')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <History className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Lịch sử đơn hàng &amp; In lại</span>
-              </Link>
+                <Link
+                  to="/order-history"
+                  aria-current={isActive('/order-history') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/order-history')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <History className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Lịch sử đơn hàng &amp; In lại</span>
+                </Link>
 
-              <Link
-                to="/quotations"
-                aria-current={isActive('/quotations') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/quotations')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <FileText className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Quản lý Báo giá 3D</span>
-              </Link>
+                <Link
+                  to="/quotations"
+                  aria-current={isActive('/quotations') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/quotations')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <FileText className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Quản lý Báo giá 3D</span>
+                </Link>
 
-              <Link
-                to="/subscriptions"
-                aria-current={isActive('/subscriptions') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/subscriptions')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Gói Ưu Đãi Hội Viên</span>
-              </Link>
-            </nav>
-          )}
+                <Link
+                  to="/subscriptions"
+                  aria-current={isActive('/subscriptions') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/subscriptions')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Gói Ưu Đãi Hội Viên</span>
+                </Link>
+              </nav>
+            </div>
+          </div>
         </div>
 
         {/* ========================================================================= */}
@@ -279,89 +302,99 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
           <button
             type="button"
             onClick={() => toggleGroup('account')}
+            aria-expanded={isGroupOpen('account')}
+            aria-controls="sidebar-account-panel"
             className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-[#39FF14] hover:bg-surface/50 transition cursor-pointer"
           >
             <span className="flex items-center gap-2">👤 CÁ NHÂN &amp; HỖ TRỢ</span>
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 text-[#39FF14] ${
+              className={`w-4 h-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none text-[#39FF14] ${
                 isGroupOpen('account') ? 'rotate-180' : ''
               }`}
             />
           </button>
 
-          {isGroupOpen('account') && (
-            <nav className="space-y-1 mt-1 pl-1">
-              <Link
-                to="/profile"
-                aria-current={isActive('/profile') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/profile')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <UserIcon className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Trang cá nhân</span>
-              </Link>
+          <div
+            id="sidebar-account-panel"
+            className="sidebar-group-panel"
+            data-open={isGroupOpen('account')}
+            aria-hidden={!isGroupOpen('account')}
+            inert={!isGroupOpen('account')}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <nav className="space-y-1 mt-1 pl-1">
+                <Link
+                  to="/profile"
+                  aria-current={isActive('/profile') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/profile')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <UserIcon className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Trang cá nhân</span>
+                </Link>
 
-              <Link
-                to="/addresses"
-                aria-current={isActive('/addresses') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/addresses')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <MapPin className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Sổ địa chỉ nhận hàng</span>
-              </Link>
+                <Link
+                  to="/addresses"
+                  aria-current={isActive('/addresses') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/addresses')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <MapPin className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Sổ địa chỉ nhận hàng</span>
+                </Link>
 
-              <Link
-                to="/warranty"
-                aria-current={isActive('/warranty') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/warranty')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <ShieldAlert className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Bảo hành</span>
-              </Link>
+                <Link
+                  to="/warranty"
+                  aria-current={isActive('/warranty') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/warranty')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <ShieldAlert className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Bảo hành</span>
+                </Link>
 
-              <Link
-                to="/disputes"
-                aria-current={isActive('/disputes') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/disputes')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <Scale className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Khiếu nại &amp; Tranh chấp</span>
-              </Link>
+                <Link
+                  to="/disputes"
+                  aria-current={isActive('/disputes') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/disputes')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <Scale className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Khiếu nại &amp; Tranh chấp</span>
+                </Link>
 
-              <Link
-                to="/help-center"
-                aria-current={isActive('/help-center') ? 'page' : undefined}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  isActive('/help-center')
-                    ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                    : 'text-slate-300 hover:bg-surface hover:text-white'
-                }`}
-              >
-                <HelpCircle className="w-4 h-4 text-text-muted shrink-0" />
-                <span>Trung tâm Hỗ trợ &amp; FAQ</span>
-              </Link>
-            </nav>
-          )}
+                <Link
+                  to="/help-center"
+                  aria-current={isActive('/help-center') ? 'page' : undefined}
+                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/help-center')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <HelpCircle className="w-4 h-4 text-text-muted shrink-0" />
+                  <span>Trung tâm Hỗ trợ &amp; FAQ</span>
+                </Link>
+              </nav>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Bottom Auth Action Button */}
-      <div className="p-4 border-t border-border bg-surface-inset">
+      <div className="p-4 shrink-0 border-t border-border bg-surface-inset">
         {user ? (
           <button
             onClick={handleLogout}
@@ -373,7 +406,7 @@ export default function UserSidebar({ isOpen, onOpenAddressModal: _onOpenAddress
         ) : (
           <Link
             to="/login"
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-500/40 text-[#39FF14] hover:bg-[#39FF14]/10 font-bold text-xs transition shadow-sm"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/40 text-[#39FF14] hover:bg-[#39FF14]/10 font-bold text-xs transition shadow-sm"
           >
             <LogIn className="w-4 h-4" />
             <span>Đăng nhập tài khoản</span>

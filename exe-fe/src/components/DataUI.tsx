@@ -8,7 +8,7 @@ export function Panel({ title, children }: { title: string; children: ReactNode 
 export function Card({ children }: { children: ReactNode }) { return <div className="space-y-3 rounded-2xl border border-border bg-surface p-5">{children}</div>; }
 export function Notice({ error }: { error?: string }) { return error ? <p role="alert" className="rounded-xl border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p> : null; }
 export function RemoteState({ loading, error, empty, retry }: { loading: boolean; error: string; empty?: boolean; retry: () => void }) {
-  return <>{loading && <p role="status">Đang tải dữ liệu…</p>}<Notice error={error} />{error && <button className={secondary} onClick={retry}>Thử lại</button>}{!loading && !error && empty && <p className="text-slate-400">Chưa có dữ liệu.</p>}</>;
+  return <div className="space-y-3" aria-busy={loading}>{loading && <p role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-text-muted"><span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />Đang tải dữ liệu…</p>}<Notice error={error} />{error && <button className={secondary} disabled={loading} onClick={retry}>Thử lại</button>}{!loading && !error && empty && <p role="status" className="rounded-xl border border-dashed border-border p-4 text-sm text-text-muted">Chưa có dữ liệu để hiển thị.</p>}</div>;
 }
 const labels: Record<string, string> = {
   PENDING: 'Chờ xử lý',
@@ -41,9 +41,9 @@ export function Status({ value, className = '' }: { value?: string; className?: 
   } else if (['PENDING', 'REQUESTED', 'UNDER_REVIEW', 'OPEN', 'UNPAID'].includes(v)) {
     color = 'border-amber-500/40 bg-amber-950/40 text-amber-300 font-medium';
   } else if (['PREPARING', 'PRINTING', 'SHIPPING', 'QUOTED'].includes(v)) {
-    color = 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300 font-medium';
+    color = 'border-primary/40 bg-primary/5 text-primary font-medium';
   } else if (['COMPLETED', 'PAID', 'APPROVED', 'ACCEPTED', 'RESOLVED', 'SUCCESS', 'REPLACED'].includes(v)) {
-    color = 'border-emerald-500/40 bg-emerald-950/40 text-emerald-300 font-medium';
+    color = 'border-primary/40 bg-primary/5 text-primary font-medium';
   }
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs ${color} ${className}`}>
@@ -52,6 +52,3 @@ export function Status({ value, className = '' }: { value?: string; className?: 
     </span>
   );
 }
-
-export const money = (value: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
-

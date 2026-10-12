@@ -169,7 +169,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               </div>
 
               {giftUser && (
-                <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1 shrink-0">
+                <span className="text-xs text-primary font-semibold flex items-center gap-1 shrink-0">
                   <Check className="w-3.5 h-3.5" /> Đã chọn người nhận. Nhấn nút "Tặng gói" ở bên dưới.
                 </span>
               )}

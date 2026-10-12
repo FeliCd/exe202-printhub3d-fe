@@ -114,13 +114,13 @@ export default function LoginPage() {
     <div className="min-h-[75vh] flex items-center justify-center w-full py-6">
       <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-surface border border-border shadow-2xl space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#22c55e] to-emerald-400 flex items-center justify-center text-slate-950 font-black text-xl mx-auto shadow-lg shadow-emerald-900/40">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#39FF14] to-primary flex items-center justify-center text-slate-950 font-black text-xl mx-auto shadow-lg shadow-primary/40">
             3D
           </div>
           <h2 className="text-2xl font-black text-white">Đăng Nhập PrintHub 3D</h2>
           <p className="text-sm text-text-muted">Hệ thống dịch vụ in 3D &amp; Thước kỹ thuật sinh viên</p>
           {redirectPath && (
-            <p className="text-xs text-[#22c55e] font-semibold bg-primary/10 border border-[#22c55e]/30 p-2 rounded-xl">
+            <p className="text-xs text-[#39FF14] font-semibold bg-primary/10 border border-[#39FF14]/30 p-2 rounded-xl">
               Vui lòng đăng nhập để tiếp tục thao tác đặt hàng của bạn.
             </p>
           )}
@@ -142,11 +142,14 @@ export default function LoginPage() {
               <Mail className="w-4 h-4 absolute left-3 top-3 text-text-muted" />
               <input
                 id="loginpage-field-1"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 type="text"
                 value={userNameOrEmail}
                 onChange={(e) => setUserNameOrEmail(e.target.value)}
                 required
-                className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                 placeholder="vananh@student.edu.vn hoặc tên đăng nhập"
               />
             </div>
@@ -160,7 +163,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={openForgotModal}
-                className="text-xs text-[#22c55e] hover:underline font-semibold"
+                className="text-xs text-[#39FF14] hover:underline font-semibold"
               >
                 Quên mật khẩu?
               </button>
@@ -169,11 +172,12 @@ export default function LoginPage() {
               <Lock className="w-4 h-4 absolute left-3 top-3 text-text-muted" />
               <input
                 id="loginpage-field-2"
+                autoComplete="current-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#22c55e] outline-none"
+                className="w-full bg-surface-inset border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:border-[#39FF14] outline-none"
                 placeholder="••••••••"
               />
             </div>
@@ -182,7 +186,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-emerald-500/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+            className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs tracking-wide shadow-lg shadow-primary/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
           >
             {isLoading ? (
               <>
@@ -198,7 +202,7 @@ export default function LoginPage() {
 
         <div className="text-center text-xs text-text-muted pt-2 border-t border-border">
           Chưa có tài khoản?{' '}
-          <Link to="/signup" className="text-[#22c55e] font-bold hover:underline">
+          <Link to="/signup" className="text-[#39FF14] font-bold hover:underline">
             Tạo tài khoản sinh viên mới
           </Link>
         </div>
@@ -217,7 +221,7 @@ export default function LoginPage() {
             </button>
 
             <div className="text-center space-y-1">
-              <div className="w-12 h-12 rounded-2xl bg-primary/20 text-[#22c55e] border border-[#22c55e]/30 flex items-center justify-center mx-auto mb-2">
+              <div className="w-12 h-12 rounded-2xl bg-primary/20 text-[#39FF14] border border-[#39FF14]/30 flex items-center justify-center mx-auto mb-2">
                 <KeyRound className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-black text-white">Quên Mật Khẩu Tài Khoản</h3>
@@ -245,7 +249,7 @@ export default function LoginPage() {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="student@example.com"
-                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none focus:border-[#22c55e]"
+                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none focus:border-[#39FF14]"
                   />
                 </div>
                 <button
@@ -277,7 +281,7 @@ export default function LoginPage() {
                     value={forgotOtp}
                     onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ''))}
                     placeholder="123456"
-                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white font-mono text-center text-base tracking-widest outline-none focus:border-[#22c55e]"
+                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white font-mono text-center text-base tracking-widest outline-none focus:border-[#39FF14]"
                   />
                 </div>
 
@@ -290,7 +294,7 @@ export default function LoginPage() {
                     value={forgotNewPassword}
                     onChange={(e) => setForgotNewPassword(e.target.value)}
                     placeholder="Mật khẩu mới gồm hoa, thường, số..."
-                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none focus:border-[#22c55e]"
+                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none focus:border-[#39FF14]"
                   />
                 </div>
 
@@ -302,7 +306,7 @@ export default function LoginPage() {
                     value={forgotConfirmPassword}
                     onChange={(e) => setForgotConfirmPassword(e.target.value)}
                     placeholder="Nhập lại mật khẩu mới"
-                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none focus:border-[#22c55e]"
+                    className="w-full bg-surface-inset border border-border rounded-xl p-2.5 text-white outline-none focus:border-[#39FF14]"
                   />
                 </div>
 
@@ -318,7 +322,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleSendForgotOtp}
                     disabled={forgotLoading}
-                    className="text-[#22c55e] hover:underline font-semibold"
+                    className="text-[#39FF14] hover:underline font-semibold"
                   >
                     Gửi lại mã OTP
                   </button>
@@ -342,7 +346,7 @@ export default function LoginPage() {
 
             {forgotStep === 'success' && (
               <div className="text-center space-y-4 py-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-[#22c55e] mx-auto">
+                <div className="w-12 h-12 rounded-full bg-primary/12 border border-primary/30 flex items-center justify-center text-[#39FF14] mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <p className="text-sm text-slate-300">

@@ -41,7 +41,7 @@ export default function LandingPage() {
           <div className="relative rounded-3xl bg-gradient-to-b from-[#14161d] via-[#0f1015] to-[#0a0b0e] border border-white/10 p-6 sm:p-10 lg:p-14 overflow-hidden shadow-2xl">
             {/* Ambient Background Glows */}
             <div className="absolute -top-32 right-10 w-[550px] h-[550px] bg-blue-600/15 rounded-full blur-[130px] pointer-events-none" />
-            <div className="absolute top-1/2 -left-20 w-[450px] h-[450px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/2 -left-20 w-[450px] h-[450px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Left Column: Hero Content */}
@@ -66,7 +66,7 @@ export default function LandingPage() {
                 <div className="flex flex-wrap items-center gap-4 pt-2">
                   <Link
                     to="/custom"
-                    className="px-8 py-4 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center gap-2.5 active:scale-95 group"
+                    className="px-8 py-4 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm shadow-xl shadow-primary/25 hover:shadow-primary/40 transition-all flex items-center gap-2.5 active:scale-95 group"
                   >
                     <span>Design your style</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -101,7 +101,7 @@ export default function LandingPage() {
                         <p className="text-[10px] text-slate-400">Độ phân giải 0.12mm • Sợi PLA+ Pro</p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-cyan-400 px-2.5 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/60">
+                    <span className="text-[11px] font-mono font-bold text-primary px-2.5 py-1 rounded-full bg-primary/7 border border-primary/60">
                       84% In
                     </span>
                   </div>
@@ -114,7 +114,7 @@ export default function LandingPage() {
             {/* ========================================================================= */}
             <div className="mt-12 pt-8 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Feature 1 */}
-              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-emerald-500/40 transition">
+              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-primary/40 transition">
                 <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.5)]" />
                 <div>
                   <h3 className="text-sm font-extrabold text-white">Tailored Designs</h3>
@@ -125,7 +125,7 @@ export default function LandingPage() {
               </div>
 
               {/* Feature 2 */}
-              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-emerald-500/40 transition">
+              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-primary/40 transition">
                 <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.5)]" />
                 <div>
                   <h3 className="text-sm font-extrabold text-white">Unlimited Customization</h3>
@@ -136,7 +136,7 @@ export default function LandingPage() {
               </div>
 
               {/* Feature 3 */}
-              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-emerald-500/40 transition">
+              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-primary/40 transition">
                 <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.5)]" />
                 <div>
                   <h3 className="text-sm font-extrabold text-white">Available Worldwide</h3>
@@ -147,7 +147,7 @@ export default function LandingPage() {
               </div>
 
               {/* Feature 4 */}
-              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-emerald-500/40 transition">
+              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#12141c]/70 border border-white/[0.06] hover:border-primary/40 transition">
                 <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.5)]" />
                 <div>
                   <h3 className="text-sm font-extrabold text-white">Expert 3D Designers</h3>
@@ -196,7 +196,7 @@ export default function LandingPage() {
               <div>
                 <Link
                   to="/catalog"
-                  className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition active:scale-95"
+                  className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm shadow-xl shadow-primary/25 hover:shadow-primary/40 transition active:scale-95"
                 >
                   <span>Find Out More</span>
                   <ArrowRight className="w-4 h-4" />
@@ -208,9 +208,9 @@ export default function LandingPage() {
           {/* Detailed Service Grid (Preserves All Existing Landing Features) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
             {/* Service 1: Ruler Catalog */}
-            <div className="p-6 rounded-2xl bg-[#12141a] border border-white/10 hover:border-emerald-500/50 transition group flex flex-col justify-between space-y-4 shadow-xl">
+            <div className="p-6 rounded-2xl bg-[#12141a] border border-white/10 hover:border-primary/50 transition group flex flex-col justify-between space-y-4 shadow-xl">
               <div className="space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-[#22c55e]/30 flex items-center justify-center text-[#39FF14] group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] group-hover:scale-110 transition-transform">
                   <Box className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-white group-hover:text-[#39FF14] transition">
@@ -230,12 +230,12 @@ export default function LandingPage() {
             </div>
 
             {/* Service 2: Custom 3D Order */}
-            <div className="p-6 rounded-2xl bg-[#12141a] border border-white/10 hover:border-cyan-400/50 transition group flex flex-col justify-between space-y-4 shadow-xl">
+            <div className="p-6 rounded-2xl bg-[#12141a] border border-white/10 hover:border-primary/50 transition group flex flex-col justify-between space-y-4 shadow-xl">
               <div className="space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                   <Printer className="w-6 h-6" />
                 </div>
-                <h3 className="text-base font-bold text-white group-hover:text-cyan-400 transition">
+                <h3 className="text-base font-bold text-white group-hover:text-primary transition">
                   Báo Giá File 3D Tùy Chỉnh
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
@@ -244,7 +244,7 @@ export default function LandingPage() {
               </div>
               <Link
                 to="/custom"
-                className="text-xs font-bold text-cyan-400 inline-flex items-center gap-1.5 hover:underline pt-2"
+                className="text-xs font-bold text-primary inline-flex items-center gap-1.5 hover:underline pt-2"
               >
                 <span>Tải tệp 3D báo giá</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -342,7 +342,7 @@ export default function LandingPage() {
                 {/* Pillar 3: Tư Vấn & Cá Nhân Hóa Tận Tâm */}
                 <div className="space-y-3">
                   <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300">
-                    <Sparkles className="w-6 h-6 text-cyan-400" />
+                    <Sparkles className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Tư Vấn &amp; Cá Nhân Hóa Tận Tâm
@@ -396,9 +396,9 @@ export default function LandingPage() {
         {/* SECTION 4: GUARANTEE & QUALITY COMMITMENT */}
         {/* ========================================================================= */}
         <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-emerald-950/70 via-[#11141d] to-[#0a0b10] border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-primary/10 via-[#11141d] to-[#0a0b10] border border-primary/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-[#22c55e]/15 border border-[#22c55e]/40 flex items-center justify-center text-[#39FF14] shrink-0 shadow-lg shadow-emerald-900/30">
+              <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] shrink-0 shadow-lg shadow-primary/30">
                 <ShieldCheck className="w-9 h-9" />
               </div>
               <div className="space-y-1">
@@ -413,7 +413,7 @@ export default function LandingPage() {
 
             <Link
               to="/warranty"
-              className="px-8 py-3.5 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs whitespace-nowrap transition shadow-xl shadow-emerald-500/25 active:scale-95 shrink-0"
+              className="px-8 py-3.5 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs whitespace-nowrap transition shadow-xl shadow-primary/25 active:scale-95 shrink-0"
             >
               Gửi yêu cầu bảo hành
             </Link>

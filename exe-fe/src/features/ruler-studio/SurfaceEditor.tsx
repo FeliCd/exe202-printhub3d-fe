@@ -264,7 +264,7 @@ export default function SurfaceEditor({
               <path
                 d={profilePath(profile)}
                 fill="none"
-                stroke="#0b9173"
+                stroke="#39FF14"
                 strokeWidth=".045"
                 strokeDasharray=".15 .1"
               />

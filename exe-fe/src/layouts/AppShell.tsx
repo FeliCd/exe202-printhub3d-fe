@@ -31,7 +31,12 @@ export default function AppShell({ cartCount, onOpenCart, sidebar, children }: A
       <Header cartCount={cartCount} onOpenCart={onOpenCart} sidebarOpen={open}
         onToggleSidebar={() => desktop ? setDesktopOpen(!desktopOpen) : setMobileOpen(!mobileOpen)} />
       <div className="flex-1 min-h-0 flex overflow-hidden">
-        {desktop && desktopOpen && <div id="app-sidebar" className="shrink-0">{sidebar}</div>}
+        {desktop && (
+          <div id="app-sidebar" className="desktop-sidebar" data-open={desktopOpen}
+            aria-hidden={!desktopOpen} inert={!desktopOpen}>
+            <div className="desktop-sidebar-content">{sidebar}</div>
+          </div>
+        )}
         <main id="main-content" tabIndex={-1} className="app-content flex-1 min-w-0 overflow-y-auto flex flex-col">
           <div className="w-full max-w-[1600px] mx-auto flex-1 min-w-0 flex flex-col px-4 lg:px-8 py-6">{children ?? <Outlet />}</div>
           <Footer />
@@ -43,7 +48,7 @@ export default function AppShell({ cartCount, onOpenCart, sidebar, children }: A
             Đóng menu <X size={20} />
           </button>
           <div className="min-h-0 flex-1 mobile-sidebar" onClick={(event) => {
-            if (event.target instanceof Element && event.target.closest('a, button')) setMobileOpen(false);
+            if (event.target instanceof Element && event.target.closest('a[href]')) setMobileOpen(false);
           }}>{sidebar}</div>
         </div>
       </Modal>

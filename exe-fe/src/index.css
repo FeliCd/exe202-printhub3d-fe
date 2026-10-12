@@ -5,19 +5,19 @@
   --color-surface: #18191d;
   --color-surface-inset: #111215;
   --color-surface-raised: #1e2025;
-  --color-primary: #22c55e;
-  --color-primary-hover: #16a34a;
+  --color-primary: #39FF14;
+  --color-primary-hover: #39FF14;
   --color-border: #272930;
   --color-text-muted: #94a3b8;
-  --color-success: #22c55e;
+  --color-success: #39FF14;
   --color-warning: #fbbf24;
   --color-error: #f87171;
-  --color-info: #22d3ee;
+  --color-info: #39FF14;
   --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Custom Cyber-Industrial Palette */
-  --color-brand-light-accent: #10B981;
+  --color-brand-light-accent: #39FF14;
   --color-brand-neon: #39FF14;
 
   --color-brand-light-bg: #F3F4F6;
@@ -32,7 +32,7 @@
 
 :root {
   font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
-  --primary-accent: #10B981;
+  --primary-accent: #39FF14;
   --bg-app: #F3F4F6;
   --bg-card: #FFFFFF;
   --text-main: #111827;
@@ -80,6 +80,72 @@ html { color-scheme: dark; }
 .app-content :where(h1, h2, h3, h4) + p { line-height: 1.6; }
 .app-content :where(.flex > svg) { flex-shrink: 0; }
 .mobile-sidebar > aside { width: 100%; }
+
+/* Reserve the scrollbar lane before overflow so expanded groups never reflow cards. */
+.sidebar-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #39FF14 var(--color-surface-inset, #101113);
+}
+.sidebar-scroll::-webkit-scrollbar { width: 6px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: var(--color-surface-inset, #101113); }
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #39FF14;
+  border-radius: 999px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #39ff14; }
+
+.desktop-sidebar {
+  width: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: width 300ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear 300ms;
+}
+.desktop-sidebar-content {
+  width: 18rem;
+  height: 100%;
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: transform 300ms cubic-bezier(.22, 1, .36, 1), opacity 240ms ease;
+}
+.desktop-sidebar[data-open='true'] {
+  width: 18rem;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.desktop-sidebar[data-open='true'] > .desktop-sidebar-content {
+  opacity: 1;
+  transform: translateX(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .desktop-sidebar, .desktop-sidebar-content { transition: none; }
+}
+
+/* Reveal sidebar groups without unmounting their links during the closing animation. */
+.sidebar-group-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-6px);
+  visibility: hidden;
+  transition:
+    grid-template-rows 300ms cubic-bezier(.22, 1, .36, 1),
+    opacity 240ms ease,
+    transform 300ms cubic-bezier(.22, 1, .36, 1),
+    visibility 0s linear 300ms;
+}
+.sidebar-group-panel[data-open='true'] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-group-panel { transition: none; transform: none; }
+}
+
 
 .app-dialog {
   margin: auto;

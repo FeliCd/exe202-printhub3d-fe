@@ -28,7 +28,7 @@ export default function LandingNavbar() {
         {/* BRAND LOGO (Matches Left Side of Reference Header) */}
         {/* ========================================================================= */}
         <Link to="/" className="flex items-center gap-3 group shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#22c55e] to-emerald-400 p-[1px] shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#39FF14] to-primary p-[1px] shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
             <div className="w-full h-full rounded-2xl bg-[#0d0e12] flex items-center justify-center text-[#39FF14]">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" viewBox="0 0 24 24">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
@@ -103,7 +103,7 @@ export default function LandingNavbar() {
           {isAuthenticated && user ? (
             <Link
               to="/dashboard"
-              className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition"
+              className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition"
             >
               <span>Vào Bảng Điều Khiển</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -118,7 +118,7 @@ export default function LandingNavbar() {
               </Link>
               <Link
                 to="/signup"
-                className="px-4 py-2 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20 active:scale-95"
+                className="px-4 py-2 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs transition shadow-md shadow-primary/20 active:scale-95"
               >
                 Đăng ký
               </Link>
@@ -203,7 +203,7 @@ export default function LandingNavbar() {
               <Link
                 to="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-2.5 text-center rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs shadow-md shadow-emerald-500/20"
+                className="w-full py-2.5 text-center rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs shadow-md shadow-primary/20"
               >
                 Vào Bảng Điều Khiển
               </Link>
@@ -219,7 +219,7 @@ export default function LandingNavbar() {
                 <Link
                   to="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex-1 py-2 text-center rounded-xl bg-primary hover:bg-primary-hover text-xs font-black text-slate-950 shadow-md shadow-emerald-500/20"
+                  className="flex-1 py-2 text-center rounded-xl bg-primary hover:bg-primary-hover text-xs font-black text-slate-950 shadow-md shadow-primary/20"
                 >
                   Đăng ký
                 </Link>

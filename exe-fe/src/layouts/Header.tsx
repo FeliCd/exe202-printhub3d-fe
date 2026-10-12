@@ -41,7 +41,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         </button>
 
         <Link aria-label="PrintHub 3D — Trang chủ" className="flex items-center gap-2 text-white font-bold text-lg tracking-tight group" to="/">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#22c55e] to-emerald-400 flex items-center justify-center text-slate-950 shadow-lg shadow-emerald-900/40 group-hover:scale-105 transition-transform font-black">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#39FF14] to-primary flex items-center justify-center text-slate-950 shadow-lg shadow-primary/40 group-hover:scale-105 transition-transform font-black">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
               <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -75,7 +75,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         {!isAdmin && (
           <Link
             to="/custom"
-            className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-950 to-cyan-950 border border-emerald-500/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-md"
+            className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-primary/10 to-primary/10 border border-primary/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-md"
           >
             <Sparkles className="w-3.5 h-3.5 animate-pulse" />
             <span>Tự Design Thước 3D</span>
@@ -113,7 +113,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
             className="flex items-center gap-2 p-1 rounded-xl bg-surface hover:bg-[#272930] border border-border transition group"
             title="Trang cá nhân"
           >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 flex items-center justify-center font-black text-xs text-white uppercase shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-primary to-primary flex items-center justify-center font-black text-xs text-slate-950 uppercase shrink-0">
               {user.name ? user.name.substring(0, 2) : <UserIcon className="w-4 h-4" />}
             </div>
             <div className="text-left hidden xl:block leading-tight pr-1">
@@ -133,7 +133,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
             </Link>
             <Link
               to="/signup"
-              className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 text-xs font-extrabold transition shadow-md shadow-emerald-500/20"
+              className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 text-xs font-extrabold transition shadow-md shadow-primary/20"
             >
               Đăng ký
             </Link>
@@ -143,7 +143,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         {/* TOP RIGHT: CART DRAWER BUTTON */}
         {!isAdmin && (
           <button
-            className="flex items-center gap-2 bg-[#39FF14] hover:bg-emerald-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-emerald-950/60 active:scale-95 transition"
+            className="flex items-center gap-2 bg-[#39FF14] hover:bg-primary text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-primary/60 active:scale-95 transition"
             onClick={onOpenCart}
             title="Xem giỏ hàng"
             aria-label={`Giỏ hàng, ${cartCount} sản phẩm`}

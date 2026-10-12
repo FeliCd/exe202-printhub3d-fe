@@ -300,7 +300,7 @@ export default function CustomOrderCheckoutPage({
                     isCurrent
                       ? 'text-primary'
                       : isPassed
-                      ? 'text-emerald-400'
+                      ? 'text-primary'
                       : 'text-slate-500'
                   }`}
                   onClick={() => {
@@ -315,7 +315,7 @@ export default function CustomOrderCheckoutPage({
                       isCurrent
                         ? 'bg-primary text-slate-950 ring-4 ring-primary/20 scale-105'
                         : isPassed
-                        ? 'bg-emerald-950/80 border border-emerald-500/60 text-emerald-400'
+                        ? 'bg-primary/10 border border-primary/60 text-primary'
                         : 'bg-surface-inset border border-border text-slate-500'
                     }`}
                   >
@@ -447,7 +447,7 @@ export default function CustomOrderCheckoutPage({
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
           <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 space-y-6 shadow-xl">
             <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
                 <Ruler className="w-5 h-5" />
               </div>
               <div>
@@ -485,7 +485,7 @@ export default function CustomOrderCheckoutPage({
 
               {/* Card 2: Materials & Colors */}
               <div className="p-4 rounded-xl border border-border bg-surface-inset space-y-3">
-                <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
                   <Sparkles className="w-4 h-4" /> Vật liệu &amp; Phối màu
                 </div>
                 <div>
@@ -523,7 +523,7 @@ export default function CustomOrderCheckoutPage({
                   </div>
                   <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
                     <span className="text-slate-400">Mã số sinh viên:</span>
-                    <strong className="text-cyan-300 font-mono text-sm">{orderConfig.studentId || 'Chưa điền'}</strong>
+                    <strong className="text-primary font-mono text-sm">{orderConfig.studentId || 'Chưa điền'}</strong>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">Kiểu Font chữ:</span>
@@ -544,7 +544,7 @@ export default function CustomOrderCheckoutPage({
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">Tệp mô hình STL:</span>
-                    <span className="text-emerald-400 font-mono text-[11px]">Đã tạo và mã hoá</span>
+                    <span className="text-primary font-mono text-[11px]">Đã tạo và mã hoá</span>
                   </div>
                   {orderConfig.attachmentUrl && (
                     <div className="pt-1">
@@ -709,7 +709,7 @@ export default function CustomOrderCheckoutPage({
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
           <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 space-y-6 shadow-xl">
             <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
@@ -732,7 +732,7 @@ export default function CustomOrderCheckoutPage({
                       : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
                   }`}
                 >
-                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/50 text-[10px] font-bold text-emerald-400">
+                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-primary/12 border border-primary/50 text-[10px] font-bold text-primary">
                     Khuyên dùng
                   </span>
                   <div className="flex items-center gap-2.5">
@@ -758,7 +758,7 @@ export default function CustomOrderCheckoutPage({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Truck className="w-5 h-5 text-cyan-400" />
+                    <Truck className="w-5 h-5 text-primary" />
                     <div>
                       <p className="font-bold text-sm">Thanh toán khi nhận hàng (COD)</p>
                       <p className="text-[11px] text-slate-400">Nhận thước, kiểm tra rồi thanh toán tiền mặt</p>
@@ -793,7 +793,7 @@ export default function CustomOrderCheckoutPage({
               </div>
 
               {vipDiscount > 0 && (
-                <div className="flex justify-between items-center text-xs text-emerald-400">
+                <div className="flex justify-between items-center text-xs text-primary">
                   <span>Ưu đãi gói hội viên VIP (-15%):</span>
                   <span className="font-mono font-bold">-{formatPrice(vipDiscount)}đ</span>
                 </div>
@@ -803,7 +803,7 @@ export default function CustomOrderCheckoutPage({
                 <span className="text-slate-400">Phí giao hàng:</span>
                 <span className="text-white font-mono">
                   {shippingFee === 0 ? (
-                    <span className="text-emerald-400 font-bold">Miễn phí</span>
+                    <span className="text-primary font-bold">Miễn phí</span>
                   ) : (
                     `${formatPrice(shippingFee)}đ`
                   )}

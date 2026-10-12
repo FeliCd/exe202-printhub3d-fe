@@ -123,7 +123,7 @@ function ProfilePageContent() {
       )}
 
       {savedSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 text-primary text-xs font-bold flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-[#39FF14]" /> Đã cập nhật thành công thông tin tài khoản!
         </div>
       )}
@@ -133,14 +133,14 @@ function ProfilePageContent() {
         {/* Left Column: Avatar & Account Badge */}
         <div className="p-6 rounded-2xl bg-surface border border-border space-y-4 text-center flex flex-col justify-between shadow-lg">
           <div className="space-y-3">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-600 via-teal-500 to-[#39FF14] flex items-center justify-center font-black text-2xl text-slate-950 uppercase mx-auto shadow-xl shadow-emerald-950/40">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-primary via-primary to-[#39FF14] flex items-center justify-center font-black text-2xl text-slate-950 uppercase mx-auto shadow-xl shadow-primary/40">
               {name.substring(0, 2) || '3D'}
             </div>
             <div>
               <h3 className="font-bold text-white text-base">{name || 'Người dùng'}</h3>
               <p className="text-xs text-[#39FF14] font-semibold mt-0.5">{user?.email}</p>
               <div className="mt-2.5 flex items-center justify-center gap-1.5">
-                <span className="inline-flex items-center gap-1 text-[11px] px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">
+                <span className="inline-flex items-center gap-1 text-[11px] px-3 py-1 rounded-full bg-primary/12 text-primary border border-primary/30 font-bold">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#39FF14]" />
                   {user?.role === 'ADMIN' ? 'Quản Trị Viên Hệ Thống' : 'Tài Khoản Sinh Viên'}
                 </span>
@@ -163,7 +163,7 @@ function ProfilePageContent() {
         {/* Middle & Right: Điểm thưởng & Gói hội viên Card */}
         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Card Điểm thưởng PrintHub Xu */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-surface to-emerald-950/30 border border-[#39FF14]/30 space-y-4 flex flex-col justify-between shadow-lg">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-surface to-primary/10 border border-[#39FF14]/30 space-y-4 flex flex-col justify-between shadow-lg">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
@@ -198,7 +198,7 @@ function ProfilePageContent() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4 text-emerald-400" /> Hồ Sơ Sinh Viên
+                  <GraduationCap className="w-4 h-4 text-primary" /> Hồ Sơ Sinh Viên
                 </span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
                   {studentId ? 'Đã liên kết' : 'Chưa cập nhật'}
@@ -254,7 +254,7 @@ function ProfilePageContent() {
                 type="button"
                 onClick={handleSaveProfile}
                 disabled={saving}
-                className="py-2 px-4 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
+                className="py-2 px-4 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" /> {saving ? 'Đang lưu...' : 'Lưu Thay Đổi'}
               </button>
@@ -382,7 +382,7 @@ function ProfilePageContent() {
               <div className="flex items-center gap-2">
                 <span className="font-bold text-white text-sm">{defaultAddress.recipientName}</span>
                 <span className="font-mono text-slate-400">({defaultAddress.phone})</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-950 text-[#39FF14] border border-[#39FF14]/40">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/12 text-[#39FF14] border border-[#39FF14]/40">
                   Mặc định
                 </span>
               </div>
@@ -414,7 +414,7 @@ function ProfilePageContent() {
                   onClick={() => handleSelectDefaultAddress(addr.id)}
                   className={`p-3 rounded-xl border text-xs cursor-pointer transition flex items-start justify-between gap-2 ${
                     addr.isDefault
-                      ? 'border-[#39FF14] bg-emerald-950/20 text-white font-bold'
+                      ? 'border-[#39FF14] bg-primary/2 text-white font-bold'
                       : 'border-border/80 hover:border-[#39FF14]/60 bg-surface hover:bg-surface-raised text-slate-300'
                   }`}
                 >

@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* Top Branding Header */}
       <header className="flex items-center justify-between gap-4 flex-wrap w-full max-w-6xl mx-auto py-2">
         <Link to="/" className="flex items-center gap-2.5 text-white font-bold text-lg">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#22c55e] to-emerald-400 flex items-center justify-center text-black font-black text-sm shadow-lg shadow-emerald-900/40">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#39FF14] to-primary flex items-center justify-center text-black font-black text-sm shadow-lg shadow-primary/40">
             3D
           </div>
           <span className="text-xl font-extrabold tracking-wide">

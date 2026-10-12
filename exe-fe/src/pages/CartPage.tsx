@@ -7,7 +7,8 @@ import { send } from '../services/api';
 import { payOrder } from '../services/paymentService';
 import type { OrderDTO } from '../services/orderService';
 import { useAction } from '../hooks/useRemote';
-import { Panel, Card, Notice, Status, button, secondary, money } from '../components/DataUI';
+import { Panel, Card, Notice, Status, button, secondary } from '../components/DataUI';
+import { money } from '../utils/format';
 import {
   CreditCard,
   QrCode,
@@ -35,9 +36,13 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   const [confirmOrder, setConfirmOrder] = useState<OrderDTO | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const action = useAction();
+  const hasLocalDesigns = cart.items.some(item => !!item.product.rulerDesign);
 
   const checkout = () =>
     action.run(async () => {
+      if (cart.loading || cart.saving || cart.error || !cart.items.length) {
+        throw new Error('Giỏ hàng chưa sẵn sàng. Vui lòng chờ đồng bộ hoặc tải lại trước khi đặt hàng.');
+      }
       if (cart.items.some(item => item.product.rulerDesign)) {
         throw new Error('Thiết kế thước được lưu trên thiết bị này. Chưa thể thanh toán cấu hình Ruler Studio: cần tích hợp tiếp nhận artwork và xác nhận giá sản xuất.');
       }
@@ -119,11 +124,11 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-border/50">
                 <span className="text-slate-400 text-xs">Hình thức:</span>
-                <span className="font-semibold text-cyan-300 text-xs">Thanh toán trước 100%</span>
+                <span className="font-semibold text-primary text-xs">Thanh toán trước 100%</span>
               </div>
               <div className="flex justify-between items-center pt-1">
                 <span className="text-slate-300 font-medium">Số tiền cần thanh toán:</span>
-                <span className="text-2xl font-black text-emerald-400">{money(confirmOrder.totalAmount)}</span>
+                <span className="text-2xl font-black text-primary">{money(confirmOrder.totalAmount)}</span>
               </div>
             </div>
 
@@ -161,8 +166,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
       {created.length > 0 ? (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 sm:p-5 flex items-center gap-3">
-            <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0" />
+          <div className="rounded-2xl border border-primary/30 bg-primary/2 p-4 sm:p-5 flex items-center gap-3">
+            <CheckCircle2 className="h-6 w-6 text-primary shrink-0" />
             <div>
               <h2 className="text-base font-bold text-white">Đã tạo {created.length} đơn hàng thành công!</h2>
               <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
@@ -189,8 +194,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                   >
                     {copiedId === o.id ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-400" />
-                        <span className="text-emerald-400 font-medium">Đã chép</span>
+                        <Check className="h-3 w-3 text-primary" />
+                        <span className="text-primary font-medium">Đã chép</span>
                       </>
                     ) : (
                       <>
@@ -213,14 +218,14 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 </div>
                 <div>
                   <span className="text-xs text-slate-400 block mb-1">Số tiền cần thanh toán:</span>
-                  <span className="text-2xl font-black text-emerald-400">{money(o.totalAmount)}</span>
+                  <span className="text-2xl font-black text-primary">{money(o.totalAmount)}</span>
                 </div>
               </div>
 
               {/* Nút bấm thanh toán ở DƯỚI CÙNG (không bị vỡ UI) */}
               {method === 'PAYOS' && (
                 <div className="space-y-3 pt-2">
-                  <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-3 text-xs text-cyan-300/90 leading-relaxed">
+                  <div className="rounded-xl border border-primary/20 bg-primary/2 p-3 text-xs text-primary/90 leading-relaxed">
                     💡 Bấm nút bên dưới để mở giao diện quét mã QR PayOS và hoàn tất thanh toán trước 100% cho đơn hàng này.
                   </div>
                   <button
@@ -248,8 +253,10 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
         </div>
       ) : (
         <>
-          {cart.loading && <p>Đang tải giỏ hàng…</p>}
-          {!cart.loading && !cart.items.length && (
+          {cart.loading && <p role="status">Đang tải giỏ hàng…</p>}
+          {cart.saving && <p role="status" aria-live="polite" className="text-sm text-text-muted">Đang lưu giỏ hàng… Vui lòng chờ trước khi đặt hàng.</p>}
+          {hasLocalDesigns && <div role="note" className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-4 text-sm text-amber-200"><p className="font-semibold">Thiết kế Ruler Studio chưa hỗ trợ thanh toán.</p><p className="mt-1">Bản thiết kế được lưu trên thiết bị này. Hãy lưu hoặc xuất thiết kế để yêu cầu báo giá; chuyển thiết kế ra khỏi giỏ để đặt mua các sản phẩm còn lại.</p><button className={`${secondary} mt-3`} disabled={cart.saving || action.busy} onClick={() => { const design = cart.items.find(item => item.product.rulerDesign)?.product.rulerDesign; navigate('/custom', {state: {rulerDesign: design}}); }}>Mở thiết kế để lưu hoặc xuất</button></div>}
+          {!cart.loading && !cart.error && !cart.items.length && (
             <div className="rounded-2xl border border-border bg-surface p-8 text-center space-y-4">
               <p className="text-slate-400">Giỏ hàng của bạn đang trống.</p>
               <Link className={button} to="/catalog">
@@ -263,7 +270,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
               <div className="flex justify-between items-center gap-4">
                 <div>
                   <h2 className="font-semibold text-white">{i.product.name}</h2>
-                  {i.product.rulerDesign && <div className="text-xs text-emerald-300"><p>{i.product.description}</p><button className="underline py-2" onClick={() => navigate('/custom', { state: { rulerDesign: i.product.rulerDesign } })}>Chỉnh sửa bản sao thiết kế</button></div>}
+                  {i.product.rulerDesign && <div className="text-xs text-primary"><p>{i.product.description}</p><button className="underline py-2" onClick={() => navigate('/custom', { state: { rulerDesign: i.product.rulerDesign } })}>Chỉnh sửa bản sao thiết kế</button></div>}
                   <p className="text-xs text-slate-400 mt-1">
                     {money(i.product.price)} × {i.quantity}
                   </p>
@@ -271,7 +278,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 <div className="flex items-center gap-3">
                   <button
                     className={secondary}
-                    disabled={cart.saving}
+                    disabled={cart.saving || action.busy}
+                    aria-label={i.quantity === 1 ? `Xóa ${i.product.name} khỏi giỏ hàng` : `Giảm số lượng ${i.product.name}`}
                     onClick={() => cart.updateQuantity(i.id, -1)}
                   >
                     −
@@ -279,7 +287,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                   <span className="font-mono font-bold">{i.quantity}</span>
                   <button
                     className={secondary}
-                    disabled={cart.saving}
+                    disabled={cart.saving || action.busy}
+                    aria-label={`Tăng số lượng ${i.product.name}`}
                     onClick={() => cart.updateQuantity(i.id, 1)}
                   >
                     +
@@ -295,7 +304,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 <h2 className="font-bold text-white flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" /> Địa chỉ giao hàng
                 </h2>
-                <button className={secondary} onClick={onOpenAddressModal}>
+                <button className={secondary} disabled={action.busy} onClick={onOpenAddressModal}>
                   {a.id ? 'Thay đổi địa chỉ' : '+ Chọn địa chỉ'}
                 </button>
               </div>
@@ -311,6 +320,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                   <label key={v} className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-slate-200">
                     <input
                       type="radio"
+                      name="payment-method"
+                      disabled={action.busy}
                       className="accent-primary"
                       checked={method === v}
                       onChange={() => setMethod(v)}
@@ -322,7 +333,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
               <div className="flex justify-between items-center pt-2 border-t border-border/50 text-sm">
                 <span className="text-slate-300">Tổng tiền thanh toán:</span>
-                <span className="text-2xl font-black text-emerald-400">{money(cart.total)}</span>
+                <span className="text-2xl font-black text-primary">{money(cart.total)}</span>
               </div>
 
               <p className="text-xs text-slate-400">
@@ -331,7 +342,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
               <button
                 className={`${button} w-full py-3.5 text-base font-bold shadow-lg shadow-primary/20`}
-                disabled={action.busy || cart.loading || cart.saving || !a.id || !!cart.error}
+                disabled={action.busy || cart.loading || cart.saving || !a.id || !!cart.error || hasLocalDesigns}
                 onClick={() => void checkout()}
               >
                 {action.busy ? 'Đang tạo đơn hàng...' : 'Xác nhận đặt hàng'}

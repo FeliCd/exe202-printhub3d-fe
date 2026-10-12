@@ -15,10 +15,36 @@ export default function Modal({ open, onClose, label, children, drawer = false }
 
   useEffect(() => {
     const dialog = ref.current;
-    if (!dialog || !open) return;
-    dialog.showModal();
-    return () => dialog.close();
-  }, [open]);
+    if (!dialog) return;
+    if (!drawer) {
+      if (!open) return;
+      dialog.showModal();
+      return () => dialog.close();
+    }
+    if (!open && !dialog.open) return;
+    if (open && !dialog.open) dialog.showModal();
+
+    const animation = dialog.animate(
+      open
+        ? [{ transform: 'translateX(100%)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }]
+        : [{ transform: 'translateX(0)', opacity: 1 }, { transform: 'translateX(100%)', opacity: 0 }],
+      {
+        duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300,
+        easing: 'cubic-bezier(.22, 1, .36, 1)',
+        fill: 'both',
+      },
+    );
+    animation.onfinish = () => {
+      if (!open) dialog.close();
+      animation.cancel();
+    };
+    return () => animation.cancel();
+  }, [open, drawer]);
+
+  useEffect(() => {
+    const dialog = ref.current;
+    return () => dialog?.close();
+  }, []);
 
   return createPortal(
     <dialog
@@ -27,7 +53,7 @@ export default function Modal({ open, onClose, label, children, drawer = false }
       className={`app-dialog ${drawer ? 'app-dialog-drawer' : ''}`}
       onCancel={(event) => { event.preventDefault(); onClose?.(); }}
     >
-      {open && children}
+      {(drawer || open) && children}
     </dialog>,
     document.body,
   );
