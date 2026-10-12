@@ -13,6 +13,8 @@ export interface ProductDTO {
   status: string;
   primaryImageUrl?: string;
   imageUrls: string[];
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 export interface PageDTO<T> {
@@ -37,6 +39,8 @@ export function productView(p: ProductDTO): Product {
     materialBadge: '',
     thumbnail: 'custom-model',
     imageUrl: p.primaryImageUrl,
+    rating: p.averageRating,
+    reviewCount: p.reviewCount,
     stock: p.stock,
     status: p.status,
   };
