@@ -230,7 +230,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
         );
       case 'RESOLVED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/30">
             <CheckCircle2 className="w-3.5 h-3.5" /> Đã giải quyết
           </span>
         );
@@ -384,7 +384,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                       </>
                     ) : (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-[#39FF14]">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-[#39FF14]">
                           <UploadCloud className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-bold text-white">Bấm để tải ảnh bằng chứng / biên lai</span>
@@ -400,7 +400,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
               <button
                 type="submit"
                 disabled={action.busy || uploading || !orderId}
-                className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer mt-2"
+                className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer mt-2"
               >
                 {action.busy ? (
                   <>
@@ -483,8 +483,8 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
 
                 {/* Kết luận & Hoàn tiền */}
                 {d.resolutionNote && (
-                  <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800 text-xs text-emerald-200 space-y-1">
-                    <p className="font-bold text-emerald-300">Kết luận giải quyết:</p>
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/30 text-xs text-primary space-y-1">
+                    <p className="font-bold text-primary">Kết luận giải quyết:</p>
                     <p>{d.resolutionNote}</p>
                     {!!d.refundAmount && (
                       <p className="text-xs text-[#39FF14] font-bold flex items-center gap-1 pt-1">
@@ -513,7 +513,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                         type="button"
                         disabled={action.busy}
                         onClick={() => handleAdminResolve(d, 'RESOLVED')}
-                        className="py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition cursor-pointer"
+                        className="py-1.5 px-3 rounded-lg bg-primary hover:bg-primary text-slate-950 font-bold text-xs transition cursor-pointer"
                       >
                         Giải quyết khiếu nại
                       </button>

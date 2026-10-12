@@ -100,7 +100,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
         );
       case 'APPROVED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/30">
             <CheckCircle2 className="w-3.5 h-3.5" /> Đã chấp thuận
           </span>
         );
@@ -264,7 +264,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                       </>
                     ) : (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-[#39FF14]">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-[#39FF14]">
                           <UploadCloud className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-bold text-white">Bấm để tải ảnh chụp bằng chứng</span>
@@ -280,7 +280,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
               <button
                 type="submit"
                 disabled={action.busy || uploading || !orderId}
-                className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer mt-2"
+                className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer mt-2"
               >
                 {action.busy ? (
                   <>
@@ -374,7 +374,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                               send(`/warranty/admin/claim/${c.id}/status`, { status: 'APPROVED' }, 'put')
                             )
                           }
-                          className="py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition cursor-pointer"
+                          className="py-1.5 px-3 rounded-lg bg-primary hover:bg-primary text-slate-950 font-bold text-xs transition cursor-pointer"
                         >
                           Duyệt bảo hành
                         </button>

@@ -36,7 +36,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
       <div className="p-4 space-y-5 overflow-y-auto flex-1">
         {/* User Welcome Card */}
         <div className="p-3.5 rounded-xl bg-surface border border-border/80 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-[#22c55e]/40 flex items-center justify-center text-[#22c55e] font-black uppercase">
+          <div className="w-10 h-10 rounded-full bg-primary/20 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] font-black uppercase">
             {user?.name ? user.name.substring(0, 2) : 'KH'}
           </div>
           <div className="overflow-hidden">
@@ -44,20 +44,20 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
               Tài khoản {role}
             </p>
             <p className="text-sm font-bold text-white truncate">{user?.name || 'Khách truy cập'}</p>
-            <span className="inline-block mt-0.5 text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/40">
+            <span className="inline-block mt-0.5 text-xs px-2 py-0.5 rounded bg-primary/12 text-primary border border-primary/40">
               Đã xác thực B2C
             </span>
           </div>
         </div>
 
         {/* Custom 3D Ruler CTA */}
-        <div className="p-0.5 rounded-xl bg-gradient-to-r from-[#22c55e] via-emerald-400 to-teal-400">
+        <div className="p-0.5 rounded-xl bg-gradient-to-r from-[#39FF14] via-primary to-primary">
           <Link
             className="flex flex-col gap-1 p-3.5 rounded-[10px] bg-surface-inset hover:bg-surface transition group"
             to="/custom"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#22c55e] flex items-center gap-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#39FF14] flex items-center gap-1.5">
                 <span>📐</span> TỰ CUSTOM THƯỚC 3D
               </span>
               <span className="text-xs font-extrabold bg-primary text-slate-950 px-2 py-0.5 rounded-full uppercase animate-pulse">
@@ -128,7 +128,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
 
         {/* Buyer & Navigation Menu */}
         <nav className="space-y-1 text-xs font-semibold pt-2 border-t border-border">
-          <p className="px-3 text-sm font-extrabold uppercase tracking-widest text-[#22c55e] mb-1">
+          <p className="px-3 text-sm font-extrabold uppercase tracking-widest text-[#39FF14] mb-1">
             🛒 KHÁCH HÀNG &amp; DỊCH VỤ
           </p>
 
@@ -136,11 +136,11 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/catalog"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/catalog')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
-            <Box className="w-4 h-4 text-[#22c55e]" />
+            <Box className="w-4 h-4 text-[#39FF14]" />
             <span>Sản phẩm &amp; BST Thước</span>
           </Link>
 
@@ -148,7 +148,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/catalog-preview"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/catalog-preview')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
@@ -160,7 +160,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/custom"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/custom')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
@@ -172,7 +172,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/bulk-order"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/bulk-order')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
@@ -184,14 +184,14 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/orders"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/orders')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
             <PackageCheck className="w-4 h-4 text-text-muted" />
             <div className="flex-1 flex items-center justify-between">
               <span>Theo dõi tiến độ in 3D</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="w-2 h-2 rounded-full bg-primary" />
             </div>
           </Link>
 
@@ -199,7 +199,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/ruler-3d"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/ruler-3d')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
@@ -211,7 +211,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/subscriptions"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/subscriptions')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
@@ -223,7 +223,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/warranty"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/warranty')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >
@@ -235,7 +235,7 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
             to="/disputes"
             className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
               isActive('/disputes')
-                ? 'bg-surface text-[#22c55e] border-l-4 border-[#22c55e] font-bold'
+                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
                 : 'text-slate-300 hover:bg-surface hover:text-white'
             }`}
           >

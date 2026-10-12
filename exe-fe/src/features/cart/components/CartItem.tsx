@@ -9,10 +9,10 @@ interface CartItemProps {
 
 export default function CartItem({ item, onUpdateQuantity }: CartItemProps) {
   const thumbnailColorMap: Record<string, string> = {
-    'ruler-20cm': 'text-[#22c55e]',
-    'ruler-30cm': 'text-cyan-400',
+    'ruler-20cm': 'text-[#39FF14]',
+    'ruler-30cm': 'text-primary',
     'ruler-t': 'text-purple-400',
-    stencil: 'text-[#22c55e]',
+    stencil: 'text-[#39FF14]',
     caliper: 'text-blue-400',
     combo: 'text-pink-400',
   };
@@ -26,7 +26,7 @@ export default function CartItem({ item, onUpdateQuantity }: CartItemProps) {
     combo: 'Combo',
   };
 
-  const colorClass = thumbnailColorMap[item.product.thumbnail] || 'text-[#22c55e]';
+  const colorClass = thumbnailColorMap[item.product.thumbnail] || 'text-[#39FF14]';
   const label = thumbnailLabelMap[item.product.thumbnail] || item.product.material;
 
   return (
@@ -37,7 +37,7 @@ export default function CartItem({ item, onUpdateQuantity }: CartItemProps) {
       <div className="flex-1 text-xs">
         <h5 className="font-bold text-white text-sm">{item.product.name}</h5>
         {item.engraving && (
-          <p className="text-emerald-400 font-medium text-sm mt-0.5">Khắc: "{item.engraving}"</p>
+          <p className="text-primary font-medium text-sm mt-0.5">Khắc: "{item.engraving}"</p>
         )}
         {item.colorOption && (
           <p className="text-slate-400 font-medium text-sm mt-0.5">Màu sắc: {item.colorOption}</p>

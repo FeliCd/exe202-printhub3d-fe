@@ -70,7 +70,7 @@ function PasscodeSession({
     <Modal open={isOpen} onClose={onClose} label="Xác thực mã PIN">
       <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden p-6 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center text-slate-400">
-          <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-[#22c55e]/30 flex items-center justify-center text-[#22c55e]">
+          <div className="w-10 h-10 rounded-full bg-primary/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14]">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <button aria-label="Đóng xác thực" onClick={() => { setPin(['', '', '', '', '', '']); setError(false); onClose(); }} className="p-1 rounded-lg hover:bg-[#272930] hover:text-white transition">
@@ -80,7 +80,7 @@ function PasscodeSession({
 
         <div>
           <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
-            <Lock className="w-4 h-4 text-[#22c55e]" />
+            <Lock className="w-4 h-4 text-[#39FF14]" />
             {title}
           </h3>
           <p className="text-sm text-text-muted mt-1">{subtitle}</p>
@@ -100,7 +100,7 @@ function PasscodeSession({
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
-                className={`min-w-0 w-full h-12 text-center text-lg font-bold rounded-xl bg-surface-inset border outline-none transition focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] ${
+                className={`min-w-0 w-full h-12 text-center text-lg font-bold rounded-xl bg-surface-inset border outline-none transition focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14] ${
                   error ? 'border-red-500 text-red-400' : 'border-border text-white'
                 }`}
               />
@@ -121,7 +121,7 @@ function PasscodeSession({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-xs font-bold text-slate-950 shadow-md shadow-emerald-500/20 transition"
+              className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-xs font-bold text-slate-950 shadow-md shadow-primary/20 transition"
             >
               Xác nhận
             </button>
@@ -129,7 +129,7 @@ function PasscodeSession({
         </form>
 
         <p className="text-sm text-text-muted">
-          Gợi ý: Mặc định thử nghiệm mã Passcode là <span className="text-[#22c55e] font-mono font-bold">123456</span>
+          Gợi ý: Mặc định thử nghiệm mã Passcode là <span className="text-[#39FF14] font-mono font-bold">123456</span>
         </p>
       </div>
     </Modal>

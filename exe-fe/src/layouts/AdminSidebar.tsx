@@ -33,11 +33,11 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
 
   return (
     <aside
-      className={`w-72 bg-surface-inset border-r border-border flex-shrink-0 flex flex-col justify-between h-full transition-all duration-300 ease-in-out ${
+      className={`w-72 bg-surface-inset border-r border-border flex-shrink-0 flex flex-col justify-between h-full min-h-0 transition-all duration-300 ease-in-out ${
         isOpen ? '' : '-translate-x-full hidden'
       }`}
     >
-      <div className="p-4 space-y-6 overflow-y-auto flex-1">
+      <div className="sidebar-scroll p-4 space-y-6 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden flex-1">
         {/* Admin Info Card */}
         <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-800/60 flex items-center gap-3.5 shadow-md">
           <div className="w-11 h-11 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 font-black text-base uppercase shrink-0">
@@ -228,7 +228,7 @@ export default function AdminSidebar({ isOpen }: AdminSidebarProps) {
       </div>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-border bg-surface-inset">
+      <div className="p-4 shrink-0 border-t border-border bg-surface-inset">
         <button
           onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/60 font-bold text-sm transition shadow-sm"

@@ -32,7 +32,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
   const getIcon = (type: string) => {
     switch (type) {
       case 'ORDER':
-        return <PackageCheck className="w-4 h-4 text-[#22c55e]" />;
+        return <PackageCheck className="w-4 h-4 text-[#39FF14]" />;
       case 'SECURITY':
         return <ShieldAlert className="w-4 h-4 text-red-400" />;
       default:
@@ -44,12 +44,12 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
     <div ref={panel} role="region" aria-label="Thông báo hệ thống" className="fixed left-3 right-3 top-16 sm:absolute sm:top-auto sm:left-auto sm:right-0 mt-2 sm:w-96 bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
       <div className="p-3.5 border-b border-border flex items-center justify-between bg-surface-inset">
         <div className="flex items-center gap-2">
-          <Bell className="w-4 h-4 text-[#22c55e]" />
+          <Bell className="w-4 h-4 text-[#39FF14]" />
           <h4 className="font-bold text-white text-xs">Thông báo hệ thống</h4>
         </div>
         <button
           onClick={markAllAsRead}
-          className="text-xs text-[#22c55e] hover:underline font-semibold flex items-center gap-1"
+          className="text-xs text-[#39FF14] hover:underline font-semibold flex items-center gap-1"
         >
           <CheckCheck className="w-3.5 h-3.5" /> Đánh dấu đã đọc
         </button>
@@ -69,7 +69,7 @@ export default function NotificationDropdown({ isOpen, onClose }: NotificationDr
                 onClose();
               }}
               className={`w-full text-left p-3.5 hover:bg-surface-raised cursor-pointer transition flex items-start gap-3 ${
-                !n.read ? 'bg-surface-raised/50 border-l-2 border-[#22c55e]' : 'opacity-80'
+                !n.read ? 'bg-surface-raised/50 border-l-2 border-[#39FF14]' : 'opacity-80'
               }`}
             >
               <div className="p-2 rounded-xl bg-surface-inset border border-border shrink-0 mt-0.5">

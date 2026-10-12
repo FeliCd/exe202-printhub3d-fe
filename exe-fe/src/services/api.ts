@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
+import { getApiErrorMessage } from '../utils/apiError';
 
 const getBaseUrl = (): string => {
   let url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
@@ -74,7 +75,7 @@ export function errorText(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const body = error.response?.data;
     if (body?.errors) return Object.values(body.errors).join('. ');
-    return body?.message || body?.detail || (error.response?.status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : 'Không thể kết nối máy chủ. Vui lòng thử lại.');
+    return body?.detail || getApiErrorMessage(error, 'Thao tác không thành công. Vui lòng kiểm tra thông tin và thử lại.');
   }
   return error instanceof Error ? error.message : 'Thao tác không thành công.';
 }

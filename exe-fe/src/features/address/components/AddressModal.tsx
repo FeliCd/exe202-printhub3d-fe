@@ -122,7 +122,7 @@ function AddressBookModalContent({ onClose, onSelectAddress }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/80 pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-[#39FF14]">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-[#39FF14]">
               <MapPin className="w-4 h-4" />
             </div>
             <div>
@@ -206,7 +206,7 @@ function AddressBookModalContent({ onClose, onSelectAddress }: Props) {
                       key={a.id}
                       className={`p-3.5 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                         a.isDefault
-                          ? 'border-[#39FF14]/60 bg-emerald-950/20'
+                          ? 'border-[#39FF14]/60 bg-primary/2'
                           : 'border-border/80 hover:border-border bg-surface'
                       }`}
                     >
@@ -215,7 +215,7 @@ function AddressBookModalContent({ onClose, onSelectAddress }: Props) {
                           <span className="font-bold text-white">{a.recipientName}</span>
                           <span className="text-slate-400 font-mono">({a.phone})</span>
                           {a.isDefault && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-950 text-[#39FF14] border border-[#39FF14]/40">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-primary/12 text-[#39FF14] border border-[#39FF14]/40">
                               Mặc định
                             </span>
                           )}
@@ -406,7 +406,7 @@ function AddressBookModalContent({ onClose, onSelectAddress }: Props) {
                   <button
                     type="submit"
                     disabled={action.busy}
-                    className="py-2 px-5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold flex items-center gap-1.5 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
+                    className="py-2 px-5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold flex items-center gap-1.5 transition shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer"
                   >
                     {action.busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                     Lưu &amp; Chọn Giao Tới Đây

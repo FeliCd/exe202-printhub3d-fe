@@ -52,11 +52,11 @@ export default function CartDrawer({
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between bg-surface">
         <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[#39FF14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
           </svg>
           <h3 className="font-bold text-white text-base">Giỏ Hàng Của Bạn</h3>
-          <span className="text-xs bg-primary/20 text-[#22c55e] px-2 py-0.5 rounded-full font-bold">{totalItems} món</span>
+          <span className="text-xs bg-primary/20 text-[#39FF14] px-2 py-0.5 rounded-full font-bold">{totalItems} món</span>
         </div>
         <button aria-label="Đóng giỏ hàng" className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-[#272930] transition" onClick={onClose}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,19 +81,19 @@ export default function CartDrawer({
           <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-[#39FF14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                 </svg>
                 Địa chỉ nhận hàng
               </span>
-              <button className="text-xs text-[#22c55e] hover:underline font-semibold" onClick={onOpenAddressModal}>
+              <button className="text-xs text-[#39FF14] hover:underline font-semibold" onClick={onOpenAddressModal}>
                 Thay đổi
               </button>
             </div>
             <div className="p-2.5 rounded-lg bg-surface-inset border border-border text-xs space-y-1">
               <div className="flex items-center justify-between font-bold text-slate-200">
                 <span>{shippingAddress.recipientName} • {shippingAddress.phone}</span>
-                <span className="text-xs bg-primary/20 text-[#22c55e] px-1.5 py-0.5 rounded font-bold uppercase">Mặc định</span>
+                <span className="text-xs bg-primary/20 text-[#39FF14] px-1.5 py-0.5 rounded font-bold uppercase">Mặc định</span>
               </div>
               <p className="text-text-muted leading-relaxed">
                 {shippingAddress.addressLine}
@@ -103,15 +103,15 @@ export default function CartDrawer({
         ) : (
           <div className="p-3 rounded-xl bg-surface border border-border flex items-center justify-between text-xs">
             <span className="text-text-muted">Chưa chọn địa chỉ nhận hàng</span>
-            <button className="text-[#22c55e] hover:underline font-bold" onClick={onOpenAddressModal}>
+            <button className="text-[#39FF14] hover:underline font-bold" onClick={onOpenAddressModal}>
               + Chọn địa chỉ
             </button>
           </div>
         )}
 
         {/* Guarantee Badge */}
-        <div className="text-xs text-slate-400 bg-emerald-950/30 border border-emerald-900/40 p-2.5 rounded-lg flex items-center gap-2">
-          <svg className="w-4 h-4 text-[#22c55e] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-xs text-slate-400 bg-primary/4 border border-primary/40 p-2.5 rounded-lg flex items-center gap-2">
+          <svg className="w-4 h-4 text-[#39FF14] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
           </svg>
           <span>Cam kết: 1 đổi 1 miễn phí nếu thước gãy hoặc sai vạch đo trong 1 học kỳ!</span>
@@ -128,7 +128,7 @@ export default function CartDrawer({
           {couponApplied && (
             <div className="flex justify-between">
               <span>Mã giảm giá ({couponCode}):</span>
-              <span className="text-emerald-400 font-medium">-{formatPrice(discount)}đ</span>
+              <span className="text-primary font-medium">-{formatPrice(discount)}đ</span>
             </div>
           )}
           <div className="flex justify-between">
@@ -137,7 +137,7 @@ export default function CartDrawer({
           </div>
           <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-border">
             <span>Tổng thanh toán:</span>
-            <span className="text-[#22c55e] text-base">{formatPrice(total)}đ</span>
+            <span className="text-[#39FF14] text-base">{formatPrice(total)}đ</span>
           </div>
         </div>
         <button
@@ -150,7 +150,7 @@ export default function CartDrawer({
               navigate('/cart');
             }
           }}
-          className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-primary/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />

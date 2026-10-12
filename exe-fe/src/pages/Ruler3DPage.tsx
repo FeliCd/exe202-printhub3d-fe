@@ -23,7 +23,7 @@ export default function Ruler3DPage() {
   return (
     <div className="space-y-6 w-full">
       <div>
-        <div className="flex items-center gap-2 text-[#22c55e]">
+        <div className="flex items-center gap-2 text-[#39FF14]">
           <Ruler className="w-6 h-6" />
           <h1 className="text-2xl font-black text-white">Công Cụ Thước Đo Mô Hình 3D Directly On Browser</h1>
         </div>
@@ -40,7 +40,7 @@ export default function Ruler3DPage() {
 
           {/* Top Canvas Controls */}
           <div className="relative z-10 flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-[#22c55e] bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
+            <span className="text-xs font-mono font-bold text-[#39FF14] bg-primary/10 px-3 py-1 rounded-full border border-primary/30">
               3D VIEWPORT • WEBGL SIMULATOR
             </span>
             <div className="flex items-center gap-1.5 bg-surface border border-border rounded-xl p-1 text-xs">
@@ -74,7 +74,7 @@ export default function Ruler3DPage() {
           {/* 3D Visual Rendering Simulation */}
           <div className="relative z-10 my-8 flex items-center justify-center">
             {modelType === 'ruler20' && (
-              <div className="w-4/5 h-20 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 border-2 border-emerald-300 shadow-2xl shadow-emerald-950/60 flex items-center justify-between px-4 text-slate-950 font-mono text-xs font-bold transition transform group-hover:scale-105">
+              <div className="w-4/5 h-20 rounded-xl bg-gradient-to-r from-primary via-primary to-primary border-2 border-primary/30 shadow-2xl shadow-primary/60 flex items-center justify-between px-4 text-slate-950 font-mono text-xs font-bold transition transform group-hover:scale-105">
                 <span>|||||||||||||||||||| 200mm</span>
                 <span className="bg-slate-950/20 px-2 py-1 rounded">Vạch chìm 0.5mm</span>
               </div>
@@ -82,7 +82,7 @@ export default function Ruler3DPage() {
 
             {modelType === 'caliper' && (
               <div className="w-72 h-20 bg-zinc-800 rounded-xl border-2 border-zinc-600 p-3 flex items-center justify-between text-slate-200 font-mono text-xs">
-                <span className="text-[#22c55e] font-black text-sm">Khoảng đo cữ: {(caliperValue * scale).toFixed(2)}{unit}</span>
+                <span className="text-[#39FF14] font-black text-sm">Khoảng đo cữ: {(caliperValue * scale).toFixed(2)}{unit}</span>
                 <div className="w-12 h-12 bg-primary text-slate-950 font-bold rounded-lg flex items-center justify-center text-xs">
                   Cữ đo
                 </div>
@@ -99,8 +99,8 @@ export default function Ruler3DPage() {
           {/* Bottom Live Coordinates */}
           <div className="relative z-10 flex flex-wrap items-center justify-between text-xs text-text-muted pt-3 border-t border-border">
             <div className="flex items-center gap-4 font-mono font-bold text-white">
-              <span className="text-[#22c55e]">X: {(dims.x * scale).toFixed(1)}{unit}</span>
-              <span className="text-cyan-400">Y: {(dims.y * scale).toFixed(1)}{unit}</span>
+              <span className="text-[#39FF14]">X: {(dims.x * scale).toFixed(1)}{unit}</span>
+              <span className="text-primary">Y: {(dims.y * scale).toFixed(1)}{unit}</span>
               <span className="text-purple-400">Z: {(dims.z * scale).toFixed(1)}{unit}</span>
             </div>
             <span className="text-xs text-slate-400">Thể tích lưới mesh: {((dims.x * dims.y * dims.z) / 1000).toFixed(2)} cm³</span>
@@ -116,7 +116,7 @@ export default function Ruler3DPage() {
               <button
                 onClick={() => setModelType('ruler20')}
                 className={`w-full p-3 rounded-xl border font-bold text-left flex items-center justify-between transition ${
-                  modelType === 'ruler20' ? 'border-[#22c55e] bg-primary/15 text-[#22c55e]' : 'border-border bg-surface-inset text-slate-300'
+                  modelType === 'ruler20' ? 'border-[#39FF14] bg-primary/15 text-[#39FF14]' : 'border-border bg-surface-inset text-slate-300'
                 }`}
               >
                 <span>Thước thẳng Kỹ thuật 20cm</span>
@@ -126,7 +126,7 @@ export default function Ruler3DPage() {
               <button
                 onClick={() => setModelType('caliper')}
                 className={`w-full p-3 rounded-xl border font-bold text-left flex items-center justify-between transition ${
-                  modelType === 'caliper' ? 'border-[#22c55e] bg-primary/15 text-[#22c55e]' : 'border-border bg-surface-inset text-slate-300'
+                  modelType === 'caliper' ? 'border-[#39FF14] bg-primary/15 text-[#39FF14]' : 'border-border bg-surface-inset text-slate-300'
                 }`}
               >
                 <span>Mô hình Thước Kẹp Mini Vernier</span>
@@ -136,7 +136,7 @@ export default function Ruler3DPage() {
               <button
                 onClick={() => setModelType('cube')}
                 className={`w-full p-3 rounded-xl border font-bold text-left flex items-center justify-between transition ${
-                  modelType === 'cube' ? 'border-[#22c55e] bg-primary/15 text-[#22c55e]' : 'border-border bg-surface-inset text-slate-300'
+                  modelType === 'cube' ? 'border-[#39FF14] bg-primary/15 text-[#39FF14]' : 'border-border bg-surface-inset text-slate-300'
                 }`}
               >
                 <span>Khối Lập Phương Standard 50mm</span>
@@ -154,9 +154,9 @@ export default function Ruler3DPage() {
                   step={0.05}
                   value={caliperValue}
                   onChange={(e) => setCaliperValue(parseFloat(e.target.value))}
-                  className="w-full accent-[#22c55e]"
+                  className="w-full accent-[#39FF14]"
                 />
-                <p className="text-sm text-[#22c55e] font-bold font-mono">Độ chia du xích: {caliperValue.toFixed(2)} mm</p>
+                <p className="text-sm text-[#39FF14] font-bold font-mono">Độ chia du xích: {caliperValue.toFixed(2)} mm</p>
               </div>
             )}
           </div>

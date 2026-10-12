@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useRemote,useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import type { ProductDTO, PageDTO } from '../../services/productService';
-import { Panel,Card,RemoteState,Notice,field,button,secondary,money } from '../../components/DataUI';
+import { Panel, Card, RemoteState, Notice, field, button, secondary } from '../../components/DataUI';
+import { money } from '../../utils/format';
 const empty={title:'',description:'',price:'',stock:'',categoryId:'',type:'PHYSICAL',image:''};
 export default function Products(){
   const [page,setPage]=useState(0);const remote=useRemote<PageDTO<ProductDTO>>(`/marketplace/product?page=${page}&size=12`);const categories=useRemote<{categoryId:number;categoryName:string}[]>('/categories');const action=useAction(remote.reload);
