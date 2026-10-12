@@ -1,12 +1,15 @@
 import { read, send } from './api';
 
 export interface OrderItemDTO {
+  id?: number;
   productId: string;
   productTitle: string;
   quantity: number;
   unitPrice: number;
   color?: string;
   engravingText?: string;
+  reviewId?: number;
+  reviewRating?: number;
 }
 
 export interface ShippingInfoDTO {

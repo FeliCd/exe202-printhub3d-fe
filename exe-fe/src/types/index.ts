@@ -34,6 +34,8 @@ export interface Product {
   materialBadge: string;
   thumbnail: 'ruler-20cm' | 'ruler-30cm' | 'ruler-t' | 'stencil' | 'caliper' | 'combo' | 'custom-model';
   imageUrl?: string;
+  rating?: number;
+  reviewCount?: number;
   dimensions?: { x: number; y: number; z: number };
   specs?: {
     layerHeight: string;

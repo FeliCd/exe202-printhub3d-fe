@@ -11,3 +11,4 @@ export * from './notificationService';
 export * from './fileVaultService';
 export * from './adminService';
 export * from './paymentService';
+export * from './reviewService';

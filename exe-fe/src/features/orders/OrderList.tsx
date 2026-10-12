@@ -11,10 +11,12 @@ import {
   Download,
   Layers,
   FileCheck,
+  Star,
 } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
+import ReviewModal from '../reviews/ReviewModal';
 import { Panel, RemoteState, Notice, Status, button, secondary } from '../../components/DataUI';
 import { money } from '../../utils/format';
 
@@ -135,6 +137,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   // Filter Tabs: ALL, MARKETPLACE, CUSTOM
   const [activeTab, setActiveTab] = useState<'ALL' | 'MARKETPLACE' | 'CUSTOM'>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{ orderId: string; item: OrderItemDTO } | null>(null);
 
   // Đơn Marketplace
   const marketplaceOrders = remote.data?.filter(o => !history || ['COMPLETED', 'CANCELLED'].includes(o.status)) || [];
@@ -309,8 +312,8 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   </div>
                   <ul className="divide-y divide-border/40">
                     {o.items?.map((i: OrderItemDTO, n: number) => (
-                      <li key={n} className="py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
-                        <div className="space-y-0.5">
+                      <li key={n} className="py-2.5 flex flex-wrap items-center justify-between gap-3 text-sm">
+                        <div className="space-y-0.5 max-w-md">
                           <p className="font-semibold text-white">{i.productTitle}</p>
                           <div className="flex flex-wrap gap-2 text-xs text-slate-400">
                             <span>Số lượng: <strong className="text-white">{i.quantity}</strong></span>
@@ -318,9 +321,36 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                             {i.engravingText && <span>· Khắc tên: <strong className="text-slate-300">"{i.engravingText}"</strong></span>}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-mono font-semibold text-slate-200">{money(i.unitPrice * i.quantity)}</p>
-                          <p className="text-xs text-slate-400">{money(i.unitPrice)} / cái</p>
+                        <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
+                          <div>
+                            <p className="font-mono font-semibold text-slate-200">{money(i.unitPrice * i.quantity)}</p>
+                            <p className="text-xs text-slate-400">{money(i.unitPrice)} / cái</p>
+                          </div>
+                          {o.status === 'COMPLETED' && !admin && (
+                            <div className="pt-0.5">
+                              {i.reviewId ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewTarget({ orderId: o.id, item: i })}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition active:scale-95"
+                                  title="Xem hoặc chỉnh sửa đánh giá"
+                                >
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                  <span>{i.reviewRating || 5}/5 · Đã đánh giá</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewTarget({ orderId: o.id, item: i })}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-xs font-bold transition shadow-sm active:scale-95"
+                                  title="Đánh giá chất lượng in cho sản phẩm này"
+                                >
+                                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                  <span>Đánh giá sản phẩm</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </li>
                     ))}
@@ -555,6 +585,17 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             );
           })}
       </div>
+
+      {/* Modal Đánh giá chất lượng in 3D */}
+      {reviewTarget && (
+        <ReviewModal
+          open={!!reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          orderId={reviewTarget.orderId}
+          orderItem={reviewTarget.item}
+          onSuccess={handleReload}
+        />
+      )}
     </Panel>
   );
 }

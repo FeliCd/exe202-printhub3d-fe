@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Star } from 'lucide-react';
 import type { Product } from '../../../types';
 import { formatPrice } from '../../../utils/format';
+import ProductReviewsModal from '../../reviews/ProductReviewsModal';
 
 interface ProductCardProps {
   product: Product;
@@ -71,63 +74,97 @@ function ProductThumbnail({ type }: { type: Product['thumbnail'] }) {
   }
 }
 
-
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
   const badge = getBadgeClasses(product.badgeColor);
 
   return (
-    <article className="bg-surface border border-border rounded-2xl overflow-hidden hover:border-[#39FF14]/50 transition-all duration-300 flex flex-col group">
-      {/* Thumbnail */}
-      <div className="relative h-48 bg-gradient-to-br from-[#1e2025] to-[#111215] p-4 flex items-center justify-center overflow-hidden border-b border-border/60">
-        <span className={`absolute top-3 left-3 ${badge.bg} ${badge.text} text-xs font-black uppercase px-2.5 py-1 rounded-md border ${badge.border}`}>
-          {product.badgeText}
-        </span>
-        <span className="absolute top-3 right-3 bg-surface-inset/80 backdrop-blur text-slate-300 text-xs font-semibold px-2 py-0.5 rounded border border-border">
-          {product.materialBadge}
-        </span>
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <ProductThumbnail type={product.thumbnail} />
-        )}
-      </div>
+    <>
+      <article className="bg-surface border border-border rounded-2xl overflow-hidden hover:border-[#39FF14]/50 transition-all duration-300 flex flex-col group">
+        {/* Thumbnail */}
+        <div className="relative h-48 bg-gradient-to-br from-[#1e2025] to-[#111215] p-4 flex items-center justify-center overflow-hidden border-b border-border/60">
+          <span className={`absolute top-3 left-3 ${badge.bg} ${badge.text} text-xs font-black uppercase px-2.5 py-1 rounded-md border ${badge.border}`}>
+            {product.badgeText}
+          </span>
+          <span className="absolute top-3 right-3 bg-surface-inset/80 backdrop-blur text-slate-300 text-xs font-semibold px-2 py-0.5 rounded border border-border">
+            {product.materialBadge}
+          </span>
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <ProductThumbnail type={product.thumbnail} />
+          )}
+        </div>
 
-      {/* Details */}
-      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-        <div>
-          <p className={`text-xs font-semibold ${product.categoryColor} uppercase`}>{product.category}</p>
-          <h4 className="text-base font-bold text-white group-hover:text-primary transition">{product.name}</h4>
-          <p className="text-sm text-text-muted line-clamp-2 mt-1">{product.description}</p>
-        </div>
-        <div className="pt-2 border-t border-border/60 flex flex-wrap gap-3 items-center justify-between">
+        {/* Details */}
+        <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
           <div>
-            <span className="text-xs text-text-muted line-through mr-1.5">{formatPrice(product.originalPrice)}đ</span>
-            <span className="text-lg font-black text-white">
-              {formatPrice(product.price)}
-              <span className="text-xs font-normal">đ</span>
-            </span>
+            <div className="flex items-center justify-between gap-2">
+              <p className={`text-xs font-semibold ${product.categoryColor} uppercase`}>{product.category}</p>
+              {/* Star Rating Badge button */}
+              <button
+                type="button"
+                onClick={() => setShowReviewsModal(true)}
+                className="inline-flex items-center gap-1 text-[11px] hover:underline focus:outline-none cursor-pointer"
+                title="Xem đánh giá khách hàng"
+              >
+                {product.rating && product.reviewCount && product.reviewCount > 0 ? (
+                  <div className="flex items-center gap-1 text-amber-400">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <span className="font-bold">{product.rating.toFixed(1)}</span>
+                    <span className="text-slate-400 font-normal">({product.reviewCount})</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-slate-500">
+                    <Star className="w-2.5 h-2.5 text-slate-600" />
+                    <span>Mới</span>
+                  </div>
+                )}
+              </button>
+            </div>
+
+            <h4 className="text-base font-bold text-white group-hover:text-primary transition">{product.name}</h4>
+            <p className="text-sm text-text-muted line-clamp-2 mt-1">{product.description}</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Link to="/custom" className="inline-flex items-center min-h-10 px-3 py-1.5 rounded-lg bg-surface-raised hover:bg-[#272930] text-xs font-semibold text-slate-200 border border-border transition">
-              Tùy biến
-            </Link>
-            <button
-              className="p-2 rounded-lg bg-primary hover:bg-primary-hover text-slate-950 font-bold transition active:scale-95"
-              onClick={() => onAddToCart(product)}
-              title="Thêm vào giỏ"
-              aria-label={`Thêm ${product.name} vào giỏ`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+          <div className="pt-2 border-t border-border/60 flex flex-wrap gap-3 items-center justify-between">
+            <div>
+              <span className="text-xs text-text-muted line-through mr-1.5">{formatPrice(product.originalPrice)}đ</span>
+              <span className="text-lg font-black text-white">
+                {formatPrice(product.price)}
+                <span className="text-xs font-normal">đ</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Link to="/custom" className="inline-flex items-center min-h-10 px-3 py-1.5 rounded-lg bg-surface-raised hover:bg-[#272930] text-xs font-semibold text-slate-200 border border-border transition">
+                Tùy biến
+              </Link>
+              <button
+                className="p-2 rounded-lg bg-primary hover:bg-primary-hover text-slate-950 font-bold transition active:scale-95"
+                onClick={() => onAddToCart(product)}
+                title="Thêm vào giỏ"
+                aria-label={`Thêm ${product.name} vào giỏ`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
+      </article>
+
+      {/* Modal xem đánh giá chi tiết */}
+      {showReviewsModal && (
+        <ProductReviewsModal
+          open={showReviewsModal}
+          onClose={() => setShowReviewsModal(false)}
+          product={product}
+        />
+      )}
+    </>
   );
 }
