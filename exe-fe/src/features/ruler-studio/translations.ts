@@ -1,4 +1,12 @@
 export const vietnamese: Record<string, string> = {
+  "Search icons": "Tìm biểu tượng",
+  "Basic symbols": "Biểu tượng cơ bản",
+  "All icons": "Tất cả",
+  "Icon library": "Thư viện biểu tượng",
+  "icons available": "biểu tượng",
+  "Add icon": "Thêm biểu tượng",
+  "No icons found. Try another keyword.": "Không tìm thấy biểu tượng. Hãy thử từ khóa khác.",
+  "Cannot add more icons to this design.": "Không thể thêm biểu tượng: đã đủ 24 lớp hoặc mẫu thước không hỗ trợ.",
   "Maximum 100 characters. Only the first 100 characters were kept.": "Chỉ được nhập tối đa 100 ký tự. Hệ thống đã giữ lại 100 ký tự đầu tiên.",
   "Ruler": "Thước",
   "Change Ruler": "Đổi mẫu thước",

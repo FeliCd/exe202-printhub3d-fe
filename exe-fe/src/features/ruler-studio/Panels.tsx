@@ -1,3 +1,5 @@
+import StickerPicker from './StickerPicker';
+import { getStickerIcon } from './stickerIcons';
 import { translateCustom as tr, useCustomLanguage } from './language';
 import { TEXT_LIMIT, characters, limitText } from "./text";
 import { useId, useState, type ReactNode } from "react";
@@ -331,28 +333,8 @@ export default function Panels({
               onClick={() => add("text", "Your text")}
             > {tr("+ Add text")} </button>
           ) : (
-            <div className="studio-stickers">
-              {[
-                ["⚙", "Engineering gear"],
-                ["⌘", "Technical command"],
-                ["✎", "Student pencil"],
-                ["★", "Star"],
-                ["♥", "Heart"],
-                ["✿", "Flower"],
-                ["⚡", "Lightning"],
-                ["☺", "Smile"],
-              ].map(([symbol, label]) => (
-                <button
-                  key={tr(String(label))}
-                  aria-label={`Add ${label}`}
-                  title={tr(String(label))}
-                  disabled={d.layers.length >= 24 || !ruler.supportsSticker}
-                  onClick={() => add("sticker", symbol)}
-                >
-                  {symbol}
-                </button>
-              ))}
-            </div>
+            <StickerPicker disabled={d.layers.length >= 24 || !ruler.supportsSticker}
+              onAdd={(id) => add("sticker", id)} />
           )}
           <div className="studio-layer-list">
             {d.layers
@@ -363,12 +345,13 @@ export default function Panels({
                   aria-pressed={selected === l.id}
                   onClick={() => select(l.id)}
                 >
-                  {l.kind === "text" ? tr("T") : "◇"} {l.text || tr("Empty text")}
+                  {l.kind === "text" ? tr("T") : "◇"} {(language === 'vi' ? getStickerIcon(l.text)?.vi : getStickerIcon(l.text)?.name) ?? (l.text || tr("Empty text"))}
                 </button>
               ))}
           </div>
           {layer && (
             <>
+              {!getStickerIcon(layer.text) && <>
               <Field label={tr("Layer text")}>
                 <LimitedTextInput
                   key={layer.id}
@@ -389,6 +372,7 @@ export default function Panels({
                   ))}
                 </select>
               </Field>
+              </>}
               <ColorField
                 label={tr("Layer color")}
                 value={layer.color}

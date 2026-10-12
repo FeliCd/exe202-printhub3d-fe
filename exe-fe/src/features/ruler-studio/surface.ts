@@ -1,4 +1,5 @@
 import { fitText } from "./text";
+import { paintStickerIcon } from './stickerIcons';
 import { fonts, type Design, type Surface, type Stroke } from "./model";
 import { getRuler } from "./library/registry";
 import { getProfile, profilePath } from "./geometry/profiles";
@@ -128,7 +129,9 @@ export function paintSurface(
         const availableWidth = Math.max(1, w * Math.min(l.x, 1 - l.x) * 1.8);
         const availableHeight = Math.max(1, h * Math.min(l.y, 1 - l.y) * 1.6);
         paintText(ctx, l.text, fonts[l.font], l.size * Math.min(h, w * 0.3), 0, 0, availableWidth, availableHeight, base);
-      } else ctx.fillText(l.text, 0, 0, w * 0.85);
+      } else if (!paintStickerIcon(ctx, l.text, l.size * Math.min(h, w * 0.3), l.color)) {
+        ctx.fillText(l.text, 0, 0, w * 0.85);
+      }
       ctx.restore();
     });
   // Measurement information is always composited last, on an opaque protected strip.

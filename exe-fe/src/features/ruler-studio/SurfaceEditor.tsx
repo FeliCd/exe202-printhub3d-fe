@@ -1,4 +1,5 @@
 import { translateCustom as tr } from './language';
+import { getStickerIcon } from './stickerIcons';
 import { useEffect, useRef, useState } from "react";
 import {
   clamp,
@@ -292,12 +293,12 @@ export default function SurfaceEditor({
                 key={l.id}
                 id={`layer-${l.id}`}
                 className={`studio-layer ${selected === l.id ? "selected" : ""}`}
-                aria-label={`Select ${l.text}`}
+                aria-label={`Select ${getStickerIcon(l.text)?.name ?? l.text}`}
                 aria-pressed={selected === l.id}
                 style={{
                   left: `${l.x * 100}%`,
                   top: `${l.y * 100}%`,
-                  width: `${Math.max(5, Math.min(85, l.text.length * l.size * 4))}%`,
+                  width: `${getStickerIcon(l.text) ? Math.max(3, l.size * Math.min(sh / sw, 0.3) * 100) : Math.max(5, Math.min(85, l.text.length * l.size * 4))}%`,
                   height: `${Math.max(15, l.size * 100)}%`,
                 }}
                 onClick={() => select(l.id)}
