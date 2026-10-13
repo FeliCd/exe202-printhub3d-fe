@@ -3,7 +3,6 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import type { Product } from "../../types";
 import { formatPrice } from "../../utils/format";
 import {
-  freshDesign,
   normalizeDesign,
   quote,
   uid,
@@ -15,8 +14,8 @@ import {
   designSurfaces,
 } from "./model";
 import { useDesign } from "./useDesign";
-import Scene from "./Scene";
-import { downloadBlob } from "./download";
+import Scene, { type SceneHandle } from "./Scene";
+import { downloadBlob, exportDesignPackage, type ExportResult } from "./download";
 import SurfaceEditor from "./SurfaceEditor";
 import Panels from "./Panels";
 import "./studio.css";
@@ -28,10 +27,20 @@ export default function RulerStudio({
   onAddToCart,
   initialDesign,
   headerControls,
+  editingCartItemId,
+  editingRevision: _editingRevision,
+  editingQuantity: _editingQuantity,
+  onSaveCartItem,
+  onConvertToQuotation,
 }: {
   onAddToCart: (product: Product) => void;
   initialDesign?: Design;
   headerControls?: ReactNode;
+  editingCartItemId?: string;
+  editingRevision?: number;
+  editingQuantity?: number;
+  onSaveCartItem?: (product: Product) => Promise<void> | void;
+  onConvertToQuotation?: (design: Design, editingCartItemId?: string) => Promise<void> | void;
 }) {
   const { language } = useCustomLanguage();
   const {
@@ -41,12 +50,16 @@ export default function RulerStudio({
     redo,
     save,
     load,
+    resetDraft,
     isSaved,
     begin,
     end,
     canUndo,
     canRedo,
   } = useDesign(initialDesign);
+  const sceneRef = useRef<SceneHandle>(null);
+  const [exportModal, setExportModal] = useState<ExportResult | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [tab, setTab] = useState<Tab>("Ruler"),
     [surface, setSurface] = useState<Surface>("ruler"),
     [selected, select] = useState(""),
@@ -84,29 +97,110 @@ export default function RulerStudio({
       );
   };
   const price = quote(design);
-  const add = () => {
-    if (price.requiresQuote) return;
-    onAddToCart({
-      id: `ruler-design-${uid()}`,
+  const buildProduct = async (): Promise<Product> => {
+    let thumbnail = "custom-model";
+    try {
+      if (tab === "Draw" && mobileWorkspace === "edit") {
+        setMobileWorkspace("view");
+        await new Promise((r) => setTimeout(r, 120));
+      }
+      const screenshot = await sceneRef.current?.getScreenshotBlob();
+      if (screenshot) {
+        thumbnail = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve((reader.result as string) || "custom-model");
+          reader.readAsDataURL(screenshot);
+        });
+      }
+    } catch {
+      // fallback
+    }
+    return {
+      id: editingCartItemId || `ruler-design-${uid()}`,
       name: `${language === 'vi' ? ruler.vietnameseName : ruler.name} · ${design.length} cm · ${design.name}`,
       category: "Custom ruler",
       categoryColor: "emerald",
       material: design.material,
       price: price.total,
       originalPrice: price.total,
-      description: `${design.tag.text} · ${design.layers.length} layers · ${design.strokes.length} strokes`,
+      description: `${design.tag.text || ruler.name} · ${design.length}cm`,
       badgeText: "Custom design",
       badgeColor: "emerald",
       materialBadge: design.material,
       thumbnail: "custom-model",
+      imageUrl: thumbnail,
       dimensions: {
         x: profile.width * 10,
         y: profile.height * 10,
         z: profile.thickness * 10,
       },
       rulerDesign: structuredClone(design),
-    });
-    setMessage("Design added to your cart. Your editable artwork is included.");
+    };
+  };
+
+  const add = async () => {
+    if (price.requiresQuote) return;
+    const prod = await buildProduct();
+    onAddToCart(prod);
+    setMessage(tr("Design added to your cart. Your editable artwork is included."));
+  };
+
+  const handleSaveToCart = async () => {
+    if (price.requiresQuote) return;
+    const prod = await buildProduct();
+    if (onSaveCartItem) {
+      await onSaveCartItem(prod);
+      setMessage(language === 'vi' ? "Đã lưu thay đổi vào giỏ hàng thành công!" : "Changes saved to cart successfully!");
+    } else {
+      onAddToCart(prod);
+    }
+  };
+
+  const handleSaveAsNew = async () => {
+    if (price.requiresQuote) return;
+    const prod = await buildProduct();
+    prod.id = `ruler-design-${uid()}`;
+    onAddToCart(prod);
+    setMessage(language === 'vi' ? "Đã nhân bản và lưu thành thiết kế mới vào giỏ hàng!" : "Cloned and added as a new design to cart!");
+  };
+
+  const handleConvertToQuotation = async () => {
+    if (onConvertToQuotation) {
+      await onConvertToQuotation(design, editingCartItemId);
+    }
+  };
+
+  const handleExportDesign = async () => {
+    setIsExporting(true);
+    setMessage(tr("Đang chuẩn bị gói thiết kế (Mô hình 3D .STL, Ảnh render .PNG, Dữ liệu gốc .JSON)..."));
+    try {
+      if (tab === "Draw" && mobileWorkspace === "edit") {
+        setMobileWorkspace("view");
+        await new Promise((r) => setTimeout(r, 120));
+      }
+      const stlBlob = sceneRef.current?.getSTLBlob();
+      const imageBlob = await sceneRef.current?.getScreenshotBlob();
+
+      const result = await exportDesignPackage({
+        stlBlob,
+        imageBlob,
+        design,
+        name: design.name || (language === 'vi' ? ruler.vietnameseName : ruler.name),
+        length: design.length,
+      });
+
+      // Tự động tải xuống file ZIP trọn bộ
+      downloadBlob(result.zipBlob, result.zipFileName);
+
+      // Mở modal hiển thị ảnh và cho phép tải riêng lẻ trên điện thoại
+      setExportModal(result);
+      setMessage(tr("Đã xuất trọn bộ thiết kế thành công!"));
+    } catch (e) {
+      console.error("Export design error", e);
+      setMessage(tr("Xuất thiết kế thất bại. Vui lòng thử lại."));
+    } finally {
+      setIsExporting(false);
+    }
   };
   return (
     <div
@@ -175,21 +269,18 @@ export default function RulerStudio({
           > {tr("Duplicate")} </button>
           <button
             onClick={() => {
-              change(freshDesign());
+              resetDraft();
               select("");
-              setMessage("Design reset. Undo restores your previous design.");
+              setMessage(tr("Design reset. Undo restores your previous design."));
             }}
           > {tr("Reset")} </button>
           <button
-            onClick={() =>
-              downloadBlob(
-                new Blob([JSON.stringify(design, null, 2)], {
-                  type: "application/json",
-                }),
-                "printhub-design.json",
-              )
-            }
-          > {tr("Export design")} </button>
+            style={{ fontWeight: "bold", background: "#39FF14", color: "#000" }}
+            disabled={isExporting}
+            onClick={handleExportDesign}
+          >
+            {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
+          </button>
         </div>
       </header>
       {tab === "Draw" && (
@@ -207,6 +298,7 @@ export default function RulerStudio({
       <div className="studio-layout" ref={workspace}>
         <div className="studio-workspace">
           <Scene
+            ref={sceneRef}
             design={design}
             live={live}
             surface={activeSurface}
@@ -316,12 +408,61 @@ export default function RulerStudio({
                 {isSaved ? tr("Saved ✓") : tr("Save design")}
               </button>
             )}
-            <button
-              className="studio-primary"
-              onClick={add}
-              disabled={price.requiresQuote}
-            > {tr("Add design to cart")} <span>↗</span>
-            </button>
+            {editingCartItemId ? (
+              !price.requiresQuote ? (
+                <div className="flex flex-col gap-2 w-full mt-2">
+                  <button
+                    className="studio-primary !bg-emerald-600 hover:!bg-emerald-500 font-bold"
+                    onClick={handleSaveToCart}
+                  >
+                    💾 {language === 'vi' ? 'Lưu thay đổi vào giỏ' : 'Save changes to cart'}
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded-lg border border-border text-xs text-slate-300 hover:text-white hover:bg-surface-raised font-medium"
+                    onClick={handleSaveAsNew}
+                  >
+                    ➕ {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 w-full mt-2">
+                  <button
+                    className="studio-primary !bg-amber-600 hover:!bg-amber-500 text-white font-bold"
+                    onClick={handleConvertToQuotation}
+                  >
+                    📋 {language === 'vi' ? 'Chuyển sang yêu cầu báo giá' : 'Switch to quotation request'}
+                  </button>
+                  <p className="text-xs text-amber-400">
+                    {language === 'vi'
+                      ? '⚠️ Mẫu này cần xưởng thẩm định và báo giá. Cây thước cũ trong giỏ sẽ được chuyển thành yêu cầu báo giá.'
+                      : '⚠️ This ruler requires factory review and manual quotation.'}
+                  </p>
+                </div>
+              )
+            ) : (
+              !price.requiresQuote ? (
+                <button
+                  className="studio-primary"
+                  onClick={add}
+                >
+                  {tr("Add design to cart")} <span>↗</span>
+                </button>
+              ) : (
+                <div className="flex flex-col gap-1 w-full mt-2">
+                  <button
+                    className="studio-primary !bg-amber-600 hover:!bg-amber-500 text-white font-bold"
+                    onClick={handleConvertToQuotation}
+                  >
+                    📋 {language === 'vi' ? 'Yêu cầu báo giá thiết kế này' : 'Request production quote'}
+                  </button>
+                  <p className="text-xs text-amber-400">
+                    {language === 'vi'
+                      ? 'Mẫu này cần xưởng thẩm định và gửi báo giá trước khi đặt in.'
+                      : 'This ruler requires factory assessment and quotation.'}
+                  </p>
+                </div>
+              )
+            )}
             <p>
               {price.requiresQuote
                 ? tr("Save or export this design for a production quote. This ruler has no confirmed price yet.")
@@ -380,6 +521,80 @@ export default function RulerStudio({
           );
         }}
       />
+
+      {exportModal && (
+        <div className="export-modal-backdrop" onClick={() => setExportModal(null)}>
+          <div className="export-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="export-modal-header">
+              <h3>🎉 {language === "vi" ? "Xuất Bản Thiết Kế Thành Công!" : "Design Exported Successfully!"}</h3>
+              <button className="close-btn" onClick={() => setExportModal(null)}>✕</button>
+            </div>
+            <p className="export-modal-desc">
+              {language === "vi"
+                ? "Gói thiết kế trọn bộ (.ZIP) đã được tải xuống máy của bạn."
+                : "Full design package (.ZIP) has been downloaded to your device."}
+            </p>
+            {exportModal.imageUrl && (
+              <div className="export-preview-container">
+                <img src={exportModal.imageUrl} alt="3D Render" className="export-preview-img" />
+                <span className="export-preview-hint">
+                  {language === "vi"
+                    ? "💡 Chạm giữ ảnh trên điện thoại để 'Lưu vào Thư viện ảnh'"
+                    : "💡 Long-press the image to save directly to your photos"}
+                </span>
+              </div>
+            )}
+            <div className="export-actions-grid">
+              {exportModal.imageBlob && (
+                <button
+                  className="action-btn btn-image"
+                  onClick={() => downloadBlob(exportModal.imageBlob!, exportModal.imageFileName)}
+                >
+                  🖼️ {language === "vi" ? "Tải ảnh riêng (.PNG)" : "Download PNG"}
+                </button>
+              )}
+              {exportModal.stlBlob && (
+                <button
+                  className="action-btn btn-stl"
+                  onClick={() => downloadBlob(exportModal.stlBlob!, exportModal.stlFileName)}
+                >
+                  🧊 {language === "vi" ? "Tải mô hình in (.STL)" : "Download 3D STL"}
+                </button>
+              )}
+              <button
+                className="action-btn btn-zip"
+                onClick={() => downloadBlob(exportModal.zipBlob, exportModal.zipFileName)}
+              >
+                📦 {language === "vi" ? "Tải lại tệp (.ZIP)" : "Re-download ZIP"}
+              </button>
+              {typeof navigator !== "undefined" && !!navigator.canShare && exportModal.imageBlob && (
+                <button
+                  className="action-btn btn-share"
+                  onClick={async () => {
+                    try {
+                      const file = new File([exportModal.imageBlob!], exportModal.imageFileName, { type: "image/png" });
+                      if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                          files: [file],
+                          title: `PrintHub 3D - ${design.name}`,
+                          text: `Ảnh render thước 3D ${design.length}cm`,
+                        });
+                      }
+                    } catch {
+                      // user dismissed
+                    }
+                  }}
+                >
+                  📤 {language === "vi" ? "Chia sẻ ảnh" : "Share Image"}
+                </button>
+              )}
+            </div>
+            <button className="export-close-footer" onClick={() => setExportModal(null)}>
+              {language === "vi" ? "Đóng" : "Close"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

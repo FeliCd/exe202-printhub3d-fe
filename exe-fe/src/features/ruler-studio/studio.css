@@ -888,3 +888,171 @@
     flex: auto;
   }
 }
+
+/* Export Design Modal */
+.export-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.export-modal-content {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(57, 255, 20, 0.15);
+  color: #f8fafc;
+}
+
+.export-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.export-modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.export-modal-header .close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.export-modal-header .close-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.export-modal-desc {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.export-preview-container {
+  background: radial-gradient(circle at center, #1e293b, #090d16);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.export-preview-img {
+  max-height: 200px;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5));
+}
+
+.export-preview-hint {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.export-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 480px) {
+  .export-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.export-actions-grid .action-btn {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.export-actions-grid .btn-image {
+  background: #0284c7;
+  color: #ffffff;
+}
+.export-actions-grid .btn-image:hover {
+  background: #0369a1;
+}
+
+.export-actions-grid .btn-stl {
+  background: #334155;
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.export-actions-grid .btn-stl:hover {
+  background: #475569;
+}
+
+.export-actions-grid .btn-zip {
+  background: #10b981;
+  color: #ffffff;
+}
+.export-actions-grid .btn-zip:hover {
+  background: #059669;
+}
+
+.export-actions-grid .btn-share {
+  background: #6366f1;
+  color: #ffffff;
+}
+.export-actions-grid .btn-share:hover {
+  background: #4f46e5;
+}
+
+.export-close-footer {
+  width: 100%;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-close-footer:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}

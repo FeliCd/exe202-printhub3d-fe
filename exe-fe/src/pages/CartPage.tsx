@@ -1,14 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { ShippingAddress } from '../features/address/data';
 import type { useCart } from '../features/cart/hooks/useCart';
 import { useAuth } from '../context/AuthContext';
 import { send } from '../services/api';
-import { payOrder } from '../services/paymentService';
-import type { OrderDTO } from '../services/orderService';
 import { useAction } from '../hooks/useRemote';
 import { Panel, Card, Notice, Status, button, secondary } from '../components/DataUI';
 import { money } from '../utils/format';
+import CartItem from '../features/cart/components/CartItem';
 import {
   CreditCard,
   QrCode,
@@ -16,10 +15,14 @@ import {
   MapPin,
   ShoppingBag,
   ArrowRight,
-  ShieldCheck,
   X,
   Copy,
   Check,
+  Truck,
+  Package,
+  Layers,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 
 interface Props {
@@ -28,62 +31,153 @@ interface Props {
   onOpenAddressModal: () => void;
 }
 
+interface CheckoutOrderDTO {
+  id: string;
+  userId: string;
+  shippingAddress: string;
+  shippingMode: 'COMMON' | 'SEPARATE';
+  status: string;
+  totalAmount?: number;
+  shippingFee?: number;
+  paymentMethod?: string;
+  summaryVersion: number;
+  paymentLinkUrl?: string;
+  allCustomQuoted: boolean;
+  readyForConfirm: boolean;
+}
+
 export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal }: Props) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [method, setMethod] = useState('COD');
-  const [created, setCreated] = useState<OrderDTO[]>([]);
-  const [confirmOrder, setConfirmOrder] = useState<OrderDTO | null>(null);
+  const [method, setMethod] = useState<'COD' | 'PAYOS'>('PAYOS');
+  const [shippingMode, setShippingMode] = useState<'COMMON' | 'SEPARATE'>('COMMON');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [createdCheckoutOrder, setCreatedCheckoutOrder] = useState<CheckoutOrderDTO | null>(null);
+  const [confirmOrder, setConfirmOrder] = useState<{ id: string; totalAmount: number; checkoutUrl?: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const action = useAction();
-  const hasLocalDesigns = cart.items.some(item => !!item.product.rulerDesign);
 
-  const checkout = () =>
+  // Tự động tick chọn tất cả các món khi giỏ hàng tải xong
+  useEffect(() => {
+    if (cart.items.length > 0 && selectedIds.size === 0) {
+      setSelectedIds(new Set(cart.items.map(i => i.clientLineId || i.id)));
+    }
+  }, [cart.items]);
+
+  // Phân chia thành 2 nhóm
+  const marketplaceItems = useMemo(
+    () => cart.items.filter(item => !item.product.rulerDesign),
+    [cart.items]
+  );
+  const customItems = useMemo(
+    () => cart.items.filter(item => !!item.product.rulerDesign),
+    [cart.items]
+  );
+
+  // Lọc các món đang được tick chọn
+  const selectedMarketplaceItems = useMemo(
+    () => marketplaceItems.filter(item => selectedIds.has(item.clientLineId || item.id)),
+    [marketplaceItems, selectedIds]
+  );
+  const selectedCustomItems = useMemo(
+    () => customItems.filter(item => selectedIds.has(item.clientLineId || item.id)),
+    [customItems, selectedIds]
+  );
+
+  const selectedCount = selectedMarketplaceItems.length + selectedCustomItems.length;
+  const isAllSelected = cart.items.length > 0 && selectedCount === cart.items.length;
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(cart.items.map(i => i.clientLineId || i.id)));
+    }
+  };
+
+  const toggleItemSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  // Kiểm tra multi-seller trong các món Marketplace được chọn
+  const marketplaceSellers = useMemo(() => {
+    const sellers = new Set<string>();
+    for (const item of selectedMarketplaceItems) {
+      // Nếu có thông tin người bán
+      const sellerId = (item.product as any)?.sellerId || (item.product as any)?.seller?.id;
+      if (sellerId) sellers.add(sellerId);
+    }
+    return sellers;
+  }, [selectedMarketplaceItems]);
+
+  const hasMultipleSellers = marketplaceSellers.size > 1;
+
+  // Nếu nhiều seller khác nhau, ép chuyển sang Giao riêng
+  useEffect(() => {
+    if (hasMultipleSellers && shippingMode === 'COMMON') {
+      setShippingMode('SEPARATE');
+    }
+  }, [hasMultipleSellers, shippingMode]);
+
+  // Tính toán tiền tạm tính
+  const marketplaceSubtotal = selectedMarketplaceItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+  const customEstimatedSubtotal = selectedCustomItems.reduce(
+    (sum, item) => sum + (item.product.price || 0) * item.quantity,
+    0
+  );
+
+  const shippingFee = selectedCount > 0 ? 30000 : 0;
+  const confirmedSubtotal = marketplaceSubtotal; // Món custom chưa chốt giá thì chưa tính vào tiền confirmed
+
+  const handleCheckout = () =>
     action.run(async () => {
       if (cart.loading || cart.saving || cart.error || !cart.items.length) {
-        throw new Error('Giỏ hàng chưa sẵn sàng. Vui lòng chờ đồng bộ hoặc tải lại trước khi đặt hàng.');
+        throw new Error('Giỏ hàng chưa sẵn sàng. Vui lòng chờ đồng bộ hoặc tải lại trang.');
       }
-      if (cart.items.some(item => item.product.rulerDesign)) {
-        throw new Error('Thiết kế thước được lưu trên thiết bị này. Chưa thể thanh toán cấu hình Ruler Studio: cần tích hợp tiếp nhận artwork và xác nhận giá sản xuất.');
+      if (selectedCount === 0) {
+        throw new Error('Vui lòng chọn ít nhất 1 sản phẩm từ giỏ hàng để đặt hàng.');
       }
       if (!isAuthenticated) {
         navigate('/login?redirect=/cart');
         return;
       }
-      if (!a.id) throw new Error('Vui lòng chọn địa chỉ nhận hàng.');
+      if (!a.id) {
+        throw new Error('Vui lòng chọn địa chỉ nhận hàng.');
+      }
 
-      const orders = await send<OrderDTO[]>('/orders', {
+      const fullAddress = `${a.recipientName} - ${a.phone} - ${a.addressLine}, ${a.province}`;
+
+      // Gọi API tạo đơn thanh toán cha (CheckoutOrder)
+      const res = await send<CheckoutOrderDTO>('/checkout-orders', {
+        selectedLineIds: Array.from(selectedIds),
+        shippingMode,
+        shippingAddress: fullAddress,
         recipientName: a.recipientName,
-        phone: a.phone,
-        address: a.addressLine,
-        province: a.province,
-        items: cart.items.map(i => ({
-          productId: i.product.id,
-          quantity: i.quantity,
-          color: i.colorOption,
-          engravingText: i.engraving,
-        })),
+        recipientPhone: a.phone,
         paymentMethod: method,
       });
 
-      setCreated(orders);
+      setCreatedCheckoutOrder(res);
 
-      if (method === 'PAYOS') {
-        sessionStorage.setItem(
-          'printhub_cart_backup',
-          JSON.stringify(cart.items.map(i => ({ productId: i.product.id, quantity: i.quantity })))
-        );
-        if (orders[0]?.id) {
-          sessionStorage.setItem('printhub_pending_payos_order', orders[0].id);
-          // Tự động mở popup xác nhận thanh toán trước 100%
-          setConfirmOrder(orders[0]);
-        }
-      } else {
-        sessionStorage.removeItem('printhub_cart_backup');
-        sessionStorage.removeItem('printhub_pending_payos_order');
+      if (res.paymentLinkUrl && method === 'PAYOS') {
+        setConfirmOrder({
+          id: res.id,
+          totalAmount: res.totalAmount || (marketplaceSubtotal + shippingFee),
+          checkoutUrl: res.paymentLinkUrl,
+        });
       }
 
-      cart.clearCart();
+      // Xóa các món đã chọn khỏi state local
+      selectedIds.forEach(id => {
+        cart.deleteCartItem(id);
+      });
+      setSelectedIds(new Set());
     });
 
   const copyOrderId = (id: string) => {
@@ -93,10 +187,10 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   };
 
   return (
-    <Panel title="Thanh toán đơn hàng">
+    <Panel title="Giỏ hàng & Thanh toán thông minh">
       <Notice error={action.error || cart.error} />
 
-      {/* POPUP XÁC NHẬN THANH TOÁN TRƯỚC 100% SỐ TIỀN QUA PAYOS */}
+      {/* POPUP XÁC NHẬN THANH TOÁN PAYOS */}
       {confirmOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-lg rounded-2xl border border-primary/40 bg-surface p-6 shadow-2xl space-y-5 relative">
@@ -112,47 +206,33 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 <QrCode className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Xác nhận thanh toán đơn hàng</h3>
-                <p className="text-xs text-slate-400">Cổng thanh toán tự động VietQR PayOS</p>
+                <h3 className="text-lg font-bold text-white">Thanh toán đơn hàng qua PayOS</h3>
+                <p className="text-xs text-slate-400">Quét mã VietQR chuyển khoản tự động 24/7</p>
               </div>
             </div>
 
             <div className="rounded-xl border border-border/80 bg-surface-inset p-4 space-y-3 text-sm">
               <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                <span className="text-slate-400 text-xs">Mã đơn hàng:</span>
+                <span className="text-slate-400 text-xs">Mã đơn thanh toán:</span>
                 <span className="font-mono font-semibold text-white break-all text-xs">#{confirmOrder.id}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                <span className="text-slate-400 text-xs">Hình thức:</span>
-                <span className="font-semibold text-primary text-xs">Thanh toán trước 100%</span>
-              </div>
               <div className="flex justify-between items-center pt-1">
-                <span className="text-slate-300 font-medium">Số tiền cần thanh toán:</span>
+                <span className="text-slate-300 font-medium">Tổng tiền thanh toán:</span>
                 <span className="text-2xl font-black text-primary">{money(confirmOrder.totalAmount)}</span>
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3.5 text-xs text-amber-300/90 leading-relaxed flex items-start gap-2.5">
-              <ShieldCheck className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
-              <span>
-                Bạn có xác nhận muốn <strong>thanh toán trước 100% số tiền ({money(confirmOrder.totalAmount)})</strong>{' '}
-                để xưởng <strong>PrintHub 3D</strong> tiếp nhận và bắt đầu in mẫu 3D ngay không?
-              </span>
-            </div>
-
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
+              <a
+                href={confirmOrder.checkoutUrl}
+                target="_blank"
+                rel="noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 text-sm font-bold text-slate-950 hover:brightness-110 active:scale-[0.99] transition-all shadow-lg shadow-primary/20"
-                disabled={action.busy}
-                onClick={async () => {
-                  const id = confirmOrder.id;
-                  setConfirmOrder(null);
-                  await action.run(() => payOrder(id));
-                }}
+                onClick={() => setConfirmOrder(null)}
               >
                 <CreditCard className="h-4 w-4" />
-                {action.busy ? 'Đang mở cổng PayOS...' : 'Xác nhận & Mở cổng PayOS'}
-              </button>
+                Mở cổng thanh toán VietQR
+              </a>
               <button
                 className={`${secondary} py-3 px-4 text-sm`}
                 onClick={() => setConfirmOrder(null)}
@@ -164,87 +244,102 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
         </div>
       )}
 
-      {created.length > 0 ? (
+      {/* KẾT QUẢ TẠO ĐƠN THÀNH CÔNG */}
+      {createdCheckoutOrder ? (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-primary/30 bg-primary/2 p-4 sm:p-5 flex items-center gap-3">
-            <CheckCircle2 className="h-6 w-6 text-primary shrink-0" />
-            <div>
-              <h2 className="text-base font-bold text-white">Đã tạo {created.length} đơn hàng thành công!</h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
-                {method === 'PAYOS'
-                  ? 'Vui lòng bấm nút thanh toán bên dưới để quét mã QR qua ứng dụng ngân hàng.'
-                  : 'Đơn hàng đã được ghi nhận với hình thức thanh toán khi nhận hàng (COD).'}
+          <div className="rounded-2xl border border-primary/30 bg-primary/10 p-5 flex items-start gap-4">
+            <CheckCircle2 className="h-7 w-7 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h2 className="text-base font-bold text-white">
+                {createdCheckoutOrder.status === 'PENDING_QUOTE'
+                  ? 'Đã tạo yêu cầu và đơn hàng cha thành công!'
+                  : 'Đã tạo đơn hàng thành công!'}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                {createdCheckoutOrder.status === 'PENDING_QUOTE' ? (
+                  <>
+                    Mã đơn cha: <strong className="text-white">#{createdCheckoutOrder.id}</strong> ({createdCheckoutOrder.shippingMode === 'COMMON' ? 'Giao chung' : 'Giao riêng'}).
+                    <br />
+                    Các sản phẩm in 3D custom đang được gửi đến xưởng để kỹ thuật viên thẩm định và báo giá chi tiết.
+                    Sau khi có báo giá, bạn sẽ nhận được thông báo để duyệt và tiến hành thanh toán.
+                  </>
+                ) : (
+                  <>
+                    Mã đơn cha: <strong className="text-white">#{createdCheckoutOrder.id}</strong>.
+                    Đơn hàng đã được xác nhận và sẵn sàng xử lý xuất kho.
+                  </>
+                )}
               </p>
             </div>
           </div>
 
-          {/* Danh sách các đơn hàng vừa tạo */}
-          {created.map(o => (
-            <div
-              key={o.id}
-              className="space-y-4 rounded-2xl border border-border/80 bg-surface p-5 sm:p-6 shadow-xl"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-slate-400">Mã đơn:</span>
-                  <span className="font-mono text-sm sm:text-base font-bold text-white break-all">#{o.id}</span>
-                  <button
-                    onClick={() => copyOrderId(o.id)}
-                    className="inline-flex items-center gap-1 rounded-md bg-surface-inset px-2 py-0.5 text-[11px] text-slate-400 hover:text-white"
-                  >
-                    {copiedId === o.id ? (
-                      <>
-                        <Check className="h-3 w-3 text-primary" />
-                        <span className="text-primary font-medium">Đã chép</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3 w-3" />
-                        <span>Sao chép</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                <Status value={o.status === 'PENDING' && method === 'PAYOS' ? 'PENDING' : o.status} />
+          <div className="rounded-2xl border border-border/80 bg-surface p-6 shadow-xl space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-slate-400">Mã đơn:</span>
+                <span className="font-mono text-base font-bold text-white">#{createdCheckoutOrder.id}</span>
+                <button
+                  onClick={() => copyOrderId(createdCheckoutOrder.id)}
+                  className="inline-flex items-center gap-1 rounded-md bg-surface-inset px-2 py-0.5 text-[11px] text-slate-400 hover:text-white"
+                >
+                  {copiedId === createdCheckoutOrder.id ? (
+                    <>
+                      <Check className="h-3 w-3 text-primary" />
+                      <span className="text-primary font-medium">Đã chép</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      <span>Sao chép</span>
+                    </>
+                  )}
+                </button>
               </div>
-
-              {/* Thông tin tóm tắt 2 cột */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl border border-border/60 bg-surface-inset p-4 text-sm">
-                <div>
-                  <span className="text-xs text-slate-400 block mb-1">Phương thức thanh toán:</span>
-                  <span className="font-semibold text-white">
-                    {method === 'PAYOS' ? 'PayOS (Quét mã VietQR)' : 'Thanh toán COD khi nhận hàng'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-400 block mb-1">Số tiền cần thanh toán:</span>
-                  <span className="text-2xl font-black text-primary">{money(o.totalAmount)}</span>
-                </div>
-              </div>
-
-              {/* Nút bấm thanh toán ở DƯỚI CÙNG (không bị vỡ UI) */}
-              {method === 'PAYOS' && (
-                <div className="space-y-3 pt-2">
-                  <div className="rounded-xl border border-primary/20 bg-primary/2 p-3 text-xs text-primary/90 leading-relaxed">
-                    💡 Bấm nút bên dưới để mở giao diện quét mã QR PayOS và hoàn tất thanh toán trước 100% cho đơn hàng này.
-                  </div>
-                  <button
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 px-6 text-base font-bold text-slate-950 hover:brightness-110 active:scale-[0.99] transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
-                    disabled={action.busy}
-                    onClick={() => setConfirmOrder(o)}
-                  >
-                    <CreditCard className="h-5 w-5" />
-                    {action.busy ? 'Đang xử lý...' : `Thanh toán PayOS (${money(o.totalAmount)})`}
-                  </button>
-                </div>
-              )}
+              <Status value={createdCheckoutOrder.status} />
             </div>
-          ))}
 
-          {/* Điều hướng tiếp */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-xl border border-border/60 bg-surface-inset p-4 text-xs sm:text-sm">
+              <div>
+                <span className="text-xs text-slate-400 block mb-1">Phương thức giao hàng:</span>
+                <span className="font-semibold text-white">
+                  {createdCheckoutOrder.shippingMode === 'COMMON' ? '📦 Giao chung 1 đợt' : '🚚 Giao riêng từng phần'}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs text-slate-400 block mb-1">Phương thức thanh toán:</span>
+                <span className="font-semibold text-white">
+                  {createdCheckoutOrder.paymentMethod === 'PAYOS' ? 'PayOS (VietQR)' : 'COD (Khi nhận hàng)'}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs text-slate-400 block mb-1">Trạng thái thanh toán:</span>
+                <span className="font-bold text-primary">
+                  {createdCheckoutOrder.totalAmount ? money(createdCheckoutOrder.totalAmount) : 'Chờ xưởng báo giá'}
+                </span>
+              </div>
+            </div>
+
+            {createdCheckoutOrder.paymentLinkUrl && (
+              <button
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3 px-6 text-sm font-bold text-slate-950 hover:brightness-110 active:scale-[0.99] transition-all shadow-lg shadow-primary/20"
+                onClick={() => {
+                  if (createdCheckoutOrder.paymentLinkUrl) {
+                    window.open(createdCheckoutOrder.paymentLinkUrl, '_blank');
+                  }
+                }}
+              >
+                <CreditCard className="h-4 w-4" />
+                Mở trang thanh toán PayOS
+              </button>
+            )}
+          </div>
+
           <div className="flex flex-wrap gap-3 pt-2">
             <Link className={`${button} flex items-center gap-1.5`} to="/orders">
-              <ShoppingBag className="h-4 w-4" /> Theo dõi tiến độ đơn hàng
+              <ShoppingBag className="h-4 w-4" /> Quản lý danh sách đơn hàng
+            </Link>
+            <Link className={`${secondary} flex items-center gap-1.5`} to="/quotations">
+              <Layers className="h-4 w-4" /> Xem tiến độ báo giá custom
             </Link>
             <Link className={`${secondary} flex items-center gap-1.5`} to="/catalog">
               Tiếp tục mua sắm <ArrowRight className="h-4 w-4" />
@@ -253,101 +348,282 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
         </div>
       ) : (
         <>
-          {cart.loading && <p role="status">Đang tải giỏ hàng…</p>}
-          {cart.saving && <p role="status" aria-live="polite" className="text-sm text-text-muted">Đang lưu giỏ hàng… Vui lòng chờ trước khi đặt hàng.</p>}
-          {hasLocalDesigns && <div role="note" className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-4 text-sm text-amber-200"><p className="font-semibold">Thiết kế Ruler Studio chưa hỗ trợ thanh toán.</p><p className="mt-1">Bản thiết kế được lưu trên thiết bị này. Hãy lưu hoặc xuất thiết kế để yêu cầu báo giá; chuyển thiết kế ra khỏi giỏ để đặt mua các sản phẩm còn lại.</p><button className={`${secondary} mt-3`} disabled={cart.saving || action.busy} onClick={() => { const design = cart.items.find(item => item.product.rulerDesign)?.product.rulerDesign; navigate('/custom', {state: {rulerDesign: design}}); }}>Mở thiết kế để lưu hoặc xuất</button></div>}
+          {cart.loading && <p role="status" className="text-slate-400 py-4">Đang tải giỏ hàng…</p>}
+          {cart.saving && (
+            <p role="status" aria-live="polite" className="text-xs text-emerald-400 py-1">
+              Đang đồng bộ thay đổi giỏ hàng lên hệ thống…
+            </p>
+          )}
+
           {!cart.loading && !cart.error && !cart.items.length && (
-            <div className="rounded-2xl border border-border bg-surface p-8 text-center space-y-4">
-              <p className="text-slate-400">Giỏ hàng của bạn đang trống.</p>
-              <Link className={button} to="/catalog">
-                Khám phá Bộ sưu tập thước 3D
-              </Link>
+            <div className="rounded-2xl border border-border bg-surface p-10 text-center space-y-4">
+              <ShoppingBag className="w-12 h-12 text-slate-600 mx-auto" />
+              <p className="text-slate-300 font-medium">Giỏ hàng của bạn đang trống.</p>
+              <div className="flex justify-center gap-3">
+                <Link className={button} to="/catalog">
+                  Khám phá Cửa hàng
+                </Link>
+                <Link className={secondary} to="/custom">
+                  Thiết kế thước 3D trong Studio
+                </Link>
+              </div>
             </div>
           )}
 
-          {cart.items.map(i => (
-            <Card key={i.id}>
-              <div className="flex justify-between items-center gap-4">
-                <div>
-                  <h2 className="font-semibold text-white">{i.product.name}</h2>
-                  {i.product.rulerDesign && <div className="text-xs text-primary"><p>{i.product.description}</p><button className="underline py-2" onClick={() => navigate('/custom', { state: { rulerDesign: i.product.rulerDesign } })}>Chỉnh sửa bản sao thiết kế</button></div>}
-                  <p className="text-xs text-slate-400 mt-1">
-                    {money(i.product.price)} × {i.quantity}
-                  </p>
+          {cart.items.length > 0 && (
+            <div className="space-y-6">
+              {/* THANH CHỌN TẤT CẢ VÀ THỐNG KÊ */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-surface-raised">
+                <label className="flex items-center gap-3 cursor-pointer select-none text-sm font-semibold text-white">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-border text-[#39FF14] focus:ring-[#39FF14] bg-surface cursor-pointer accent-[#39FF14]"
+                  />
+                  <span>Chọn tất cả ({cart.items.length} món)</span>
+                </label>
+
+                <span className="text-xs text-slate-400">
+                  Đã chọn: <strong className="text-primary font-mono">{selectedCount}</strong> món
+                </span>
+              </div>
+
+              {/* NHÓM 1: SẢN PHẨM CÓ SẴN (MARKETPLACE) */}
+              {marketplaceItems.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pb-1 border-b border-border/60">
+                    <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                      <Package className="w-4 h-4 text-blue-400" />
+                      Sản phẩm có sẵn (Marketplace - Giao ngay)
+                    </h3>
+                    <span className="text-xs text-slate-400">
+                      {marketplaceItems.length} sản phẩm
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {marketplaceItems.map(item => {
+                      const lineId = item.clientLineId || item.id;
+                      return (
+                        <CartItem
+                          key={lineId}
+                          item={item}
+                          onUpdateQuantity={cart.updateQuantity}
+                          selected={selectedIds.has(lineId)}
+                          onToggleSelect={() => toggleItemSelect(lineId)}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
+              )}
+
+              {/* NHÓM 2: THIẾT KẾ IN 3D CUSTOM */}
+              {customItems.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-border/60">
+                    <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-emerald-400" />
+                      Thiết kế in 3D Cá nhân hóa (Custom - Thẩm định & In theo yêu cầu)
+                    </h3>
+                    <span className="text-xs text-slate-400">
+                      {customItems.length} thiết kế
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-300 leading-relaxed flex items-start gap-2">
+                    <Info className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>
+                      Các mẫu thước trong giỏ có thể mở lại trong <strong>3D Studio</strong> để chỉnh sửa màu sắc, vạch chia hoặc khắc chữ bất cứ lúc nào.
+                      Thước thẳng có giá ước tính; các mẫu thước phức tạp sẽ được xưởng thẩm định và báo giá chính thức khi tạo đơn.
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {customItems.map(item => {
+                      const lineId = item.clientLineId || item.id;
+                      return (
+                        <CartItem
+                          key={lineId}
+                          item={item}
+                          onUpdateQuantity={cart.updateQuantity}
+                          selected={selectedIds.has(lineId)}
+                          onToggleSelect={() => toggleItemSelect(lineId)}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* KHỐI CẤU HÌNH VẬN CHUYỂN & THANH TOÁN */}
+              <Card>
+                <div className="space-y-4">
+                  {/* CHỌN HÌNH THỨC GIAO HÀNG */}
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Truck className="w-4 h-4 text-primary" /> Phương thức giao hàng
+                    </h4>
+
+                    {hasMultipleSellers && (
+                      <div className="mb-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300 flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                        <span>
+                          Các sản phẩm bán sẵn bạn chọn đến từ nhiều người bán khác nhau. Hệ thống tự động chuyển sang phương thức <strong>Giao riêng</strong>.
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                          shippingMode === 'COMMON'
+                            ? 'border-primary bg-primary/10 shadow-md shadow-primary/10'
+                            : hasMultipleSellers
+                            ? 'opacity-40 border-border cursor-not-allowed bg-surface-inset'
+                            : 'border-border bg-surface-inset hover:border-border/80'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="shippingMode"
+                          value="COMMON"
+                          disabled={hasMultipleSellers}
+                          checked={shippingMode === 'COMMON'}
+                          onChange={() => setShippingMode('COMMON')}
+                          className="mt-1 accent-primary"
+                        />
+                        <div className="text-xs space-y-1">
+                          <span className="font-bold text-white block">📦 Giao chung 1 đợt (Mặc định)</span>
+                          <p className="text-slate-400 leading-relaxed">
+                            Gom cả món Marketplace và Custom vào 1 đơn cha. Không trừ kho vĩnh viễn. Chờ xưởng báo giá xong toàn bộ món custom, duyệt tổng tiền rồi giao chung một kiện.
+                          </p>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                          shippingMode === 'SEPARATE'
+                            ? 'border-primary bg-primary/10 shadow-md shadow-primary/10'
+                            : 'border-border bg-surface-inset hover:border-border/80'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="shippingMode"
+                          value="SEPARATE"
+                          checked={shippingMode === 'SEPARATE'}
+                          onChange={() => setShippingMode('SEPARATE')}
+                          className="mt-1 accent-primary"
+                        />
+                        <div className="text-xs space-y-1">
+                          <span className="font-bold text-white block">🚚 Giao riêng từng phần</span>
+                          <p className="text-slate-400 leading-relaxed">
+                            Sản phẩm Marketplace xuất kho và giao ngay; Thiết kế Custom tiếp tục chờ báo giá và sản xuất giao đợt 2.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* ĐỊA CHỈ NHẬN HÀNG */}
+                  <div className="pt-3 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-white text-xs flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary" /> Địa chỉ giao hàng
+                      </h4>
+                      <button className={secondary} disabled={action.busy} onClick={onOpenAddressModal}>
+                        {a.id ? 'Thay đổi địa chỉ' : '+ Chọn địa chỉ'}
+                      </button>
+                    </div>
+                    <p className="text-slate-300 text-xs mt-1.5">
+                      {a.id
+                        ? `${a.recipientName} · ${a.phone} · ${a.addressLine}, ${a.province}`
+                        : 'Chưa chọn địa chỉ nhận hàng. Vui lòng bấm "+ Chọn địa chỉ" để tiếp tục.'}
+                    </p>
+                  </div>
+
+                  {/* PHƯƠNG THỨC THANH TOÁN */}
+                  <div className="pt-3 border-t border-border">
+                    <h4 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-primary" /> Hình thức thanh toán
+                    </h4>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          disabled={action.busy}
+                          className="accent-primary"
+                          checked={method === 'PAYOS'}
+                          onChange={() => setMethod('PAYOS')}
+                        />
+                        <span>Thanh toán trực tuyến VietQR (PayOS)</span>
+                      </label>
+                      <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          disabled={action.busy}
+                          className="accent-primary"
+                          checked={method === 'COD'}
+                          onChange={() => setMethod('COD')}
+                        />
+                        <span>Thanh toán khi nhận hàng (COD)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* BẢNG TÍNH TIỀN TẠM TÍNH */}
+                  <div className="pt-3 border-t border-border space-y-2 text-xs">
+                    <div className="flex justify-between text-slate-300">
+                      <span>Sản phẩm có sẵn ({selectedMarketplaceItems.length} món):</span>
+                      <span className="font-mono">{money(marketplaceSubtotal)}</span>
+                    </div>
+
+                    {selectedCustomItems.length > 0 && (
+                      <div className="flex justify-between text-emerald-400">
+                        <span>Thiết kế Custom ({selectedCustomItems.length} món):</span>
+                        <span className="font-mono font-medium">
+                          {customEstimatedSubtotal > 0
+                            ? `~${money(customEstimatedSubtotal)} (ước tính)`
+                            : 'Chờ xưởng báo giá'}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between text-slate-300">
+                      <span>Phí vận chuyển dự kiến:</span>
+                      <span className="font-mono">{money(shippingFee)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-border/60 text-sm">
+                      <div>
+                        <span className="font-bold text-white block">Tổng thanh toán tạm tính:</span>
+                        {selectedCustomItems.length > 0 && (
+                          <span className="text-[11px] text-amber-400">
+                            * Chưa bao gồm tiền in custom đang chờ thẩm định
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-2xl font-black text-primary font-mono">
+                        {money(confirmedSubtotal + shippingFee)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* NÚT BẤM ĐẶT HÀNG */}
                   <button
-                    className={secondary}
-                    disabled={cart.saving || action.busy}
-                    aria-label={i.quantity === 1 ? `Xóa ${i.product.name} khỏi giỏ hàng` : `Giảm số lượng ${i.product.name}`}
-                    onClick={() => cart.updateQuantity(i.id, -1)}
+                    className={`${button} w-full py-3.5 text-base font-bold shadow-lg shadow-primary/20 mt-2`}
+                    disabled={action.busy || cart.loading || cart.saving || !a.id || selectedCount === 0}
+                    onClick={() => void handleCheckout()}
                   >
-                    −
-                  </button>
-                  <span className="font-mono font-bold">{i.quantity}</span>
-                  <button
-                    className={secondary}
-                    disabled={cart.saving || action.busy}
-                    aria-label={`Tăng số lượng ${i.product.name}`}
-                    onClick={() => cart.updateQuantity(i.id, 1)}
-                  >
-                    +
+                    {action.busy ? 'Đang tạo đơn hàng…' : `Xác nhận đặt hàng (${selectedCount} món)`}
                   </button>
                 </div>
-              </div>
-            </Card>
-          ))}
-
-          {!!cart.items.length && (
-            <Card>
-              <div className="flex items-center justify-between">
-                <h2 className="font-bold text-white flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" /> Địa chỉ giao hàng
-                </h2>
-                <button className={secondary} disabled={action.busy} onClick={onOpenAddressModal}>
-                  {a.id ? 'Thay đổi địa chỉ' : '+ Chọn địa chỉ'}
-                </button>
-              </div>
-
-              <p className="text-slate-300 text-sm">
-                {a.id
-                  ? `${a.recipientName} · ${a.phone} · ${a.addressLine}, ${a.province}`
-                  : 'Chưa chọn địa chỉ nhận hàng. Vui lòng bấm "+ Chọn địa chỉ" để tiếp tục.'}
-              </p>
-
-              <div className="flex flex-wrap gap-4 pt-3 border-t border-border">
-                {['COD', 'PAYOS'].map(v => (
-                  <label key={v} className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-slate-200">
-                    <input
-                      type="radio"
-                      name="payment-method"
-                      disabled={action.busy}
-                      className="accent-primary"
-                      checked={method === v}
-                      onChange={() => setMethod(v)}
-                    />
-                    {v === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 'Thanh toán qua PayOS (Quét mã VietQR 100%)'}
-                  </label>
-                ))}
-              </div>
-
-              <div className="flex justify-between items-center pt-2 border-t border-border/50 text-sm">
-                <span className="text-slate-300">Tổng tiền thanh toán:</span>
-                <span className="text-2xl font-black text-primary">{money(cart.total)}</span>
-              </div>
-
-              <p className="text-xs text-slate-400">
-                Đơn hàng được thiết kế, sản xuất và giao trực tiếp từ xưởng in PrintHub 3D.
-              </p>
-
-              <button
-                className={`${button} w-full py-3.5 text-base font-bold shadow-lg shadow-primary/20`}
-                disabled={action.busy || cart.loading || cart.saving || !a.id || !!cart.error || hasLocalDesigns}
-                onClick={() => void checkout()}
-              >
-                {action.busy ? 'Đang tạo đơn hàng...' : 'Xác nhận đặt hàng'}
-              </button>
-            </Card>
+              </Card>
+            </div>
           )}
         </>
       )}

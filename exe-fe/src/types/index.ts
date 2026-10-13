@@ -47,6 +47,8 @@ export interface Product {
 
 export interface CartItem {
   id: string;
+  clientLineId?: string;
+  revision?: number;
   product: Product;
   quantity: number;
   engraving?: string;

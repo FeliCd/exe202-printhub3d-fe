@@ -20,6 +20,8 @@ export const vietnamese: Record<string, string> = {
   "Duplicate": "Nhân bản",
   "Reset": "Đặt lại",
   "Export design": "Xuất thiết kế",
+  "Export design file": "Xuất file thiết kế",
+  "Xuất file thiết kế": "Xuất file thiết kế",
   "2D Edit": "Chỉnh sửa 2D",
   "3D View": "Xem 3D",
   "Editing surface": "Mặt đang chỉnh sửa",

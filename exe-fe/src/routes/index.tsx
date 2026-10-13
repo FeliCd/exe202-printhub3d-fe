@@ -173,7 +173,7 @@ export default function AppRoutes({
           element={
             <AnimatePresence mode="wait">
               <PageTransition key={location.pathname}>
-                <CustomOrderPage onAddToCart={onAddToCart} />
+                <CustomOrderPage onAddToCart={onAddToCart} cart={cart} />
               </PageTransition>
             </AnimatePresence>
           }

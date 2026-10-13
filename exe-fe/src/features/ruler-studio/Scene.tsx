@@ -1,5 +1,5 @@
+import { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { translateCustom as tr } from './language';
-import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import { useReducedMotion } from "framer-motion";
@@ -18,11 +18,16 @@ import type { OrbitControls as Controls } from "three-stdlib";
 import { STLExporter } from "three-stdlib";
 import { type Design, type Surface } from "./model";
 import { paintSurface, surfaceSize } from "./surface";
-import { downloadBlob } from "./download";
 import { getRuler } from "./library/registry";
 import { getProfile } from "./geometry/profiles";
 import { flatSolid, triangularSolid } from "./geometry/solid";
 import type { LiveArtwork } from "./liveArtwork";
+
+export interface SceneHandle {
+  getSTLBlob: () => Blob | null;
+  getScreenshotBlob: () => Promise<Blob | null>;
+}
+
 export type View = "Hero" | "Top" | "45°" | "Side" | "Bottom";
 function outline(w: number, h: number, r: number, badge = false) {
   const s = new Shape();
@@ -395,17 +400,23 @@ function Model({
     </group>
   );
 }
-export default function Scene({
-  design,
-  live,
-  surface,
-  surfaceSerial,
-}: {
-  design: Design;
-  live: LiveArtwork;
-  surface: Surface;
-  surfaceSerial: number;
-}) {
+const Scene = forwardRef<
+  SceneHandle,
+  {
+    design: Design;
+    live: LiveArtwork;
+    surface: Surface;
+    surfaceSerial: number;
+  }
+>(function Scene(
+  {
+    design,
+    live,
+    surface,
+    surfaceSerial,
+  },
+  ref,
+) {
   const [view, setView] = useState<View>("Hero"),
     [serial, setSerial] = useState(0),
     [dimensions, setDimensions] = useState(true),
@@ -417,26 +428,92 @@ export default function Scene({
   const effectiveView = manualSurfaceSerial === surfaceSerial ? view : "Hero";
   const reduced = !!useReducedMotion();
   const light = new Color(design.color).getHSL({ h: 0, s: 0, l: 0 }).l > 0.45;
-  const exportSTL = () => {
-    try {
-      if (!model.current) return;
-      const copy = model.current.clone();
-      const artwork: Group[] = [];
-      copy.traverse((obj) => {
-        if (obj.userData.artwork) artwork.push(obj as Group);
-      });
-      artwork.forEach((obj) => obj.removeFromParent());
-      copy.scale.setScalar(10);
-      copy.updateMatrixWorld(true);
-      const result = new STLExporter().parse(copy, { binary: true });
-      downloadBlob(
-        new Blob([result.buffer as ArrayBuffer]),
-        `PrintHub-${design.length}cm.stl`,
-      );
-    } catch {
-      setError("STL export failed. Please try again.");
-    }
-  };
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getSTLBlob: () => {
+        try {
+          if (!model.current) return null;
+          const copy = model.current.clone();
+          const artwork: Group[] = [];
+          copy.traverse((obj) => {
+            if (obj.userData.artwork) artwork.push(obj as Group);
+          });
+          artwork.forEach((obj) => obj.removeFromParent());
+          copy.scale.setScalar(10);
+          copy.updateMatrixWorld(true);
+          const result = new STLExporter().parse(copy, { binary: true });
+          return new Blob([result.buffer as ArrayBuffer], {
+            type: "application/octet-stream",
+          });
+        } catch (e) {
+          console.error("STL generation error", e);
+          setError("Lỗi khi tạo mô hình STL.");
+          return null;
+        }
+      },
+      getScreenshotBlob: () => {
+        return new Promise<Blob | null>((resolve) => {
+          try {
+            const canvas = document.querySelector(
+              ".studio-canvas canvas",
+            ) as HTMLCanvasElement | null;
+            if (!canvas) {
+              resolve(null);
+              return;
+            }
+            requestAnimationFrame(() => {
+              try {
+                if (canvas.toBlob) {
+                  canvas.toBlob((blob) => {
+                    if (blob) {
+                      resolve(blob);
+                    } else {
+                      try {
+                        const dataUrl = canvas.toDataURL("image/png");
+                        const arr = dataUrl.split(",");
+                        const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
+                        const bstr = atob(arr[1]);
+                        let n = bstr.length;
+                        const u8arr = new Uint8Array(n);
+                        while (n--) {
+                          u8arr[n] = bstr.charCodeAt(n);
+                        }
+                        resolve(new Blob([u8arr], { type: mime }));
+                      } catch {
+                        resolve(null);
+                      }
+                    }
+                  }, "image/png");
+                } else {
+                  const dataUrl = canvas.toDataURL("image/png");
+                  const arr = dataUrl.split(",");
+                  const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
+                  const bstr = atob(arr[1]);
+                  let n = bstr.length;
+                  const u8arr = new Uint8Array(n);
+                  while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                  }
+                  resolve(new Blob([u8arr], { type: mime }));
+                }
+              } catch (err) {
+                console.error("Canvas export error", err);
+                resolve(null);
+              }
+            });
+          } catch (e) {
+            console.error("Screenshot error", e);
+            setError("Lỗi khi chụp ảnh mô hình 3D.");
+            resolve(null);
+          }
+        });
+      },
+    }),
+    [design],
+  );
+
   return (
     <section
       className={`studio-preview ${light ? "dark-product-bg" : "light-product-bg"}`}
@@ -453,7 +530,7 @@ export default function Scene({
           frameloop="demand"
           dpr={[1, 1.75]}
           camera={{ position: [5, 28, 36], fov: 32, near: 0.1, far: 2500 }}
-          gl={{ antialias: true }}
+          gl={{ antialias: true, preserveDrawingBuffer: true }}
         >
           <ambientLight intensity={0.5} />
           <directionalLight
@@ -535,8 +612,9 @@ export default function Scene({
               type="checkbox"
               checked={dimensions}
               onChange={(e) => setDimensions(e.target.checked)}
-            />{" "} {tr("Dimensions")} </label>
-          <button onClick={exportSTL}>{tr("Export STL")}</button>
+            />{" "}
+            {tr("Dimensions")}
+          </label>
         </div>
         {dimensions && (
           <p className="studio-dimensions"> {tr("Body")} {(profile.width * 10).toFixed(0)} ×{" "}
@@ -556,9 +634,13 @@ export default function Scene({
                     : tr("1 mm graduations")}
           </p>
         )}
-        <p className="studio-hint"> {tr("Drag to orbit · Scroll to zoom. STL contains the solid body and tag; export the design JSON to retain surface artwork.")} </p>
+        <p className="studio-hint">
+          {tr("Kéo chuột / chạm để xoay 3D · Cuộn để phóng to/thu nhỏ.")}
+        </p>
         {error && <p role="alert">{tr(error)}</p>}
       </div>
     </section>
   );
-}
+});
+
+export default Scene;

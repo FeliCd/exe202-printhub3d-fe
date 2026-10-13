@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { freshDesign, normalizeDesign, type Design } from "./model";
+
 const KEY = "printhub-ruler-design-v1";
+export const DRAFT_KEY = "printhub-ruler-draft";
+
 export function useDesign(initial?: Design) {
   const gesture = useRef(false),
     recorded = useRef(false);
@@ -9,10 +12,45 @@ export function useDesign(initial?: Design) {
     present: Design;
     future: Design[];
   }>(() => {
-    const present = initial ? normalizeDesign(initial) : freshDesign();
-    return { past: [], present, future: [] };
+    if (initial) {
+      return { past: [], present: normalizeDesign(initial), future: [] };
+    }
+    try {
+      const draft = localStorage.getItem(DRAFT_KEY) || localStorage.getItem(KEY);
+      if (draft && draft.length <= 2000000) {
+        return { past: [], present: normalizeDesign(JSON.parse(draft)), future: [] };
+      }
+    } catch {
+      // ignore
+    }
+    return { past: [], present: freshDesign(), future: [] };
   });
   const [saved, setSaved] = useState("");
+
+  // Sync when initial prop changes (e.g. user clicked edit from cart)
+  useEffect(() => {
+    if (initial) {
+      const next = normalizeDesign(initial);
+      setHistory((h) =>
+        JSON.stringify(next) === JSON.stringify(h.present)
+          ? h
+          : { past: [...h.past, h.present], present: next, future: [] },
+      );
+    }
+  }, [initial]);
+
+  // Debounced auto-save draft to localStorage (500ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(history.present));
+      } catch {
+        // storage quota exceeded or disabled
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [history.present]);
+
   const change = useCallback((next: Design) => {
     const merge = gesture.current && recorded.current;
     if (gesture.current) recorded.current = true;
@@ -77,6 +115,7 @@ export function useDesign(initial?: Design) {
   const save = () => {
     try {
       localStorage.setItem(KEY, JSON.stringify(history.present));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(history.present));
       setSaved(JSON.stringify(history.present));
       return true;
     } catch {
@@ -85,7 +124,7 @@ export function useDesign(initial?: Design) {
   };
   const load = () => {
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(KEY) || localStorage.getItem(DRAFT_KEY);
       if (!raw || raw.length > 2000000) return false;
       const d = normalizeDesign(JSON.parse(raw));
       change(d);
@@ -95,6 +134,16 @@ export function useDesign(initial?: Design) {
       return false;
     }
   };
+  const resetDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // ignore
+    }
+    const fresh = freshDesign();
+    setHistory({ past: [], present: fresh, future: [] });
+  }, []);
+
   return {
     design: history.present,
     change,
@@ -102,6 +151,7 @@ export function useDesign(initial?: Design) {
     redo,
     save,
     load,
+    resetDraft,
     isSaved: saved === JSON.stringify(history.present),
     begin,
     end,

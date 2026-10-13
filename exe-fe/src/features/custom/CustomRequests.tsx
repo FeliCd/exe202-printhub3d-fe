@@ -59,9 +59,17 @@ interface ParsedRequirements {
 
 function parseOrderRequirements(reqText: string, dto: CustomDTO): ParsedRequirements {
   const text = reqText || '';
+  let jsonParsed: any = null;
+  if (text.trim().startsWith('{')) {
+    try {
+      jsonParsed = JSON.parse(text);
+    } catch {
+      // ignore
+    }
+  }
 
   // 1. Model name
-  let modelName = dto.rulerModel || '';
+  let modelName = dto.rulerModel || (jsonParsed?.name) || '';
   if (!modelName) {
     const match = text.match(/Mẫu thước:\s*([^;]+)/i);
     if (match) modelName = match[1].trim();
@@ -69,13 +77,13 @@ function parseOrderRequirements(reqText: string, dto: CustomDTO): ParsedRequirem
   if (!modelName) modelName = 'Thước In 3D Kỹ Thuật';
 
   // 2. Material
-  let material = 'PLA Pro+ (Chống cong vênh)';
+  let material = jsonParsed?.material || 'PLA Pro+ (Chống cong vênh)';
   const matMatch = text.match(/Vật liệu:\s*([^;]+)/i);
   if (matMatch) material = matMatch[1].trim();
 
   // 3. Infill
-  let infill = '20%';
-  let infillNum = 20;
+  let infill = jsonParsed?.infill ? `${jsonParsed.infill}%` : '20%';
+  let infillNum = jsonParsed?.infill || 20;
   const infillMatch = text.match(/(?:Độ đặc|infill):\s*([^;]+)/i);
   if (infillMatch) {
     infill = infillMatch[1].trim();
@@ -85,14 +93,14 @@ function parseOrderRequirements(reqText: string, dto: CustomDTO): ParsedRequirem
 
   // 4. 3-Layer Colors
   const allHex = (text + ' ' + (dto.color || '')).match(/#[0-9a-fA-F]{6}/g) || [];
-  const bodyColor = allHex[0] || '#39FF14';
-  const plateColor = allHex[1] || '#1C1D22';
-  const textColor = allHex[2] || '#FFFFFF';
+  const bodyColor = jsonParsed?.color || allHex[0] || '#39FF14';
+  const plateColor = jsonParsed?.tag?.color || allHex[1] || '#1C1D22';
+  const textColor = jsonParsed?.tag?.textColor || allHex[2] || '#FFFFFF';
 
   // 5. Engraving details
-  let engraveName = dto.customName || '';
+  let engraveName = dto.customName || jsonParsed?.tag?.text || '';
   let studentId = dto.customStudentId || '';
-  let fontName = dto.fontStyle || '';
+  let fontName = dto.fontStyle || jsonParsed?.tag?.font || '';
 
   if (!engraveName) {
     const nameMatch = text.match(/Khắc tên:\s*([^(;\n]+)/i);
