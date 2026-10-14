@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
@@ -36,14 +36,46 @@ export default function SignupPage() {
   // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
   const [step, setStep] = useState<'REGISTER' | 'OTP'>('REGISTER');
   const [otpCode, setOtpCode] = useState('');
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpSuccess, setOtpSuccess] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
+
+  useEffect(() => {
+    let timer: any;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || isResendingOtp) return;
+    setErrorMsg('');
+    setInfoMsg('');
+    setIsResendingOtp(true);
+    try {
+      await authService.resendRegisterOtp(email.trim());
+      setInfoMsg('Mã OTP mới đã được gửi đến email của bạn.');
+      setResendCooldown(60);
+      setOtpCode('');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại sau.';
+      setErrorMsg(msg);
+    } finally {
+      setIsResendingOtp(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setInfoMsg('');
 
     if (password !== confirmPassword) {
       setErrorMsg('Mật khẩu và xác nhận mật khẩu không khớp.');
@@ -90,6 +122,8 @@ export default function SignupPage() {
       }
 
       await authService.register(payload);
+      setResendCooldown(60);
+      setInfoMsg('Mã OTP đã được gửi đến email của bạn.');
       setStep('OTP');
     } catch (err: any) {
       const errResponse = err?.response?.data;
@@ -161,6 +195,13 @@ export default function SignupPage() {
           <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs flex items-center gap-2 animate-in fade-in">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
             <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {infoMsg && (
+          <div className="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-[#39FF14]" />
+            <span>{infoMsg}</span>
           </div>
         )}
 
@@ -435,10 +476,19 @@ export default function SignupPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleSubmit}
-                    className="text-[#39FF14] font-bold hover:underline"
+                    disabled={resendCooldown > 0 || isResendingOtp}
+                    onClick={handleResendOtp}
+                    className="text-[#39FF14] font-bold hover:underline disabled:text-slate-500 disabled:no-underline disabled:cursor-not-allowed flex items-center gap-1"
                   >
-                    Gửi lại mã OTP
+                    {isResendingOtp ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" /> Đang gửi...
+                      </>
+                    ) : resendCooldown > 0 ? (
+                      `Gửi lại sau (${resendCooldown}s)`
+                    ) : (
+                      'Gửi lại mã OTP'
+                    )}
                   </button>
                 </div>
               </>

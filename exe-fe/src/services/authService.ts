@@ -26,6 +26,11 @@ export const authService = {
     return response.data;
   },
 
+  resendRegisterOtp: async (email: string) => {
+    const response = await post(`/auth/resend-register-otp?email=${encodeURIComponent(email)}`, {});
+    return response.data;
+  },
+
   getCurrentUser: async () => {
     try {
       const response = await get('/auth/profile');
