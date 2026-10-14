@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   User,
-  CheckCircle2,
   Save,
   MapPin,
   KeyRound,
@@ -21,6 +20,7 @@ import { errorText, send } from '../services/api';
 import { useRemote } from '../hooks/useRemote';
 import type { ShippingAddress } from '../features/address/data';
 import ChangePasswordModal from '../components/ChangePasswordModal';
+import { PageHeader, Notice } from '../components/DataUI';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -105,28 +105,14 @@ function ProfilePageContent() {
 
   return (
     <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
-      {/* Title */}
-      <div>
-        <div className="flex items-center gap-2.5 text-[#39FF14]">
-          <User className="w-6 h-6" />
-          <h1 className="text-2xl font-black text-white">Quản Lý Trang Cá Nhân</h1>
-        </div>
-        <p className="text-xs text-text-muted mt-1">
-          Xem và cập nhật thông tin tài khoản, tích lũy điểm thưởng và cấu hình địa chỉ nhận hàng
-        </p>
-      </div>
+      <PageHeader
+        title="Quản Lý Trang Cá Nhân"
+        description="Xem và cập nhật thông tin tài khoản, tích lũy điểm thưởng và cấu hình địa chỉ nhận hàng."
+        badge={user?.role === 'ADMIN' ? 'Quản Trị Viên' : 'Tài Khoản Sinh Viên'}
+        icon={User}
+      />
 
-      {profileError && (
-        <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs font-semibold">
-          {profileError}
-        </div>
-      )}
-
-      {savedSuccess && (
-        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 text-primary text-xs font-bold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-5 h-5 text-[#39FF14]" /> Đã cập nhật thành công thông tin tài khoản!
-        </div>
-      )}
+      <Notice error={profileError} success={savedSuccess ? 'Đã cập nhật thành công thông tin tài khoản!' : undefined} />
 
       {/* Grid: Thông tin tóm tắt & Điểm thưởng */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -5,9 +5,6 @@ import type { OrderDTO } from '../../services/orderService';
 import {
   Scale,
   UploadCloud,
-  CheckCircle2,
-  Clock,
-  XCircle,
   RefreshCw,
   Image as ImageIcon,
   AlertCircle,
@@ -20,6 +17,14 @@ import {
   DollarSign,
   ChevronDown,
 } from 'lucide-react';
+import {
+  PageHeader,
+  Status,
+  CopyButton,
+  buttonSm,
+  secondarySm,
+  destructiveSm,
+} from '../../components/DataUI';
 
 interface Dispute {
   id: string;
@@ -58,7 +63,7 @@ function DisputeChat({ disputeId }: { disputeId: string }) {
     <div className="p-4 rounded-xl bg-surface-inset border border-border/80 space-y-3 text-xs mt-3">
       <div className="flex items-center justify-between border-b border-border/60 pb-2">
         <span className="font-bold text-white flex items-center gap-1.5">
-          <MessageSquare className="w-3.5 h-3.5 text-[#39FF14]" /> Trao đổi &amp; Đối soát trực tiếp
+          <MessageSquare className="w-3.5 h-3.5 text-primary" /> Trao đổi &amp; Đối soát trực tiếp
         </span>
         <button
           type="button"
@@ -86,7 +91,7 @@ function DisputeChat({ disputeId }: { disputeId: string }) {
         {remote.data?.map((m) => (
           <div key={m.id} className="p-2.5 rounded-lg bg-surface border border-border/60 space-y-1">
             <div className="flex items-center justify-between text-[11px]">
-              <strong className="text-[#39FF14]">{m.author}</strong>
+              <strong className="text-primary">{m.author}</strong>
               <span className="text-text-muted font-mono">{m.createdAt ? new Date(m.createdAt).toLocaleTimeString('vi-VN') : ''}</span>
             </div>
             <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{m.content}</p>
@@ -102,12 +107,12 @@ function DisputeChat({ disputeId }: { disputeId: string }) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Nhập nội dung phản hồi đối soát..."
-          className="flex-1 bg-surface border border-border rounded-xl px-3 py-2 text-white outline-none focus:border-[#39FF14]"
+          className="flex-1 bg-surface border border-border rounded-xl px-3 py-2 text-white outline-none focus:border-primary text-xs"
         />
         <button
           type="submit"
           disabled={action.busy || !content.trim()}
-          className="py-2 px-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold transition disabled:opacity-50 cursor-pointer flex items-center gap-1"
+          className={`${buttonSm} shrink-0`}
         >
           {action.busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           <span>Gửi</span>
@@ -214,53 +219,22 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
     );
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'OPEN':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-            <Clock className="w-3.5 h-3.5" /> Chờ tiếp nhận
-          </span>
-        );
-      case 'UNDER_REVIEW':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
-            <RefreshCw className="w-3.5 h-3.5" /> Đang đối soát
-          </span>
-        );
-      case 'RESOLVED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/30">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Đã giải quyết
-          </span>
-        );
-      case 'REJECTED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-            <XCircle className="w-3.5 h-3.5" /> Từ chối
-          </span>
-        );
-      default:
-        return <span className="text-xs text-slate-400">{status}</span>;
-    }
-  };
-
   const completedOrders = orders.data || [];
 
   return (
-    <div className="space-y-8 w-full max-w-6xl mx-auto pb-12">
+    <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2.5 text-[#39FF14]">
-          <Scale className="w-7 h-7" />
-          <h1 className="text-2xl font-black text-white">
-            {admin ? 'Quản Lý Khiếu Nại & Tranh Chấp (Admin)' : 'Khiếu Nại & Tranh Chấp Đơn Hàng'}
-          </h1>
-        </div>
-        <p className="text-xs text-text-muted mt-1">
-          Hệ thống tiếp nhận phản hồi, đối soát thanh toán và giải quyết khiếu nại chất lượng sản phẩm in 3D.
-        </p>
-      </div>
+      <PageHeader
+        title={admin ? 'Quản Lý Khiếu Nại & Tranh Chấp (Admin)' : 'Khiếu Nại & Tranh Chấp Đơn Hàng'}
+        description="Hệ thống tiếp nhận phản hồi, đối soát thanh toán và giải quyết khiếu nại chất lượng sản phẩm in 3D."
+        icon={Scale}
+        actions={
+          <button type="button" onClick={remote.reload} className={`${secondarySm} flex items-center gap-1.5`}>
+            <RefreshCw className={`w-3.5 h-3.5 ${remote.loading ? 'animate-spin text-primary' : ''}`} />
+            Làm mới
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* CỘT TRÁI: FORM TẠO KHIẾU NẠI (Dành cho Buyer) */}
@@ -450,21 +424,28 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
             {remote.data?.map((d) => (
               <div
                 key={d.id}
-                className="p-5 rounded-2xl bg-surface border border-border/80 hover:border-border space-y-3 transition shadow-md"
+                className="p-5 sm:p-6 rounded-2xl bg-surface border border-border/80 hover:border-primary/40 space-y-3.5 transition shadow-lg relative overflow-hidden"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="text-xs font-mono font-bold text-slate-400">
-                      MÃ ĐƠN: <strong className="text-white font-mono">{d.orderId}</strong>
-                    </span>
-                    <p className="text-xs text-text-muted mt-0.5">Khách hàng: {d.buyerName}</p>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-white">
+                        ĐƠN #{d.orderId.substring(0, 10)}...
+                      </span>
+                      <CopyButton text={d.orderId} />
+                    </div>
+                    <p className="text-xs text-text-muted">
+                      Khách hàng: <strong className="text-slate-200">{d.buyerName}</strong>
+                    </p>
                   </div>
-                  <div>{getStatusBadge(d.status)}</div>
+                  <div>
+                    <Status value={d.status} />
+                  </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-surface-inset text-xs text-slate-300 leading-relaxed">
-                  <span className="font-bold text-slate-200">Nội dung khiếu nại: </span>
-                  {d.description}
+                <div className="p-3.5 rounded-xl bg-surface-inset text-xs text-slate-300 leading-relaxed border border-border/60">
+                  <span className="font-bold text-white block mb-1">Nội dung khiếu nại:</span>
+                  <p className="whitespace-pre-wrap">{d.description}</p>
                 </div>
 
                 {d.evidenceUrl && (
@@ -474,7 +455,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                       href={d.evidenceUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[#39FF14] hover:underline font-semibold flex items-center gap-1"
+                      className="text-primary hover:underline font-semibold flex items-center gap-1.5"
                     >
                       <ImageIcon className="w-3.5 h-3.5" /> Xem ảnh bằng chứng
                     </a>
@@ -487,7 +468,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                     <p className="font-bold text-primary">Kết luận giải quyết:</p>
                     <p>{d.resolutionNote}</p>
                     {!!d.refundAmount && (
-                      <p className="text-xs text-[#39FF14] font-bold flex items-center gap-1 pt-1">
+                      <p className="text-xs text-primary font-bold flex items-center gap-1 pt-1 font-mono">
                         <DollarSign className="w-3.5 h-3.5" /> Hoàn trả: {d.refundAmount.toLocaleString()} VNĐ
                       </p>
                     )}
@@ -495,13 +476,13 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                 )}
 
                 {/* Buttons trao đổi & Admin Resolve */}
-                <div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2">
+                <div className="pt-3 border-t border-border/60 flex flex-wrap items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => setActiveChatId(activeChatId === d.id ? null : d.id)}
-                    className="py-1.5 px-3 rounded-lg bg-surface-raised hover:bg-surface-inset border border-border hover:border-[#39FF14] text-xs font-semibold text-white flex items-center gap-1.5 transition cursor-pointer"
+                    className={`${secondarySm} flex items-center gap-1.5`}
                   >
-                    <MessageSquare className="w-3.5 h-3.5 text-[#39FF14]" />
+                    <MessageSquare className="w-3.5 h-3.5 text-primary" />
                     <span>{activeChatId === d.id ? 'Thu gọn phản hồi' : 'Xem & gửi phản hồi'}</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeChatId === d.id ? 'rotate-180' : ''}`} />
                   </button>
@@ -513,7 +494,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                         type="button"
                         disabled={action.busy}
                         onClick={() => handleAdminResolve(d, 'RESOLVED')}
-                        className="py-1.5 px-3 rounded-lg bg-primary hover:bg-primary text-slate-950 font-bold text-xs transition cursor-pointer"
+                        className={buttonSm}
                       >
                         Giải quyết khiếu nại
                       </button>
@@ -521,7 +502,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                         type="button"
                         disabled={action.busy}
                         onClick={() => handleAdminResolve(d, 'REJECTED')}
-                        className="py-1.5 px-3 rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs transition cursor-pointer"
+                        className={destructiveSm}
                       >
                         Từ chối
                       </button>

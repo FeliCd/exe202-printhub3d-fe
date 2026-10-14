@@ -17,7 +17,7 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
 import ReviewModal from '../reviews/ReviewModal';
-import { Panel, RemoteState, Notice, Status, button, secondary } from '../../components/DataUI';
+import { RemoteState, Notice, Status, button, secondary } from '../../components/DataUI';
 import { money } from '../../utils/format';
 
 // Stepper 5 bước chuẩn hóa
@@ -139,8 +139,25 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [reviewTarget, setReviewTarget] = useState<{ orderId: string; item: OrderItemDTO } | null>(null);
 
+  // Filter tabs for Buyer History
+  const [historyTab, setHistoryTab] = useState<'ALL' | 'COMPLETED' | 'CANCELLED'>('ALL');
+  // Filter tabs for Buyer Active Orders
+  const [activeOrderTab, setActiveOrderTab] = useState<'ALL' | 'PENDING' | 'PRINTING' | 'SHIPPING'>('ALL');
+
   // Đơn Marketplace
-  const marketplaceOrders = remote.data?.filter(o => !history || ['COMPLETED', 'CANCELLED'].includes(o.status)) || [];
+  const rawMarketplaceOrders = remote.data?.filter(o => !history || ['COMPLETED', 'CANCELLED'].includes(o.status)) || [];
+  const marketplaceOrders = rawMarketplaceOrders.filter(o => {
+    if (admin) return true;
+    if (history) {
+      if (historyTab === 'COMPLETED') return o.status === 'COMPLETED';
+      if (historyTab === 'CANCELLED') return o.status === 'CANCELLED';
+      return true;
+    }
+    if (activeOrderTab === 'PENDING') return ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status);
+    if (activeOrderTab === 'PRINTING') return o.status === 'PRINTING';
+    if (activeOrderTab === 'SHIPPING') return o.status === 'SHIPPING';
+    return true;
+  });
 
   // Đơn Custom đã chốt báo giá (ACCEPTED, PAID, PREPARING, PRINTING, SHIPPING, COMPLETED)
   const acceptedCustomOrders = (customRemote.data || []).filter(c =>
@@ -183,16 +200,30 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     }
   };
 
+  const pageTitle = admin
+    ? 'Quản lý đơn hàng hệ thống (Admin)'
+    : history
+    ? 'Lịch sử đơn hàng & In lại'
+    : 'Theo dõi tiến độ in 3D';
+
+  const pageDesc = admin
+    ? 'Theo dõi tiến độ gia công in 3D và trạng thái giao hàng cho cả đơn Marketplace và đơn Custom đã chốt giá.'
+    : history
+    ? 'Xem lại các đơn hàng đã hoàn tất hoặc đã hủy, và gửi đánh giá chất lượng in.'
+    : 'Theo dõi trực tiếp từng bước gia công in 3D và trạng thái giao hàng.';
+
   return (
-    <Panel title={admin ? 'Quản lý đơn hàng hệ thống (Admin)' : history ? 'Lịch sử đơn hàng & In lại' : 'Theo dõi tiến độ in 3D'}>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p className="text-sm text-slate-400">
-          {admin
-            ? 'Theo dõi tiến độ gia công in 3D và trạng thái giao hàng cho cả đơn Marketplace và đơn Custom đã chốt giá.'
-            : history
-            ? 'Xem lại các đơn hàng đã hoàn tất hoặc đã hủy, và gửi đánh giá chất lượng in.'
-            : 'Theo dõi trực tiếp từng bước gia công in 3D và trạng thái giao hàng.'}
-        </p>
+    <div className="space-y-6 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-5">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-primary/10 border border-primary/30 text-primary">
+              {history ? <Package className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
+            </span>
+            <h1 className="text-2xl font-black text-white tracking-tight">{pageTitle}</h1>
+          </div>
+          <p className="text-xs sm:text-sm text-text-muted max-w-2xl">{pageDesc}</p>
+        </div>
 
         <button className={`${secondary} flex items-center gap-1.5 self-start sm:self-auto shrink-0`} onClick={handleReload}>
           <RotateCcw className="h-3.5 w-3.5" /> Tải lại
@@ -201,10 +232,10 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
       {/* Admin Tab Filters: Phân biệt rõ Đơn Marketplace vs Đơn Custom */}
       {admin && (
-        <div className="flex items-center gap-2 p-1.5 bg-surface-inset rounded-2xl border border-border overflow-x-auto text-xs font-bold">
+        <div className="flex items-center gap-2 p-1.5 bg-surface-inset rounded-2xl border border-border overflow-x-auto text-xs font-bold scrollbar-none">
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap ${
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
               activeTab === 'ALL'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40'
                 : 'text-slate-400 hover:text-white'
@@ -215,7 +246,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
           <button
             onClick={() => setActiveTab('MARKETPLACE')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'MARKETPLACE'
                 ? 'bg-primary text-slate-950 shadow-md shadow-primary/40'
                 : 'text-slate-400 hover:text-white'
@@ -227,7 +258,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
           <button
             onClick={() => setActiveTab('CUSTOM')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'CUSTOM'
                 ? 'bg-amber-600 text-white shadow-md shadow-amber-900/40'
                 : 'text-slate-400 hover:text-white'
@@ -235,6 +266,89 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           >
             <Sparkles className="w-3.5 h-3.5" />
             Đơn In Custom Theo Yêu Cầu ({acceptedCustomOrders.length})
+          </button>
+        </div>
+      )}
+
+      {/* Buyer History Filter Tabs */}
+      {!admin && history && (
+        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-border/80 bg-surface-inset scrollbar-none text-xs font-bold">
+          <button
+            onClick={() => setHistoryTab('ALL')}
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
+              historyTab === 'ALL'
+                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Tất Cả Lịch Sử ({rawMarketplaceOrders.length})
+          </button>
+          <button
+            onClick={() => setHistoryTab('COMPLETED')}
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              historyTab === 'COMPLETED'
+                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Check className="w-3.5 h-3.5" />
+            Đã Hoàn Thành ({rawMarketplaceOrders.filter(o => o.status === 'COMPLETED').length})
+          </button>
+          <button
+            onClick={() => setHistoryTab('CANCELLED')}
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              historyTab === 'CANCELLED'
+                ? 'bg-red-500 text-white shadow-md shadow-red-900/40'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Đã Hủy ({rawMarketplaceOrders.filter(o => o.status === 'CANCELLED').length})
+          </button>
+        </div>
+      )}
+
+      {/* Buyer Active Order Filter Tabs */}
+      {!admin && !history && (
+        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-border/80 bg-surface-inset scrollbar-none text-xs font-bold">
+          <button
+            onClick={() => setActiveOrderTab('ALL')}
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
+              activeOrderTab === 'ALL'
+                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Tất Cả Đang Xử Lý ({rawMarketplaceOrders.length})
+          </button>
+          <button
+            onClick={() => setActiveOrderTab('PENDING')}
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              activeOrderTab === 'PENDING'
+                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-900/40'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Chờ Xử Lý ({rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length})
+          </button>
+          <button
+            onClick={() => setActiveOrderTab('PRINTING')}
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              activeOrderTab === 'PRINTING'
+                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Đang In 3D ({rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length})
+          </button>
+          <button
+            onClick={() => setActiveOrderTab('SHIPPING')}
+            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              activeOrderTab === 'SHIPPING'
+                ? 'bg-blue-500 text-white shadow-md shadow-blue-900/40'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Đang Giao Hàng ({rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length})
           </button>
         </div>
       )}
@@ -596,6 +710,6 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           onSuccess={handleReload}
         />
       )}
-    </Panel>
+    </div>
   );
 }

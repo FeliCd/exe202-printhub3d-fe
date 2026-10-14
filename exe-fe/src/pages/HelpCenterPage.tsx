@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { HelpCircle, ChevronDown, ChevronUp, MessageSquare, PhoneCall, ShieldCheck } from 'lucide-react';
+import { PageHeader } from '../components/DataUI';
 
 interface FAQItem {
   question: string;
@@ -45,16 +46,12 @@ export default function HelpCenterPage() {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 text-[#39FF14]">
-          <HelpCircle className="w-6 h-6" />
-          <h1 className="text-2xl font-black text-white">Trung Tâm Hỗ Trợ &amp; FAQ Sinh Viên (Help Center)</h1>
-        </div>
-        <p className="text-sm text-text-muted">
-          Giải đáp các thắc mắc kỹ thuật về dung sai 3D, chọn chất liệu nhựa (PLA/PETG/Resin), mật độ đặc infill và quy trình bảo hành 1 học kỳ.
-        </p>
-      </div>
+      <PageHeader
+        title="Trung Tâm Hỗ Trợ & FAQ Sinh Viên"
+        description="Giải đáp các thắc mắc kỹ thuật về dung sai 3D, chọn chất liệu nhựa (PLA/PETG/Resin), mật độ đặc infill và quy trình bảo hành 1 học kỳ."
+        badge="CSKH 24/7"
+        icon={HelpCircle}
+      />
 
       {/* Support Quick Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -4,14 +4,12 @@ import {
   MapPin,
   Plus,
   Trash2,
-  CheckCircle2,
   ArrowLeft,
   Building,
   Phone,
   User as UserIcon,
   Home,
   Check,
-  AlertCircle,
   Loader2,
   Sparkles,
 } from 'lucide-react';
@@ -20,6 +18,7 @@ import { useRemote, useAction } from '../hooks/useRemote';
 import { send } from '../services/api';
 import { VIETNAM_DIVISIONS, type Province } from '../features/address/data/vietnamProvinces';
 import type { ShippingAddress } from '../features/address/data';
+import { PageHeader, Notice } from '../components/DataUI';
 
 export default function AddressBookPage() {
   const { user } = useAuth();
@@ -127,49 +126,33 @@ export default function AddressBookPage() {
 
   return (
     <div className="space-y-6 w-full max-w-5xl mx-auto pb-12">
-      {/* Top Breadcrumb & Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-text-muted text-xs mb-1">
-            <Link to="/profile" className="hover:text-[#39FF14] transition flex items-center gap-1">
-              <ArrowLeft className="w-3.5 h-3.5" /> Trang cá nhân
-            </Link>
-            <span>/</span>
-            <span className="text-white font-semibold">Sổ địa chỉ</span>
-          </div>
-          <div className="flex items-center gap-2.5 text-[#39FF14]">
-            <MapPin className="w-6 h-6" />
-            <h1 className="text-2xl font-black text-white">Sổ Địa Chỉ Giao Nhận Hàng</h1>
-          </div>
-          <p className="text-xs text-text-muted mt-1">
-            Quản lý các địa chỉ nhận hàng KTX, nhà riêng và văn phòng của bạn trên toàn quốc.
-          </p>
-        </div>
-
-        {!isAdding && (
-          <button
-            type="button"
-            onClick={() => setIsAdding(true)}
-            className="py-2.5 px-4 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-primary/20 self-start sm:self-auto cursor-pointer"
-          >
-            <Plus className="w-4 h-4" /> Thêm Địa Chỉ Mới
-          </button>
-        )}
+      <div className="flex items-center gap-2 text-text-muted text-xs mb-[-12px]">
+        <Link to="/profile" className="hover:text-primary transition flex items-center gap-1">
+          <ArrowLeft className="w-3.5 h-3.5" /> Trang cá nhân
+        </Link>
+        <span>/</span>
+        <span className="text-white font-semibold">Sổ địa chỉ</span>
       </div>
 
-      {/* Notifications */}
-      {successMessage && (
-        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 text-primary text-xs font-bold flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-[#39FF14] shrink-0" />
-          <span>{successMessage}</span>
-        </div>
-      )}
-      {(errorMessage || action.error) && (
-        <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs font-semibold flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-          <span>{errorMessage || action.error}</span>
-        </div>
-      )}
+      <PageHeader
+        title="Sổ Địa Chỉ Giao Nhận Hàng"
+        description="Quản lý các địa chỉ nhận hàng KTX, nhà riêng và văn phòng của bạn trên toàn quốc."
+        icon={MapPin}
+        badge={`${remote.data?.length || 0} địa chỉ`}
+        actions={
+          !isAdding ? (
+            <button
+              type="button"
+              onClick={() => setIsAdding(true)}
+              className="py-2.5 px-4 rounded-xl bg-primary hover:brightness-110 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-primary/20 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Thêm Địa Chỉ Mới
+            </button>
+          ) : undefined
+        }
+      />
+
+      <Notice error={errorMessage || action.error} success={successMessage} />
 
       {/* Form thêm địa chỉ mới */}
       {isAdding && (

@@ -14,8 +14,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             PrintHub <span className="text-[#39FF14]">3D</span>
           </span>
         </Link>
-        <Link to="/catalog-preview" className="text-xs text-[#39FF14] hover:underline font-bold">
-          Xem trước danh mục →
+        <Link to="/catalog" className="text-xs text-[#39FF14] hover:underline font-bold">
+          Xem danh mục →
         </Link>
       </header>
 

@@ -5,7 +5,7 @@ import type { useCart } from '../features/cart/hooks/useCart';
 import { useAuth } from '../context/AuthContext';
 import { send } from '../services/api';
 import { useAction } from '../hooks/useRemote';
-import { Panel, Card, Notice, Status, button, secondary } from '../components/DataUI';
+import { PageHeader, Card, Notice, Status, button, secondary, CopyButton } from '../components/DataUI';
 import { money } from '../utils/format';
 import CartItem from '../features/cart/components/CartItem';
 import {
@@ -16,8 +16,6 @@ import {
   ShoppingBag,
   ArrowRight,
   X,
-  Copy,
-  Check,
   Truck,
   Package,
   Layers,
@@ -54,7 +52,6 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [createdCheckoutOrder, setCreatedCheckoutOrder] = useState<CheckoutOrderDTO | null>(null);
   const [confirmOrder, setConfirmOrder] = useState<{ id: string; totalAmount: number; checkoutUrl?: string } | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const action = useAction();
 
   // Tự động tick chọn tất cả các món khi giỏ hàng tải xong
@@ -180,14 +177,14 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       setSelectedIds(new Set());
     });
 
-  const copyOrderId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
   return (
-    <Panel title="Giỏ hàng & Thanh toán thông minh">
+    <div className="space-y-6">
+      <PageHeader
+        title="Giỏ hàng & Thanh toán thông minh"
+        description="Kiểm tra danh sách sản phẩm, tuỳ biến giao hàng và tiến hành thanh toán an toàn qua VietQR PayOS."
+        badge={cart.items.length > 0 ? `${cart.items.length} món` : undefined}
+        icon={ShoppingBag}
+      />
       <Notice error={action.error || cart.error} />
 
       {/* POPUP XÁC NHẬN THANH TOÁN PAYOS */}
@@ -278,22 +275,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-slate-400">Mã đơn:</span>
                 <span className="font-mono text-base font-bold text-white">#{createdCheckoutOrder.id}</span>
-                <button
-                  onClick={() => copyOrderId(createdCheckoutOrder.id)}
-                  className="inline-flex items-center gap-1 rounded-md bg-surface-inset px-2 py-0.5 text-[11px] text-slate-400 hover:text-white"
-                >
-                  {copiedId === createdCheckoutOrder.id ? (
-                    <>
-                      <Check className="h-3 w-3 text-primary" />
-                      <span className="text-primary font-medium">Đã chép</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3 w-3" />
-                      <span>Sao chép</span>
-                    </>
-                  )}
-                </button>
+                <CopyButton text={createdCheckoutOrder.id} />
               </div>
               <Status value={createdCheckoutOrder.status} />
             </div>
@@ -389,7 +371,11 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 </span>
               </div>
 
-              {/* NHÓM 1: SẢN PHẨM CÓ SẴN (MARKETPLACE) */}
+              {/* 2-COLUMN LAYOUT: Desktop side-by-side, Mobile stacked */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* CỘT TRÁI: DANH SÁCH SẢN PHẨM (7 cols) */}
+                <div className="lg:col-span-7 space-y-6">
+                  {/* NHÓM 1: SẢN PHẨM CÓ SẴN (MARKETPLACE) */}
               {marketplaceItems.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between pb-1 border-b border-border/60">
@@ -456,8 +442,10 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                   </div>
                 </div>
               )}
+            </div>
 
-              {/* KHỐI CẤU HÌNH VẬN CHUYỂN & THANH TOÁN */}
+            {/* CỘT PHẢI: CẤU HÌNH VẬN CHUYỂN & THANH TOÁN (5 cols sticky) */}
+            <div className="lg:col-span-5 lg:sticky lg:top-20">
               <Card>
                 <div className="space-y-4">
                   {/* CHỌN HÌNH THỨC GIAO HÀNG */}
@@ -624,9 +612,11 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 </div>
               </Card>
             </div>
-          )}
-        </>
-      )}
-    </Panel>
-  );
+            </div>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+);
 }

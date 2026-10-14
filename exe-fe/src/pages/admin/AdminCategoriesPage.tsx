@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag, Plus, Edit2, Trash2, RotateCcw, X, Layers } from 'lucide-react';
 import { get, send } from '../../services/api';
+import { PageHeader } from '../../components/DataUI';
 
 interface Category {
   categoryId: number;
@@ -89,36 +90,32 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-purple-400">
-            <Tag className="w-6 h-6" />
-            <h1 className="text-2xl font-black text-white">Quản Lý Danh Mục Sản Phẩm (Categories)</h1>
+      <PageHeader
+        title="Quản Lý Danh Mục Sản Phẩm"
+        description="Quản lý các nhóm danh mục thước 3D, mô hình kỹ thuật và tệp in chuyên dụng."
+        badge={`${categories.length} danh mục`}
+        icon={Tag}
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={fetchCategories}
+              disabled={loading}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border hover:border-primary text-slate-200 hover:text-primary text-xs font-bold transition shadow-sm cursor-pointer"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary' : ''}`} />
+              <span>Tải lại</span>
+            </button>
+
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:brightness-110 text-slate-950 font-bold text-xs transition shadow-lg shadow-primary/20 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Thêm Danh Mục</span>
+            </button>
           </div>
-          <p className="text-sm text-text-muted">
-            Quản lý các nhóm danh mục thước 3D, mô hình kỹ thuật và tệp in chuyên dụng
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={fetchCategories}
-            disabled={loading}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface border border-border hover:border-purple-400 text-slate-200 text-xs font-bold transition shadow-sm"
-          >
-            <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin text-purple-400' : ''}`} />
-            <span>Tải lại</span>
-          </button>
-
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs transition shadow-md shadow-purple-900/30"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm Danh Mục</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {error && (
         <div className="p-4 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-xs font-medium">

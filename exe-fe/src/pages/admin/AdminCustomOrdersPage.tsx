@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FileEdit, Search, Download, Send, CheckCircle, Clock, RotateCcw, X, Sparkles } from 'lucide-react';
 import { get, send } from '../../services/api';
 import { formatPrice } from '../../utils/format';
+import { PageHeader } from '../../components/DataUI';
 
 interface CustomOrderItem {
   id: string;
@@ -95,27 +96,22 @@ export default function AdminCustomOrdersPage() {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-purple-400">
-            <FileEdit className="w-6 h-6" />
-            <h1 className="text-2xl font-black text-white">Báo Giá Đơn In Custom Theo Yêu Cầu</h1>
-          </div>
-          <p className="text-sm text-text-muted">
-            Tiếp nhận yêu cầu in thước 3D cá nhân hóa, kiểm tra file thiết kế và gửi báo giá cho sinh viên
-          </p>
-        </div>
-
-        <button
-          onClick={fetchCustomOrders}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border hover:border-[#39FF14] text-slate-200 hover:text-[#39FF14] text-xs font-bold transition shadow-sm self-start sm:self-auto"
-        >
-          <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin text-[#39FF14]' : ''}`} />
-          <span>Làm mới danh sách</span>
-        </button>
-      </div>
+      <PageHeader
+        title="Báo Giá Đơn In Custom Theo Yêu Cầu"
+        description="Tiếp nhận yêu cầu in thước 3D cá nhân hóa, kiểm tra file thiết kế và gửi báo giá cho sinh viên."
+        badge={`${orders.length} yêu cầu`}
+        icon={FileEdit}
+        actions={
+          <button
+            onClick={fetchCustomOrders}
+            disabled={loading}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border hover:border-primary text-slate-200 hover:text-primary text-xs font-bold transition shadow-sm cursor-pointer"
+          >
+            <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary' : ''}`} />
+            <span>Làm mới danh sách</span>
+          </button>
+        }
+      />
 
       {/* Filter Tabs & Search */}
       <div className="p-4 rounded-2xl bg-surface border border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 text-xs">

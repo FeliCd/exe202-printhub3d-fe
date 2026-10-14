@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Ruler, Check } from 'lucide-react';
+import { PageHeader } from '../components/DataUI';
 
 export default function Ruler3DPage() {
   const [modelType, setModelType] = useState<'ruler20' | 'caliper' | 'cube'>('ruler20');
@@ -22,15 +23,12 @@ export default function Ruler3DPage() {
 
   return (
     <div className="space-y-6 w-full">
-      <div>
-        <div className="flex items-center gap-2 text-[#39FF14]">
-          <Ruler className="w-6 h-6" />
-          <h1 className="text-2xl font-black text-white">Công Cụ Thước Đo Mô Hình 3D Directly On Browser</h1>
-        </div>
-        <p className="text-sm text-text-muted">
-          Trực quan hóa mô hình 3D, đo đạc kích thước 3 chiều Bounding Box (X, Y, Z) và mô phỏng thước kẹp du xích Vernier.
-        </p>
-      </div>
+      <PageHeader
+        title="Công Cụ Thước Đo Mô Hình 3D"
+        description="Trực quan hóa mô hình 3D, đo đạc kích thước 3 chiều Bounding Box (X, Y, Z) và mô phỏng thước kẹp du xích Vernier."
+        badge="3D Viewer"
+        icon={Ruler}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Interactive 3D Canvas Mock Viewport */}

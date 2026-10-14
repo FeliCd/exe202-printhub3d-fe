@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Sparkles, Gift, Plus, Edit2, Ban, X, Check } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
-import { Panel, RemoteState, Notice, button, secondary, field } from '../../components/DataUI';
+import { PageHeader, RemoteState, Notice, button, secondary, field } from '../../components/DataUI';
 
 interface Plan {
   id: string;
@@ -81,7 +81,17 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   };
 
   return (
-    <Panel title={admin ? 'Quản lý hội viên & Gói Subscriptions (Admin)' : 'Hội viên và điểm thưởng'}>
+    <div className="space-y-6">
+      <PageHeader
+        title={admin ? 'Quản lý hội viên & Gói Subscriptions' : 'Hội viên & Điểm thưởng'}
+        description={
+          admin
+            ? 'Thiết lập quyền lợi giảm giá in 3D, ưu tiên gia công và tặng gói ưu đãi cho khách hàng.'
+            : 'Đổi điểm thưởng tích lũy từ các đơn in 3D lấy gói hội viên VIP và voucher giảm giá.'
+        }
+        badge={admin ? 'Admin Panel' : `${membership.data?.points ?? 0} Điểm`}
+        icon={Sparkles}
+      />
       <Notice error={action.error} />
       <Notice error={membership.error} />
 
@@ -338,6 +348,6 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
           </div>
         ))}
       </div>
-    </Panel>
+    </div>
   );
 }

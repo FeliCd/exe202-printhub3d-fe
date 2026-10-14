@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { get, send, uploadFormData } from '../../services/api';
 import { formatPrice } from '../../utils/format';
+import { PageHeader } from '../../components/DataUI';
 
 interface Category {
   categoryId: number;
@@ -203,26 +204,21 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-[#39FF14]">
-            <Package className="w-6 h-6 drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" />
-            <h1 className="text-2xl font-black text-white">Quản Lý Sản Phẩm Sàn (Product Catalog)</h1>
-          </div>
-          <p className="text-sm text-text-muted">
-            Quản trị thông tin chi tiết từng sản phẩm thước in 3D, mô hình kỹ thuật, giá bán và số lượng tồn kho
-          </p>
-        </div>
-
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs transition active:scale-95 shadow-[0_0_15px_rgba(57,255,20,0.35)] self-start sm:self-auto cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span>Thêm Sản Phẩm Mới</span>
-        </button>
-      </div>
+      <PageHeader
+        title="Quản Lý Sản Phẩm Sàn"
+        description="Quản trị thông tin chi tiết từng sản phẩm thước in 3D, mô hình kỹ thuật, giá bán và số lượng tồn kho."
+        badge={`${products.length} sản phẩm`}
+        icon={Package}
+        actions={
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:brightness-110 text-slate-950 font-bold text-xs transition shadow-lg shadow-primary/20 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Thêm Sản Phẩm Mới</span>
+          </button>
+        }
+      />
 
       {/* Filter & Search Bar */}
       <div className="p-4 rounded-2xl bg-surface border border-border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs shadow-md">

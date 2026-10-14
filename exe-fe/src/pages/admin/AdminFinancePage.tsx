@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { DollarSign, ArrowUpRight, RotateCcw, ShieldCheck, Wallet, ArrowDownRight } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
 import { adminService, type FinanceSummaryData } from '../../services/adminService';
+import { PageHeader } from '../../components/DataUI';
 
 export default function AdminFinancePage() {
   const [data, setData] = useState<FinanceSummaryData | null>(null);
@@ -30,26 +31,22 @@ export default function AdminFinancePage() {
 
   return (
     <div className="space-y-6 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-purple-400">
-            <DollarSign className="w-6 h-6" />
-            <h1 className="text-2xl font-black text-white">Báo Cáo Tài Chính &amp; Doanh Thu Platform (Finance &amp; Revenue)</h1>
-          </div>
-          <p className="text-sm text-text-muted">
-            Dữ liệu đối soát tài chính thực tế tổng hợp từ cơ sở dữ liệu các đơn hàng đã thanh toán và cổng PayOS/COD
-          </p>
-        </div>
-
-        <button
-          onClick={fetchFinance}
-          disabled={loading}
-          className="px-4 py-2.5 rounded-xl bg-surface border border-border hover:border-[#39FF14] text-slate-200 hover:text-[#39FF14] font-bold text-xs flex items-center gap-2 transition shadow-sm shrink-0 self-start sm:self-auto"
-        >
-          <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin text-[#39FF14]' : ''}`} />
-          <span>{loading ? 'Đang đối soát...' : 'Làm mới số liệu'}</span>
-        </button>
-      </div>
+      <PageHeader
+        title="Báo Cáo Tài Chính & Doanh Thu Platform"
+        description="Dữ liệu đối soát tài chính thực tế tổng hợp từ cơ sở dữ liệu các đơn hàng đã thanh toán và cổng PayOS/COD."
+        badge="Finance & Revenue"
+        icon={DollarSign}
+        actions={
+          <button
+            onClick={fetchFinance}
+            disabled={loading}
+            className="px-3.5 py-2 rounded-xl bg-surface border border-border hover:border-primary text-slate-200 hover:text-primary font-bold text-xs flex items-center gap-2 transition shadow-sm cursor-pointer"
+          >
+            <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary' : ''}`} />
+            <span>{loading ? 'Đang đối soát...' : 'Làm mới số liệu'}</span>
+          </button>
+        }
+      />
 
       {error && (
         <div className="p-4 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-xs font-medium">

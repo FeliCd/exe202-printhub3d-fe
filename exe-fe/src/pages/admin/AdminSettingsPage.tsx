@@ -10,9 +10,9 @@ import {
   Mail,
   Phone,
   RefreshCw,
-  AlertCircle,
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+import { PageHeader, Notice } from '../../components/DataUI';
 
 export default function AdminSettingsPage() {
   const [storeName, setStoreName] = useState('PrintHub 3D - Dịch vụ In 3D & Thước Kỹ Thuật');
@@ -90,47 +90,28 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6 w-full max-w-5xl mx-auto pb-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-[#39FF14]">
-            <Settings className="w-6 h-6 drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" />
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Cấu Hình Nền Tảng (Platform Settings)
-            </h1>
-          </div>
-          <p className="mt-1 text-xs sm:text-sm text-slate-400">
-            Quản trị thông tin sàn, cước vận chuyển ký túc xá, chiết khấu và chính sách bảo hành sinh viên.
-          </p>
-        </div>
+      <PageHeader
+        title="Cấu Hình Nền Tảng"
+        description="Quản trị thông tin sàn, cước vận chuyển ký túc xá, chiết khấu và chính sách bảo hành sinh viên."
+        badge="Platform Settings"
+        icon={Settings}
+        actions={
+          <button
+            type="button"
+            onClick={loadSettings}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border hover:border-primary text-slate-300 hover:text-white text-xs font-semibold transition active:scale-95 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-primary ${loading ? 'animate-spin' : ''}`} />
+            <span>Tải lại cấu hình</span>
+          </button>
+        }
+      />
 
-        <button
-          type="button"
-          onClick={loadSettings}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border hover:border-[#39FF14]/50 text-slate-300 hover:text-white text-xs font-semibold transition active:scale-95 self-start sm:self-auto cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-[#39FF14] ${loading ? 'animate-spin' : ''}`} />
-          <span>Tải lại cấu hình</span>
-        </button>
-      </div>
-
-      {/* Notifications */}
-      {saved && (
-        <div className="p-4 rounded-2xl bg-emerald-950/70 border border-[#39FF14]/50 text-[#39FF14] text-xs font-bold flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(57,255,20,0.2)] animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-[#39FF14] shrink-0" />
-            <span>Đã đồng bộ và lưu toàn bộ 7 cấu hình hệ thống vào cơ sở dữ liệu thành công!</span>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="p-4 rounded-2xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs font-semibold flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
+      <Notice
+        success={saved ? 'Đã đồng bộ và lưu toàn bộ 7 cấu hình hệ thống vào cơ sở dữ liệu thành công!' : undefined}
+        error={error || undefined}
+      />
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Card 1: Thông tin thương hiệu & Liên hệ */}
