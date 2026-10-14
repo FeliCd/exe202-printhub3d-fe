@@ -33,7 +33,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
           aria-label="Đóng mở thanh menu"
           aria-expanded={sidebarOpen}
           aria-controls={sidebarOpen ? 'app-sidebar' : undefined}
-          className="p-2.5 rounded-xl bg-surface hover:bg-[#272930] text-slate-300 hover:text-[#39FF14] transition border border-border focus:outline-none active:scale-95 flex items-center justify-center"
+          className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl bg-surface hover:bg-[#272930] text-slate-300 hover:text-[#39FF14] transition border border-border focus:outline-none active:scale-95 flex items-center justify-center cursor-pointer"
           onClick={onToggleSidebar}
           title="Đóng/Mở Thanh Menu"
         >
@@ -91,7 +91,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         <div className="relative">
           <button
             onClick={() => setNotifOpen((prev) => !prev)}
-            className="relative w-9 h-9 rounded-xl bg-surface hover:bg-[#272930] flex items-center justify-center text-slate-400 hover:text-white transition border border-border"
+            className="relative min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-surface hover:bg-[#272930] flex items-center justify-center text-slate-400 hover:text-white transition border border-border cursor-pointer"
             title="Thông báo"
             aria-label={`Thông báo, ${unreadCount} chưa đọc`}
             aria-expanded={notifOpen}
@@ -110,10 +110,10 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         {user ? (
           <Link
             to="/profile"
-            className="flex items-center gap-2 p-1 rounded-xl bg-surface hover:bg-[#272930] border border-border transition group"
+            className="flex items-center gap-2 p-1.5 min-h-[44px] rounded-xl bg-surface hover:bg-[#272930] border border-border transition group"
             title="Trang cá nhân"
           >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-primary to-primary flex items-center justify-center font-black text-xs text-slate-950 uppercase shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-primary to-primary flex items-center justify-center font-black text-xs text-slate-950 uppercase shrink-0">
               {user.name ? user.name.substring(0, 2) : <UserIcon className="w-4 h-4" />}
             </div>
             <div className="text-left hidden xl:block leading-tight pr-1">
@@ -127,13 +127,13 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Link
               to="/login"
-              className="px-3 py-1.5 rounded-xl border border-border hover:border-[#39FF14] text-xs font-bold text-slate-200 hover:text-[#39FF14] transition"
+              className="px-3.5 py-2 min-h-[44px] rounded-xl border border-border hover:border-[#39FF14] text-xs font-bold text-slate-200 hover:text-[#39FF14] transition flex items-center justify-center"
             >
               Đăng nhập
             </Link>
             <Link
               to="/signup"
-              className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 text-xs font-extrabold transition shadow-md shadow-primary/20"
+              className="hidden sm:inline-flex px-3.5 py-2 min-h-[44px] rounded-xl bg-primary hover:bg-primary-hover text-slate-950 text-xs font-extrabold transition shadow-md shadow-primary/20 items-center justify-center"
             >
               Đăng ký
             </Link>
@@ -143,7 +143,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         {/* TOP RIGHT: CART DRAWER BUTTON */}
         {!isAdmin && (
           <button
-            className="flex items-center gap-2 bg-[#39FF14] hover:bg-primary text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-primary/60 active:scale-95 transition"
+            className="min-h-[44px] flex items-center gap-2 bg-[#39FF14] hover:bg-primary text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-primary/60 active:scale-95 transition cursor-pointer"
             onClick={onOpenCart}
             title="Xem giỏ hàng"
             aria-label={`Giỏ hàng, ${cartCount} sản phẩm`}

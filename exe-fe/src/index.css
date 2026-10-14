@@ -158,6 +158,11 @@ html { color-scheme: dark; }
   max-height: 100dvh;
   overflow-y: auto;
 }
+@media (max-height: 480px) {
+  .app-dialog {
+    padding: 0.5rem;
+  }
+}
 .app-dialog::backdrop { background: rgb(0 0 0 / .8); backdrop-filter: blur(4px); }
 .app-dialog > div { margin-inline: auto; }
 .app-dialog-drawer {

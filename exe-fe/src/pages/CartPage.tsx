@@ -7,6 +7,7 @@ import { send } from '../services/api';
 import { useAction } from '../hooks/useRemote';
 import { PageHeader, Card, Notice, Status, button, secondary, CopyButton } from '../components/DataUI';
 import { money } from '../utils/format';
+import Modal from '../components/Modal';
 import CartItem from '../features/cart/components/CartItem';
 import {
   CreditCard,
@@ -188,22 +189,24 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       <Notice error={action.error || cart.error} />
 
       {/* POPUP XÁC NHẬN THANH TOÁN PAYOS */}
-      {confirmOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-2xl border border-primary/40 bg-surface p-6 shadow-2xl space-y-5 relative">
+      <Modal open={!!confirmOrder} onClose={() => setConfirmOrder(null)} label="Thanh toán đơn hàng qua PayOS">
+        {confirmOrder && (
+          <div className="w-full max-w-lg rounded-2xl border border-primary/40 bg-surface p-5 sm:p-6 shadow-2xl space-y-4 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <button
+              type="button"
               onClick={() => setConfirmOrder(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg"
+              aria-label="Đóng cửa sổ"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 border border-primary/40 text-primary">
+            <div className="flex items-center gap-3 pr-10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 border border-primary/40 text-primary shrink-0">
                 <QrCode className="h-6 w-6" />
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">Thanh toán đơn hàng qua PayOS</h3>
+              <div className="min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-white">Thanh toán đơn hàng qua PayOS</h3>
                 <p className="text-xs text-slate-400">Quét mã VietQR chuyển khoản tự động 24/7</p>
               </div>
             </div>
@@ -224,22 +227,22 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 href={confirmOrder.checkoutUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 text-sm font-bold text-slate-950 hover:brightness-110 active:scale-[0.99] transition-all shadow-lg shadow-primary/20"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 text-sm font-bold text-slate-950 hover:brightness-110 active:scale-[0.99] transition-all shadow-lg shadow-primary/20 min-h-[44px]"
                 onClick={() => setConfirmOrder(null)}
               >
                 <CreditCard className="h-4 w-4" />
                 Mở cổng thanh toán VietQR
               </a>
               <button
-                className={`${secondary} py-3 px-4 text-sm`}
+                className={`${secondary} py-3 px-4 text-sm min-h-[44px] flex items-center justify-center`}
                 onClick={() => setConfirmOrder(null)}
               >
                 Để thanh toán sau
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* KẾT QUẢ TẠO ĐƠN THÀNH CÔNG */}
       {createdCheckoutOrder ? (

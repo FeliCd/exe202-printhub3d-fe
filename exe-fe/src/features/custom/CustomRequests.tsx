@@ -516,21 +516,21 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
   }, [allOrders, activeFilter]);
 
   return (
-    <div className="max-w-6xl mx-auto pb-16 px-4 space-y-8 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto pb-16 px-4 space-y-8 animate-in fade-in duration-300 min-w-0">
       {/* ========================================================================= */}
       {/* PAGE HEADER & QUICK ACTIONS                                               */}
       {/* ========================================================================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/80 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="p-2.5 rounded-2xl bg-primary/20 border border-primary/40 text-primary">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/80 pb-6 w-full min-w-0">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="p-2.5 rounded-2xl bg-primary/20 border border-primary/40 text-primary shrink-0">
               <Ruler className="w-7 h-7" />
             </span>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight break-words">
                 {admin ? tr("Quản Trị Báo Giá & Yêu Cầu In 3D") : tr("Báo Giá & Tiến Độ Yêu Cầu In 3D")}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-400 mt-1 break-words">
                 {admin
                   ? tr("Tiếp nhận tệp thiết kế CAD/STL, báo giá đơn hàng và điều phối tiến độ máy in.")
                   : tr("Theo dõi trực quan tiến độ thẩm định file 3D, báo giá từ xưởng và quy trình gia công.")}
@@ -539,7 +539,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
           <button
             onClick={() => remote.reload()}
             disabled={remote.loading}
@@ -565,37 +565,39 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       {/* ========================================================================= */}
       {/* FILTER TABS                                                               */}
       {/* ========================================================================= */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {[
-          { key: 'ALL', label: 'Tất cả', count: counts.ALL },
-          { key: 'REQUESTED', label: 'Chờ báo giá', count: counts.REQUESTED, color: 'text-amber-400' },
-          { key: 'QUOTED', label: 'Đã báo giá', count: counts.QUOTED, color: 'text-primary' },
-          { key: 'PROCESSING', label: 'Đang sản xuất', count: counts.PROCESSING, color: 'text-purple-400' },
-          { key: 'COMPLETED', label: 'Đã hoàn thành', count: counts.COMPLETED, color: 'text-primary' },
-          { key: 'CANCELLED', label: 'Đã hủy', count: counts.CANCELLED, color: 'text-rose-400' },
-        ].map(tab => {
-          const isActive = activeFilter === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveFilter(tab.key)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
-                isActive
-                  ? 'bg-primary text-slate-950 shadow-md shadow-primary/20'
-                  : 'border border-border bg-surface hover:border-slate-600 text-slate-400 hover:text-white'
-              }`}
-            >
-              <span>{tr(tab.label)}</span>
-              <span
-                className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold ${
-                  isActive ? 'bg-black/30 text-slate-950' : 'bg-surface-inset text-slate-300'
+      <div className="w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full min-w-0 max-w-full">
+          {[
+            { key: 'ALL', label: 'Tất cả', count: counts.ALL },
+            { key: 'REQUESTED', label: 'Chờ báo giá', count: counts.REQUESTED, color: 'text-amber-400' },
+            { key: 'QUOTED', label: 'Đã báo giá', count: counts.QUOTED, color: 'text-primary' },
+            { key: 'PROCESSING', label: 'Đang sản xuất', count: counts.PROCESSING, color: 'text-purple-400' },
+            { key: 'COMPLETED', label: 'Đã hoàn thành', count: counts.COMPLETED, color: 'text-primary' },
+            { key: 'CANCELLED', label: 'Đã hủy', count: counts.CANCELLED, color: 'text-rose-400' },
+          ].map(tab => {
+            const isActive = activeFilter === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveFilter(tab.key)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                  isActive
+                    ? 'bg-primary text-slate-950 shadow-md shadow-primary/20'
+                    : 'border border-border bg-surface hover:border-slate-600 text-slate-400 hover:text-white'
                 }`}
               >
-                {tab.count}
-              </span>
-            </button>
-          );
-        })}
+                <span>{tr(tab.label)}</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                    isActive ? 'bg-black/30 text-slate-950' : 'bg-surface-inset text-slate-300'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <Notice error={action.error} />
@@ -610,13 +612,13 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
       {/* Empty State */}
       {!remote.loading && filteredOrders.length === 0 && (
-        <div className="p-12 text-center rounded-3xl border border-border bg-surface space-y-4 max-w-lg mx-auto">
+        <div className="p-8 sm:p-12 text-center rounded-3xl border border-border bg-surface space-y-4 max-w-lg mx-auto w-full min-w-0">
           <div className="w-16 h-16 rounded-3xl bg-surface-inset border border-border flex items-center justify-center text-slate-500 mx-auto">
             <Ruler className="w-8 h-8 opacity-40" />
           </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white">{tr("Chưa có yêu cầu nào trong mục này")}</h3>
-            <p className="text-xs text-slate-400">
+          <div className="space-y-1 min-w-0">
+            <h3 className="text-lg font-bold text-white break-words">{tr("Chưa có yêu cầu nào trong mục này")}</h3>
+            <p className="text-xs text-slate-400 break-words">
               {activeFilter === 'ALL'
                 ? tr("Bạn chưa gửi yêu cầu gia công thước in 3D nào. Hãy bắt đầu tạo thước ngay!")
                 : tr("Không có đơn in 3D nào khớp với bộ lọc đã chọn.")}

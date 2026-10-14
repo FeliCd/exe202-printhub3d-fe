@@ -177,14 +177,14 @@ export default function ChangePasswordModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="w-full max-w-lg rounded-2xl bg-[#0f0f12] border border-border/90 shadow-2xl overflow-hidden space-y-0"
+        className="w-full max-w-lg rounded-2xl bg-[#0f0f12] border border-border/90 shadow-2xl overflow-hidden space-y-0 max-h-[calc(100dvh-2rem)] flex flex-col"
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="p-5 border-b border-border flex items-center justify-between bg-surface">
+        <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between bg-surface shrink-0">
           <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-[#39FF14]">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-[#39FF14] shrink-0">
               <KeyRound className="w-4 h-4" />
             </div>
             <div>
@@ -195,14 +195,15 @@ export default function ChangePasswordModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition cursor-pointer"
+            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition cursor-pointer"
+            aria-label="Đóng cửa sổ"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
           {/* Thông báo thành công */}
           {successMsg && (
             <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs font-bold flex items-center gap-2">

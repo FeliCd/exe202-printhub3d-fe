@@ -100,17 +100,17 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
             )}
           </div>
 
-          <div className="flex items-center border border-border rounded bg-surface-raised">
+          <div className="flex items-center border border-border rounded-xl bg-surface-raised overflow-hidden">
             <button
-              className="px-2 py-0.5 text-slate-400 hover:text-white"
+              className="w-9 h-9 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-surface-inset transition active:scale-95 cursor-pointer"
               aria-label={`Giảm số lượng ${item.product.name}`}
               onClick={() => onUpdateQuantity(lineId, -1)}
             >
               -
             </button>
-            <span className="px-2 text-xs font-semibold">{item.quantity}</span>
+            <span className="min-w-[2.25rem] px-2 text-center text-xs font-mono font-bold text-white select-none">{item.quantity}</span>
             <button
-              className="px-2 py-0.5 text-slate-400 hover:text-white"
+              className="w-9 h-9 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-surface-inset transition active:scale-95 cursor-pointer"
               aria-label={`Tăng số lượng ${item.product.name}`}
               onClick={() => onUpdateQuantity(lineId, 1)}
             >

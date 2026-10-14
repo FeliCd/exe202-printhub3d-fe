@@ -61,17 +61,17 @@ export default function AdminDashboardPage() {
   const recentJobs = data?.recentJobs ?? [];
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-6 pb-8 w-full min-w-0">
       {/* 1. Header with Cyber-Industrial styling */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
-            <p className="text-xs sm:text-sm font-semibold text-slate-400">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)] shrink-0" />
+            <p className="text-xs sm:text-sm font-semibold text-slate-400 break-words">
               Hệ thống điều hành sản xuất &amp; Đơn hàng PrintHub 3D
             </p>
           </div>
-          <h1 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight break-words">
             Tổng quan vận hành <span className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]">PrintHub 3D</span>
           </h1>
         </div>
@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
         <button
           onClick={fetchDashboard}
           disabled={loading}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border hover:border-[#39FF14]/50 text-slate-200 hover:text-white text-xs font-semibold transition active:scale-95 shadow-sm self-start sm:self-auto cursor-pointer"
+          className="flex items-center gap-2 px-3.5 py-2 min-h-[40px] rounded-xl bg-surface border border-border hover:border-[#39FF14]/50 text-slate-200 hover:text-white text-xs font-semibold transition active:scale-95 shadow-sm self-start sm:self-auto cursor-pointer shrink-0"
         >
           <RotateCcw className={`w-3.5 h-3.5 text-[#39FF14] ${loading ? 'animate-spin' : ''}`} />
           <span>
@@ -91,10 +91,10 @@ export default function AdminDashboardPage() {
       {/* 2. Unified Bento StatStrip (4 KPI metrics with #39FF14 accents) */}
       <section
         aria-label="Chỉ số chính"
-        className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-lg lg:grid-cols-4 [&>*]:border-border max-lg:[&>*:nth-child(-n+2)]:border-b max-lg:[&>*:nth-child(odd)]:border-r lg:[&>*:not(:first-child)]:border-l"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-2xl border border-border bg-surface shadow-lg divide-y divide-border sm:divide-y-0 sm:[&>*:nth-child(odd)]:border-r max-lg:sm:[&>*:nth-child(-n+2)]:border-b lg:[&>*:not(:first-child)]:border-l [&>*]:border-border w-full min-w-0"
       >
         {/* Metric 1: Doanh thu thực tế */}
-        <div className="p-5 sm:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Doanh thu thực tế
@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
               <TrendingUp className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white">
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
             {formatPrice(totalRev)}đ
           </p>
           <p className="mt-2.5 text-xs text-slate-400 truncate">
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Metric 2: Đang in & Chuẩn bị */}
-        <div className="p-5 sm:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Đang gia công in
@@ -123,7 +123,7 @@ export default function AdminDashboardPage() {
               Live
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white">
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
             {activeOrdersCount} <span className="text-base font-normal text-slate-400">đơn</span>
           </p>
           <p className="mt-2.5 text-xs text-slate-400 truncate">
@@ -136,32 +136,32 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Metric 3: Đã giao / Tổng đơn */}
-        <div className="p-5 sm:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Đã giao / Tổng đơn
             </p>
             <span className="text-xs font-mono font-bold text-[#39FF14]">{deliveryPct}%</span>
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white">
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
             {completedOrders}{' '}
             <span className="text-base font-normal text-slate-400">/ {totalOrders}</span>
           </p>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-inset border border-border">
+          <div className="mt-3 flex items-center gap-2 min-w-0">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-inset border border-border min-w-0">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-[#39FF14] shadow-[0_0_8px_rgba(57,255,20,0.5)] transition-all duration-500"
                 style={{ width: `${Math.max(deliveryPct, totalOrders > 0 ? 5 : 0)}%` }}
               />
             </div>
             <span className="text-[11px] font-semibold text-amber-400 shrink-0">
-              +{customCount} custom mới
+              +{customCount} custom
             </span>
           </div>
         </div>
 
         {/* Metric 4: Tranh chấp & Người dùng */}
-        <div className="p-5 sm:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Tranh chấp cần duyệt
@@ -176,19 +176,19 @@ export default function AdminDashboardPage() {
               </span>
             )}
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white">
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
             {disputesCount} <span className="text-base font-normal text-slate-400">vụ khiếu nại</span>
           </p>
           <p className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-400 truncate">
             {disputesCount === 0 ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#39FF14] shrink-0" />
-                <span>Không tồn khiếu nại chưa xử lý • {usersCount} tài khoản</span>
+                <span className="truncate">Không tồn khiếu nại • {usersCount} users</span>
               </>
             ) : (
               <>
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>{disputesCount} khiếu nại đang chờ can thiệp</span>
+                <span className="truncate">{disputesCount} khiếu nại chờ can thiệp</span>
               </>
             )}
           </p>

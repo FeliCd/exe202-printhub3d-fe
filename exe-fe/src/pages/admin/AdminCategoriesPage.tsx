@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Tag, Plus, Edit2, Trash2, RotateCcw, X, Layers } from 'lucide-react';
 import { get, send } from '../../services/api';
 import { PageHeader } from '../../components/DataUI';
+import Modal from '../../components/Modal';
 
 interface Category {
   categoryId: number;
@@ -191,67 +192,67 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Modal Thêm / Chỉnh Sửa Danh Mục */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-surface border border-border rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Tag className="w-4 h-4 text-purple-400" />
-                {editingId ? 'Chỉnh Sửa Danh Mục' : 'Thêm Danh Mục Mới'}
-              </h3>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} label={editingId ? 'Chỉnh Sửa Danh Mục' : 'Thêm Danh Mục Mới'}>
+        <div className="w-full max-w-md bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <div className="flex items-center justify-between border-b border-border pb-3 shrink-0">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Tag className="w-4 h-4 text-purple-400" />
+              {editingId ? 'Chỉnh Sửa Danh Mục' : 'Thêm Danh Mục Mới'}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition"
+              aria-label="Đóng cửa sổ"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Tên danh mục *</label>
+              <input
+                required
+                maxLength={100}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="VD: Thước Đo Kỹ Thuật, Mô Hình 3D..."
+                className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs"
+              />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-300">Tên danh mục *</label>
-                <input
-                  required
-                  maxLength={100}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="VD: Thước Đo Kỹ Thuật, Mô Hình 3D..."
-                  className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 text-xs"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Mô tả danh mục</label>
+              <textarea
+                rows={3}
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Mô tả công dụng hoặc đặc điểm của danh mục..."
+                className="w-full bg-surface-inset border border-border rounded-xl p-3 text-white outline-none focus:border-purple-400 text-xs resize-none"
+              />
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-300">Mô tả danh mục</label>
-                <textarea
-                  rows={3}
-                  value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
-                  placeholder="Mô tả công dụng hoặc đặc điểm của danh mục..."
-                  className="w-full bg-surface-inset border border-border rounded-xl p-3 text-white outline-none focus:border-purple-400 text-xs resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface-inset border border-border text-slate-300 hover:text-white text-xs font-bold transition"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-md shadow-purple-900/30 flex items-center gap-1.5"
-                >
-                  {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{editingId ? 'Cập Nhật' : 'Tạo Danh Mục'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border shrink-0">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2.5 min-h-[38px] rounded-xl bg-surface-inset border border-border text-slate-300 hover:text-white text-xs font-bold transition flex items-center justify-center"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-4 py-2.5 min-h-[38px] rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-md shadow-purple-900/30 flex items-center gap-1.5 justify-center"
+              >
+                {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin" />}
+                <span>{editingId ? 'Cập Nhật' : 'Tạo Danh Mục'}</span>
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

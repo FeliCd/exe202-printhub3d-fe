@@ -3,6 +3,7 @@ import { Sparkles, Gift, Plus, Edit2, Ban, X, Check } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import { PageHeader, RemoteState, Notice, button, secondary, field } from '../../components/DataUI';
+import Modal from '../../components/Modal';
 
 interface Plan {
   id: string;
@@ -189,71 +190,71 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       )}
 
       {/* Modal Thêm / Chỉnh Sửa Gói */}
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-surface border border-border rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-400" />
-                {editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}
-              </h3>
-              <button
-                onClick={() => setOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      <Modal open={open} onClose={() => setOpen(false)} label={editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}>
+        <div className="w-full max-w-md bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <div className="flex items-center justify-between border-b border-border pb-3 shrink-0">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              {editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition"
+              aria-label="Đóng cửa sổ"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSavePlan} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Tên gói hội viên *</label>
+              <input
+                className={field}
+                required
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="VD: Gói Khách Hàng VIP Gold, Gói Hội Viên Pro..."
+              />
             </div>
 
-            <form onSubmit={handleSavePlan} className="space-y-4 text-xs">
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-300">Tên gói hội viên *</label>
-                <input
-                  className={field}
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="VD: Gói Khách Hàng VIP Gold, Gói Hội Viên Pro..."
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Quyền lợi &amp; Ưu đãi *</label>
+              <textarea
+                className={field}
+                required
+                rows={3}
+                value={form.benefits}
+                onChange={(e) => setForm({ ...form, benefits: e.target.value })}
+                placeholder="Giảm 15% cho mọi đơn in thước, miễn phí giao hàng KTX, ưu tiên máy in..."
+              />
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-300">Quyền lợi &amp; Ưu đãi *</label>
-                <textarea
-                  className={field}
-                  required
-                  rows={3}
-                  value={form.benefits}
-                  onChange={(e) => setForm({ ...form, benefits: e.target.value })}
-                  placeholder="Giảm 15% cho mọi đơn in thước, miễn phí giao hàng KTX, ưu tiên máy in..."
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Số điểm thưởng để đổi gói (Points) *</label>
+              <input
+                className={field}
+                required
+                type="number"
+                min={1}
+                value={form.requiredPoints}
+                onChange={(e) => setForm({ ...form, requiredPoints: e.target.value })}
+                placeholder="VD: 100"
+              />
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-300">Số điểm thưởng để đổi gói (Points) *</label>
-                <input
-                  className={field}
-                  required
-                  type="number"
-                  min={1}
-                  value={form.requiredPoints}
-                  onChange={(e) => setForm({ ...form, requiredPoints: e.target.value })}
-                  placeholder="VD: 100"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-                <button type="button" className={secondary} onClick={() => setOpen(false)}>
-                  Hủy bỏ
-                </button>
-                <button className={button} disabled={action.busy}>
-                  {action.busy ? 'Đang lưu...' : 'Lưu Gói'}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border shrink-0">
+              <button type="button" className={`${secondary} min-h-[38px] px-4 py-2 flex items-center justify-center`} onClick={() => setOpen(false)}>
+                Hủy bỏ
+              </button>
+              <button className={`${button} min-h-[38px] px-4 py-2 flex items-center justify-center`} disabled={action.busy}>
+                {action.busy ? 'Đang lưu...' : 'Lưu Gói'}
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </Modal>
 
       {/* Danh sách các gói Subscriptions */}
       <RemoteState {...remote} empty={!remote.data?.length} retry={remote.reload} />

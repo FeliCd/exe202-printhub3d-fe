@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { send, errorText } from '../services/api';
 import { payOrder } from '../services/paymentService';
 import { formatPrice } from '../utils/format';
+import Modal from '../components/Modal';
 import type { ShippingAddress } from '../features/address/data';
 import {
   MapPin,
@@ -866,71 +867,71 @@ export default function CustomOrderCheckoutPage({
       {/* ========================================================================= */}
       {/* POPUP XÁC NHẬN THANH TOÁN TRƯỚC 100% QUA PAYOS */}
       {/* ========================================================================= */}
-      {showPayOSConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-3xl border border-primary/50 bg-[#12141a] p-6 sm:p-7 shadow-2xl space-y-5 relative">
-            <button
-              onClick={() => setShowPayOSConfirmModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      <Modal open={showPayOSConfirmModal} onClose={() => setShowPayOSConfirmModal(false)} label="Xác nhận thanh toán đơn in 3D">
+        <div className="w-full max-w-lg rounded-3xl border border-primary/50 bg-[#12141a] p-5 sm:p-7 shadow-2xl space-y-4 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <button
+            type="button"
+            onClick={() => setShowPayOSConfirmModal(false)}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg transition"
+            aria-label="Đóng cửa sổ"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
-                <QrCode className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-white">Xác nhận thanh toán đơn in 3D</h3>
-                <p className="text-xs text-slate-400">Cổng thanh toán tự động VietQR PayOS</p>
-              </div>
+          <div className="flex items-center gap-3 pr-10">
+            <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shrink-0">
+              <QrCode className="w-6 h-6" />
             </div>
-
-            <div className="rounded-2xl border border-border/80 bg-surface-inset p-4 space-y-2.5 text-xs">
-              <div className="flex justify-between items-center pb-2 border-b border-border/40">
-                <span className="text-slate-400">Mẫu thước:</span>
-                <span className="font-bold text-white">{orderConfig.selectedModel.name}</span>
-              </div>
-              <div className="flex justify-between items-center pb-2 border-b border-border/40">
-                <span className="text-slate-400">Số lượng:</span>
-                <span className="font-mono text-white">{quantity} cây</span>
-              </div>
-              <div className="flex justify-between items-center pt-1 text-sm">
-                <span className="text-slate-300 font-medium">Số tiền thanh toán:</span>
-                <span className="text-2xl font-black text-primary font-mono">
-                  {formatPrice(totalAmount)}đ
-                </span>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3.5 text-xs text-amber-300 leading-relaxed flex items-start gap-2.5">
-              <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-              <span>
-                Bạn có xác nhận muốn <strong>thanh toán trước 100% số tiền ({formatPrice(totalAmount)}đ)</strong> để xưởng <strong>PrintHub 3D</strong> tiếp nhận tệp thiết kế và bắt đầu quy trình in 3D ngay không?
-              </span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleFinalSubmit}
-                className="flex-1 py-3 px-4 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-primary/20"
-              >
-                <CreditCard className="w-4 h-4" />
-                {isSubmitting ? 'Đang mở cổng PayOS...' : 'Xác nhận & Mở cổng PayOS'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowPayOSConfirmModal(false)}
-                className="py-3 px-4 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white transition text-sm"
-              >
-                Để thanh toán sau
-              </button>
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-black text-white">Xác nhận thanh toán đơn in 3D</h3>
+              <p className="text-xs text-slate-400">Cổng thanh toán tự động VietQR PayOS</p>
             </div>
           </div>
+
+          <div className="rounded-2xl border border-border/80 bg-surface-inset p-4 space-y-2.5 text-xs">
+            <div className="flex justify-between items-center pb-2 border-b border-border/40">
+              <span className="text-slate-400">Mẫu thước:</span>
+              <span className="font-bold text-white">{orderConfig.selectedModel.name}</span>
+            </div>
+            <div className="flex justify-between items-center pb-2 border-b border-border/40">
+              <span className="text-slate-400">Số lượng:</span>
+              <span className="font-mono text-white">{quantity} cây</span>
+            </div>
+            <div className="flex justify-between items-center pt-1 text-sm">
+              <span className="text-slate-300 font-medium">Số tiền thanh toán:</span>
+              <span className="text-2xl font-black text-primary font-mono">
+                {formatPrice(totalAmount)}đ
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3.5 text-xs text-amber-300 leading-relaxed flex items-start gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <span>
+              Bạn có xác nhận muốn <strong>thanh toán trước 100% số tiền ({formatPrice(totalAmount)}đ)</strong> để xưởng <strong>PrintHub 3D</strong> tiếp nhận tệp thiết kế và bắt đầu quy trình in 3D ngay không?
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleFinalSubmit}
+              className="flex-1 py-3 px-4 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-primary/20 min-h-[44px]"
+            >
+              <CreditCard className="w-4 h-4" />
+              {isSubmitting ? 'Đang mở cổng PayOS...' : 'Xác nhận & Mở cổng PayOS'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowPayOSConfirmModal(false)}
+              className="py-3 px-4 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white transition text-sm min-h-[44px] flex items-center justify-center"
+            >
+              Để thanh toán sau
+            </button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }
