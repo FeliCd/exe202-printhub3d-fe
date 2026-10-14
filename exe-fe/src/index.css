@@ -257,3 +257,31 @@ html { color-scheme: dark; }
   }
 }
 
+/* 3D Printer Simulation Keyframes */
+@keyframes printerHeadMove {
+  0% {
+    transform: translate(-50px, 0);
+  }
+  20% {
+    transform: translate(15px, 0);
+  }
+  45% {
+    transform: translate(55px, 0);
+  }
+  70% {
+    transform: translate(-20px, 0);
+  }
+  100% {
+    transform: translate(-50px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
