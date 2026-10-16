@@ -15,7 +15,7 @@ import {
   PerspectiveCamera,
 } from "three";
 import type { OrbitControls as Controls } from "three-stdlib";
-import { STLExporter } from "three-stdlib";
+import { GLTFExporter, STLExporter } from "three-stdlib";
 import { type Design, type Surface } from "./model";
 import { paintSurface, surfaceSize } from "./surface";
 import { getRuler } from "./library/registry";
@@ -25,6 +25,7 @@ import type { LiveArtwork } from "./liveArtwork";
 
 export interface SceneHandle {
   getSTLBlob: () => Blob | null;
+  getGLBBlob: () => Promise<Blob | null>;
   getScreenshotBlob: () => Promise<Blob | null>;
 }
 
@@ -120,7 +121,7 @@ function Artwork({
   y: number;
   rotation?: number;
   z?: number;
-  live: LiveArtwork;
+  live?: LiveArtwork;
 }) {
   const texture = useMemo(() => {
     const c = document.createElement("canvas");
@@ -134,8 +135,9 @@ function Artwork({
   useEffect(() => () => texture.dispose(), [texture]);
   const { invalidate } = useThree();
   useEffect(
-    () =>
-      live.subscribe((update) => {
+    () => {
+      if (!live) return;
+      return live.subscribe((update) => {
         if (update && update.surface !== surface) return;
         paintSurface(
           texture.image as HTMLCanvasElement,
@@ -144,7 +146,8 @@ function Artwork({
         );
         texture.needsUpdate = true;
         invalidate();
-      }),
+      });
+    },
     [design, surface, texture, live, invalidate],
   );
   const [w, h] = surfaceSize(design, surface);
@@ -290,14 +293,14 @@ function Rig({
     />
   );
 }
-function Model({
+export function Model({
   design,
   modelRef,
   live,
 }: {
   design: Design;
-  modelRef: React.RefObject<Group | null>;
-  live: LiveArtwork;
+  modelRef?: React.RefObject<Group | null>;
+  live?: LiveArtwork;
 }) {
   const [tw, th] = surfaceSize(design, "tag");
   const r = getRuler(design.rulerId);
@@ -452,6 +455,38 @@ const Scene = forwardRef<
           setError("Lỗi khi tạo mô hình STL.");
           return null;
         }
+      },
+      getGLBBlob: () => {
+        return new Promise<Blob | null>((resolve) => {
+          try {
+            if (!model.current) {
+              resolve(null);
+              return;
+            }
+            const copy = model.current.clone(true);
+            copy.updateMatrixWorld(true);
+            const exporter = new GLTFExporter();
+            exporter.parse(
+              copy,
+              (gltf) => {
+                const blob = new Blob([gltf as ArrayBuffer], {
+                  type: "model/gltf-binary",
+                });
+                resolve(blob);
+              },
+              (err) => {
+                console.error("GLTF export error", err);
+                setError("Lỗi khi tạo mô hình 3D GLB.");
+                resolve(null);
+              },
+              { binary: true },
+            );
+          } catch (e) {
+            console.error("GLB generation error", e);
+            setError("Lỗi khi tạo mô hình 3D GLB.");
+            resolve(null);
+          }
+        });
       },
       getScreenshotBlob: () => {
         return new Promise<Blob | null>((resolve) => {

@@ -16,6 +16,7 @@ import {
 import { useDesign } from "./useDesign";
 import Scene, { type SceneHandle } from "./Scene";
 import { downloadBlob, exportDesignPackage, type ExportResult } from "./download";
+import { Modal3DViewer } from "./Modal3DViewer";
 import SurfaceEditor from "./SurfaceEditor";
 import Panels from "./Panels";
 import "./studio.css";
@@ -59,6 +60,7 @@ export default function RulerStudio({
   } = useDesign(initialDesign);
   const sceneRef = useRef<SceneHandle>(null);
   const [exportModal, setExportModal] = useState<ExportResult | null>(null);
+  const [modalPreviewMode, setModalPreviewMode] = useState<"3d" | "2d">("3d");
   const [isExporting, setIsExporting] = useState(false);
   const [tab, setTab] = useState<Tab>("Ruler"),
     [surface, setSurface] = useState<Surface>("ruler"),
@@ -172,17 +174,19 @@ export default function RulerStudio({
 
   const handleExportDesign = async () => {
     setIsExporting(true);
-    setMessage(tr("Đang chuẩn bị gói thiết kế (Mô hình 3D .STL, Ảnh render .PNG, Dữ liệu gốc .JSON)..."));
+    setMessage(tr("Đang chuẩn bị gói thiết kế (Mô hình 3D .GLB, File in .STL, Ảnh render .PNG, Dữ liệu .JSON)..."));
     try {
       if (tab === "Draw" && mobileWorkspace === "edit") {
         setMobileWorkspace("view");
         await new Promise((r) => setTimeout(r, 120));
       }
       const stlBlob = sceneRef.current?.getSTLBlob();
+      const glbBlob = await sceneRef.current?.getGLBBlob();
       const imageBlob = await sceneRef.current?.getScreenshotBlob();
 
       const result = await exportDesignPackage({
         stlBlob,
+        glbBlob,
         imageBlob,
         design,
         name: design.name || (language === 'vi' ? ruler.vietnameseName : ruler.name),
@@ -193,6 +197,7 @@ export default function RulerStudio({
       downloadBlob(result.zipBlob, result.zipFileName);
 
       // Mở modal hiển thị ảnh và cho phép tải riêng lẻ trên điện thoại
+      setModalPreviewMode("3d");
       setExportModal(result);
       setMessage(tr("Đã xuất trọn bộ thiết kế thành công!"));
     } catch (e) {
@@ -534,23 +539,50 @@ export default function RulerStudio({
                 ? "Gói thiết kế trọn bộ (.ZIP) đã được tải xuống máy của bạn."
                 : "Full design package (.ZIP) has been downloaded to your device."}
             </p>
-            {exportModal.imageUrl && (
-              <div className="export-preview-container">
-                <img src={exportModal.imageUrl} alt="3D Render" className="export-preview-img" />
-                <span className="export-preview-hint">
-                  {language === "vi"
-                    ? "💡 Chạm giữ ảnh trên điện thoại để 'Lưu vào Thư viện ảnh'"
-                    : "💡 Long-press the image to save directly to your photos"}
-                </span>
-              </div>
-            )}
-            <div className="export-actions-grid">
-              {exportModal.imageBlob && (
+            {/* Tab Switch: 3D Interactive vs 2D Render Image */}
+            <div className="modal-preview-tabs">
+              <button
+                type="button"
+                className={`tab-btn ${modalPreviewMode === "3d" ? "active" : ""}`}
+                onClick={() => setModalPreviewMode("3d")}
+              >
+                👁️ {language === "vi" ? "Xoay 3D Trực Tiếp (360°)" : "Interactive 3D View"}
+              </button>
+              {exportModal.imageUrl && (
                 <button
-                  className="action-btn btn-image"
-                  onClick={() => downloadBlob(exportModal.imageBlob!, exportModal.imageFileName)}
+                  type="button"
+                  className={`tab-btn ${modalPreviewMode === "2d" ? "active" : ""}`}
+                  onClick={() => setModalPreviewMode("2d")}
                 >
-                  🖼️ {language === "vi" ? "Tải ảnh riêng (.PNG)" : "Download PNG"}
+                  🖼️ {language === "vi" ? "Xem Ảnh 2D" : "2D Snapshot"}
+                </button>
+              )}
+            </div>
+
+            {/* Interactive 3D Viewer or 2D Static Image */}
+            {modalPreviewMode === "3d" ? (
+              <Modal3DViewer design={design} />
+            ) : (
+              exportModal.imageUrl && (
+                <div className="export-preview-container">
+                  <img src={exportModal.imageUrl} alt="3D Render" className="export-preview-img" />
+                  <span className="export-preview-hint">
+                    {language === "vi"
+                      ? "💡 Chạm giữ ảnh trên điện thoại để 'Lưu vào Thư viện ảnh'"
+                      : "💡 Long-press the image to save directly to your photos"}
+                  </span>
+                </div>
+              )
+            )}
+
+            <div className="export-actions-grid">
+              {exportModal.glbBlob && (
+                <button
+                  className="action-btn btn-glb"
+                  onClick={() => downloadBlob(exportModal.glbBlob!, exportModal.glbFileName)}
+                >
+                  <span className="btn-main">🌐 {language === "vi" ? "Tải mô hình 3D (.GLB)" : "Download 3D (.GLB)"}</span>
+                  <span className="btn-sub">{language === "vi" ? "Xem màu & vạch đo xoay 360°" : "Full colors, marks & 360° view"}</span>
                 </button>
               )}
               {exportModal.stlBlob && (
@@ -558,14 +590,25 @@ export default function RulerStudio({
                   className="action-btn btn-stl"
                   onClick={() => downloadBlob(exportModal.stlBlob!, exportModal.stlFileName)}
                 >
-                  🧊 {language === "vi" ? "Tải mô hình in (.STL)" : "Download 3D STL"}
+                  <span className="btn-main">🧊 {language === "vi" ? "Tải file in xưởng (.STL)" : "Download Print File (.STL)"}</span>
+                  <span className="btn-sub">{language === "vi" ? "Dành cho máy in 3D cắt lớp (Slicer)" : "For 3D printer slicing software"}</span>
+                </button>
+              )}
+              {exportModal.imageBlob && (
+                <button
+                  className="action-btn btn-image"
+                  onClick={() => downloadBlob(exportModal.imageBlob!, exportModal.imageFileName)}
+                >
+                  <span className="btn-main">🖼️ {language === "vi" ? "Tải ảnh phối cảnh (.PNG)" : "Download Image (.PNG)"}</span>
+                  <span className="btn-sub">{language === "vi" ? "Ảnh render độ nét cao" : "High-resolution 2D render"}</span>
                 </button>
               )}
               <button
                 className="action-btn btn-zip"
                 onClick={() => downloadBlob(exportModal.zipBlob, exportModal.zipFileName)}
               >
-                📦 {language === "vi" ? "Tải lại tệp (.ZIP)" : "Re-download ZIP"}
+                <span className="btn-main">📦 {language === "vi" ? "Tải trọn bộ tệp (.ZIP)" : "Full Package (.ZIP)"}</span>
+                <span className="btn-sub">{language === "vi" ? "Đầy đủ .GLB, .STL, .PNG, .JSON" : "Includes .GLB, .STL, .PNG, .JSON"}</span>
               </button>
               {typeof navigator !== "undefined" && !!navigator.canShare && exportModal.imageBlob && (
                 <button
@@ -585,7 +628,8 @@ export default function RulerStudio({
                     }
                   }}
                 >
-                  📤 {language === "vi" ? "Chia sẻ ảnh" : "Share Image"}
+                  <span className="btn-main">📤 {language === "vi" ? "Chia sẻ ảnh" : "Share Image"}</span>
+                  <span className="btn-sub">{language === "vi" ? "Gửi qua Zalo, Messenger,..." : "Share via social apps"}</span>
                 </button>
               )}
             </div>

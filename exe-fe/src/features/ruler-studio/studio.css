@@ -908,7 +908,7 @@
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
-  max-width: 500px;
+  max-width: 540px;
   width: 100%;
   max-height: 90dvh;
   overflow-y: auto;
@@ -954,6 +954,114 @@
   line-height: 1.4;
 }
 
+/* Modal Preview Tabs */
+.modal-preview-tabs {
+  display: flex;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 12px;
+}
+
+.modal-preview-tabs .tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.modal-preview-tabs .tab-btn.active {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-preview-tabs .tab-btn:hover:not(.active) {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Modal 3D Viewer Wrapper */
+.modal-3d-wrapper {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-3d-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 270px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #1e293b, #090d16);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.5);
+}
+
+.modal-3d-toolbar {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 10;
+  max-width: 95%;
+  overflow-x: auto;
+}
+
+.btn-snap-view {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-snap-view:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.btn-snap-view.active {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.modal-3d-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+  margin: 0;
+}
+
 .export-preview-container {
   background: radial-gradient(circle at center, #1e293b, #090d16);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -993,17 +1101,44 @@
 }
 
 .export-actions-grid .action-btn {
-  padding: 12px 14px;
+  padding: 10px 14px;
   border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
-  gap: 8px;
+  gap: 3px;
   transition: all 0.15s ease;
   border: 1px solid transparent;
+  text-align: left;
+}
+
+.export-actions-grid .action-btn .btn-main {
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.export-actions-grid .action-btn .btn-sub {
+  font-size: 0.69rem;
+  opacity: 0.85;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.export-actions-grid .btn-glb {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+.export-actions-grid .btn-glb:hover {
+  background: linear-gradient(135deg, #6d28d9, #4338ca);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.5);
 }
 
 .export-actions-grid .btn-image {
