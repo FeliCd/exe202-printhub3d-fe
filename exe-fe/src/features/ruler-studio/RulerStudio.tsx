@@ -15,7 +15,9 @@ import {
 } from "./model";
 import { useDesign } from "./useDesign";
 import Scene, { type SceneHandle } from "./Scene";
-import { downloadBlob, exportDesignPackage, type ExportResult } from "./download";
+import { downloadBlob } from "./download";
+import { buildSTLFromDesign, buildFullPackage, sanitizeFileName } from "./export/buildExport";
+import { validateDesignForPrint } from "./geometry/printValidation";
 import { Modal3DViewer } from "./Modal3DViewer";
 import SurfaceEditor from "./SurfaceEditor";
 import Panels from "./Panels";
@@ -29,8 +31,6 @@ export default function RulerStudio({
   initialDesign,
   headerControls,
   editingCartItemId,
-  editingRevision: _editingRevision,
-  editingQuantity: _editingQuantity,
   onSaveCartItem,
   onConvertToQuotation,
 }: {
@@ -59,9 +59,12 @@ export default function RulerStudio({
     canRedo,
   } = useDesign(initialDesign);
   const sceneRef = useRef<SceneHandle>(null);
-  const [exportModal, setExportModal] = useState<ExportResult | null>(null);
   const [modalPreviewMode, setModalPreviewMode] = useState<"3d" | "2d">("3d");
   const [isExporting, setIsExporting] = useState(false);
+  const [previewMode, setPreviewMode] = useState<"color" | "print">("color");
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportLoadingMsg, setExportLoadingMsg] = useState("");
+  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("Ruler"),
     [surface, setSurface] = useState<Surface>("ruler"),
     [selected, select] = useState(""),
@@ -172,39 +175,106 @@ export default function RulerStudio({
     }
   };
 
-  const handleExportDesign = async () => {
-    setIsExporting(true);
-    setMessage(tr("Đang chuẩn bị gói thiết kế (Mô hình 3D .GLB, File in .STL, Ảnh render .PNG, Dữ liệu .JSON)..."));
+  const printValidation = useMemo(() => validateDesignForPrint(design), [design]);
+  const safeName = useMemo(
+    () => sanitizeFileName(design.name || (language === 'vi' ? ruler.vietnameseName : ruler.name)),
+    [design.name, ruler, language]
+  );
+
+  const handleOpenExportDialog = async () => {
     try {
       if (tab === "Draw" && mobileWorkspace === "edit") {
         setMobileWorkspace("view");
         await new Promise((r) => setTimeout(r, 120));
       }
-      const stlBlob = sceneRef.current?.getSTLBlob();
-      const glbBlob = await sceneRef.current?.getGLBBlob();
-      const imageBlob = await sceneRef.current?.getScreenshotBlob();
+      const screenshot = await sceneRef.current?.getScreenshotBlob();
+      if (screenshot) {
+        setPreviewScreenshotUrl(URL.createObjectURL(screenshot));
+      }
+    } catch {
+      // ignore
+    }
+    setModalPreviewMode("3d");
+    setExportDialogOpen(true);
+  };
 
-      const result = await exportDesignPackage({
-        stlBlob,
-        glbBlob,
-        imageBlob,
-        design,
-        name: design.name || (language === 'vi' ? ruler.vietnameseName : ruler.name),
-        length: design.length,
-      });
-
-      // Tự động tải xuống file ZIP trọn bộ
-      downloadBlob(result.zipBlob, result.zipFileName);
-
-      // Mở modal hiển thị ảnh và cho phép tải riêng lẻ trên điện thoại
-      setModalPreviewMode("3d");
-      setExportModal(result);
-      setMessage(tr("Đã xuất trọn bộ thiết kế thành công!"));
+  const handleDownloadPNG = async () => {
+    try {
+      setIsExporting(true);
+      setExportLoadingMsg(language === 'vi' ? "Đang xuất ảnh PNG sắc nét..." : "Exporting PNG...");
+      const screenshot = await sceneRef.current?.getScreenshotBlob();
+      if (screenshot) {
+        downloadBlob(screenshot, `${safeName}-render.png`);
+        setMessage(language === 'vi' ? "Đã tải ảnh render PNG thành công!" : "PNG downloaded successfully!");
+      }
     } catch (e) {
-      console.error("Export design error", e);
-      setMessage(tr("Xuất thiết kế thất bại. Vui lòng thử lại."));
+      console.error(e);
+      setMessage(language === 'vi' ? "Lỗi tải ảnh PNG." : "PNG download failed.");
     } finally {
       setIsExporting(false);
+      setExportLoadingMsg("");
+    }
+  };
+
+  const handleDownloadGLB = async () => {
+    try {
+      setIsExporting(true);
+      setExportLoadingMsg(language === 'vi' ? "Đang xuất mô hình màu GLB 360°..." : "Exporting GLB model...");
+      const glb = await sceneRef.current?.getGLBBlob();
+      if (glb) {
+        downloadBlob(glb, `${safeName}-${design.length}cm-3D-View360.glb`);
+        setMessage(language === 'vi' ? "Đã tải mô hình GLB 3D thành công!" : "GLB model downloaded successfully!");
+      }
+    } catch (e) {
+      console.error(e);
+      setMessage(language === 'vi' ? "Lỗi tải mô hình GLB." : "GLB download failed.");
+    } finally {
+      setIsExporting(false);
+      setExportLoadingMsg("");
+    }
+  };
+
+  const handleDownloadJSON = () => {
+    const blob = new Blob([JSON.stringify(design, null, 2)], { type: "application/json" });
+    downloadBlob(blob, `${safeName}-Thiet-Ke.json`);
+    setMessage(language === 'vi' ? "Đã tải dữ liệu thiết kế JSON!" : "Design JSON downloaded!");
+  };
+
+  const handleDownloadSTL = async () => {
+    try {
+      setIsExporting(true);
+      setExportLoadingMsg(language === 'vi' ? "Đang dựng hình khối in 3D (CSG Boolean)..." : "Generating physical 3D printable solid...");
+      const res = await buildSTLFromDesign(design);
+      downloadBlob(res.blob, res.fileName);
+      setMessage(language === 'vi' ? "Đã tải file in STL chuẩn xưởng!" : "Factory STL downloaded successfully!");
+    } catch (err: unknown) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setMessage(msg || (language === 'vi' ? "Lỗi xuất file in STL." : "STL export error."));
+    } finally {
+      setIsExporting(false);
+      setExportLoadingMsg("");
+    }
+  };
+
+  const handleDownloadZip = async () => {
+    try {
+      setIsExporting(true);
+      setExportLoadingMsg(language === 'vi' ? "Đang đóng gói trọn bộ ZIP & manifest..." : "Building full package ZIP & manifest...");
+      const pkg = await buildFullPackage(
+        { design, name: design.name || ruler.name, length: design.length },
+        () => sceneRef.current?.getGLBBlob() || Promise.resolve(null),
+        () => sceneRef.current?.getScreenshotBlob() || Promise.resolve(null)
+      );
+      downloadBlob(pkg.zipBlob, pkg.zipFileName);
+      setMessage(language === 'vi' ? "Đã xuất trọn bộ tệp ZIP thành công!" : "Full package ZIP downloaded!");
+    } catch (err: unknown) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setMessage(msg || (language === 'vi' ? "Xuất thiết kế thất bại." : "Export failed."));
+    } finally {
+      setIsExporting(false);
+      setExportLoadingMsg("");
     }
   };
   return (
@@ -282,7 +352,7 @@ export default function RulerStudio({
           <button
             style={{ fontWeight: "bold", background: "#39FF14", color: "#000" }}
             disabled={isExporting}
-            onClick={handleExportDesign}
+            onClick={handleOpenExportDialog}
           >
             {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
           </button>
@@ -302,12 +372,36 @@ export default function RulerStudio({
       )}
       <div className="studio-layout" ref={workspace}>
         <div className="studio-workspace">
+          <div className="studio-mode-toggle-bar">
+            <div className="studio-mode-pill">
+              <button
+                type="button"
+                className={`preview-switch-btn ${previewMode === "color" ? "active" : ""}`}
+                onClick={() => setPreviewMode("color")}
+              >
+                🎨 {tr("Thiết kế màu")}
+              </button>
+              <button
+                type="button"
+                className={`preview-switch-btn ${previewMode === "print" ? "active" : ""}`}
+                onClick={() => setPreviewMode("print")}
+              >
+                🧊 {tr("Bản in 3D (Solid)")}
+              </button>
+            </div>
+            {previewMode === "print" && (
+              <span className="print-mode-badge">
+                ✓ {tr("Hiển thị hình khối thật in trên máy 3D")}
+              </span>
+            )}
+          </div>
           <Scene
             ref={sceneRef}
             design={design}
             live={live}
             surface={activeSurface}
             surfaceSerial={surfaceSerial}
+            previewMode={previewMode}
           />
           <div className="studio-edit-workspace">
             <div className="studio-surface-tabs" aria-label={tr("Editing surface")}>
@@ -527,18 +621,54 @@ export default function RulerStudio({
         }}
       />
 
-      {exportModal && (
-        <div className="export-modal-backdrop" onClick={() => setExportModal(null)}>
+      {exportDialogOpen && (
+        <div className="export-modal-backdrop" onClick={() => setExportDialogOpen(false)}>
           <div className="export-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="export-modal-header">
-              <h3>🎉 {language === "vi" ? "Xuất Bản Thiết Kế Thành Công!" : "Design Exported Successfully!"}</h3>
-              <button className="close-btn" onClick={() => setExportModal(null)}>✕</button>
+              <h3>📦 {language === "vi" ? "Xuất Bản Thiết Kế & Mô Hình 3D" : "Export Design & 3D Models"}</h3>
+              <button className="close-btn" onClick={() => setExportDialogOpen(false)}>✕</button>
             </div>
             <p className="export-modal-desc">
               {language === "vi"
-                ? "Gói thiết kế trọn bộ (.ZIP) đã được tải xuống máy của bạn."
-                : "Full design package (.ZIP) has been downloaded to your device."}
+                ? "Chọn định dạng phù hợp với mục đích sử dụng (Xem chia sẻ hoặc In 3D chuẩn xưởng)."
+                : "Select the format matching your purpose (Viewing, Sharing, or Factory 3D Printing)."}
             </p>
+
+            {/* Validation Feedback & Warnings */}
+            {!printValidation.isValid && (
+              <div className="export-validation-box error">
+                <strong>⚠️ {language === "vi" ? "Phát hiện lỗi kỹ thuật in 3D:" : "3D Print Warnings:"}</strong>
+                <ul>
+                  {printValidation.issues.map((issue, idx) => (
+                    <li key={idx}>{issue.message}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {printValidation.unsupportedColorLayers.length > 0 && (
+              <div className="export-validation-box warning">
+                <strong>ℹ️ {language === "vi" ? "Lưu ý về hình học in 3D:" : "Notice for 3D printing:"}</strong>
+                <p style={{ margin: "4px 0 0 0" }}>
+                  {language === "vi"
+                    ? "Các chi tiết chỉ in màu bề mặt sau sẽ không tạo khối nổi/chìm trong tệp STL:"
+                    : "The following color-only elements will not produce 3D depth in STL:"}
+                </p>
+                <ul>
+                  {printValidation.unsupportedColorLayers.map((text, idx) => (
+                    <li key={idx}>{text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Loading Indicator */}
+            {isExporting && exportLoadingMsg && (
+              <div className="export-loading-overlay">
+                <span>⏳ {exportLoadingMsg}</span>
+              </div>
+            )}
+
             {/* Tab Switch: 3D Interactive vs 2D Render Image */}
             <div className="modal-preview-tabs">
               <button
@@ -548,7 +678,7 @@ export default function RulerStudio({
               >
                 👁️ {language === "vi" ? "Xoay 3D Trực Tiếp (360°)" : "Interactive 3D View"}
               </button>
-              {exportModal.imageUrl && (
+              {previewScreenshotUrl && (
                 <button
                   type="button"
                   className={`tab-btn ${modalPreviewMode === "2d" ? "active" : ""}`}
@@ -563,78 +693,76 @@ export default function RulerStudio({
             {modalPreviewMode === "3d" ? (
               <Modal3DViewer design={design} />
             ) : (
-              exportModal.imageUrl && (
+              previewScreenshotUrl && (
                 <div className="export-preview-container">
-                  <img src={exportModal.imageUrl} alt="3D Render" className="export-preview-img" />
-                  <span className="export-preview-hint">
-                    {language === "vi"
-                      ? "💡 Chạm giữ ảnh trên điện thoại để 'Lưu vào Thư viện ảnh'"
-                      : "💡 Long-press the image to save directly to your photos"}
-                  </span>
+                  <img src={previewScreenshotUrl} alt="3D Render" className="export-preview-img" />
                 </div>
               )
             )}
 
+            {/* Group 1: Viewing & Sharing */}
+            <div className="export-section-title">
+              🌐 {language === "vi" ? "1. Xem & Chia Sẻ (Đầy đủ màu sắc 2D / 360°)" : "1. Viewing & Sharing (Colors 2D / 360°)"}
+            </div>
             <div className="export-actions-grid">
-              {exportModal.glbBlob && (
-                <button
-                  className="action-btn btn-glb"
-                  onClick={() => downloadBlob(exportModal.glbBlob!, exportModal.glbFileName)}
-                >
-                  <span className="btn-main">🌐 {language === "vi" ? "Tải mô hình 3D (.GLB)" : "Download 3D (.GLB)"}</span>
-                  <span className="btn-sub">{language === "vi" ? "Xem màu & vạch đo xoay 360°" : "Full colors, marks & 360° view"}</span>
-                </button>
-              )}
-              {exportModal.stlBlob && (
-                <button
-                  className="action-btn btn-stl"
-                  onClick={() => downloadBlob(exportModal.stlBlob!, exportModal.stlFileName)}
-                >
-                  <span className="btn-main">🧊 {language === "vi" ? "Tải file in xưởng (.STL)" : "Download Print File (.STL)"}</span>
-                  <span className="btn-sub">{language === "vi" ? "Dành cho máy in 3D cắt lớp (Slicer)" : "For 3D printer slicing software"}</span>
-                </button>
-              )}
-              {exportModal.imageBlob && (
-                <button
-                  className="action-btn btn-image"
-                  onClick={() => downloadBlob(exportModal.imageBlob!, exportModal.imageFileName)}
-                >
-                  <span className="btn-main">🖼️ {language === "vi" ? "Tải ảnh phối cảnh (.PNG)" : "Download Image (.PNG)"}</span>
-                  <span className="btn-sub">{language === "vi" ? "Ảnh render độ nét cao" : "High-resolution 2D render"}</span>
-                </button>
-              )}
+              <button
+                className="action-btn btn-image"
+                disabled={isExporting}
+                onClick={handleDownloadPNG}
+              >
+                <span className="btn-main">🖼️ {language === "vi" ? "Tải ảnh phối cảnh (.PNG)" : "Download Image (.PNG)"}</span>
+                <span className="btn-sub">{language === "vi" ? "Ảnh render độ nét cao" : "High-resolution 2D render"}</span>
+              </button>
+
+              <button
+                className="action-btn btn-glb"
+                disabled={isExporting}
+                onClick={handleDownloadGLB}
+              >
+                <span className="btn-main">🌐 {language === "vi" ? "Tải mô hình 3D (.GLB)" : "Download 3D (.GLB)"}</span>
+                <span className="btn-sub">{language === "vi" ? "Màu sắc & xoay 360 độ" : "Colors, marks & 360° view"}</span>
+              </button>
+
+              <button
+                className="action-btn"
+                style={{ background: "#475569", color: "#f8fafc" }}
+                disabled={isExporting}
+                onClick={handleDownloadJSON}
+              >
+                <span className="btn-main">📄 {language === "vi" ? "Tải dữ liệu gốc (.JSON)" : "Download Data (.JSON)"}</span>
+                <span className="btn-sub">{language === "vi" ? "Để nhập lại chỉnh sửa" : "For re-importing later"}</span>
+              </button>
+            </div>
+
+            {/* Group 2: Physical 3D Printing */}
+            <div className="export-section-title">
+              🧊 {language === "vi" ? "2. Sản Xuất In 3D (Hình khối đặc chuẩn mm)" : "2. 3D Printing Manufacturing (Solid mm body)"}
+            </div>
+            <div className="export-actions-grid">
+              <button
+                className="action-btn btn-stl"
+                disabled={isExporting || !printValidation.canExportSTL}
+                onClick={handleDownloadSTL}
+                title={!printValidation.canExportSTL ? "Vui lòng sửa các lỗi kỹ thuật trước khi xuất STL" : undefined}
+              >
+                <span className="btn-main">🧊 {language === "vi" ? "Tải file in xưởng (.STL)" : "Download Print File (.STL)"}</span>
+                <span className="btn-sub">
+                  {language === "vi" ? "Có chữ nổi/khắc thật, chuẩn milimét" : "With real embossed/engraved geometry"}
+                </span>
+              </button>
+
               <button
                 className="action-btn btn-zip"
-                onClick={() => downloadBlob(exportModal.zipBlob, exportModal.zipFileName)}
+                disabled={isExporting}
+                onClick={handleDownloadZip}
               >
-                <span className="btn-main">📦 {language === "vi" ? "Tải trọn bộ tệp (.ZIP)" : "Full Package (.ZIP)"}</span>
-                <span className="btn-sub">{language === "vi" ? "Đầy đủ .GLB, .STL, .PNG, .JSON" : "Includes .GLB, .STL, .PNG, .JSON"}</span>
+                <span className="btn-main">📦 {language === "vi" ? "Tải trọn bộ gửi xưởng (.ZIP)" : "Factory Package (.ZIP)"}</span>
+                <span className="btn-sub">{language === "vi" ? "Kèm STL, GLB, PNG, JSON & manifest" : "Includes STL, GLB, PNG, JSON & manifest"}</span>
               </button>
-              {typeof navigator !== "undefined" && !!navigator.canShare && exportModal.imageBlob && (
-                <button
-                  className="action-btn btn-share"
-                  onClick={async () => {
-                    try {
-                      const file = new File([exportModal.imageBlob!], exportModal.imageFileName, { type: "image/png" });
-                      if (navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                          files: [file],
-                          title: `PrintHub 3D - ${design.name}`,
-                          text: `Ảnh render thước 3D ${design.length}cm`,
-                        });
-                      }
-                    } catch {
-                      // user dismissed
-                    }
-                  }}
-                >
-                  <span className="btn-main">📤 {language === "vi" ? "Chia sẻ ảnh" : "Share Image"}</span>
-                  <span className="btn-sub">{language === "vi" ? "Gửi qua Zalo, Messenger,..." : "Share via social apps"}</span>
-                </button>
-              )}
             </div>
-            <button className="export-close-footer" onClick={() => setExportModal(null)}>
-              {language === "vi" ? "Đóng" : "Close"}
+
+            <button className="export-close-footer" onClick={() => setExportDialogOpen(false)}>
+              {language === "vi" ? "Đóng cửa sổ" : "Close window"}
             </button>
           </div>
         </div>

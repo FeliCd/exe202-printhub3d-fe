@@ -1,15 +1,6 @@
 import JSZip from "jszip";
-
-export function downloadBlob(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-}
+import type { ValidationReport } from './geometry/printValidation';
+export { downloadBlob, buildSTLFromDesign, buildFullPackage, sanitizeFileName } from './export/buildExport';
 
 export interface ExportResult {
   zipBlob: Blob;
@@ -23,6 +14,7 @@ export interface ExportResult {
   imageFileName: string;
   jsonFileName: string;
   zipFileName: string;
+  validation?: ValidationReport;
 }
 
 export async function exportDesignPackage(options: {
@@ -48,10 +40,11 @@ export async function exportDesignPackage(options: {
     `Ngày tạo: ${new Date().toLocaleString("vi-VN")}`,
     ``,
     `Gói tệp bao gồm:`,
-    `1. ${stlFileName}: Tệp mô hình in 3D chuẩn xác (dành cho phần mềm cắt lớp slicer của xưởng in).`,
-    `2. ${glbFileName}: Tệp mô hình 3D đa chiều đầy đủ màu sắc, vạch đo và chữ khắc (nhấp đúp mở bằng Windows 3D Viewer hoặc mở trên điện thoại để xoay lật 360 độ).`,
+    `1. ${stlFileName}: Tệp mô hình in 3D chuẩn xác theo đơn vị mm (dành cho phần mềm cắt lớp slicer của xưởng in).`,
+    `2. ${glbFileName}: Tệp mô hình 3D đa chiều đầy đủ màu sắc (xem xoay 360 độ).`,
     `3. ${imageFileName}: Ảnh phối cảnh 3D render sắc nét để lưu trữ hoặc chia sẻ.`,
-    `4. ${jsonFileName}: Dữ liệu thiết kế gốc để nhập (import) lại vào PrintHub Ruler Studio bất kỳ lúc nào.`,
+    `4. ${jsonFileName}: Dữ liệu thiết kế gốc để nhập (import) lại vào PrintHub Ruler Studio.`,
+    `5. manifest.json: Thông số kỹ thuật sản xuất, thiết lập in và danh mục tệp.`,
     ``,
     `Cảm ơn bạn đã sáng tạo cùng PrintHub 3D!`,
   ].join("\n");

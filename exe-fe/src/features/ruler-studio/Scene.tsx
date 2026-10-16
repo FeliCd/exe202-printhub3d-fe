@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import { useReducedMotion } from "framer-motion";
 import {
+  BufferGeometry,
   CanvasTexture,
   Color,
   ExtrudeGeometry,
@@ -22,9 +23,11 @@ import { getRuler } from "./library/registry";
 import { getProfile } from "./geometry/profiles";
 import { flatSolid, triangularSolid } from "./geometry/solid";
 import type { LiveArtwork } from "./liveArtwork";
+import { buildManufacturingSolid } from "./geometry/manufacturing";
+import { buildSTLFromDesign } from "./export/buildExport";
 
 export interface SceneHandle {
-  getSTLBlob: () => Blob | null;
+  getSTLBlob: () => Promise<Blob | null> | Blob | null;
   getGLBBlob: () => Promise<Blob | null>;
   getScreenshotBlob: () => Promise<Blob | null>;
 }
@@ -403,6 +406,54 @@ export function Model({
     </group>
   );
 }
+function PrintModel({
+  design,
+  modelRef,
+}: {
+  design: Design;
+  modelRef?: React.RefObject<Group | null>;
+}) {
+  const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    buildManufacturingSolid(design, { includePhysicalArtwork: true })
+      .then((geo) => {
+        if (active) setGeometry(geo);
+      })
+      .catch((err) => {
+        console.warn("PrintModel solid error, using fallback body", err);
+        buildManufacturingSolid(design, { includePhysicalArtwork: false }).then(
+          (fallback) => {
+            if (active) setGeometry(fallback);
+          }
+        );
+      });
+    return () => {
+      active = false;
+    };
+  }, [design]);
+
+  return (
+    <group ref={modelRef}>
+      {geometry ? (
+        <mesh geometry={geometry} castShadow receiveShadow>
+          <meshStandardMaterial
+            color={design.color || "#cbd5e1"}
+            roughness={0.7}
+            metalness={0.05}
+          />
+        </mesh>
+      ) : (
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[design.length, 2, 0.2]} />
+          <meshStandardMaterial color="#cbd5e1" roughness={0.7} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
 const Scene = forwardRef<
   SceneHandle,
   {
@@ -410,6 +461,7 @@ const Scene = forwardRef<
     live: LiveArtwork;
     surface: Surface;
     surfaceSerial: number;
+    previewMode?: "color" | "print";
   }
 >(function Scene(
   {
@@ -417,6 +469,7 @@ const Scene = forwardRef<
     live,
     surface,
     surfaceSerial,
+    previewMode = "color",
   },
   ref,
 ) {
@@ -435,25 +488,31 @@ const Scene = forwardRef<
   useImperativeHandle(
     ref,
     () => ({
-      getSTLBlob: () => {
+      getSTLBlob: async () => {
         try {
-          if (!model.current) return null;
-          const copy = model.current.clone();
-          const artwork: Group[] = [];
-          copy.traverse((obj) => {
-            if (obj.userData.artwork) artwork.push(obj as Group);
-          });
-          artwork.forEach((obj) => obj.removeFromParent());
-          copy.scale.setScalar(10);
-          copy.updateMatrixWorld(true);
-          const result = new STLExporter().parse(copy, { binary: true });
-          return new Blob([result.buffer as ArrayBuffer], {
-            type: "application/octet-stream",
-          });
+          const res = await buildSTLFromDesign(design);
+          return res.blob;
         } catch (e) {
-          console.error("STL generation error", e);
-          setError("Lỗi khi tạo mô hình STL.");
-          return null;
+          console.warn("Direct STL build error, falling back to clean body", e);
+          try {
+            if (!model.current) return null;
+            const copy = model.current.clone();
+            const artwork: Group[] = [];
+            copy.traverse((obj) => {
+              if (obj.userData.artwork) artwork.push(obj as Group);
+            });
+            artwork.forEach((obj) => obj.removeFromParent());
+            copy.scale.setScalar(10);
+            copy.updateMatrixWorld(true);
+            const result = new STLExporter().parse(copy, { binary: true });
+            return new Blob([result.buffer as ArrayBuffer], {
+              type: "application/octet-stream",
+            });
+          } catch (err) {
+            console.error("STL generation fallback error", err);
+            setError("Lỗi khi tạo mô hình STL.");
+            return null;
+          }
         }
       },
       getGLBBlob: () => {
@@ -594,7 +653,11 @@ const Scene = forwardRef<
               intensity={2}
             />
           </Environment>
-          <Model design={design} modelRef={model} live={live} />
+          {previewMode === "print" ? (
+            <PrintModel design={design} modelRef={model} />
+          ) : (
+            <Model design={design} modelRef={model} live={live} />
+          )}
           {effectiveView !== "Bottom" &&
             surface !== "back" &&
             surface !== "face-c" && (

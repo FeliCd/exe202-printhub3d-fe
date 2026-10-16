@@ -13,6 +13,8 @@ import {
   type Layer,
   type Surface,
   type Tab,
+  type PhysicalMode,
+  type GraduationMode,
 } from "./model";
 function LimitedTextInput({ value, onChange }: {
   value: string;
@@ -111,6 +113,8 @@ export default function Panels({
       color: "#213c35",
       font: "Modern",
       flip: false,
+      mode: "engraved",
+      depth: 0.6,
     };
     change({ ...d, layers: [...d.layers, l] });
     select(l.id);
@@ -223,6 +227,15 @@ export default function Panels({
               ))}
             </select>
           </Field>
+          <Field label={tr("Vạch đo & số khắc")}>
+            <select
+              value={d.markingsMode || "engraved"}
+              onChange={(e) => change({ ...d, markingsMode: e.target.value as GraduationMode })}
+            >
+              <option value="engraved">{tr("Khắc chìm 3D (Khuyên dùng)")}</option>
+              <option value="surface-color">{tr("Chỉ in màu bề mặt")}</option>
+            </select>
+          </Field>
         </>
       )}
       {tab === "Name Tag" && !ruler.supportsNameTag && (
@@ -281,15 +294,40 @@ export default function Panels({
               onChange={(textColor) => tag({ textColor })}
             />
           </div>
-          <Field label={tr("Finish")}>
+          <Field label={tr("Kiểu chữ bảng tên")}>
+            <select
+              value={d.tag.textMode || "raised"}
+              onChange={(e) =>
+                tag({ textMode: e.target.value as PhysicalMode })
+              }
+            >
+              <option value="raised">{tr("Chữ nổi 3D (STL)")}</option>
+              <option value="engraved">{tr("Khắc chìm 3D (STL)")}</option>
+              <option value="surface-color">{tr("Chỉ in màu bề mặt")}</option>
+            </select>
+          </Field>
+          {(d.tag.textMode === "raised" || d.tag.textMode === "engraved") && (
+            <Field label={d.tag.textMode === "raised" ? tr("Độ cao chữ nổi (mm)") : tr("Độ sâu khắc (mm)")}>
+              <select
+                value={d.tag.textDepth ?? 0.6}
+                onChange={(e) => tag({ textDepth: +e.target.value })}
+              >
+                <option value={0.4}>0.4 mm</option>
+                <option value={0.6}>0.6 mm {tr("(Khuyên dùng)")}</option>
+                <option value={0.8}>0.8 mm</option>
+                <option value={1.0}>1.0 mm</option>
+              </select>
+            </Field>
+          )}
+          <Field label={tr("Độ dày phôi thẻ")}>
             <select
               value={d.tag.mode}
               onChange={(e) =>
                 tag({ mode: e.target.value as Design["tag"]["mode"] })
               }
             >
-              <option value="raised">{tr("Raised")}</option>
-              <option value="engraved">{tr("Engraved appearance")}</option>
+              <option value="raised">{tr("Thẻ nổi dày (1.6 mm)")}</option>
+              <option value="engraved">{tr("Thẻ phẳng mảnh (1.0 mm)")}</option>
             </select>
           </Field>
           <div className="studio-row">
@@ -317,7 +355,9 @@ export default function Panels({
               onChange={(e) => tag({ x: +e.target.value })}
             />
           </Field>
-          <p className="studio-hint"> {tr("Letter relief is a visual finish. Exported STL includes the tag body, not engraved or raised lettering.")} </p>
+          <p className="studio-hint">
+            {tr("Chữ nổi hoặc khắc chìm trên thẻ tên sẽ được tạo hình học 3D liền khối thực tế trong tệp in STL.")}
+          </p>
         </>
       )}
       {(tab === "Text" || tab === "Stickers") && (
@@ -351,28 +391,53 @@ export default function Panels({
           </div>
           {layer && (
             <>
-              {!getStickerIcon(layer.text) && <>
-              <Field label={tr("Layer text")}>
-                <LimitedTextInput
-                  key={layer.id}
-                  value={layer.text}
-                  onChange={(text) => update({ text })}
-                />
-              </Field>
-              <p className="studio-hint">{characters(layer.text).length}{tr("/100 · Text updates live on the selected surface.")}</p>
-              <Field label={tr("Layer font")}>
+              {!getStickerIcon(layer.text) && (
+                <>
+                  <Field label={tr("Layer text")}>
+                    <LimitedTextInput
+                      key={layer.id}
+                      value={layer.text}
+                      onChange={(text) => update({ text })}
+                    />
+                  </Field>
+                  <p className="studio-hint">{characters(layer.text).length}{tr("/100 · Text updates live on the selected surface.")}</p>
+                  <Field label={tr("Layer font")}>
+                    <select
+                      value={layer.font}
+                      onChange={(e) =>
+                        update({ font: e.target.value as Layer["font"] })
+                      }
+                    >
+                      {Object.keys(fonts).map((f) => (
+                        <option key={f} value={f}>{tr(f)}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </>
+              )}
+              <Field label={tr("Chế độ sản xuất")}>
                 <select
-                  value={layer.font}
-                  onChange={(e) =>
-                    update({ font: e.target.value as Layer["font"] })
-                  }
+                  value={layer.mode || "engraved"}
+                  onChange={(e) => update({ mode: e.target.value as PhysicalMode })}
                 >
-                  {Object.keys(fonts).map((f) => (
-                    <option key={f} value={f}>{tr(f)}</option>
-                  ))}
+                  <option value="engraved">{tr("Khắc chìm 3D (STL)")}</option>
+                  <option value="raised">{tr("Chữ nổi 3D (STL)")}</option>
+                  <option value="surface-color">{tr("In màu bề mặt (chỉ xem)")}</option>
                 </select>
               </Field>
-              </>}
+              {(layer.mode === "engraved" || layer.mode === "raised") && (
+                <Field label={layer.mode === "raised" ? tr("Độ cao chữ nổi (mm)") : tr("Độ sâu khắc (mm)")}>
+                  <select
+                    value={layer.depth ?? 0.6}
+                    onChange={(e) => update({ depth: +e.target.value })}
+                  >
+                    <option value={0.4}>0.4 mm</option>
+                    <option value={0.6}>0.6 mm {tr("(Khuyên dùng)")}</option>
+                    <option value={0.8}>0.8 mm</option>
+                    <option value={1.0}>1.0 mm</option>
+                  </select>
+                </Field>
+              )}
               <ColorField
                 label={tr("Layer color")}
                 value={layer.color}

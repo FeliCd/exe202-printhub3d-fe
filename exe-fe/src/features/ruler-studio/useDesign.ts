@@ -31,11 +31,13 @@ export function useDesign(initial?: Design) {
   useEffect(() => {
     if (initial) {
       const next = normalizeDesign(initial);
-      setHistory((h) =>
-        JSON.stringify(next) === JSON.stringify(h.present)
-          ? h
-          : { past: [...h.past, h.present], present: next, future: [] },
-      );
+      queueMicrotask(() => {
+        setHistory((h) =>
+          JSON.stringify(next) === JSON.stringify(h.present)
+            ? h
+            : { past: [...h.past, h.present], present: next, future: [] },
+        );
+      });
     }
   }, [initial]);
 

@@ -27,6 +27,9 @@ export const fonts = {
   Handwritten: "cursive",
 };
 export type Font = keyof typeof fonts;
+export type PhysicalMode = "surface-color" | "raised" | "engraved";
+export type GraduationMode = "surface-color" | "raised" | "engraved";
+
 export type Layer = {
   id: string;
   surface: Surface;
@@ -39,6 +42,8 @@ export type Layer = {
   color: string;
   font: Font;
   flip: boolean;
+  mode?: PhysicalMode;
+  depth?: number; // mm
 };
 export type Stroke = {
   id: string;
@@ -49,7 +54,7 @@ export type Stroke = {
   points: [number, number][];
 };
 export interface Design {
-  version: 1;
+  version: 1 | 2;
   id: string;
   name: string;
   rulerId: string;
@@ -69,7 +74,11 @@ export interface Design {
     textColor: string;
     x: number;
     mode: "raised" | "engraved";
+    textMode?: PhysicalMode;
+    textDepth?: number; // mm
   };
+  markingsMode?: GraduationMode;
+  markingsDepth?: number; // mm
   layers: Layer[];
   strokes: Stroke[];
   template: string;
@@ -78,7 +87,7 @@ export const uid = () => crypto.randomUUID();
 export const clamp = (n: number, min = 0, max = 1) =>
   Math.min(max, Math.max(min, Number.isFinite(n) ? n : min));
 export const freshDesign = (): Design => ({
-  version: 1,
+  version: 2,
   id: uid(),
   name: "My ruler",
   rulerId: defaultRulerId,
@@ -98,7 +107,11 @@ export const freshDesign = (): Design => ({
     textColor: "#ffffff",
     x: 0.5,
     mode: "raised",
+    textMode: "raised",
+    textDepth: 0.6,
   },
+  markingsMode: "engraved",
+  markingsDepth: 0.4,
   layers: [],
   strokes: [],
   template: "Minimal",
@@ -113,6 +126,9 @@ const str = (v: unknown, fallback: string, limit = 40) =>
   typeof v === "string" ? v.slice(0, limit) : fallback;
 const font = (v: unknown): Font =>
   typeof v === "string" && Object.hasOwn(fonts, v) ? (v as Font) : "Modern";
+const physMode = (v: unknown, fallback: PhysicalMode = "surface-color"): PhysicalMode =>
+  v === "raised" || v === "engraved" || v === "surface-color" ? v : fallback;
+
 export function normalizeDesign(value: unknown): Design {
   const d = record(value),
     base = freshDesign(),
@@ -126,8 +142,9 @@ export function normalizeDesign(value: unknown): Design {
       : getRuler(defaultRulerId);
   const normalized: Design = {
     ...base,
+    version: 2,
     id: str(d.id, base.id, 80),
-    name: str(d.name, base.name),
+    name: str(d.name, base.name).normalize('NFC'),
     rulerId: ruler.id,
     length: ruler.supportedLengths.includes(Number(d.length) * 10)
       ? Number(d.length)
@@ -147,18 +164,24 @@ export function normalizeDesign(value: unknown): Design {
       : 30,
     color: color(d.color, base.color),
     template: str(d.template, "Custom"),
+    markingsMode: (d.markingsMode as GraduationMode) === "surface-color" || (d.markingsMode as GraduationMode) === "raised" || (d.markingsMode as GraduationMode) === "engraved"
+      ? (d.markingsMode as GraduationMode)
+      : "engraved",
+    markingsDepth: num(d.markingsDepth, 0.4, 0.1, 1.5),
     tag: {
       ...base.tag,
       enabled: t.enabled !== false,
       shape: ["rounded", "capsule", "badge", "square"].includes(String(t.shape))
         ? (t.shape as Design["tag"]["shape"])
         : "capsule",
-      text: limitText(typeof t.text === "string" ? t.text : base.tag.text),
+      text: limitText(typeof t.text === "string" ? t.text.normalize('NFC') : base.tag.text),
       font: font(t.font),
       color: color(t.color, base.tag.color),
       textColor: color(t.textColor, base.tag.textColor),
       x: num(t.x, 0.5, 0.25, 0.75),
       mode: t.mode === "engraved" ? "engraved" : "raised",
+      textMode: physMode(t.textMode, "raised"),
+      textDepth: num(t.textDepth, 0.6, 0.1, 1.5),
     },
     layers: (Array.isArray(d.layers) ? d.layers : [])
       .slice(0, 24)
@@ -168,7 +191,7 @@ export function normalizeDesign(value: unknown): Design {
           id: str(l.id, uid(), 80),
           kind: l.kind === "sticker" ? "sticker" : "text",
           surface: surfaceId(l.surface),
-          text: limitText(typeof l.text === "string" ? l.text : "Text"),
+          text: limitText(typeof l.text === "string" ? l.text.normalize('NFC') : "Text"),
           x: num(l.x, 0.5, 0.04, 0.96),
           y: num(l.y, 0.6, 0.1, 0.9),
           size: num(l.size, 0.12, 0.04, 0.45),
@@ -176,6 +199,8 @@ export function normalizeDesign(value: unknown): Design {
           color: color(l.color, "#213c35"),
           font: font(l.font),
           flip: l.flip === true,
+          mode: physMode(l.mode, "engraved"),
+          depth: num(l.depth, 0.6, 0.1, 1.5),
         };
       }),
     strokes: (Array.isArray(d.strokes) ? d.strokes : [])
