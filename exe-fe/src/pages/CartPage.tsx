@@ -131,7 +131,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   );
 
   const shippingFee = selectedCount > 0 ? 30000 : 0;
-  const confirmedSubtotal = marketplaceSubtotal; // Món custom chưa chốt giá thì chưa tính vào tiền confirmed
+  // Tính đủ cả sản phẩm có sẵn lẫn thước custom đã có giá tính sẵn
+  const totalSubtotal = marketplaceSubtotal + customEstimatedSubtotal;
+  const totalAmount = totalSubtotal + shippingFee;
 
   const handleCheckout = () =>
     action.run(async () => {
@@ -166,15 +168,13 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       if (res.paymentLinkUrl && method === 'PAYOS') {
         setConfirmOrder({
           id: res.id,
-          totalAmount: res.totalAmount || (marketplaceSubtotal + shippingFee),
+          totalAmount: res.totalAmount || totalAmount,
           checkoutUrl: res.paymentLinkUrl,
         });
       }
 
-      // Xóa các món đã chọn khỏi state local
-      selectedIds.forEach(id => {
-        cart.deleteCartItem(id);
-      });
+      // Xóa các món đã chọn khỏi state local (backend đã xóa trong DB khi tạo checkout-order)
+      cart.removeLocalItems(Array.from(selectedIds));
       setSelectedIds(new Set());
     });
 
@@ -591,15 +591,10 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
                     <div className="flex justify-between items-center pt-2 border-t border-border/60 text-sm">
                       <div>
-                        <span className="font-bold text-white block">Tổng thanh toán tạm tính:</span>
-                        {selectedCustomItems.length > 0 && (
-                          <span className="text-[11px] text-amber-400">
-                            * Chưa bao gồm tiền in custom đang chờ thẩm định
-                          </span>
-                        )}
+                        <span className="font-bold text-white block">Tổng thanh toán:</span>
                       </div>
                       <span className="text-2xl font-black text-primary font-mono">
-                        {money(confirmedSubtotal + shippingFee)}
+                        {money(totalAmount)}
                       </span>
                     </div>
                   </div>

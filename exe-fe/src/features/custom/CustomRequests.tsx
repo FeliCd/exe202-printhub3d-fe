@@ -117,16 +117,32 @@ function parseOrderRequirements(reqText: string, dto: CustomDTO): ParsedRequirem
 
   // 6. Stickers & Notes
   let stickersCount: string | undefined;
-  const stickMatch = text.match(/sticker[^:]*:\s*([^;]+)/i);
-  if (stickMatch) stickersCount = stickMatch[1].trim();
+  if (!jsonParsed) {
+    const stickMatch = text.match(/sticker[^:]*:\s*([^;]+)/i);
+    if (stickMatch) {
+      const val = stickMatch[1].trim();
+      if (val.length < 50 && !val.includes('{') && !val.includes('"')) {
+        stickersCount = val;
+      }
+    }
+  } else if (Array.isArray(jsonParsed.layers) && jsonParsed.layers.length > 0) {
+    stickersCount = `${jsonParsed.layers.length} icon dập nổi`;
+  }
 
   let notes: string | undefined;
-  const noteMatch = text.match(/Ghi chú[^:]*:\s*([^;]+)/i);
-  if (noteMatch) notes = noteMatch[1].trim();
+  if (!jsonParsed) {
+    const noteMatch = text.match(/Ghi chú[^:]*:\s*([^;]+)/i);
+    if (noteMatch) {
+      const val = noteMatch[1].trim();
+      if (!val.includes('{') && !val.includes('"')) {
+        notes = val;
+      }
+    }
+  }
 
   // 7. Preferred Payment
   let preferredPayment = dto.paymentMethod || '';
-  if (!preferredPayment) {
+  if (!preferredPayment && !jsonParsed) {
     const payMatch = text.match(/Phương thức[^:]*:\s*([^;]+)/i);
     if (payMatch) preferredPayment = payMatch[1].trim();
   }
@@ -735,7 +751,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         {req.stickersCount && (
                           <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
                             <span className="text-slate-400">{tr("Sticker trang trí:")}</span>
-                            <span className="font-bold text-purple-300">{req.stickersCount}</span>
+                            <span className="font-bold text-purple-300 truncate max-w-[160px]" title={req.stickersCount}>
+                              {req.stickersCount}
+                            </span>
                           </div>
                         )}
 

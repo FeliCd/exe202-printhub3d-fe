@@ -277,6 +277,13 @@ export function useCart() {
     deleteCartItem(id);
   };
 
+  const removeLocalItems = (clientLineIds: string[]) => {
+    const idSet = new Set(clientLineIds);
+    const nextItems = itemsRef.current.filter(i => !idSet.has(i.clientLineId || '') && !idSet.has(i.id));
+    itemsRef.current = nextItems;
+    setItems(nextItems);
+  };
+
   const subtotal = items.reduce((n, i) => n + i.product.price * i.quantity, 0);
 
   return {
@@ -294,6 +301,7 @@ export function useCart() {
     addToCart,
     updateCartItemProduct,
     deleteCartItem,
+    removeLocalItems,
     updateQuantity,
     removeFromCart,
     clearCart: () => commit([]),
