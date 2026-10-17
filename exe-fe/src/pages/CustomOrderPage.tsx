@@ -38,34 +38,11 @@ export default function CustomOrderPage({
     }
   };
 
-  const handleConvertToQuotation = async (design: Design, clientLineId?: string) => {
+  const handleConvertToQuotation = async (_design: Design, clientLineId?: string) => {
     if (clientLineId && cart?.deleteCartItem) {
       await cart.deleteCartItem(clientLineId);
     }
-    const orderConfig = {
-      selectedModel: {
-        id: design.rulerId,
-        name: design.name || 'Thước 3D Cá Nhân Hóa',
-        category: 'Custom ruler',
-        length: design.length,
-        width: 25,
-        thickness: 3,
-        basePrice: 0,
-      },
-      studentName: design.tag?.text || 'PrintHub',
-      studentId: '',
-      fontId: design.tag?.font || 'Modern',
-      fontName: design.tag?.font || 'Modern',
-      baseColor: design.color || '#39FF14',
-      plateColor: design.tag?.color || '#000000',
-      textColor: design.tag?.textColor || '#ffffff',
-      materialType: design.material || 'PLA',
-      infillDensity: design.infill || 20,
-      stickersCount: design.layers?.length || 0,
-      estimatedPrice: 0,
-      attachmentUrl: '',
-    };
-    navigate('/custom/checkout', { state: { orderConfig } });
+    setTab('requests');
   };
 
   const headerControls = (

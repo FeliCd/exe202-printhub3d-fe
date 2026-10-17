@@ -26,6 +26,8 @@ import { createLiveArtwork } from "./liveArtwork";
 import RulerLibrary from "./library/RulerLibrary";
 import { getRuler } from "./library/registry";
 import { getProfile } from "./geometry/profiles";
+import QuoteRequestModal from "./QuoteRequestModal";
+import { uploadFormData } from "../../services/api";
 export default function RulerStudio({
   onAddToCart,
   initialDesign,
@@ -63,6 +65,7 @@ export default function RulerStudio({
   const [isExporting, setIsExporting] = useState(false);
   const [previewMode, setPreviewMode] = useState<"color" | "print">("color");
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [exportLoadingMsg, setExportLoadingMsg] = useState("");
   const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("Ruler"),
@@ -111,11 +114,17 @@ export default function RulerStudio({
       }
       const screenshot = await sceneRef.current?.getScreenshotBlob();
       if (screenshot) {
-        thumbnail = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve((reader.result as string) || "custom-model");
-          reader.readAsDataURL(screenshot);
-        });
+        try {
+          const formData = new FormData();
+          formData.append('file', screenshot, 'ruler-preview.png');
+          const uploadRes = await uploadFormData<string | { result?: string; url?: string }>('/upload/image', formData);
+          const uploadedUrl = typeof uploadRes === 'string' ? uploadRes : (uploadRes?.result || uploadRes?.url || '');
+          if (uploadedUrl && !uploadedUrl.startsWith('data:') && uploadedUrl.length < 500) {
+            thumbnail = uploadedUrl;
+          }
+        } catch {
+          thumbnail = "custom-model";
+        }
       }
     } catch {
       // fallback
@@ -169,10 +178,8 @@ export default function RulerStudio({
     setMessage(language === 'vi' ? "Đã nhân bản và lưu thành thiết kế mới vào giỏ hàng!" : "Cloned and added as a new design to cart!");
   };
 
-  const handleConvertToQuotation = async () => {
-    if (onConvertToQuotation) {
-      await onConvertToQuotation(design, editingCartItemId);
-    }
+  const handleConvertToQuotation = () => {
+    setShowQuoteModal(true);
   };
 
   const printValidation = useMemo(() => validateDesignForPrint(design), [design]);
@@ -767,6 +774,18 @@ export default function RulerStudio({
           </div>
         </div>
       )}
+
+      <QuoteRequestModal
+        open={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        design={design}
+        editingCartItemId={editingCartItemId}
+        onSuccess={() => {
+          if (editingCartItemId && onConvertToQuotation) {
+            onConvertToQuotation(design, editingCartItemId);
+          }
+        }}
+      />
     </div>
   );
 }
