@@ -779,7 +779,6 @@ export default function RulerStudio({
         open={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
         design={design}
-        editingCartItemId={editingCartItemId}
         onSuccess={() => {
           if (editingCartItemId && onConvertToQuotation) {
             onConvertToQuotation(design, editingCartItemId);

@@ -24,6 +24,7 @@ interface QuoteRequestModalProps {
   open: boolean;
   onClose: () => void;
   design: Design;
+  editingCartItemId?: string;
   onSuccess?: () => void;
 }
 
