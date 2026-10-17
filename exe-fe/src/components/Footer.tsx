@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Sparkles } from 'lucide-react';
+import { Phone, Mail, MapPin, Sparkles, ExternalLink } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -140,12 +140,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <div className="flex items-center justify-between text-slate-400">
+                <a
+                  href="https://www.tiktok.com/@3d_printingcustom/video/7697579795567136007"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-300 hover:text-[#39FF14] transition flex items-center justify-between group"
+                >
                   <span>Hướng dẫn sử dụng</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/70 border border-amber-600/50 text-amber-400">
-                    Sắp ra mắt
+                  <span className="text-[10px] text-primary group-hover:text-[#39FF14] flex items-center gap-1">
+                    Video TikTok
+                    <ExternalLink className="w-3 h-3 inline-block" />
                   </span>
-                </div>
+                </a>
               </li>
               <li>
                 <div className="flex items-center justify-between text-slate-400">
