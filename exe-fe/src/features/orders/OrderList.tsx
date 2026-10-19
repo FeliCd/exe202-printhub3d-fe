@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Package,
   RotateCcw,
@@ -119,6 +120,7 @@ interface CustomOrderAdminItem {
   status: string;
   paymentMethod?: string;
   paymentStatus?: string;
+  checkoutOrderId?: string;
   shippingAddress?: string;
   createdAt: string;
 }
@@ -177,7 +179,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
   const nextStateCustom = (c: CustomOrderAdminItem): string => {
     const map: Record<string, string> = {
-      ACCEPTED: 'PREPARING',
+      // Yêu cầu in custom bắt buộc phải thanh toán trước (PAID) mới được chuyển sang PREPARING
       PAID: 'PREPARING',
       PREPARING: 'PRINTING',
       PRINTING: 'SHIPPING',
@@ -194,10 +196,17 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
   const handleNextStatus = async (orderId: string, nextStatus: string, isCustom: boolean) => {
     if (isCustom) {
-      await action.run(() => send(`/admin/custom-orders/${orderId}/status`, { status: nextStatus }, 'put'));
+      // Endpoint BE chuẩn: /custom-orders/{id}/status
+      await action.run(() => send(`/custom-orders/${orderId}/status`, { status: nextStatus }, 'put'));
     } else {
       await action.run(() => send(`/orders/${orderId}/status`, { status: nextStatus }, 'put'));
     }
+  };
+
+  const handleConfirmCod = async (orderId: string) => {
+    if (!confirm('Xác nhận quản trị viên đã thu tiền mặt COD cho đơn hàng này từ đối tác vận chuyển?')) return;
+    await action.run(() => send(`/orders/${orderId}/confirm-cod`, {}, 'post'));
+    remote.reload();
   };
 
   const pageTitle = admin
@@ -383,6 +392,15 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         </span>
                       )}
                       <span className="font-mono text-sm sm:text-base font-bold text-white break-all">#{o.id}</span>
+                      {o.checkoutOrderId && (
+                        <Link
+                          to={`/checkout/${o.checkoutOrderId}`}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-semibold hover:bg-primary/20 transition-colors border border-primary/30"
+                          title="Xem phiên thanh toán đơn cha"
+                        >
+                          <CreditCard className="w-3 h-3" /> Đơn giỏ hàng: #{o.checkoutOrderId.substring(0, 8)}
+                        </Link>
+                      )}
                       <button
                         onClick={() => copyOrderId(o.id)}
                         className="inline-flex items-center gap-1 rounded-md bg-surface-inset px-2 py-0.5 text-[11px] text-slate-400 hover:text-white transition-colors"
@@ -517,6 +535,17 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2.5">
+                    {admin && o.paymentMethod === 'COD' && o.paymentStatus !== 'SUCCESS' && o.paymentStatus !== 'PAID' && o.status !== 'CANCELLED' && (
+                      <button
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all shadow-sm"
+                        disabled={action.busy}
+                        onClick={() => handleConfirmCod(o.id)}
+                        title="Xác nhận shipper đã bàn giao tiền thu hộ COD"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        Xác nhận đã thu COD
+                      </button>
+                    )}
                     {admin && next && (
                       <button
                         className={button}
@@ -554,6 +583,15 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         <Sparkles className="w-3 h-3" /> ĐƠN IN CUSTOM 3D
                       </span>
                       <span className="font-mono text-sm sm:text-base font-bold text-white break-all">#CUS-{c.id.substring(0, 8)}</span>
+                      {c.checkoutOrderId && (
+                        <Link
+                          to={`/checkout/${c.checkoutOrderId}`}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-semibold hover:bg-primary/20 transition-colors border border-primary/30"
+                          title="Xem phiên thanh toán đơn cha"
+                        >
+                          <CreditCard className="w-3 h-3" /> Đơn giỏ hàng: #{c.checkoutOrderId.substring(0, 8)}
+                        </Link>
+                      )}
                       <button
                         onClick={() => copyOrderId(c.id)}
                         className="inline-flex items-center gap-1 rounded-md bg-surface-inset px-2 py-0.5 text-[11px] text-slate-400 hover:text-white transition-colors"

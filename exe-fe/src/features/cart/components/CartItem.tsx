@@ -92,8 +92,12 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
           <div>
             {item.product.rulerDesign ? (
               <div className="flex flex-col">
-                <span className="font-bold text-[#39FF14] text-sm">{formatPrice(item.product.price)}đ</span>
-                <span className="text-[10px] text-slate-400">Giá ước tính Studio</span>
+                <span className="font-bold text-[#39FF14] text-sm">
+                  {item.product.price && item.product.price > 0 ? `${formatPrice(item.product.price)}đ` : 'Chờ xưởng báo giá'}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {item.product.price && item.product.price > 0 ? 'Giá ước tính Studio' : 'Chưa chốt giá chính thức'}
+                </span>
               </div>
             ) : (
               <span className="font-bold text-slate-100 text-sm">{formatPrice(item.product.price)}đ</span>

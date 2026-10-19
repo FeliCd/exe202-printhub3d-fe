@@ -11,32 +11,49 @@ export interface CartPayloadItem {
   revision?: number;
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function serializeCartItems(items: CartItem[]): CartPayloadItem[] {
   return items.map(item => {
+    const validUuid = item.clientLineId && UUID_REGEX.test(item.clientLineId)
+      ? item.clientLineId
+      : undefined;
+
     if (item.product.rulerDesign) {
-      return {
+      const payload: CartPayloadItem = {
         quantity: item.quantity,
-        customDesign: JSON.stringify(item.product.rulerDesign),
+        customDesign: typeof item.product.rulerDesign === 'string'
+          ? item.product.rulerDesign
+          : JSON.stringify(item.product.rulerDesign),
         customName: item.product.name,
         customPrice: item.product.price,
-        thumbnailUrl: item.product.imageUrl || item.product.thumbnail,
-        clientLineId: item.clientLineId,
-        revision: item.revision,
       };
+      if (item.product.imageUrl || item.product.thumbnail) {
+        payload.thumbnailUrl = item.product.imageUrl || item.product.thumbnail;
+      }
+      if (validUuid) payload.clientLineId = validUuid;
+      if (item.revision) payload.revision = item.revision;
+      return payload;
     }
-    return {
+    const payload: CartPayloadItem = {
       productId: item.product.id,
       quantity: item.quantity,
-      clientLineId: item.clientLineId,
-      revision: item.revision,
     };
+    if (validUuid) payload.clientLineId = validUuid;
+    if (item.revision) payload.revision = item.revision;
+    return payload;
   });
 }
 
 export function catalogueItems(items: CartItem[]) {
-  return serializeCartItems(items);
+  return items
+    .filter(item => !item.product?.rulerDesign)
+    .map(item => ({
+      productId: item.product.id,
+      quantity: item.quantity,
+    }));
 }
 
 export function localDesigns(items: CartItem[]) {
-  return items.filter(item => !!item.product.rulerDesign);
+  return items.filter(item => !!item.product?.rulerDesign);
 }

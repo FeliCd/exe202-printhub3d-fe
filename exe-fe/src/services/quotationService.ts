@@ -17,6 +17,9 @@ export interface CustomDTO {
   fontStyle?: string;
   paymentMethod?: string;
   paymentStatus?: string;
+  checkoutOrderId?: string;
+  unitPrice?: number;
+  priceVersion?: number;
 }
 
 export interface CustomOrderCreateRequest {

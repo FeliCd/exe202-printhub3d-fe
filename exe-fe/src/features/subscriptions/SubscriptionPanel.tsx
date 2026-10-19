@@ -13,6 +13,9 @@ interface Plan {
   requiredPoints: number;
   isActive: boolean;
   type: string;
+  durationDays?: number;
+  freeShipping?: boolean;
+  shippingDiscountAmount?: number;
 }
 
 interface Membership {
@@ -28,7 +31,15 @@ interface AdminUserItem {
   studentId?: string;
 }
 
-const empty = { name: '', price: '0', benefits: '', requiredPoints: '100' };
+const empty = {
+  name: '',
+  price: '0',
+  benefits: '',
+  requiredPoints: '100',
+  durationDays: '30',
+  freeShipping: false,
+  shippingDiscountAmount: '0',
+};
 
 export default function SubscriptionPanel({ admin = false }: { admin?: boolean }) {
   const remote = useRemote<Plan[]>(admin ? '/admin/subscriptions' : '/subscriptions/plans');
@@ -52,8 +63,11 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
     e.preventDefault();
     const payload = {
       ...form,
-      price: Number(form.price),
-      requiredPoints: Number(form.requiredPoints),
+      price: Number(form.price) || 0,
+      requiredPoints: Number(form.requiredPoints) || 0,
+      durationDays: Number(form.durationDays) || 30,
+      freeShipping: Boolean(form.freeShipping),
+      shippingDiscountAmount: Number(form.shippingDiscountAmount) || 0,
     };
     if (await action.run(() => send(`/admin/subscriptions/customer${editing ? '/' + editing : ''}`, payload, editing ? 'put' : 'post'))) {
       setOpen(false);
@@ -220,7 +234,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">Quyền lợi &amp; Ưu đãi *</label>
+              <label className="font-bold text-slate-300">Quyền lợi &amp; Mô tả ưu đãi *</label>
               <textarea
                 className={field}
                 required
@@ -229,6 +243,33 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                 onChange={(e) => setForm({ ...form, benefits: e.target.value })}
                 placeholder="Giảm 15% cho mọi đơn in thước, miễn phí giao hàng KTX, ưu tiên máy in..."
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300">Giá gói (VND)</label>
+                <input
+                  className={field}
+                  type="number"
+                  min={0}
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  placeholder="VD: 0 hoặc 50000"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300">Thời hạn sử dụng (ngày) *</label>
+                <input
+                  className={field}
+                  required
+                  type="number"
+                  min={1}
+                  value={form.durationDays}
+                  onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
+                  placeholder="VD: 30"
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -242,6 +283,34 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                 onChange={(e) => setForm({ ...form, requiredPoints: e.target.value })}
                 placeholder="VD: 100"
               />
+            </div>
+
+            {/* Quyền lợi vận chuyển cấu hình trực tiếp (R2-04 / SUB-01) */}
+            <div className="p-3 rounded-xl bg-surface-inset border border-border/60 space-y-2.5">
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={form.freeShipping}
+                  onChange={(e) => setForm({ ...form, freeShipping: e.target.checked })}
+                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 bg-surface border-border"
+                />
+                <span>Ưu đãi Miễn phí vận chuyển (Free Shipping toàn sàn)</span>
+              </label>
+
+              {!form.freeShipping && (
+                <div className="space-y-1.5 pt-1">
+                  <label className="font-semibold text-slate-400">Mức giảm phí ship tối đa (VND)</label>
+                  <input
+                    className={field}
+                    type="number"
+                    min={0}
+                    value={form.shippingDiscountAmount}
+                    onChange={(e) => setForm({ ...form, shippingDiscountAmount: e.target.value })}
+                    placeholder="VD: 15000"
+                  />
+                  <p className="text-[11px] text-text-muted">Nếu không miễn phí hoàn toàn, đơn hàng sẽ được trừ khoản này từ phí ship gốc.</p>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border shrink-0">
@@ -278,8 +347,24 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                   )}
                 </h3>
                 <span className="inline-block mt-1 font-mono font-bold text-sm text-[#39FF14]">
-                  {p.requiredPoints || 0} điểm · 30 ngày sử dụng
+                  {p.requiredPoints || 0} điểm · {p.durationDays || 30} ngày sử dụng
                 </span>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {p.freeShipping ? (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      Miễn phí Ship
+                    </span>
+                  ) : (p.shippingDiscountAmount ?? 0) > 0 ? (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                      Giảm ship {Number(p.shippingDiscountAmount).toLocaleString('vi-VN')} đ
+                    </span>
+                  ) : null}
+                  {p.price > 0 && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      {p.price.toLocaleString('vi-VN')} đ
+                    </span>
+                  )}
+                </div>
               </div>
 
               <span className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
@@ -301,9 +386,12 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                       setEditing(p.id);
                       setForm({
                         name: p.name,
-                        price: String(p.price),
+                        price: String(p.price || 0),
                         benefits: p.benefits,
                         requiredPoints: String(p.requiredPoints || 0),
+                        durationDays: String(p.durationDays || 30),
+                        freeShipping: Boolean(p.freeShipping),
+                        shippingDiscountAmount: String(p.shippingDiscountAmount || 0),
                       });
                       setOpen(true);
                     }}

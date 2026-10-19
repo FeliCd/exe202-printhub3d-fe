@@ -76,8 +76,9 @@ export default function PaymentResultPage() {
     return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} - ${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }, []);
 
-  const displayAmount = remote.data?.amount ?? 8000;
-  const rewardPoints = Math.max(8, Math.floor(displayAmount / 1000));
+  const displayAmount = remote.data?.amount ?? 0;
+  // Quy tắc chuẩn hệ thống: 10.000đ = 1 xu thưởng, chỉ ghi nhận sau khi đơn hàng giao thành công
+  const rewardPoints = Math.floor(displayAmount / 10000);
   const transactionCode = code ? `#ORD-${code}` : '#ORD-88492015';
   const customerName = user?.name || user?.email || 'Lê Quốc Khánh';
 
@@ -329,10 +330,10 @@ export default function PaymentResultPage() {
 
                   {/* Điểm thưởng tích lũy */}
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Điểm thưởng tích lũy:</span>
+                    <span className="text-neutral-400">Điểm thưởng dự kiến:</span>
                     <span className="font-bold text-amber-400 flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span>+{rewardPoints} xu PrintHub (Đã cộng vào ví)</span>
+                      <span>+{rewardPoints} xu PrintHub (Cộng sau khi giao thành công)</span>
                     </span>
                   </div>
                 </div>

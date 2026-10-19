@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { ShippingAddress } from '../features/address/data';
 import type { useCart } from '../features/cart/hooks/useCart';
 import { useAuth } from '../context/AuthContext';
-import { send } from '../services/api';
-import { useAction } from '../hooks/useRemote';
+import { send, read } from '../services/api';
+import { payOrder } from '../services/paymentService';
+import { useRemote, useAction } from '../hooks/useRemote';
 import { PageHeader, Card, Notice, Status, button, secondary, CopyButton } from '../components/DataUI';
 import { money } from '../utils/format';
 import Modal from '../components/Modal';
@@ -46,14 +47,20 @@ interface CheckoutOrderDTO {
 }
 
 export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal }: Props) {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [method, setMethod] = useState<'COD' | 'PAYOS'>('PAYOS');
   const [shippingMode, setShippingMode] = useState<'COMMON' | 'SEPARATE'>('COMMON');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [createdCheckoutOrder, setCreatedCheckoutOrder] = useState<CheckoutOrderDTO | null>(null);
   const [confirmOrder, setConfirmOrder] = useState<{ id: string; totalAmount: number; checkoutUrl?: string } | null>(null);
+  const [checkoutIdempotencyKey, setCheckoutIdempotencyKey] = useState<string>(() => crypto.randomUUID());
   const action = useAction();
+
+  // Đổi key khi thay đổi phương thức hoặc danh sách chọn
+  useEffect(() => {
+    setCheckoutIdempotencyKey(crypto.randomUUID());
+  }, [shippingMode, method, a.id]);
 
   // Tự động tick chọn tất cả các món khi giỏ hàng tải xong
   useEffect(() => {
@@ -81,6 +88,12 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
     () => customItems.filter(item => selectedIds.has(item.clientLineId || item.id)),
     [customItems, selectedIds]
   );
+
+  useEffect(() => {
+    if (selectedCustomItems.length > 0 && shippingMode === 'COMMON' && method === 'COD') {
+      setMethod('PAYOS');
+    }
+  }, [selectedCustomItems.length, shippingMode, method]);
 
   const selectedCount = selectedMarketplaceItems.length + selectedCustomItems.length;
   const isAllSelected = cart.items.length > 0 && selectedCount === cart.items.length;
@@ -130,7 +143,29 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
     0
   );
 
-  const shippingFee = selectedCount > 0 ? 30000 : 0;
+  const [configuredShippingFee, setConfiguredShippingFee] = useState<number>(15000);
+
+  useEffect(() => {
+    read<Record<string, string>>('/settings/public')
+      .then((res: Record<string, string>) => {
+        if (res?.shippingFee && Number(res.shippingFee) >= 0) {
+          setConfiguredShippingFee(Number(res.shippingFee));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const membership = useRemote<{ subscriptions?: { name?: string; planName?: string }[] }>(
+    isAuthenticated ? '/subscriptions/me' : null
+  );
+  const isVip = user?.role === 'ADMIN' || (membership.data?.subscriptions?.some(s => {
+    const n = (s.planName || s.name || '').toUpperCase();
+    return n.includes('VIP') || n.includes('PRO');
+  }) ?? false);
+
+  const baseShippingFee = selectedCount > 0 ? configuredShippingFee : 0;
+  const shippingFee = isVip ? 0 : baseShippingFee;
+
   // Tính đủ cả sản phẩm có sẵn lẫn thước custom đã có giá tính sẵn
   const totalSubtotal = marketplaceSubtotal + customEstimatedSubtotal;
   const totalAmount = totalSubtotal + shippingFee;
@@ -153,7 +188,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
       const fullAddress = `${a.recipientName} - ${a.phone} - ${a.addressLine}, ${a.province}`;
 
-      // Gọi API tạo đơn thanh toán cha (CheckoutOrder)
+      // Gọi API tạo đơn thanh toán cha (CheckoutOrder) kèm idempotencyKey chống đặt đơn lặp (Task 2.1)
       const res = await send<CheckoutOrderDTO>('/checkout-orders', {
         selectedLineIds: Array.from(selectedIds),
         shippingMode,
@@ -161,21 +196,29 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
         recipientName: a.recipientName,
         recipientPhone: a.phone,
         paymentMethod: method,
+        idempotencyKey: checkoutIdempotencyKey,
       });
 
       setCreatedCheckoutOrder(res);
 
-      if (res.paymentLinkUrl && method === 'PAYOS') {
-        setConfirmOrder({
-          id: res.id,
-          totalAmount: res.totalAmount || totalAmount,
-          checkoutUrl: res.paymentLinkUrl,
-        });
+      // Nếu chọn PayOS và đơn có thể thanh toán ngay (không vướng custom chờ báo giá) (Task 1.1)
+      if (method === 'PAYOS' && res.status !== 'PENDING_QUOTE') {
+        try {
+          const paymentUrl = await payOrder(res.id, 'CHECKOUT_ORDER', 'ALL', false);
+          setConfirmOrder({
+            id: res.id,
+            totalAmount: res.totalAmount || totalAmount,
+            checkoutUrl: paymentUrl,
+          });
+        } catch (err: any) {
+          console.warn('Lỗi lấy link PayOS sau tạo đơn:', err);
+        }
       }
 
       // Xóa các món đã chọn khỏi state local (backend đã xóa trong DB khi tạo checkout-order)
       cart.removeLocalItems(Array.from(selectedIds));
       setSelectedIds(new Set());
+      setCheckoutIdempotencyKey(crypto.randomUUID());
     });
 
   return (
@@ -320,7 +363,10 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
           </div>
 
           <div className="flex flex-wrap gap-3 pt-2">
-            <Link className={`${button} flex items-center gap-1.5`} to="/orders">
+            <Link className={`${button} flex items-center gap-1.5`} to={`/checkout/${createdCheckoutOrder.id}`}>
+              <CreditCard className="h-4 w-4" /> Chi tiết đơn thanh toán & Đợt giao <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link className={`${secondary} flex items-center gap-1.5`} to="/orders">
               <ShoppingBag className="h-4 w-4" /> Quản lý danh sách đơn hàng
             </Link>
             <Link className={`${secondary} flex items-center gap-1.5`} to="/quotations">
@@ -552,18 +598,28 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                         />
                         <span>Thanh toán trực tuyến VietQR (PayOS)</span>
                       </label>
-                      <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
+                      <label className={`flex items-center gap-2.5 text-xs font-medium ${(selectedCustomItems.length > 0 && shippingMode === 'COMMON') ? 'text-slate-500 cursor-not-allowed' : 'text-slate-200 cursor-pointer'}`}>
                         <input
                           type="radio"
                           name="payment-method"
-                          disabled={action.busy}
+                          disabled={action.busy || (selectedCustomItems.length > 0 && shippingMode === 'COMMON')}
                           className="accent-primary"
                           checked={method === 'COD'}
                           onChange={() => setMethod('COD')}
                         />
-                        <span>Thanh toán khi nhận hàng (COD)</span>
+                        <span>Thanh toán khi nhận hàng (COD) {selectedCustomItems.length > 0 && (shippingMode === 'COMMON' ? '(Không hỗ trợ cho đơn giao chung có món custom)' : '(Áp dụng cho nhóm hàng có sẵn)')}</span>
                       </label>
                     </div>
+                    {selectedCustomItems.length > 0 && shippingMode === 'COMMON' && (
+                      <p className="text-[11px] text-amber-400/90 mt-2 flex items-center gap-1.5">
+                        <span>⚠️ Đơn hàng giao chung (COMMON) có món in 3D Custom bắt buộc thanh toán trực tuyến qua PayOS.</span>
+                      </p>
+                    )}
+                    {selectedCustomItems.length > 0 && shippingMode === 'SEPARATE' && (
+                      <p className="text-[11px] text-sky-400/90 mt-2 flex items-center gap-1.5">
+                        <span>ℹ️ Chế độ Giao riêng (SEPARATE): Nhóm hàng có sẵn có thể thanh toán COD hoặc PayOS; nhóm Custom thanh toán qua PayOS sau khi chốt giá.</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* BẢNG TÍNH TIỀN TẠM TÍNH */}
@@ -586,7 +642,13 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
                     <div className="flex justify-between text-slate-300">
                       <span>Phí vận chuyển dự kiến:</span>
-                      <span className="font-mono">{money(shippingFee)}</span>
+                      <span className="font-mono">
+                        {isVip && selectedCount > 0 ? (
+                          <span className="text-emerald-400 font-semibold">0đ (Miễn phí VIP)</span>
+                        ) : (
+                          money(shippingFee)
+                        )}
+                      </span>
                     </div>
 
                     <div className="flex justify-between items-center pt-2 border-t border-border/60 text-sm">

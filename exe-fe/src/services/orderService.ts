@@ -30,6 +30,7 @@ export interface OrderDTO {
   paymentMethod: string;
   paymentStatus: string;
   orderCode?: string;
+  checkoutOrderId?: string;
   items: OrderItemDTO[];
   shippingInfo?: ShippingInfoDTO;
 }
@@ -41,6 +42,7 @@ export const orderService = {
   createOrder: (data: unknown) => send<OrderDTO[]>('/orders', data),
   updateOrderStatus: (id: string, status: string) => send(`/orders/${id}/status`, { status }, 'put'),
   completeRewards: (id: string) => send(`/orders/${id}/complete-rewards`, undefined, 'post'),
+  confirmCodPayment: (id: string) => send(`/orders/${id}/confirm-cod`, undefined, 'post'),
 };
 
 export default orderService;

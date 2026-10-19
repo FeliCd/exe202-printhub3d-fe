@@ -34,6 +34,7 @@ export default function AdminCustomOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<CustomOrderItem | null>(null);
   const [priceInput, setPriceInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [jsonModalData, setJsonModalData] = useState<string | null>(null);
 
   const fetchCustomOrders = async () => {
     setLoading(true);
@@ -256,9 +257,99 @@ export default function AdminCustomOrdersPage() {
                 </div>
 
                 {o.requirements && (
-                  <div className="p-3 rounded-xl bg-surface-inset text-slate-300 text-xs space-y-1">
-                    <span className="font-bold text-slate-400">Yêu cầu gia công từ khách:</span>
-                    <p>{o.requirements}</p>
+                  <div className="p-3.5 rounded-xl bg-surface-inset text-slate-300 text-xs space-y-1.5 border border-border/50">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-400 block text-xs">Yêu cầu gia công từ khách:</span>
+                      {(() => {
+                        try {
+                          const parsed = JSON.parse(o.requirements);
+                          if (typeof parsed === 'object' && parsed !== null) {
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => setJsonModalData(JSON.stringify(parsed, null, 2))}
+                                className="text-[11px] text-purple-400 hover:text-purple-300 font-semibold underline cursor-pointer"
+                              >
+                                Xem JSON gốc
+                              </button>
+                            );
+                          }
+                        } catch {
+                          // ignore
+                        }
+                        return null;
+                      })()}
+                    </div>
+                    {(() => {
+                      try {
+                        const parsed = JSON.parse(o.requirements);
+                        if (typeof parsed === 'object' && parsed !== null) {
+                          const tagText = parsed.tag?.text || parsed.text;
+                          const fontStyle = parsed.font || parsed.fontStyle;
+                          return (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                              {parsed.material && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Vật liệu:</span>
+                                  <span className="font-semibold text-white">{parsed.material}</span>
+                                </div>
+                              )}
+                              {parsed.color && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Màu sắc:</span>
+                                  <span className="font-semibold text-white">{parsed.color}</span>
+                                </div>
+                              )}
+                              {parsed.infill && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Độ đặc (Infill):</span>
+                                  <span className="font-semibold text-white">{parsed.infill}</span>
+                                </div>
+                              )}
+                              {parsed.resolution && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Độ mịn lớp:</span>
+                                  <span className="font-semibold text-white">{parsed.resolution}</span>
+                                </div>
+                              )}
+                              {parsed.length && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Chiều dài:</span>
+                                  <span className="font-semibold text-white">{parsed.length} cm</span>
+                                </div>
+                              )}
+                              {tagText && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Chữ/Tag khắc:</span>
+                                  <span className="font-semibold text-purple-300">{tagText}</span>
+                                </div>
+                              )}
+                              {fontStyle && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Font chữ:</span>
+                                  <span className="font-semibold text-white">{fontStyle}</span>
+                                </div>
+                              )}
+                              {parsed.stickers && Array.isArray(parsed.stickers) && parsed.stickers.length > 0 && (
+                                <div className="bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Icon/Sticker:</span>
+                                  <span className="font-semibold text-white">{parsed.stickers.length} sticker</span>
+                                </div>
+                              )}
+                              {parsed.notes && (
+                                <div className="col-span-full bg-surface p-2 rounded-lg border border-border/60">
+                                  <span className="text-slate-400 block text-[10px]">Ghi chú:</span>
+                                  <span className="text-slate-200">{parsed.notes}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                      } catch {
+                        // Plain text fallback
+                      }
+                      return <p className="leading-relaxed">{o.requirements}</p>;
+                    })()}
                   </div>
                 )}
 
@@ -283,17 +374,23 @@ export default function AdminCustomOrdersPage() {
                         {formatPrice(o.quotedPrice)}đ
                       </span>
                     )}
-                    <button
-                      onClick={() => openQuoteModal(o)}
-                      className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition ${
-                        isAccepted
-                          ? 'bg-surface-inset border border-border text-slate-400 hover:text-white'
-                          : 'bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-900/40'
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{o.quotedPrice ? 'Sửa Báo Giá' : 'Gửi Báo Giá Ngay'}</span>
-                    </button>
+                    {['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED', 'CANCELLED'].includes(o.status) ? (
+                      <span className="px-3.5 py-1.5 rounded-xl bg-surface-inset border border-border text-slate-500 text-xs font-semibold">
+                        Đã khóa báo giá ({o.status})
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => openQuoteModal(o)}
+                        className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition ${
+                          isAccepted
+                            ? 'bg-surface-inset border border-border text-slate-400 hover:text-white'
+                            : 'bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-900/40'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>{o.quotedPrice ? 'Sửa Báo Giá' : 'Gửi Báo Giá Ngay'}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -329,7 +426,7 @@ export default function AdminCustomOrdersPage() {
 
             <form onSubmit={handleSendQuote} className="space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-300">Nhập giá báo cho khách (VNĐ) *</label>
+                <label className="font-bold text-slate-300">Đơn giá cho 1 sản phẩm (VNĐ) *</label>
                 <input
                   required
                   type="number"
@@ -341,9 +438,28 @@ export default function AdminCustomOrdersPage() {
                   className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-purple-400 font-mono text-sm"
                 />
                 <span className="text-xs text-text-muted block">
-                  Giá này bao gồm công in 3D, vật liệu nhựa và phí hoàn thiện khắc laser.
+                  Giá này bao gồm công in 3D, vật liệu nhựa và phí hoàn thiện khắc laser cho 1 sản phẩm.
                 </span>
               </div>
+
+              {priceInput && Number(priceInput) > 0 && (
+                <div className="p-3 rounded-xl bg-surface border border-purple-500/30 text-xs space-y-1">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Đơn giá:</span>
+                    <span className="font-mono">{formatPrice(Number(priceInput))}đ</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Số lượng:</span>
+                    <span>× {selectedOrder.quantity || 1}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-white border-t border-border/60 pt-1 mt-1">
+                    <span>Tổng tiền khách phải trả:</span>
+                    <span className="font-mono text-emerald-400 text-sm">
+                      {formatPrice(Number(priceInput) * (selectedOrder.quantity || 1))}đ
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-border shrink-0">
                 <button
@@ -365,6 +481,26 @@ export default function AdminCustomOrdersPage() {
             </form>
           </div>
         )}
+      </Modal>
+
+      {/* Raw JSON Modal */}
+      <Modal open={!!jsonModalData} onClose={() => setJsonModalData(null)} label="Dữ liệu thiết kế 3D gốc">
+        <div className="w-full max-w-lg bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-3">
+          <div className="flex items-center justify-between border-b border-border pb-2.5">
+            <h3 className="text-sm font-bold text-white">Dữ liệu thiết kế 3D gốc (JSON)</h3>
+            <button
+              type="button"
+              onClick={() => setJsonModalData(null)}
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-surface-inset"
+              aria-label="Đóng cửa sổ"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <pre className="p-3 bg-surface-inset rounded-xl font-mono text-xs text-slate-200 overflow-x-auto max-h-80 border border-border/50 whitespace-pre-wrap break-words">
+            {jsonModalData}
+          </pre>
+        </div>
       </Modal>
     </div>
   );

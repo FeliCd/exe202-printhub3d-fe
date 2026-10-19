@@ -657,7 +657,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
         {filteredOrders.map(c => {
           const req = parseOrderRequirements(c.requirements, c);
           const ship = parseShippingAddress(c.shippingAddress, c.buyerName);
-          const orderMethod = method[c.id] || c.paymentMethod || 'PAYOS';
+          const orderMethod = 'PAYOS';
 
           return (
             <div
@@ -949,13 +949,32 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                   <div className="rounded-2xl border-2 border-primary/60 bg-gradient-to-r from-primary/10 via-surface-inset to-primary/10 p-4 sm:p-5 shadow-lg shadow-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/40"> {tr("Báo giá trọn gói")} </span>
-                        <span className="text-xs text-slate-400">{tr("Cho")} {c.quantity || 1} {tr("sản phẩm hoàn thiện")}</span>
-                      </div>
-                      <div className="flex items-baseline gap-2 pt-1">
-                        <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary font-mono tracking-tight">
-                          {money(c.quotedPrice || 0)}
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/40">
+                          {c.priceVersion && c.priceVersion >= 2 ? tr("Đơn giá gia công") : tr("Báo giá trọn gói")}
                         </span>
+                        <span className="text-xs text-slate-400">
+                          {tr("Số lượng:")} {c.quantity || 1} {tr("sản phẩm")}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 pt-1">
+                        {c.priceVersion && c.priceVersion >= 2 ? (
+                          <div>
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary font-mono tracking-tight">
+                                {money((c.quotedPrice || 0) * (c.quantity || 1))}
+                              </span>
+                              <span className="text-xs text-slate-400 font-normal">
+                                (Đơn giá: {money(c.quotedPrice || 0)} / chiếc)
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary font-mono tracking-tight">
+                              {money(c.quotedPrice || 0)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <p className="text-xs text-slate-300"> {tr("Đã bao gồm: Vật liệu sợi in PLA Pro+, gia công in FDM độ chính xác cao và khắc laser tên/MSSV.")} </p>
                     </div>
@@ -970,7 +989,6 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                             onChange={e => setMethod({ ...method, [c.id]: e.target.value })}
                           >
                             <option value="PAYOS" className="bg-[#18191d] text-white"> {tr("Thanh toán PayOS (VietQR)")} </option>
-                            <option value="COD" className="bg-[#18191d] text-white"> {tr("Thanh toán khi nhận (COD)")} </option>
                           </select>
                         </div>
 
@@ -1021,7 +1039,18 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                       </div>
                       <div>
                         <h4 className="text-sm font-bold text-white"> {tr("Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS")} </h4>
-                        <p className="text-xs text-slate-300 mt-0.5"> {tr("Số tiền:")} <strong className="text-primary font-mono">{money(c.quotedPrice || 0)}</strong>{tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")} </p>
+                        <p className="text-xs text-slate-300 mt-0.5">
+                          {tr("Số tiền thanh toán:")}{" "}
+                          <strong className="text-primary font-mono">
+                            {money((c.quotedPrice || 0) * (c.quantity || 1))}
+                          </strong>
+                          {(c.quantity || 1) > 1 && (
+                            <span className="text-slate-400 ml-1">
+                              ({tr("Đơn giá:")} {money(c.quotedPrice || 0)} / {tr("chiếc")} × {c.quantity})
+                            </span>
+                          )}
+                          {tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")}
+                        </p>
                       </div>
                     </div>
 

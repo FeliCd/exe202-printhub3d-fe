@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { send, errorText } from '../services/api';
-import { payOrder } from '../services/paymentService';
 import { formatPrice } from '../utils/format';
 import Modal from '../components/Modal';
 import type { ShippingAddress } from '../features/address/data';
@@ -12,7 +11,6 @@ import {
   Layers,
   Sparkles,
   CreditCard,
-  Truck,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
@@ -131,7 +129,7 @@ export default function CustomOrderCheckoutPage({
   const [notes, setNotes] = useState<string>('');
 
   // Step 4: Payment
-  const [paymentMethod, setPaymentMethod] = useState<'PAYOS' | 'COD'>('PAYOS');
+  const paymentMethod: 'PAYOS' = 'PAYOS';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [showPayOSConfirmModal, setShowPayOSConfirmModal] = useState(false);
@@ -190,7 +188,7 @@ export default function CustomOrderCheckoutPage({
         .join('; ');
 
       // Post custom order to backend
-      const res = await send<any>('/custom-orders', {
+      await send<any>('/custom-orders', {
         attachmentUrl: orderConfig.attachmentUrl,
         quantity,
         shippingAddress: fullShippingAddress,
@@ -203,25 +201,10 @@ export default function CustomOrderCheckoutPage({
         paymentMethod,
       });
 
-      const createdOrder = res?.data?.result || res?.data || res?.result || res;
-      const orderId = createdOrder?.id;
-
       // Clean up session storage
       sessionStorage.removeItem('printhub_custom_ruler_order');
 
-      // If PAYOS and orderId exists, trigger payOrder directly or redirect
-      if (paymentMethod === 'PAYOS' && orderId) {
-        try {
-          await payOrder(orderId, 'CUSTOM_ORDER');
-          return;
-        } catch (paymentErr) {
-          console.warn('Chưa mở được PayOS trực tiếp, chuyển hướng về /quotations:', paymentErr);
-          navigate('/quotations?status=PENDING_PAYMENT');
-          return;
-        }
-      }
-
-      // If COD or other, navigate to quotations list
+      // Đơn custom khởi tạo ở trạng thái REQUESTED, chuyển hướng về trang báo giá để admin thẩm định & khách duyệt thanh toán
       navigate('/quotations?created=true');
     } catch (err) {
       setSubmitError(errorText(err));
@@ -722,53 +705,25 @@ export default function CustomOrderCheckoutPage({
             {/* Payment Method Radio Cards */}
             <div className="space-y-3">
               <label className="text-xs font-bold text-slate-300 block">Hình thức thanh toán:</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {/* PayOS Option */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('PAYOS')}
-                  className={`p-4 rounded-xl border text-left space-y-2 transition relative ${
-                    paymentMethod === 'PAYOS'
-                      ? 'border-primary bg-primary/10 text-white ring-2 ring-primary/20 shadow-lg shadow-primary/10'
-                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
-                  }`}
+                <div
+                  className="p-4 rounded-xl border border-primary bg-primary/10 text-white ring-2 ring-primary/20 shadow-lg shadow-primary/10 relative"
                 >
                   <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-primary/12 border border-primary/50 text-[10px] font-bold text-primary">
-                    Khuyên dùng
+                    Bắt buộc cho in Custom
                   </span>
                   <div className="flex items-center gap-2.5">
                     <CreditCard className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="font-bold text-sm">Cổng PayOS (VietQR)</p>
-                      <p className="text-[11px] text-slate-400">Quét mã QR chuyển khoản tự động 100%</p>
+                      <p className="font-bold text-sm">Cổng PayOS (VietQR) — Thanh toán trực tuyến</p>
+                      <p className="text-[11px] text-slate-400">Quét mã QR chuyển khoản tự động 24/7</p>
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-400 pt-1">
-                    ⚡ Xưởng tự động nhận lệnh và lên máy in 3D ngay sau khi quét mã thành công.
+                  <p className="text-[11px] text-slate-300 pt-2 leading-relaxed">
+                    🛡️ Theo quy định hệ thống, tất cả sản phẩm in 3D theo yêu cầu (Custom) bắt buộc thanh toán trực tuyến qua PayOS sau khi admin duyệt báo giá để xưởng lập trình máy in. Không áp dụng hình thức COD.
                   </p>
-                </button>
-
-                {/* COD Option */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('COD')}
-                  className={`p-4 rounded-xl border text-left space-y-2 transition ${
-                    paymentMethod === 'COD'
-                      ? 'border-primary bg-primary/10 text-white ring-2 ring-primary/20'
-                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Truck className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-bold text-sm">Thanh toán khi nhận hàng (COD)</p>
-                      <p className="text-[11px] text-slate-400">Nhận thước, kiểm tra rồi thanh toán tiền mặt</p>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-400 pt-1">
-                    📦 Nhân viên bưu tá giao hàng tận nơi thu tiền trực tiếp.
-                  </p>
-                </button>
+                </div>
               </div>
             </div>
 
