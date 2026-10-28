@@ -110,12 +110,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/ruler-3d" className="text-slate-300 hover:text-[#39FF14] transition flex items-center justify-between group">
-                  <span>Công Cụ Thước Đo 3D</span>
-                  <span className="text-[10px] text-text-muted group-hover:text-[#39FF14]">Trực quan &rarr;</span>
-                </Link>
-              </li>
-              <li>
                 <Link to="/custom" className="text-[#39FF14] font-bold hover:underline flex items-center gap-1.5 pt-1">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Tự Custom Thước 3D (Xem 3D ngay)</span>

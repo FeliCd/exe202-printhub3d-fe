@@ -217,72 +217,72 @@ function renderStatusBadge(status?: string, tr: (text: string) => string = text 
     case 'REQUESTED':
     case 'PENDING':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-amber-500/50 bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20 shadow-sm">
-          <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#ff9100]/40 bg-[#ff9100]/10 text-[#ff9100] whitespace-nowrap shrink-0 shadow-sm">
+          <Clock className="w-3.5 h-3.5 animate-pulse text-[#ff9100]" />
           <span>{tr("Chờ báo giá")}</span>
         </span>
       );
     case 'QUOTED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/60 bg-primary/20 text-primary ring-1 ring-primary/40 shadow-sm animate-pulse">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#39FF14]/60 bg-[#39FF14]/15 text-[#39FF14] ring-1 ring-[#39FF14]/30 whitespace-nowrap shrink-0 shadow-sm animate-pulse">
+          <Sparkles className="w-3.5 h-3.5 text-[#39FF14]" />
           <span>{tr("Đã có báo giá")}</span>
         </span>
       );
     case 'ACCEPTED':
     case 'APPROVED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/50 bg-primary/15 text-primary ring-1 ring-primary/20 shadow-sm">
-          <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#39FF14]/40 bg-[#39FF14]/10 text-[#39FF14] whitespace-nowrap shrink-0 shadow-sm">
+          <CheckCircle2 className="w-3.5 h-3.5 text-[#39FF14]" />
           <span>{tr("Đã chấp nhận")}</span>
         </span>
       );
     case 'PAID':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/50 bg-primary/15 text-primary shadow-sm">
-          <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#39FF14]/50 bg-[#39FF14]/15 text-[#39FF14] whitespace-nowrap shrink-0 shadow-sm">
+          <CheckCircle2 className="w-3.5 h-3.5 text-[#39FF14]" />
           <span>{tr("Đã thanh toán")}</span>
         </span>
       );
     case 'PREPARING':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/50 bg-indigo-500/15 text-indigo-300 shadow-sm">
-          <Box className="w-3.5 h-3.5 text-indigo-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#00e5ff]/50 bg-[#00e5ff]/10 text-[#00e5ff] whitespace-nowrap shrink-0 shadow-sm">
+          <Box className="w-3.5 h-3.5 text-[#00e5ff]" />
           <span>{tr("Chuẩn bị phôi in")}</span>
         </span>
       );
     case 'PRINTING':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-purple-500/60 bg-purple-500/20 text-purple-300 ring-1 ring-purple-500/40 shadow-sm">
-          <Printer className="w-3.5 h-3.5 text-purple-400 animate-bounce" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#00e5ff]/60 bg-[#00e5ff]/15 text-[#00e5ff] ring-1 ring-[#00e5ff]/30 whitespace-nowrap shrink-0 shadow-sm">
+          <Printer className="w-3.5 h-3.5 text-[#00e5ff] animate-bounce" />
           <span>{tr("Đang in 3D")}</span>
         </span>
       );
     case 'SHIPPING':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-blue-500/50 bg-blue-500/15 text-blue-300 shadow-sm">
-          <Truck className="w-3.5 h-3.5 text-blue-400" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#00e5ff]/40 bg-[#00e5ff]/10 text-[#00e5ff] whitespace-nowrap shrink-0 shadow-sm">
+          <Truck className="w-3.5 h-3.5 text-[#00e5ff]" />
           <span>{tr("Đang giao hàng")}</span>
         </span>
       );
     case 'COMPLETED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-primary/60 bg-primary/20 text-primary shadow-sm">
-          <Check className="w-3.5 h-3.5 text-primary" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#39FF14]/60 bg-[#39FF14]/15 text-[#39FF14] whitespace-nowrap shrink-0 shadow-sm">
+          <Check className="w-3.5 h-3.5 text-[#39FF14]" />
           <span>{tr("Hoàn thành")}</span>
         </span>
       );
     case 'CANCELLED':
     case 'REJECTED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-rose-500/50 bg-rose-500/10 text-rose-400 shadow-sm">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-rose-500/50 bg-rose-500/10 text-rose-400 whitespace-nowrap shrink-0 shadow-sm">
           <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
           <span>{tr("Đã hủy")}</span>
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-slate-700 bg-slate-800 text-slate-300">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium border border-white/10 bg-[#0a0c12] text-slate-300 whitespace-nowrap shrink-0">
           <span>{status}</span>
         </span>
       );
@@ -585,10 +585,10 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full min-w-0 max-w-full">
           {[
             { key: 'ALL', label: 'Tất cả', count: counts.ALL },
-            { key: 'REQUESTED', label: 'Chờ báo giá', count: counts.REQUESTED, color: 'text-amber-400' },
-            { key: 'QUOTED', label: 'Đã báo giá', count: counts.QUOTED, color: 'text-primary' },
-            { key: 'PROCESSING', label: 'Đang sản xuất', count: counts.PROCESSING, color: 'text-purple-400' },
-            { key: 'COMPLETED', label: 'Đã hoàn thành', count: counts.COMPLETED, color: 'text-primary' },
+            { key: 'REQUESTED', label: 'Chờ báo giá', count: counts.REQUESTED, color: 'text-[#ff9100]' },
+            { key: 'QUOTED', label: 'Đã báo giá', count: counts.QUOTED, color: 'text-[#39FF14]' },
+            { key: 'PROCESSING', label: 'Đang sản xuất', count: counts.PROCESSING, color: 'text-[#00e5ff]' },
+            { key: 'COMPLETED', label: 'Đã hoàn thành', count: counts.COMPLETED, color: 'text-[#39FF14]' },
             { key: 'CANCELLED', label: 'Đã hủy', count: counts.CANCELLED, color: 'text-rose-400' },
           ].map(tab => {
             const isActive = activeFilter === tab.key;
@@ -596,16 +596,16 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-primary text-slate-950 shadow-md shadow-primary/20'
-                    : 'border border-border bg-surface hover:border-slate-600 text-slate-400 hover:text-white'
+                    ? 'bg-[#39FF14] text-slate-950 shadow-md shadow-[#39FF14]/20'
+                    : 'border border-white/10 bg-[#0a0c12] hover:border-white/20 text-slate-400 hover:text-white'
                 }`}
               >
                 <span>{tr(tab.label)}</span>
                 <span
                   className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold ${
-                    isActive ? 'bg-black/30 text-slate-950' : 'bg-surface-inset text-slate-300'
+                    isActive ? 'bg-black/30 text-slate-950' : 'bg-[#040508] text-slate-300 border border-white/5'
                   }`}
                 >
                   {tab.count}
@@ -662,44 +662,44 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
           return (
             <div
               key={c.id}
-              className="rounded-3xl border border-border/80 bg-surface hover:border-slate-600 transition-all duration-300 shadow-xl overflow-hidden relative group"
+              className="rounded-3xl border border-white/10 bg-[#0a0c12] hover:border-[#39FF14]/40 transition-all duration-300 shadow-xl overflow-hidden relative group"
             >
               {/* Subtle neon gradient top accent line */}
-              <div className="h-1 w-full bg-gradient-to-r from-primary via-primary to-purple-500 opacity-70 group-hover:opacity-100 transition" />
+              <div className="h-[2px] w-full bg-gradient-to-r from-[#39FF14] via-[#00e5ff] to-[#ff9100] opacity-70 group-hover:opacity-100 transition" />
 
               <div className="p-5 sm:p-7 space-y-6">
                 {/* ------------------------------------------------------------- */}
                 {/* A. CARD HEADER: Order ID, Model Name, Time, Status Pill        */}
                 {/* ------------------------------------------------------------- */}
-                <div className="flex flex-wrap items-start justify-between gap-4 pb-5 border-b border-border/70">
+                <div className="flex flex-wrap items-start justify-between gap-4 pb-5 border-b border-white/10">
                   <div className="space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="p-1.5 rounded-xl bg-primary/20 border border-primary/40 text-primary">
+                      <span className="p-1.5 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/30 text-[#39FF14] shrink-0">
                         <Ruler className="w-4 h-4" />
                       </span>
                       <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
                         {req.modelName}
                       </h2>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-surface-inset border border-border text-xs font-mono font-bold text-primary"> {tr("Số lượng: x")}{c.quantity || 1} {tr("cây")} </span>
+                      <span className="px-2.5 py-0.5 rounded-lg bg-[#040508] border border-white/10 text-xs font-mono font-bold text-[#39FF14] whitespace-nowrap shrink-0"> {tr("Số lượng: x")}{c.quantity || 1} {tr("cây")} </span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
                       <button
                         onClick={() => copyToClipboard(c.id)}
-                        className="inline-flex items-center gap-1.5 font-mono text-slate-300 hover:text-white bg-surface-inset px-2.5 py-1 rounded-lg border border-border/60 transition"
+                        className="inline-flex items-center gap-1.5 font-mono text-slate-300 hover:text-white bg-[#040508] px-2.5 py-1 rounded-lg border border-white/10 transition whitespace-nowrap shrink-0"
                         title={tr("Sao chép mã yêu cầu")}
                       >
                         <span className="text-slate-500">{tr("Mã đơn:")}</span>
                         <span>#{c.id.substring(0, 8)}...</span>
                         {copiedId === c.id ? (
-                          <Check className="w-3 h-3 text-primary" />
+                          <Check className="w-3 h-3 text-[#39FF14]" />
                         ) : (
                           <Copy className="w-3 h-3 opacity-60" />
                         )}
                       </button>
 
                       {c.createdAt && (
-                        <span className="inline-flex items-center gap-1.5 text-slate-400">
+                        <span className="inline-flex items-center gap-1.5 text-slate-400 font-mono text-[11px]">
                           <Clock className="w-3 h-3 text-slate-500" />
                           {formatDate(c.createdAt)}
                         </span>
@@ -707,7 +707,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                       {admin && c.buyerName && (
                         <span className="inline-flex items-center gap-1 text-slate-300 font-semibold">
-                          <User className="w-3 h-3 text-primary" /> {tr("Khách:")} {c.buyerName}
+                          <User className="w-3 h-3 text-[#39FF14]" /> {tr("Khách:")} {c.buyerName}
                         </span>
                       )}
                     </div>
@@ -723,35 +723,35 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                 {/* ------------------------------------------------------------- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                   {/* MODULE 1: IN ẤN & THÔNG SỐ KỸ THUẬT */}
-                  <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl border border-white/10 bg-[#040508]/80 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                        <Layers className="w-4 h-4" /> {tr("Thông Số Kỹ Thuật 3D")} </div>
+                      <div className="flex items-center gap-2 text-[#39FF14] font-bold text-xs uppercase tracking-wider font-mono">
+                        <Layers className="w-4 h-4 text-[#39FF14]" /> {tr("Thông Số Kỹ Thuật 3D")} </div>
 
                       <div className="space-y-2 text-xs">
-                        <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
+                        <div className="flex justify-between items-center pb-1.5 border-b border-white/5">
                           <span className="text-slate-400">{tr("Vật liệu in:")}</span>
                           <span className="font-semibold text-white">{req.material}</span>
                         </div>
 
                         {/* Infill Density Meter */}
-                        <div className="space-y-1 pb-1.5 border-b border-border/40">
+                        <div className="space-y-1 pb-1.5 border-b border-white/5">
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400">{tr("Độ đặc Infill:")}</span>
-                            <span className="font-mono font-bold text-primary">{req.infill}</span>
+                            <span className="font-mono font-bold text-[#39FF14]">{req.infill}</span>
                           </div>
-                          <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                          <div className="h-1.5 w-full rounded-full bg-[#11141e] overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-primary to-primary rounded-full"
+                              className="h-full bg-gradient-to-r from-[#39FF14] to-[#00e5ff] rounded-full"
                               style={{ width: `${Math.min(100, Math.max(15, req.infillNum))}%` }}
                             />
                           </div>
                         </div>
 
                         {req.stickersCount && (
-                          <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
+                          <div className="flex justify-between items-center pb-1.5 border-b border-white/5">
                             <span className="text-slate-400">{tr("Sticker trang trí:")}</span>
-                            <span className="font-bold text-purple-300 truncate max-w-[160px]" title={req.stickersCount}>
+                            <span className="font-bold text-[#00e5ff] truncate max-w-[160px]" title={req.stickersCount}>
                               {req.stickersCount}
                             </span>
                           </div>
@@ -759,7 +759,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400">{tr("Thanh toán dự kiến:")}</span>
-                          <span className="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-border text-[11px]">
+                          <span className="font-mono font-bold text-white bg-[#11141e] px-2 py-0.5 rounded border border-white/10 text-[11px]">
                             {req.preferredPayment}
                           </span>
                         </div>
@@ -778,7 +778,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                             void action.run(() => downloadFile(c.attachmentUrl, `design-${c.id}.stl`));
                           }
                         }}
-                        className="w-full py-2 px-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary transition flex items-center justify-center gap-2 text-xs font-bold cursor-pointer disabled:opacity-50"
+                        className="w-full py-2 px-3 rounded-xl border border-[#00e5ff]/40 bg-[#00e5ff]/10 hover:bg-[#00e5ff]/20 text-[#00e5ff] transition flex items-center justify-center gap-2 text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>{tr("Tải file 3D (.STL)")}</span>
@@ -787,17 +787,17 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                   </div>
 
                   {/* MODULE 2: BẢNG PHỐI MÀU 3 LỚP & KHẮC LASER */}
-                  <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl border border-white/10 bg-[#040508]/80 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
-                        <Palette className="w-4 h-4" /> {tr("Bảng Màu & Khắc Laser")} </div>
+                      <div className="flex items-center gap-2 text-[#00e5ff] font-bold text-xs uppercase tracking-wider font-mono">
+                        <Palette className="w-4 h-4 text-[#00e5ff]" /> {tr("Bảng Màu & Khắc Laser")} </div>
 
                       {/* 3-Layer Color Swatches */}
                       <div className="space-y-1.5">
                         <span className="text-[11px] text-slate-400 font-medium">{tr("Bảng màu 3 lớp:")}</span>
                         <div className="grid grid-cols-3 gap-1.5">
                           {/* Body Color */}
-                          <div className="p-1.5 rounded-lg bg-surface border border-border/80 flex flex-col items-center gap-1 text-center">
+                          <div className="p-1.5 rounded-lg bg-[#0a0c12] border border-white/10 flex flex-col items-center gap-1 text-center">
                             <span
                               className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
                               style={{ backgroundColor: req.bodyColor }}
@@ -809,7 +809,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           </div>
 
                           {/* Plate Color */}
-                          <div className="p-1.5 rounded-lg bg-surface border border-border/80 flex flex-col items-center gap-1 text-center">
+                          <div className="p-1.5 rounded-lg bg-[#0a0c12] border border-white/10 flex flex-col items-center gap-1 text-center">
                             <span
                               className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
                               style={{ backgroundColor: req.plateColor }}
@@ -821,7 +821,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           </div>
 
                           {/* Text Color */}
-                          <div className="p-1.5 rounded-lg bg-surface border border-border/80 flex flex-col items-center gap-1 text-center">
+                          <div className="p-1.5 rounded-lg bg-[#0a0c12] border border-white/10 flex flex-col items-center gap-1 text-center">
                             <span
                               className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
                               style={{ backgroundColor: req.textColor }}
@@ -845,49 +845,49 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                       <div className="space-y-1 pt-1">
                         <span className="text-[11px] text-slate-400 font-medium">{tr("Khắc laser cá nhân hóa:")}</span>
                         {req.engraveName || req.studentId ? (
-                          <div className="p-2.5 rounded-xl border border-amber-500/30 bg-amber-950/20 font-mono text-xs space-y-1">
+                          <div className="p-2.5 rounded-xl border border-[#ff9100]/40 bg-[#ff9100]/10 font-mono text-xs space-y-1">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-amber-300 tracking-wide text-sm">
+                              <span className="font-bold text-[#ff9100] tracking-wide text-sm">
                                 {req.engraveName}
                               </span>
                               {req.studentId && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30"> {tr("MSSV:")} {req.studentId}
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#ff9100]/20 text-amber-200 border border-[#ff9100]/30 whitespace-nowrap shrink-0"> {tr("MSSV:")} {req.studentId}
                                 </span>
                               )}
                             </div>
                             {req.fontName && (
-                              <p className="text-[10px] text-amber-400/70 font-sans"> {tr("Kiểu chữ:")} {req.fontName}
+                              <p className="text-[10px] text-amber-400/80 font-mono"> {tr("Kiểu chữ:")} {req.fontName}
                               </p>
                             )}
                           </div>
                         ) : (
-                          <div className="p-2 rounded-xl border border-border/60 bg-surface text-slate-500 text-xs italic text-center"> {tr("Không yêu cầu khắc laser")} </div>
+                          <div className="p-2 rounded-xl border border-white/10 bg-[#0a0c12] text-slate-500 text-xs italic text-center"> {tr("Không yêu cầu khắc laser")} </div>
                         )}
                       </div>
                     </div>
 
                     {req.notes && (
-                      <div className="pt-2 text-[11px] text-slate-300 italic bg-surface p-2 rounded-lg border border-border/60">
+                      <div className="pt-2 text-[11px] text-slate-300 italic bg-[#0a0c12] p-2 rounded-lg border border-white/10">
                         <strong className="text-slate-400 not-italic">{tr("Ghi chú:")}</strong> {req.notes}
                       </div>
                     )}
                   </div>
 
                   {/* MODULE 3: ĐỊA CHỈ GIAO HÀNG & TIẾN TRÌNH */}
-                  <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/60 space-y-3 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl border border-white/10 bg-[#040508]/80 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                        <MapPin className="w-4 h-4" /> {tr("Địa Chỉ Nhận Hàng")} </div>
+                      <div className="flex items-center gap-2 text-[#39FF14] font-bold text-xs uppercase tracking-wider font-mono">
+                        <MapPin className="w-4 h-4 text-[#39FF14]" /> {tr("Địa Chỉ Nhận Hàng")} </div>
 
                       <div className="space-y-2 text-xs">
-                        <div className="p-3 rounded-xl border border-border/70 bg-surface space-y-1.5">
+                        <div className="p-3 rounded-xl border border-white/10 bg-[#0a0c12] space-y-1.5">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-white text-sm flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-primary" /> {ship.recipient}
+                              <User className="w-3.5 h-3.5 text-[#39FF14]" /> {ship.recipient}
                             </span>
                             {ship.phone && (
-                              <span className="text-slate-300 font-mono bg-surface-inset px-2 py-0.5 rounded border border-border text-[11px] flex items-center gap-1">
-                                <Phone className="w-2.5 h-2.5 text-primary" /> {ship.phone}
+                              <span className="text-slate-300 font-mono bg-[#040508] px-2 py-0.5 rounded border border-white/10 text-[11px] flex items-center gap-1 whitespace-nowrap shrink-0">
+                                <Phone className="w-2.5 h-2.5 text-[#39FF14]" /> {ship.phone}
                               </span>
                             )}
                           </div>
@@ -902,7 +902,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                     {/* Progress Checklist */}
                     <div className="space-y-1 text-[11px] text-slate-400 pt-2">
                       <div className="flex items-center gap-1.5 text-slate-300">
-                        <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#39FF14] shrink-0" />
                         <span>{tr("Chính sách: Miễn phí in lại nếu có lỗi kích thước/gãy vỡ do vận chuyển.")}</span>
                       </div>
                     </div>
@@ -915,13 +915,13 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                 {/* 1. STATUS: REQUESTED (Chờ báo giá) */}
                 {['REQUESTED', 'PENDING'].includes(c.status) && (
-                  <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-surface-inset to-amber-950/20 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="rounded-2xl border border-[#ff9100]/40 bg-gradient-to-r from-[#ff9100]/10 via-[#0a0c12] to-[#ff9100]/5 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+                      <div className="w-10 h-10 rounded-xl bg-[#ff9100]/20 border border-[#ff9100]/40 flex items-center justify-center text-[#ff9100] shrink-0 mt-0.5">
                         <Clock className="w-5 h-5 animate-pulse" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-amber-300"> {tr("Xưởng PrintHub 3D đang phân tích file STL & thẩm định báo giá")} </h4>
+                        <h4 className="text-sm font-bold text-[#ff9100]"> {tr("Xưởng PrintHub 3D đang phân tích file STL & thẩm định báo giá")} </h4>
                         <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed"> {tr("Kỹ thuật viên đang kiểm tra thông số cắt lớp (slicing), độ mịn lớp in 0.16mm và khối lượng nhựa PLA. Báo giá chính xác kèm thời gian bàn giao sẽ xuất hiện tại đây!")} </p>
                       </div>
                     </div>
@@ -937,7 +937,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                             );
                           }
                         }}
-                        className="px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-950/20 hover:bg-rose-900/40 text-rose-300 transition text-xs font-bold flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        className="px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-950/20 hover:bg-rose-900/40 text-rose-300 transition text-xs font-bold flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> {tr("Hủy yêu cầu")} </button>
                     )}
@@ -946,14 +946,14 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                 {/* 2. STATUS: QUOTED (Đã có báo giá từ Admin) */}
                 {c.status === 'QUOTED' && (
-                  <div className="rounded-2xl border-2 border-primary/60 bg-gradient-to-r from-primary/10 via-surface-inset to-primary/10 p-4 sm:p-5 shadow-lg shadow-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                  <div className="rounded-2xl border-2 border-[#39FF14]/60 bg-gradient-to-r from-[#39FF14]/10 via-[#0a0c12] to-[#39FF14]/5 p-4 sm:p-5 shadow-lg shadow-[#39FF14]/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/40"> {tr("Báo giá trọn gói")} </span>
-                        <span className="text-xs text-slate-400">{tr("Cho")} {c.quantity || 1} {tr("sản phẩm hoàn thiện")}</span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono uppercase tracking-wider bg-[#39FF14]/20 text-[#39FF14] border border-[#39FF14]/40 whitespace-nowrap shrink-0"> {tr("Báo giá trọn gói")} </span>
+                        <span className="text-xs text-slate-400 font-mono">{tr("Cho")} {c.quantity || 1} {tr("sản phẩm hoàn thiện")}</span>
                       </div>
                       <div className="flex items-baseline gap-2 pt-1">
-                        <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary font-mono tracking-tight">
+                        <span className="text-3xl sm:text-4xl font-black text-[#39FF14] font-mono tracking-tight drop-shadow-[0_0_15px_rgba(57,255,20,0.3)]">
                           {money(c.quotedPrice || 0)}
                         </span>
                       </div>
@@ -962,15 +962,15 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                     {!admin && (
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                        <div className="flex items-center gap-2 bg-surface-inset border border-border px-3 py-2 rounded-xl">
-                          <CreditCard className="w-4 h-4 text-primary shrink-0" />
+                        <div className="flex items-center gap-2 bg-[#040508] border border-white/10 px-3 py-2 rounded-xl">
+                          <CreditCard className="w-4 h-4 text-[#39FF14] shrink-0" />
                           <select
                             className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
                             value={orderMethod}
                             onChange={e => setMethod({ ...method, [c.id]: e.target.value })}
                           >
-                            <option value="PAYOS" className="bg-[#18191d] text-white"> {tr("Thanh toán PayOS (VietQR)")} </option>
-                            <option value="COD" className="bg-[#18191d] text-white"> {tr("Thanh toán khi nhận (COD)")} </option>
+                            <option value="PAYOS" className="bg-[#0a0c12] text-white"> {tr("Thanh toán PayOS (VietQR)")} </option>
+                            <option value="COD" className="bg-[#0a0c12] text-white"> {tr("Thanh toán khi nhận (COD)")} </option>
                           </select>
                         </div>
 
@@ -986,7 +986,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                               )
                             )
                           }
-                          className="px-6 py-3 rounded-xl bg-primary text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-xl shadow-primary/25 cursor-pointer disabled:opacity-50"
+                          className="px-6 py-3 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-xl shadow-[#39FF14]/25 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           <span>{tr("Chấp Nhận & Đặt In")}</span>
@@ -1002,7 +1002,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                               );
                             }
                           }}
-                          className="px-3.5 py-3 rounded-xl border border-border hover:border-rose-500/60 bg-surface-inset text-slate-400 hover:text-rose-300 transition text-xs cursor-pointer"
+                          className="px-3.5 py-3 rounded-xl border border-white/10 hover:border-rose-500/60 bg-[#040508] text-slate-400 hover:text-rose-300 transition text-xs whitespace-nowrap shrink-0 cursor-pointer"
                           title={tr("Hủy yêu cầu")}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1014,14 +1014,14 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                 {/* 3. STATUS: ACCEPTED & PAYOS (Cần thanh toán trước) */}
                 {c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && (
-                  <div className="rounded-2xl border border-primary/50 bg-primary/10 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="rounded-2xl border border-[#39FF14]/40 bg-[#39FF14]/10 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#39FF14]/20 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] shrink-0">
                         <QrCode className="w-5 h-5" />
                       </div>
                       <div>
                         <h4 className="text-sm font-bold text-white"> {tr("Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS")} </h4>
-                        <p className="text-xs text-slate-300 mt-0.5"> {tr("Số tiền:")} <strong className="text-primary font-mono">{money(c.quotedPrice || 0)}</strong>{tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")} </p>
+                        <p className="text-xs text-slate-300 mt-0.5"> {tr("Số tiền:")} <strong className="text-[#39FF14] font-mono">{money(c.quotedPrice || 0)}</strong>{tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")} </p>
                       </div>
                     </div>
 
@@ -1030,7 +1030,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         type="button"
                         disabled={action.busy}
                         onClick={() => void action.run(() => payOrder(c.id, 'CUSTOM_ORDER'))}
-                        className="px-6 py-2.5 rounded-xl bg-primary text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-primary/25 cursor-pointer disabled:opacity-50 shrink-0"
+                        className="px-6 py-2.5 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-[#39FF14]/25 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                       >
                         <CreditCard className="w-4 h-4" />
                         <span>{tr("Thanh toán ngay")}</span>
@@ -1041,39 +1041,39 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                 {/* 4. STATUS: PRINTING / SHIPPING / COMPLETED (Hiển thị thanh tiến độ sản xuất) */}
                 {['PRINTING', 'SHIPPING', 'COMPLETED'].includes(c.status) && (
-                  <div className="p-4 rounded-2xl border border-border/80 bg-surface-inset/40 space-y-3">
+                  <div className="p-4 rounded-2xl border border-white/10 bg-[#040508]/80 space-y-3">
                     <div className="flex items-center justify-between text-xs font-semibold">
                       <span className="text-slate-300 flex items-center gap-2">
-                        {c.status === 'PRINTING' && <Printer className="w-4 h-4 text-purple-400 animate-spin-slow" />}
-                        {c.status === 'SHIPPING' && <Truck className="w-4 h-4 text-blue-400" />}
-                        {c.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-primary" />} {tr("Tiến độ sản xuất & Bàn giao:")} </span>
+                        {c.status === 'PRINTING' && <Printer className="w-4 h-4 text-[#00e5ff] animate-spin-slow" />}
+                        {c.status === 'SHIPPING' && <Truck className="w-4 h-4 text-[#00e5ff]" />}
+                        {c.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-[#39FF14]" />} {tr("Tiến độ sản xuất & Bàn giao:")} </span>
                       {c.quotedPrice && (
-                        <span className="text-primary font-mono font-bold"> {tr("Giá chốt:")} {money(c.quotedPrice)} ({c.paymentMethod})
+                        <span className="text-[#39FF14] font-mono font-bold"> {tr("Giá chốt:")} {money(c.quotedPrice)} ({c.paymentMethod})
                         </span>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
-                      <div className="p-2 rounded-xl bg-primary/4 border border-primary/40 text-primary font-bold"> {tr("1. Đã duyệt file")} </div>
+                    <div className="grid grid-cols-4 gap-2 text-center text-[11px] font-mono">
+                      <div className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] font-bold"> {tr("1. Đã duyệt file")} </div>
                       <div
                         className={`p-2 rounded-xl border font-bold ${
                           ['PRINTING', 'SHIPPING', 'COMPLETED'].includes(c.status)
-                            ? 'bg-purple-950/40 border-purple-500/50 text-purple-300 ring-1 ring-purple-500/30'
-                            : 'bg-surface-inset border-border text-slate-500'
+                            ? 'bg-[#00e5ff]/15 border-[#00e5ff]/50 text-[#00e5ff] ring-1 ring-[#00e5ff]/30'
+                            : 'bg-[#0a0c12] border-white/5 text-slate-500'
                         }`}
                       > {tr("2. Đang in 3D")} </div>
                       <div
                         className={`p-2 rounded-xl border font-bold ${
                           ['SHIPPING', 'COMPLETED'].includes(c.status)
-                            ? 'bg-blue-950/40 border-blue-500/50 text-blue-300 ring-1 ring-blue-500/30'
-                            : 'bg-surface-inset border-border text-slate-500'
+                            ? 'bg-[#00e5ff]/15 border-[#00e5ff]/50 text-[#00e5ff] ring-1 ring-[#00e5ff]/30'
+                            : 'bg-[#0a0c12] border-white/5 text-slate-500'
                         }`}
                       > {tr("3. Đang giao hàng")} </div>
                       <div
                         className={`p-2 rounded-xl border font-bold ${
                           c.status === 'COMPLETED'
-                            ? 'bg-primary/5 border-primary/50 text-primary ring-1 ring-primary/30'
-                            : 'bg-surface-inset border-border text-slate-500'
+                            ? 'bg-[#39FF14]/15 border-[#39FF14]/50 text-[#39FF14] ring-1 ring-[#39FF14]/30'
+                            : 'bg-[#0a0c12] border-white/5 text-slate-500'
                         }`}
                       > {tr("4. Hoàn tất")} </div>
                     </div>
@@ -1084,9 +1084,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                 {/* D. ADMIN CONTROLS TOOLBAR                                     */}
                 {/* ------------------------------------------------------------- */}
                 {admin && (
-                  <div className="pt-4 border-t border-border/80 flex flex-wrap items-center justify-between gap-4 bg-surface-inset/40 p-4 rounded-2xl">
-                    <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4" /> {tr("Bảng điều khiển quản trị viên xưởng:")} </div>
+                  <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 bg-[#040508]/60 p-4 rounded-2xl">
+                    <div className="text-xs font-bold text-[#ff9100] flex items-center gap-1.5 font-mono">
+                      <ShieldCheck className="w-4 h-4 text-[#ff9100]" /> {tr("Bảng điều khiển quản trị viên xưởng:")} </div>
 
                     {['REQUESTED', 'QUOTED'].includes(c.status) && (
                       <form
@@ -1111,12 +1111,12 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           placeholder={tr("Nhập giá trọn gói (VND)")}
                           value={prices[c.id] || ''}
                           onChange={e => setPrices({ ...prices, [c.id]: e.target.value })}
-                          className="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary font-mono w-44"
+                          className="rounded-xl border border-white/10 bg-[#0a0c12] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#39FF14] font-mono w-44"
                         />
                         <button
                           type="submit"
                           disabled={action.busy}
-                          className="px-4 py-1.5 rounded-xl bg-primary text-slate-950 text-xs font-bold hover:brightness-110 transition cursor-pointer disabled:opacity-50"
+                          className="px-4 py-1.5 rounded-xl bg-[#39FF14] text-slate-950 text-xs font-bold hover:brightness-110 transition whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                         > {tr("Gửi báo giá")} </button>
                       </form>
                     )}
@@ -1137,7 +1137,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                             send(`/custom-orders/${c.id}/status`, { status: next(c) }, 'put')
                           );
                         }}
-                        className="px-4 py-1.5 rounded-xl border border-primary/50 bg-primary/20 text-primary text-xs font-bold hover:bg-primary/30 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        className="px-4 py-1.5 rounded-xl border border-[#39FF14]/50 bg-[#39FF14]/15 text-[#39FF14] text-xs font-bold hover:bg-[#39FF14]/25 transition flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                       >
                         <span>{tr("Chuyển sang:")} {next(c)}</span>
                         <ChevronRight className="w-3.5 h-3.5" />

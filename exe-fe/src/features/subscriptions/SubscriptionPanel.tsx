@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Sparkles, Gift, Plus, Edit2, Ban, X, Check } from 'lucide-react';
+import { Sparkles, Gift, Plus, Edit2, Ban, X, Check, Award } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
-import { PageHeader, RemoteState, Notice, button, secondary, field } from '../../components/DataUI';
+import { PageHeader, RemoteState, Notice } from '../../components/DataUI';
 import Modal from '../../components/Modal';
 
 interface Plan {
@@ -82,34 +82,38 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-6xl mx-auto pb-12 animate-in fade-in duration-300">
       <PageHeader
-        title={admin ? 'Quản lý hội viên & Gói Subscriptions' : 'Hội viên & Điểm thưởng'}
+        title={admin ? 'Quản Lý Hội Viên & Gói Subscriptions' : 'Hội Viên & Điểm Thưởng Tích Lũy'}
         description={
           admin
             ? 'Thiết lập quyền lợi giảm giá in 3D, ưu tiên gia công và tặng gói ưu đãi cho khách hàng.'
             : 'Đổi điểm thưởng tích lũy từ các đơn in 3D lấy gói hội viên VIP và voucher giảm giá.'
         }
         badge={admin ? 'Admin Panel' : `${membership.data?.points ?? 0} Điểm`}
-        icon={Sparkles}
+        icon={Award}
       />
       <Notice error={action.error} />
       <Notice error={membership.error} />
 
       {/* Membership Card (User view) */}
       {membership.data && (
-        <div className="p-5 rounded-2xl bg-surface border border-border space-y-3">
-          <p className="text-sm text-text-muted">
+        <div className="p-5 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-3 relative overflow-hidden group shadow-xl">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
+          <p className="text-xs sm:text-sm text-slate-400 font-mono">
             Điểm tích lũy hiện có:{' '}
-            <strong className="text-[#39FF14] text-lg font-mono">{membership.data.points}</strong> điểm
+            <strong className="text-[#39FF14] text-xl font-mono font-black drop-shadow-[0_0_10px_rgba(57,255,20,0.4)]">
+              {membership.data.points.toLocaleString()}
+            </strong>{' '}
+            PrintHub Xu
           </p>
-          <div className="space-y-1">
+          <div className="space-y-1.5 pt-1">
             {membership.data.subscriptions.length === 0 ? (
-              <p className="text-xs text-text-muted">Bạn chưa kích hoạt gói hội viên nào.</p>
+              <p className="text-xs text-slate-500 font-mono">Bạn hiện chưa kích hoạt gói hội viên VIP nào.</p>
             ) : (
               membership.data.subscriptions.map((s, idx) => (
-                <div key={s.subscriptionId || s.id || idx} className="flex items-center gap-2 text-xs font-semibold text-white">
-                  <Sparkles className="w-4 h-4 text-purple-400" />
+                <div key={s.subscriptionId || s.id || idx} className="flex items-center gap-2 text-xs font-semibold text-white font-mono">
+                  <Sparkles className="w-4 h-4 text-[#39FF14]" />
                   <span>
                     {s.planName || s.name} · Hạn dùng đến: {new Date(s.endDate).toLocaleDateString('vi-VN')}
                   </span>
@@ -126,13 +130,13 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       {admin && (
         <div className="space-y-4">
           {/* HÀNG 1: Nút thêm gói nằm trên cùng */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-surface border border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#0a0c12] border border-white/10">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-400" />
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 font-mono">
+                <Sparkles className="w-4 h-4 text-[#00e5ff]" />
                 Cấu Hình Các Gói Khách Hàng VIP / Subscriptions
               </h3>
-              <p className="text-xs text-text-muted mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Thiết lập quyền lợi giảm giá in 3D, ưu tiên gia công và điểm đổi gói
               </p>
             </div>
@@ -143,7 +147,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                 setEditing('');
                 setForm(empty);
               }}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs transition shadow-md shadow-purple-900/30 flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+              className="px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs uppercase tracking-tight transition shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0 self-start sm:self-auto whitespace-nowrap cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Thêm Gói Mới</span>
@@ -151,16 +155,16 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
           </div>
 
           {/* HÀNG 2: Khung tặng gói cho người dùng nằm ở dưới ô thêm gói */}
-          <div className="p-4 rounded-2xl bg-surface border border-border space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
-              <Gift className="w-4 h-4 text-purple-400" />
+          <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#00e5ff] font-mono">
+              <Gift className="w-4 h-4 text-[#00e5ff]" />
               <span>Người Nhận Gói Quà Tặng (Sinh viên / Khách hàng)</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <div className="relative flex-1">
                 <select
-                  className="w-full bg-surface-inset border border-border rounded-xl px-3.5 py-2.5 text-xs text-slate-200 outline-none focus:border-purple-400 transition"
+                  className="w-full bg-[#040508] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 outline-none focus:border-[#39FF14] font-mono transition cursor-pointer"
                   value={giftUser}
                   onChange={(e) => setGiftUser(e.target.value)}
                 >
@@ -180,7 +184,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               </div>
 
               {giftUser && (
-                <span className="text-xs text-primary font-semibold flex items-center gap-1 shrink-0">
+                <span className="text-xs text-[#39FF14] font-semibold flex items-center gap-1 shrink-0 font-mono whitespace-nowrap">
                   <Check className="w-3.5 h-3.5" /> Đã chọn người nhận. Nhấn nút "Tặng gói" ở bên dưới.
                 </span>
               )}
@@ -191,16 +195,16 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
 
       {/* Modal Thêm / Chỉnh Sửa Gói */}
       <Modal open={open} onClose={() => setOpen(false)} label={editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}>
-        <div className="w-full max-w-md bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
-          <div className="flex items-center justify-between border-b border-border pb-3 shrink-0">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-400" />
+        <div className="w-full max-w-md bg-[#0a0c12] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
+            <h3 className="text-base font-bold text-white flex items-center gap-2 font-mono">
+              <Sparkles className="w-4 h-4 text-[#39FF14]" />
               {editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}
             </h3>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-surface-inset transition"
+              className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-[#040508] transition cursor-pointer"
               aria-label="Đóng cửa sổ"
             >
               <X className="w-4 h-4" />
@@ -209,9 +213,9 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
 
           <form onSubmit={handleSavePlan} className="space-y-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">Tên gói hội viên *</label>
+              <label className="font-bold text-slate-300 font-mono">Tên gói hội viên *</label>
               <input
-                className={field}
+                className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -220,9 +224,9 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">Quyền lợi &amp; Ưu đãi *</label>
+              <label className="font-bold text-slate-300 font-mono">Quyền lợi &amp; Ưu đãi *</label>
               <textarea
-                className={field}
+                className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] transition resize-none"
                 required
                 rows={3}
                 value={form.benefits}
@@ -232,9 +236,9 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300">Số điểm thưởng để đổi gói (Points) *</label>
+              <label className="font-bold text-slate-300 font-mono">Số điểm thưởng để đổi gói (Points) *</label>
               <input
-                className={field}
+                className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
                 required
                 type="number"
                 min={1}
@@ -244,11 +248,18 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border shrink-0">
-              <button type="button" className={`${secondary} min-h-[38px] px-4 py-2 flex items-center justify-center`} onClick={() => setOpen(false)}>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10 shrink-0">
+              <button
+                type="button"
+                className="px-4 py-2 rounded-xl border border-white/10 hover:bg-[#040508] text-slate-300 text-xs font-mono font-semibold transition whitespace-nowrap shrink-0 cursor-pointer"
+                onClick={() => setOpen(false)}
+              >
                 Hủy bỏ
               </button>
-              <button className={`${button} min-h-[38px] px-4 py-2 flex items-center justify-center`} disabled={action.busy}>
+              <button
+                className="px-5 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 text-xs font-bold transition shadow-lg shadow-[#39FF14]/20 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                disabled={action.busy}
+              >
                 {action.busy ? 'Đang lưu...' : 'Lưu Gói'}
               </button>
             </div>
@@ -263,16 +274,18 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
         {remote.data?.map((p) => (
           <div
             key={p.id}
-            className={`p-5 rounded-2xl bg-surface border transition-all space-y-4 ${
-              p.isActive ? 'border-border hover:border-purple-500/50 shadow-md' : 'border-border/40 opacity-70'
+            className={`p-6 rounded-2xl bg-[#0a0c12] border transition-all space-y-4 shadow-xl relative overflow-hidden group ${
+              p.isActive ? 'border-white/10 hover:border-[#39FF14]/50' : 'border-white/5 opacity-60'
             }`}
           >
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff] opacity-80" />
+
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <h3 className="font-bold text-white text-base flex items-center gap-2 tracking-tight">
                   {p.name}
                   {!p.isActive && (
-                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-400">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#040508] border border-white/10 text-slate-500 whitespace-nowrap shrink-0">
                       Ngừng áp dụng
                     </span>
                   )}
@@ -282,21 +295,21 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                 </span>
               </div>
 
-              <span className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+              <span className="w-10 h-10 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/20 text-[#39FF14] flex items-center justify-center shrink-0">
                 <Sparkles className="w-5 h-5" />
               </span>
             </div>
 
-            <p className="text-xs text-text-muted leading-relaxed whitespace-pre-line bg-surface-inset p-3 rounded-xl border border-border/50">
+            <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line bg-[#040508] p-3.5 rounded-xl border border-white/5">
               {p.benefits}
             </p>
 
             {/* Actions */}
-            <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border/60">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-white/10">
               {admin ? (
                 <>
                   <button
-                    className={`${secondary} flex items-center gap-1.5`}
+                    className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#040508] hover:border-[#39FF14]/50 text-slate-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition whitespace-nowrap shrink-0 cursor-pointer"
                     onClick={() => {
                       setEditing(p.id);
                       setForm({
@@ -308,11 +321,11 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                       setOpen(true);
                     }}
                   >
-                    <Edit2 className="w-3.5 h-3.5" /> Sửa
+                    <Edit2 className="w-3.5 h-3.5 text-[#00e5ff]" /> Sửa
                   </button>
 
                   <button
-                    className={`${secondary} text-slate-400 hover:text-red-400 flex items-center gap-1.5`}
+                    className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#040508] text-slate-400 hover:text-rose-400 hover:border-rose-500/40 text-xs font-mono font-bold flex items-center gap-1.5 transition whitespace-nowrap shrink-0 cursor-pointer"
                     disabled={action.busy || !p.isActive}
                     onClick={() => {
                       if (confirm(`Ngừng áp dụng gói "${p.name}"?`)) {
@@ -324,7 +337,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                   </button>
 
                   <button
-                    className={`${button} flex items-center gap-1.5`}
+                    className="px-4 py-1.5 rounded-xl bg-[#00e5ff] hover:bg-[#00c8e0] text-slate-950 text-xs font-bold flex items-center gap-1.5 transition shadow-sm whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                     disabled={action.busy || !p.isActive}
                     onClick={() => handleGiftPlan(p)}
                     title={!giftUser ? 'Vui lòng chọn người nhận ở khung trên trước' : undefined}
@@ -334,7 +347,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                 </>
               ) : (
                 <button
-                  className={`${button} flex items-center gap-1.5`}
+                  className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-bold text-xs uppercase tracking-tight flex items-center gap-1.5 transition shadow-lg shadow-[#39FF14]/20 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                   disabled={action.busy || !p.requiredPoints || (membership.data?.points || 0) < p.requiredPoints}
                   onClick={() => {
                     if (confirm(`Dùng ${p.requiredPoints} điểm để đổi gói ${p.name}?`)) {

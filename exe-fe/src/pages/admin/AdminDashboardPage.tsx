@@ -67,23 +67,23 @@ export default function AdminDashboardPage() {
         <div className="min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)] shrink-0" />
-            <p className="text-xs sm:text-sm font-semibold text-slate-400 break-words">
-              Hệ thống điều hành sản xuất &amp; Đơn hàng PrintHub 3D
+            <p className="text-xs sm:text-sm font-semibold text-slate-400 break-words font-mono">
+              ADDITIVE FARM TELEMETRY &bull; 24/7 FLEET MONITOR
             </p>
           </div>
           <h1 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight break-words">
-            Tổng quan vận hành <span className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]">PrintHub 3D</span>
+            Trung Tâm Nông Trại In 3D <span className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]">PrintHub Farm</span>
           </h1>
         </div>
 
         <button
           onClick={fetchDashboard}
           disabled={loading}
-          className="flex items-center gap-2 px-3.5 py-2 min-h-[40px] rounded-xl bg-surface border border-border hover:border-[#39FF14]/50 text-slate-200 hover:text-white text-xs font-semibold transition active:scale-95 shadow-sm self-start sm:self-auto cursor-pointer shrink-0"
+          className="flex items-center gap-2 px-3.5 py-2 min-h-[40px] rounded-xl bg-surface border border-border hover:border-[#39FF14]/50 text-slate-200 hover:text-white text-xs font-semibold transition active:scale-95 shadow-sm self-start sm:self-auto cursor-pointer shrink-0 font-mono"
         >
           <RotateCcw className={`w-3.5 h-3.5 text-[#39FF14] ${loading ? 'animate-spin' : ''}`} />
           <span>
-            Cập nhật lúc <span className="font-mono font-bold text-[#39FF14]">{lastUpdated}</span>
+            ĐỒNG BỘ: <span className="font-bold text-[#39FF14]">{lastUpdated}</span>
           </span>
         </button>
       </div>
@@ -91,42 +91,42 @@ export default function AdminDashboardPage() {
       {/* 2. Unified Bento StatStrip (4 KPI metrics with #39FF14 accents) */}
       <section
         aria-label="Chỉ số chính"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-2xl border border-border bg-surface shadow-lg divide-y divide-border sm:divide-y-0 sm:[&>*:nth-child(odd)]:border-r max-lg:sm:[&>*:nth-child(-n+2)]:border-b lg:[&>*:not(:first-child)]:border-l [&>*]:border-border w-full min-w-0"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-2xl border border-[#1e2433] bg-[#0a0c12] shadow-2xl divide-y divide-[#1e2433] sm:divide-y-0 sm:[&>*:nth-child(odd)]:border-r max-lg:sm:[&>*:nth-child(-n+2)]:border-b lg:[&>*:not(:first-child)]:border-l [&>*]:border-[#1e2433] w-full min-w-0"
       >
         {/* Metric 1: Doanh thu thực tế */}
-        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-[#11141e]/50 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Doanh thu thực tế
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+              DOANH THU THỰC TẾ
             </p>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-[#39FF14]">
               <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.4} />
               <TrendingUp className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
+          <p className="mt-2 font-mono text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
             {formatPrice(totalRev)}đ
           </p>
-          <p className="mt-2.5 text-xs text-slate-400 truncate">
+          <p className="mt-2.5 text-xs text-slate-400 truncate font-mono">
             Từ đơn đã thanh toán &amp; hoàn thành
           </p>
         </div>
 
         {/* Metric 2: Đang in & Chuẩn bị */}
-        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-[#11141e]/50 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Đang gia công in
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+              ĐANG GIA CÔNG IN
             </p>
-            <span className="flex items-center gap-1.5 text-xs font-bold text-[#39FF14]">
+            <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#39FF14]">
               <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
-              Live
+              LIVE
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
-            {activeOrdersCount} <span className="text-base font-normal text-slate-400">đơn</span>
+          <p className="mt-2 font-mono text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
+            {activeOrdersCount} <span className="text-base font-normal text-slate-400 font-mono">đơn</span>
           </p>
-          <p className="mt-2.5 text-xs text-slate-400 truncate">
+          <p className="mt-2.5 text-xs text-slate-400 truncate font-mono">
             {activeOrdersCount > 0 ? (
               <span className="font-semibold text-[#39FF14]">{activeOrdersCount} đơn đang xử lý</span>
             ) : (
@@ -136,71 +136,71 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Metric 3: Đã giao / Tổng đơn */}
-        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-[#11141e]/50 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Đã giao / Tổng đơn
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+              HOÀN TẤT / TỔNG ĐƠN
             </p>
             <span className="text-xs font-mono font-bold text-[#39FF14]">{deliveryPct}%</span>
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
+          <p className="mt-2 font-mono text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
             {completedOrders}{' '}
-            <span className="text-base font-normal text-slate-400">/ {totalOrders}</span>
+            <span className="text-base font-normal text-slate-400 font-mono">/ {totalOrders}</span>
           </p>
           <div className="mt-3 flex items-center gap-2 min-w-0">
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-inset border border-border min-w-0">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#040508] border border-[#1e2433] min-w-0">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-[#39FF14] shadow-[0_0_8px_rgba(57,255,20,0.5)] transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#00e5ff] to-[#39FF14] shadow-[0_0_8px_rgba(57,255,20,0.5)] transition-all duration-500"
                 style={{ width: `${Math.max(deliveryPct, totalOrders > 0 ? 5 : 0)}%` }}
               />
             </div>
-            <span className="text-[11px] font-semibold text-amber-400 shrink-0">
+            <span className="text-[11px] font-mono font-semibold text-[#ff9100] shrink-0">
               +{customCount} custom
             </span>
           </div>
         </div>
 
         {/* Metric 4: Tranh chấp & Người dùng */}
-        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-surface-raised/40 hover:border-[#39FF14]/30 min-w-0">
+        <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-[#11141e]/50 hover:border-[#39FF14]/30 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Tranh chấp cần duyệt
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+              TRANH CHẤP CẦN DUYỆT
             </p>
             {disputesCount === 0 ? (
-              <span className="rounded-full bg-[#39FF14]/10 px-2 py-0.5 text-[11px] font-bold text-[#39FF14] border border-[#39FF14]/30">
-                Ổn định
+              <span className="rounded-full bg-[#39FF14]/10 px-2 py-0.5 text-[11px] font-mono font-bold text-[#39FF14] border border-[#39FF14]/30">
+                ỔN ĐỊNH
               </span>
             ) : (
-              <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-bold text-rose-400 border border-rose-500/30">
-                Cần xử lý
+              <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-mono font-bold text-rose-400 border border-rose-500/30">
+                CẦN XỬ LÝ
               </span>
             )}
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
-            {disputesCount} <span className="text-base font-normal text-slate-400">vụ khiếu nại</span>
+          <p className="mt-2 font-mono text-2xl sm:text-3xl font-black leading-none tracking-tight text-white break-words">
+            {disputesCount} <span className="text-base font-normal text-slate-400 font-mono">vụ khiếu nại</span>
           </p>
-          <p className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-400 truncate">
+          <p className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-400 truncate font-mono">
             {disputesCount === 0 ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#39FF14] shrink-0" />
-                <span className="truncate">Không tồn khiếu nại • {usersCount} users</span>
+                <span className="truncate">Không tồn khiếu nại &bull; {usersCount} users</span>
               </>
             ) : (
               <>
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">{disputesCount} khiếu nại chờ can thiệp</span>
+                <AlertTriangle className="w-3.5 h-3.5 text-[#ff9100] shrink-0" />
+                <span className="truncate text-[#ff9100]">{disputesCount} khiếu nại chờ can thiệp</span>
               </>
             )}
           </p>
         </div>
       </section>
 
-      {/* 3. Row 2: Recent Print Jobs & Custom Orders / Infrastructure */}
+      {/* 2. Row 2: Recent Print Jobs & Custom Orders / Infrastructure */}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
         {/* Left: Danh sách đơn gia công gần đây */}
-        <section className="rounded-2xl border border-border hover:border-[#39FF14]/30 bg-surface p-5 sm:p-6 shadow-md transition-all flex flex-col justify-between">
+        <section className="rounded-2xl border border-[#1e2433] hover:border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-6 shadow-xl transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-baseline justify-between border-b border-border pb-4">
+            <div className="flex items-baseline justify-between border-b border-[#1e2433] pb-4">
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
                   <Box className="w-5 h-5 text-[#39FF14]" />
@@ -212,16 +212,16 @@ export default function AdminDashboardPage() {
               </div>
               <Link
                 to="/admin/orders"
-                className="text-xs font-semibold text-[#39FF14] hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-[#39FF14] hover:underline flex items-center gap-1 whitespace-nowrap shrink-0"
               >
                 <span>Xem tất cả</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3 h-3 shrink-0" />
               </Link>
             </div>
 
             {recentJobs.length === 0 ? (
               <div className="py-16 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-surface-raised border border-border mx-auto flex items-center justify-center text-slate-500">
+                <div className="w-12 h-12 rounded-2xl bg-[#11141e] border border-[#1e2433] mx-auto flex items-center justify-center text-slate-500">
                   <Box className="w-6 h-6" />
                 </div>
                 <div>
@@ -232,11 +232,11 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             ) : (
-              <ul className="divide-y divide-border">
+              <ul className="divide-y divide-[#1e2433]">
                 {recentJobs.map((job) => (
                   <li key={job.id} className="py-4 first:pt-4 last:pb-1 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-surface-raised border border-border flex items-center justify-center text-[#39FF14] shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#11141e] border border-[#1e2433] flex items-center justify-center text-[#39FF14] shrink-0">
                         <Box className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
@@ -253,11 +253,11 @@ export default function AdminDashboardPage() {
 
                     <div className="text-right shrink-0">
                       {job.price !== undefined && (
-                        <p className="text-sm font-bold text-white font-display">
+                        <p className="text-sm font-bold text-white font-mono">
                           {formatPrice(job.price)}đ
                         </p>
                       )}
-                      <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 mt-1">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 mt-1 whitespace-nowrap shrink-0">
                         {job.status || 'Đang xử lý'}
                       </span>
                     </div>
@@ -271,7 +271,7 @@ export default function AdminDashboardPage() {
         {/* Right: In Custom Báo Giá & Trạng Thái Hạ Tầng */}
         <div className="space-y-6">
           {/* Card Báo Giá Custom STL */}
-          <section className="relative overflow-hidden rounded-2xl border border-border hover:border-[#39FF14]/30 bg-surface p-5 sm:p-6 shadow-md transition-all">
+          <section className="relative overflow-hidden rounded-2xl border border-[#1e2433] hover:border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-6 shadow-xl transition-all">
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 via-[#39FF14] to-transparent" />
 
             <div className="flex items-baseline justify-between">
@@ -282,12 +282,12 @@ export default function AdminDashboardPage() {
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">Yêu cầu mô hình 3D tải lên từ khách hàng</p>
               </div>
-              <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-400">
+              <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-400 whitespace-nowrap shrink-0">
                 {customCount} chờ duyệt
               </span>
             </div>
 
-            <div className="mt-4 p-4 rounded-xl border border-border bg-surface-inset space-y-3">
+            <div className="mt-4 p-4 rounded-xl border border-[#1e2433] bg-[#040508] space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400">Trạng thái hàng đợi custom:</span>
                 <span className="font-bold text-white">
@@ -299,22 +299,22 @@ export default function AdminDashboardPage() {
               </p>
               <Link
                 to="/admin/custom-orders"
-                className="w-full py-2.5 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition shadow-[0_0_12px_rgba(57,255,20,0.3)] cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition shadow-[0_0_12px_rgba(57,255,20,0.3)] cursor-pointer whitespace-nowrap shrink-0"
               >
                 <span>Mở Cổng Duyệt Báo Giá</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
+                <ArrowRight className="w-3.5 h-3.5 text-slate-950 shrink-0" />
               </Link>
             </div>
           </section>
 
           {/* Card Trạng Thái Hạ Tầng Hệ Thống */}
-          <section className="rounded-2xl border border-border hover:border-[#39FF14]/30 bg-surface p-5 sm:p-6 shadow-md transition-all">
-            <div className="flex items-center justify-between pb-3 border-b border-border">
+          <section className="rounded-2xl border border-[#1e2433] hover:border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-6 shadow-xl transition-all">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1e2433]">
               <div className="flex items-center gap-2">
                 <Wifi className="w-4 h-4 text-[#39FF14]" />
                 <h3 className="font-bold text-sm text-white">Trạng thái hạ tầng</h3>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#39FF14]">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#39FF14] whitespace-nowrap shrink-0">
                 <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
                 100% Online
               </span>
@@ -334,7 +334,7 @@ export default function AdminDashboardPage() {
                       <p className="text-[11px] text-slate-400 truncate">{row.note}</p>
                     </div>
                   </div>
-                  <span className="font-mono text-[11px] font-semibold text-[#39FF14] bg-surface-inset px-2 py-0.5 rounded-md border border-[#39FF14]/30 shrink-0">
+                  <span className="font-mono text-[11px] font-semibold text-[#39FF14] bg-[#040508] px-2 py-0.5 rounded-md border border-[#39FF14]/30 shrink-0">
                     {row.ping}
                   </span>
                 </li>
@@ -347,7 +347,7 @@ export default function AdminDashboardPage() {
       {/* 4. Row 3: Nhật Ký Hoạt Động & Tiêu Chuẩn Nền Tảng */}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
         {/* Banner giới thiệu & Chính sách cam kết */}
-        <section className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-surface to-emerald-950/20 border border-[#39FF14]/30 p-5 sm:p-6 shadow-md">
+        <section className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-[#0a0c12] to-emerald-950/20 border border-[#39FF14]/30 p-5 sm:p-6 shadow-xl">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-[#39FF14]">
               <Layers className="w-5 h-5 drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" />
@@ -360,33 +360,33 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-border/80 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-[#39FF14] font-semibold">
-              <ShieldCheck className="w-4 h-4" />
+          <div className="mt-5 pt-4 border-t border-[#1e2433] flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-[#39FF14] font-semibold whitespace-nowrap shrink-0">
+              <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>Chính sách đổi mới 1-đổi-1 trong 4 tháng</span>
             </div>
             <Link
               to="/admin/settings"
-              className="text-slate-300 hover:text-[#39FF14] text-xs font-semibold flex items-center gap-1 transition"
+              className="text-slate-300 hover:text-[#39FF14] text-xs font-semibold flex items-center gap-1 transition whitespace-nowrap shrink-0"
             >
               <span>Xem cấu hình chính sách</span>
-              <ArrowRight className="w-3 h-3 text-[#39FF14]" />
+              <ArrowRight className="w-3 h-3 text-[#39FF14] shrink-0" />
             </Link>
           </div>
         </section>
 
         {/* Right: Hoạt Động Gần Đây (Activity Timeline) */}
-        <section className="rounded-2xl border border-border hover:border-[#39FF14]/30 bg-surface p-5 sm:p-6 shadow-md transition-all flex flex-col justify-between">
+        <section className="rounded-2xl border border-[#1e2433] hover:border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-6 shadow-xl transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-border">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1e2433]">
               <h3 className="font-bold text-sm text-white flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#39FF14]" />
                 <span>Hoạt động hôm nay</span>
               </h3>
-              <span className="text-[11px] font-bold text-[#39FF14]">Live Feed</span>
+              <span className="text-[11px] font-bold text-[#39FF14] whitespace-nowrap shrink-0">Live Feed</span>
             </div>
 
-            <ol className="relative mt-4 space-y-4 pl-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-border">
+            <ol className="relative mt-4 space-y-4 pl-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-[#1e2433]">
               {activityTimeline.map((item) => (
                 <li key={item.time + item.text} className="relative">
                   <span

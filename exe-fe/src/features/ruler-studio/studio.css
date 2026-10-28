@@ -1,38 +1,43 @@
 .ruler-studio {
-  --studio-line: #3c3c3c;
-  background: #1b1b1b;
-  border: 1px solid var(--studio-line);
+  --studio-line: rgba(255, 255, 255, 0.08);
+  background: #040508;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   overflow: hidden;
   color: #f0f0f0;
   font-size: 13px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
 }
 .ruler-studio button,
 .ruler-studio select,
 .ruler-studio
   input:not([type="range"]):not([type="checkbox"]):not([type="color"]) {
-  border: 1px solid var(--studio-line);
-  border-radius: 9px;
-  background: #292929;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: #0a0c12;
   color: #f0f0f0;
   padding: 9px 12px;
   min-height: 42px;
   max-width: 100%;
+  transition: all 0.15s ease;
 }
 .ruler-studio button {
   cursor: pointer;
 }
 .ruler-studio button:hover {
-  border-color: var(--color-primary);
+  border-color: #39FF14;
+  color: #fff;
 }
 .ruler-studio button[aria-pressed="true"],
 .ruler-studio button[aria-selected="true"] {
-  background: var(--color-primary);
-  color: #202020;
-  border-color: var(--color-primary);
+  background: #39FF14;
+  color: #040508;
+  font-weight: 700;
+  border-color: #39FF14;
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.25);
 }
 .ruler-studio button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 .ruler-studio input[type="color"] {
@@ -44,26 +49,29 @@
 }
 .ruler-studio input[type="range"] {
   width: 100%;
-  accent-color: var(--color-primary);
+  accent-color: #39FF14;
 }
 .studio-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px;
+  padding: 16px 20px;
   flex-wrap: wrap;
+  background: #0a0c12;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .studio-name {
   display: flex;
   flex-direction: column;
   gap: 4px;
   font-size: 11px;
-  color: #b6b6b6;
+  color: #94a3b8;
 }
 .studio-name input {
   font-size: 15px;
   font-weight: 600;
+  background: #040508;
 }
 .studio-row {
   display: flex;
@@ -86,11 +94,11 @@
   flex-direction: column;
   min-height: 500px;
   color: #eaeaea;
-  background: radial-gradient(ellipse at 50% 35%, #5e5e5e, #383838 75%);
+  background: radial-gradient(ellipse at 50% 35%, #0e1520 0%, #040508 80%);
 }
 .studio-preview.light-product-bg {
-  background: radial-gradient(ellipse at 50% 35%, #e3e3e3, #b5b5b5 80%);
-  color: #282828;
+  background: radial-gradient(ellipse at 50% 35%, #182234, #040508 85%);
+  color: #ffffff;
 }
 .studio-preview-heading {
   padding: 26px 26px 0;
@@ -146,18 +154,21 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  background: #0a0c12;
 }
 .studio-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+  gap: 6px;
   padding: 12px;
   border-bottom: 1px solid var(--studio-line);
-  background: #1b1b1b;
+  background: #040508;
 }
 .ruler-studio .studio-tabs button {
   padding: 8px 4px;
   font-size: 11px;
+  font-weight: 600;
+  border-radius: 8px;
 }
 .studio-panel {
   padding: 20px;
@@ -165,14 +176,16 @@
   flex-direction: column;
   gap: 14px;
   flex: 1;
+  background: #0a0c12;
 }
 .studio-panel h2 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   line-height: 1.2;
+  color: #fff;
 }
 .studio-panel p {
-  color: #bcbcbc;
+  color: #94a3b8;
   line-height: 1.6;
   font-size: 12px;
 }
@@ -184,7 +197,8 @@
   min-width: 0;
 }
 .studio-field > span {
-  color: #bcbcbc;
+  color: #cbd5e1;
+  font-weight: 600;
 }
 .studio-field select,
 .studio-field input {
@@ -204,7 +218,7 @@
 .studio-price {
   padding: 18px;
   border-top: 1px solid var(--studio-line);
-  background: #212121;
+  background: #07090e;
 }
 .studio-price summary {
   cursor: pointer;
@@ -214,21 +228,33 @@
   padding: 6px 0 12px;
 }
 .studio-price strong {
-  font-size: 19px;
+  font-size: 20px;
+  color: #39FF14;
+  font-weight: 800;
 }
 .studio-price details .studio-row {
   font-size: 11px;
   margin: 7px 0;
-  color: #c2c2c2;
+  color: #94a3b8;
 }
 .ruler-studio .studio-primary {
-  background: var(--color-primary);
-  color: #202020;
+  background: #39FF14 !important;
+  color: #040508 !important;
   width: 100%;
   display: flex;
   justify-content: space-between;
-  font-weight: 700;
+  align-items: center;
+  font-weight: 800 !important;
   min-height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 0 16px rgba(57, 255, 20, 0.35);
+  border: 1px solid rgba(57, 255, 20, 0.5) !important;
+  transition: all 0.2s ease;
+}
+.ruler-studio .studio-primary:hover {
+  background: #32e012 !important;
+  box-shadow: 0 0 24px rgba(57, 255, 20, 0.5);
+  transform: translateY(-1px);
 }
 .studio-price p {
   font-size: 10px;

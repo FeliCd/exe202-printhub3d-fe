@@ -8,7 +8,6 @@ import {
   MapPin,
   LogOut,
   LogIn,
-  Ruler,
   Layers,
   Sparkles,
   Scale,
@@ -34,7 +33,7 @@ export default function UserSidebar({ isOpen }: UserSidebarProps) {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const routeGroup = ['/catalog', '/custom', '/bulk-order', '/ruler-3d'].includes(location.pathname)
+  const routeGroup = ['/catalog', '/custom', '/bulk-order'].includes(location.pathname)
     ? 'shopping'
     : ['/orders', '/order-history', '/file-vault', '/quotations', '/subscriptions'].includes(location.pathname)
       ? 'transactions'
@@ -189,19 +188,6 @@ export default function UserSidebar({ isOpen }: UserSidebarProps) {
                 >
                   <Layers className="w-4 h-4 text-text-muted shrink-0" />
                   <span>Đặt Hàng Hàng Loạt</span>
-                </Link>
-
-                <Link
-                  to="/ruler-3d"
-                  aria-current={isActive('/ruler-3d') ? 'page' : undefined}
-                  className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
-                    isActive('/ruler-3d')
-                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
-                      : 'text-slate-300 hover:bg-surface hover:text-white'
-                  }`}
-                >
-                  <Ruler className="w-4 h-4 text-text-muted shrink-0" />
-                  <span>Công cụ Thước đo 3D</span>
                 </Link>
               </nav>
             </div>

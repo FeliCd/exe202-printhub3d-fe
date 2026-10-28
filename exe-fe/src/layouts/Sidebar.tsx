@@ -6,7 +6,6 @@ import {
   ShieldAlert,
   MapPin,
   LogOut,
-  Ruler,
   Layers,
   Sparkles,
   Scale,
@@ -193,18 +192,6 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
               <span>Theo dõi tiến độ in 3D</span>
               <span className="w-2 h-2 rounded-full bg-primary" />
             </div>
-          </Link>
-
-          <Link
-            to="/ruler-3d"
-            className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
-              isActive('/ruler-3d')
-                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
-                : 'text-slate-300 hover:bg-surface hover:text-white'
-            }`}
-          >
-            <Ruler className="w-4 h-4 text-text-muted" />
-            <span>Công cụ Thước đo 3D</span>
           </Link>
 
           <Link

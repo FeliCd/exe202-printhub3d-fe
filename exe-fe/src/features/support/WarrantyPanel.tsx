@@ -17,9 +17,6 @@ import {
   PageHeader,
   Status,
   CopyButton,
-  buttonSm,
-  secondarySm,
-  destructiveSm,
 } from '../../components/DataUI';
 
 interface Claim {
@@ -104,8 +101,12 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
         description="Chính sách in lại 1-1 đối với mô hình kỹ thuật bị sai lệch kích thước >0.1mm, cong vênh vật liệu hoặc hư hại vận chuyển."
         icon={ShieldCheck}
         actions={
-          <button type="button" onClick={remote.reload} className={`${secondarySm} flex items-center gap-1.5`}>
-            <RefreshCw className={`w-3.5 h-3.5 ${remote.loading ? 'animate-spin text-primary' : ''}`} />
+          <button
+            type="button"
+            onClick={remote.reload}
+            className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#0a0c12] hover:border-[#39FF14]/50 text-slate-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${remote.loading ? 'animate-spin text-[#39FF14]' : ''}`} />
             Làm mới
           </button>
         }
@@ -114,12 +115,13 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* CỘT TRÁI: FORM GỬI YÊU CẦU BẢO HÀNH (Chỉ cho Buyer) */}
         {!admin && (
-          <div className="lg:col-span-5 p-6 rounded-2xl bg-surface border border-border space-y-5 shadow-xl">
-            <div className="border-b border-border/80 pb-3">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
-                <span>📝</span> Gửi Yêu Cầu Bảo Hành Mới
+          <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-5 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
+            <div className="border-b border-white/10 pb-3">
+              <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+                <ShieldCheck className="w-4 h-4 text-[#39FF14]" /> Gửi Yêu Cầu Bảo Hành Mới
               </h2>
-              <p className="text-[11px] text-text-muted mt-0.5">Áp dụng cho các đơn hàng đã nhận hoàn tất</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Áp dụng cho các đơn hàng đã nhận hoàn tất</p>
             </div>
 
             {action.error && (
@@ -132,15 +134,15 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
             <form onSubmit={handleSubmitClaim} className="space-y-4">
               {/* Chọn đơn hàng */}
               <div className="space-y-1.5">
-                <label htmlFor={orderSelectId} className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <Package className="w-3.5 h-3.5 text-[#39FF14]" /> Chọn đơn hàng đã hoàn tất <span className="text-rose-400">*</span>
+                <label htmlFor={orderSelectId} className="text-xs font-bold text-slate-300 flex items-center gap-1.5 font-mono">
+                  <Package className="w-3.5 h-3.5 text-[#39FF14]" /> CHỌN ĐƠN HÀNG HOÀN TẤT <span className="text-rose-400">*</span>
                 </label>
                 <select
                   id={orderSelectId}
                   required
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
-                  className="w-full bg-surface-inset border border-border rounded-xl p-3 text-xs text-white outline-none focus:border-[#39FF14] transition cursor-pointer"
+                  className="w-full bg-[#040508] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-[#39FF14] transition cursor-pointer font-mono"
                 >
                   <option value="">-- Bấm để chọn đơn hàng gặp lỗi --</option>
                   {completedOrders.map((o) => (
@@ -150,7 +152,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                   ))}
                 </select>
                 {completedOrders.length === 0 && !orders.loading && (
-                  <p className="text-[11px] text-amber-400 font-medium">
+                  <p className="text-[11px] text-[#ff9100] font-mono font-medium">
                     Bạn hiện chưa có đơn hàng nào ở trạng thái đã hoàn thành (COMPLETED).
                   </p>
                 )}
@@ -159,10 +161,10 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
               {/* Mô tả chi tiết lỗi */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <label htmlFor={descriptionId} className="font-bold text-slate-300">
-                    Mô tả cụ thể lỗi kỹ thuật <span className="text-rose-400">*</span>
+                  <label htmlFor={descriptionId} className="font-bold text-slate-300 font-mono">
+                    MÔ TẢ CHI TIẾT LỖI KỸ THUẬT <span className="text-rose-400">*</span>
                   </label>
-                  <span className="text-[11px] text-text-muted">{description.length}/4000</span>
+                  <span className="text-[11px] text-slate-500 font-mono">{description.length}/4000</span>
                 </div>
                 <textarea
                   id={descriptionId}
@@ -171,30 +173,30 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                   maxLength={4000}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Mô tả cụ thể: Kích thước sai lệch, ngàm không khớp, nứt vỡ, cong vênh đáy..."
-                  className="w-full bg-surface-inset border border-border rounded-xl p-3 text-xs text-white outline-none focus:border-[#39FF14] resize-none transition"
+                  placeholder="Mô tả cụ thể: Kích thước sai lệch >0.1mm, ngàm không khớp, nứt vỡ, cong vênh đáy..."
+                  className="w-full bg-[#040508] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-[#39FF14] resize-none transition"
                 />
               </div>
 
               {/* Tải ảnh chụp bằng chứng lỗi */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-300 font-mono">
                   <label htmlFor={fileUploadId} className="flex items-center gap-1.5 cursor-pointer">
-                    <ImageIcon className="w-3.5 h-3.5 text-[#39FF14]" /> Ảnh chụp bằng chứng lỗi
+                    <ImageIcon className="w-3.5 h-3.5 text-[#00e5ff]" /> ẢNH CHỤP BẰNG CHỨNG LỖI
                   </label>
-                  <span className="text-[11px] text-text-muted font-normal">Tối đa 10MB</span>
+                  <span className="text-[11px] text-slate-500 font-normal">Tối đa 10MB</span>
                 </div>
 
                 {imageUrl ? (
                   /* Khi đã có ảnh: Hiển thị preview */
-                  <div className="relative group rounded-xl overflow-hidden border border-[#39FF14]/50 bg-surface-inset">
+                  <div className="relative group rounded-xl overflow-hidden border border-[#39FF14]/50 bg-[#040508]">
                     <img src={imageUrl} alt="Bằng chứng lỗi" className="w-full h-44 object-cover" />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                       <a
                         href={imageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-2 rounded-lg bg-surface text-white hover:text-[#39FF14] transition"
+                        className="p-2 rounded-lg bg-[#0a0c12] text-white hover:text-[#39FF14] transition"
                         title="Xem ảnh gốc toàn màn hình"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -215,8 +217,8 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
                       uploading
-                        ? 'border-border bg-surface-inset/50 cursor-wait'
-                        : 'border-border hover:border-[#39FF14] bg-surface-inset/30 hover:bg-surface-inset'
+                        ? 'border-white/10 bg-[#040508]/50 cursor-wait'
+                        : 'border-white/20 hover:border-[#39FF14] bg-[#040508]/40 hover:bg-[#040508]'
                     }`}
                   >
                     <input
@@ -233,15 +235,15 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                     {uploading ? (
                       <>
                         <Loader2 className="w-7 h-7 text-[#39FF14] animate-spin" />
-                        <span className="text-xs text-slate-300 font-bold">Đang tải ảnh lên Cloudinary...</span>
+                        <span className="text-xs text-slate-300 font-mono font-bold">Đang tải ảnh lên Cloudinary...</span>
                       </>
                     ) : (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-[#39FF14]">
+                        <div className="w-10 h-10 rounded-full bg-[#39FF14]/10 border border-[#39FF14]/20 flex items-center justify-center text-[#39FF14]">
                           <UploadCloud className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-bold text-white">Bấm để tải ảnh chụp bằng chứng</span>
-                        <span className="text-[11px] text-text-muted">Hỗ trợ PNG, JPG, JPEG, WEBP</span>
+                        <span className="text-[11px] text-slate-500 font-mono">PNG, JPG, JPEG, WEBP (Tối đa 10MB)</span>
                       </>
                     )}
                   </div>
@@ -253,7 +255,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
               <button
                 type="submit"
                 disabled={action.busy || uploading || !orderId}
-                className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-primary/20 disabled:opacity-50 cursor-pointer mt-2"
+                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-[#39FF14]/20 disabled:opacity-50 cursor-pointer mt-2 whitespace-nowrap shrink-0"
               >
                 {action.busy ? (
                   <>
@@ -270,13 +272,13 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
         {/* CỘT PHẢI: THEO DÕI CÁC YÊU CẦU BẢO HÀNH ĐÃ GỬI */}
         <div className={admin ? 'lg:col-span-12 space-y-4' : 'lg:col-span-7 space-y-4'}>
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
-              <span>📋</span> Danh Sách Yêu Cầu Bảo Hành ({remote.data?.length || 0})
+            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+              <ShieldCheck className="w-4 h-4 text-[#00e5ff]" /> Danh Sách Yêu Cầu Bảo Hành ({remote.data?.length || 0})
             </h2>
             <button
               type="button"
               onClick={remote.reload}
-              className="text-xs text-text-muted hover:text-[#39FF14] flex items-center gap-1.5 transition cursor-pointer"
+              className="text-xs text-slate-400 hover:text-[#39FF14] flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0 font-mono"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Làm mới
             </button>
@@ -285,15 +287,15 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
           {remote.loading && (
             <div className="p-12 text-center text-slate-400 space-y-2">
               <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#39FF14]" />
-              <p className="text-xs">Đang tải danh sách bảo hành...</p>
+              <p className="text-xs font-mono">Đang tải danh sách bảo hành...</p>
             </div>
           )}
 
           {!remote.loading && (!remote.data || remote.data.length === 0) && (
-            <div className="p-12 rounded-2xl bg-surface border border-border text-center text-text-muted space-y-2 shadow-sm">
+            <div className="p-12 rounded-2xl bg-[#0a0c12] border border-white/10 text-center text-slate-400 space-y-2 shadow-sm">
               <ShieldCheck className="w-9 h-9 mx-auto text-slate-600" />
               <p className="text-sm font-semibold text-slate-300">Chưa có yêu cầu bảo hành nào.</p>
-              <p className="text-xs max-w-sm mx-auto">
+              <p className="text-xs max-w-sm mx-auto text-slate-500">
                 Khi nhận hàng nếu phát hiện sản phẩm bị lỗi kỹ thuật, hãy gửi yêu cầu để kỹ thuật viên hỗ trợ in đổi mới.
               </p>
             </div>
@@ -303,9 +305,9 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
             {remote.data?.map((c) => (
               <div
                 key={c.id}
-                className="p-5 sm:p-6 rounded-2xl bg-surface border border-border/80 hover:border-primary/40 space-y-3.5 transition shadow-lg relative overflow-hidden"
+                className="p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-white/10 hover:border-[#39FF14]/40 space-y-3.5 transition shadow-lg relative overflow-hidden group"
               >
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono font-bold text-white">
@@ -313,7 +315,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                       </span>
                       <CopyButton text={c.orderId} />
                     </div>
-                    <p className="text-xs text-text-muted">
+                    <p className="text-xs text-slate-400">
                       Khách hàng: <strong className="text-slate-200">{c.buyerName}</strong>
                       {c.createdAt && ` · ${new Date(c.createdAt).toLocaleDateString('vi-VN')}`}
                     </p>
@@ -323,19 +325,19 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-surface-inset text-xs text-slate-300 leading-relaxed border border-border/60">
+                <div className="p-3.5 rounded-xl bg-[#040508] text-xs text-slate-300 leading-relaxed border border-white/5 font-mono">
                   <span className="font-bold text-white block mb-1">Mô tả sự cố kỹ thuật:</span>
                   <p className="whitespace-pre-wrap">{c.description}</p>
                 </div>
 
                 {c.imageUrl && (
                   <div className="flex items-center gap-2 text-xs pt-1">
-                    <span className="text-text-muted">Bằng chứng lỗi đính kèm:</span>
+                    <span className="text-slate-400">Bằng chứng lỗi đính kèm:</span>
                     <a
                       href={c.imageUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-primary hover:underline font-semibold flex items-center gap-1.5"
+                      className="text-[#00e5ff] hover:underline font-semibold flex items-center gap-1.5 font-mono"
                     >
                       <ImageIcon className="w-3.5 h-3.5" /> Xem ảnh chụp phóng to
                     </a>
@@ -344,7 +346,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
 
                 {/* Hành động duyệt của Admin */}
                 {admin && (
-                  <div className="pt-3 border-t border-border/60 flex flex-wrap items-center gap-2">
+                  <div className="pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
                     {c.status === 'PENDING' && (
                       <>
                         <button
@@ -355,7 +357,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                               send(`/warranty/admin/claim/${c.id}/status`, { status: 'APPROVED' }, 'put')
                             )
                           }
-                          className={buttonSm}
+                          className="px-3.5 py-1.5 rounded-xl bg-[#39FF14] text-slate-950 font-bold text-xs whitespace-nowrap shrink-0 hover:bg-[#32e012] transition"
                         >
                           Duyệt bảo hành
                         </button>
@@ -367,7 +369,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                               send(`/warranty/admin/claim/${c.id}/status`, { status: 'REJECTED' }, 'put')
                             )
                           }
-                          className={destructiveSm}
+                          className="px-3.5 py-1.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 font-bold text-xs whitespace-nowrap shrink-0 hover:bg-rose-900/60 transition"
                         >
                           Từ chối
                         </button>
@@ -382,7 +384,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                             send(`/warranty/admin/claim/${c.id}/status`, { status: 'REPLACED' }, 'put')
                           )
                         }
-                        className={buttonSm}
+                        className="px-3.5 py-1.5 rounded-xl bg-[#00e5ff] text-slate-950 font-bold text-xs whitespace-nowrap shrink-0 hover:bg-[#00c8e0] transition"
                       >
                         Xác nhận đã in đổi mới
                       </button>

@@ -17,6 +17,7 @@ import {
   Eye,
   EyeOff,
   Check,
+  GraduationCap,
 } from 'lucide-react';
 
 type StepNumber = 1 | 2 | 3;
@@ -54,13 +55,15 @@ export default function SignupPage() {
 
   // Countdown timer for OTP resend cooldown
   useEffect(() => {
-    let timer: any;
+    let timer: NodeJS.Timeout | undefined;
     if (resendCooldown > 0) {
       timer = setInterval(() => {
         setResendCooldown((prev) => prev - 1);
       }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [resendCooldown]);
 
   // Validation Helpers
@@ -77,6 +80,14 @@ export default function SignupPage() {
     hasSpecial: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
   };
   const isPasswordSecure = Object.values(passwordChecks).every(Boolean);
+
+  // Password Strength Score (0 to 4)
+  const strengthScore = [
+    passwordChecks.length,
+    passwordChecks.hasUpper && passwordChecks.hasLower,
+    passwordChecks.hasNumber,
+    passwordChecks.hasSpecial
+  ].filter(Boolean).length;
 
   // Handle Step 1 -> Step 2
   const handleProceedToStep2 = (e: React.FormEvent) => {
@@ -233,7 +244,7 @@ export default function SignupPage() {
       }}
     >
       {/* STEPPER PROGRESS INDICATOR */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#232B35]">
+      <div className="flex items-center justify-between pb-3 border-b border-[#1e2433]">
         {[
           { step: 1, label: 'Tài khoản' },
           { step: 2, label: 'Thông tin' },
@@ -246,18 +257,18 @@ export default function SignupPage() {
             <React.Fragment key={item.step}>
               <div className="flex items-center gap-2">
                 <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold transition-all ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold transition-all whitespace-nowrap shrink-0 ${
                     isDone
-                      ? 'bg-[#39FF14] text-slate-950 shadow-sm shadow-[#39FF14]/30'
+                      ? 'bg-[#39FF14] text-slate-950 shadow-[0_0_10px_rgba(57,255,20,0.4)]'
                       : isActive
-                      ? 'bg-[#18231C] text-[#39FF14] border border-[#39FF14] shadow-[0_0_10px_rgba(57,255,20,0.2)]'
-                      : 'bg-[#182028] text-slate-500 border border-[#2B3542]'
+                      ? 'bg-[#11141e] text-[#39FF14] border border-[#39FF14] shadow-[0_0_10px_rgba(57,255,20,0.25)]'
+                      : 'bg-[#0a0c12] text-slate-500 border border-[#1e2433]'
                   }`}
                 >
                   {isDone ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : item.step}
                 </div>
                 <span
-                  className={`text-xs font-medium hidden sm:inline ${
+                  className={`text-xs font-medium hidden sm:inline whitespace-nowrap shrink-0 ${
                     isActive ? 'text-[#39FF14] font-bold' : isDone ? 'text-slate-300' : 'text-slate-500'
                   }`}
                 >
@@ -268,7 +279,7 @@ export default function SignupPage() {
               {idx < 2 && (
                 <div
                   className={`flex-1 h-[2px] mx-3 rounded transition-all ${
-                    currentStep > idx + 1 ? 'bg-[#39FF14]' : 'bg-[#232B35]'
+                    currentStep > idx + 1 ? 'bg-[#39FF14]' : 'bg-[#1e2433]'
                   }`}
                 />
               )}
@@ -279,7 +290,7 @@ export default function SignupPage() {
 
       {/* ERROR ALERT BANNER */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs flex items-center gap-2 animate-in fade-in">
+        <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2 animate-in fade-in">
           <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
           <span>{errorMsg}</span>
         </div>
@@ -287,7 +298,7 @@ export default function SignupPage() {
 
       {/* INFO ALERT BANNER */}
       {infoMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-2 animate-in fade-in">
+        <div className="p-3.5 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-mono flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 shrink-0 text-[#39FF14]" />
           <span>{infoMsg}</span>
         </div>
@@ -311,7 +322,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tenban@domain.com"
-                className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition"
+                className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
               />
             </div>
             <p className="text-[11px] text-slate-500">
@@ -334,7 +345,7 @@ export default function SignupPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value.toLowerCase())}
                 placeholder="nguyenvananh"
-                className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition font-mono"
+                className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
               />
             </div>
             <p className="text-[11px] text-slate-500">
@@ -342,12 +353,20 @@ export default function SignupPage() {
             </p>
           </div>
 
+          {/* Student Perks Callout */}
+          <div className="p-3 rounded-xl bg-[#11141e] border border-[#1e2433] flex items-start gap-2.5 text-xs text-slate-300">
+            <GraduationCap className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed">
+              <span className="font-bold text-[#39FF14]">Ưu đãi Sinh viên:</span> Nhập email sinh viên (<span className="font-mono text-[#00e5ff]">.edu.vn</span>) để tự động kích hoạt mã giảm 15% - 35% cho tất cả đơn hàng in thước kẻ và mô hình đồ án.
+            </p>
+          </div>
+
           <button
             type="submit"
-            className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-[#39FF14]/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer mt-4"
+            className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer mt-4 whitespace-nowrap shrink-0"
           >
             <span>Tiếp Tục Bước 2</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </button>
         </form>
       )}
@@ -370,7 +389,7 @@ export default function SignupPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Nguyễn Văn Anh"
-                  className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-3 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition"
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-3 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition"
                 />
               </div>
             </div>
@@ -388,7 +407,7 @@ export default function SignupPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="0912345678"
-                  className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-3 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition font-mono"
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-3 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
                 />
               </div>
             </div>
@@ -409,12 +428,12 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Tối thiểu 8 ký tự"
-                  className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-9 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition"
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-9 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-3.5 text-slate-400 hover:text-white p-0.5"
+                  className="absolute right-3 top-3.5 text-slate-400 hover:text-white p-0.5 cursor-pointer"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -435,12 +454,12 @@ export default function SignupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Nhập lại mật khẩu"
-                  className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-9 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition"
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-9 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-3 top-3.5 text-slate-400 hover:text-white p-0.5"
+                  className="absolute right-3 top-3.5 text-slate-400 hover:text-white p-0.5 cursor-pointer"
                   aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -449,20 +468,58 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* Tiêu chuẩn mật khẩu Checklist */}
+          {/* Laser Password Strength Meter */}
           {password && (
-            <div className="grid grid-cols-2 gap-1.5 p-3 rounded-xl bg-[#141B22] border border-[#242F3C] text-[11px]">
-              <div className={`flex items-center gap-1.5 ${passwordChecks.length ? 'text-[#39FF14]' : 'text-slate-400'}`}>
-                <span>{passwordChecks.length ? '✓' : '•'}</span> Tối thiểu 8 ký tự
+            <div className="space-y-2 p-3 rounded-xl bg-[#040508] border border-[#1e2433]">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Độ bảo mật mật khẩu:</span>
+                <span
+                  className={`font-mono font-bold ${
+                    strengthScore === 4
+                      ? 'text-[#39FF14]'
+                      : strengthScore >= 2
+                      ? 'text-amber-400'
+                      : 'text-red-400'
+                  }`}
+                >
+                  {strengthScore === 4
+                    ? 'TỐI ĐA (CYBER SECURE)'
+                    : strengthScore >= 2
+                    ? 'TRUNG BÌNH (CẦN TỐI ƯU)'
+                    : 'YẾU (CHƯA ĐẠT CHUẨN)'}
+                </span>
               </div>
-              <div className={`flex items-center gap-1.5 ${passwordChecks.hasUpper ? 'text-[#39FF14]' : 'text-slate-400'}`}>
-                <span>{passwordChecks.hasUpper ? '✓' : '•'}</span> Có chữ hoa (A-Z)
+              <div className="grid grid-cols-4 gap-1.5 h-1.5">
+                {[1, 2, 3, 4].map((bar) => (
+                  <div
+                    key={bar}
+                    className={`h-full rounded-full transition-all ${
+                      bar <= strengthScore
+                        ? strengthScore === 4
+                          ? 'bg-[#39FF14] shadow-[0_0_6px_rgba(57,255,20,0.8)]'
+                          : strengthScore >= 2
+                          ? 'bg-amber-400'
+                          : 'bg-red-500'
+                        : 'bg-[#1e2433]'
+                    }`}
+                  />
+                ))}
               </div>
-              <div className={`flex items-center gap-1.5 ${passwordChecks.hasNumber ? 'text-[#39FF14]' : 'text-slate-400'}`}>
-                <span>{passwordChecks.hasNumber ? '✓' : '•'}</span> Có chữ số (0-9)
-              </div>
-              <div className={`flex items-center gap-1.5 ${passwordChecks.hasSpecial ? 'text-[#39FF14]' : 'text-slate-400'}`}>
-                <span>{passwordChecks.hasSpecial ? '✓' : '•'}</span> Ký tự đặc biệt (!@#$)
+
+              {/* Checklist */}
+              <div className="grid grid-cols-2 gap-1.5 pt-1 text-[11px] font-mono">
+                <div className={`flex items-center gap-1.5 ${passwordChecks.length ? 'text-[#39FF14]' : 'text-slate-500'}`}>
+                  <span>{passwordChecks.length ? '✓' : '•'}</span> Tối thiểu 8 ký tự
+                </div>
+                <div className={`flex items-center gap-1.5 ${passwordChecks.hasUpper && passwordChecks.hasLower ? 'text-[#39FF14]' : 'text-slate-500'}`}>
+                  <span>{passwordChecks.hasUpper && passwordChecks.hasLower ? '✓' : '•'}</span> Hoa &amp; thường (Aa)
+                </div>
+                <div className={`flex items-center gap-1.5 ${passwordChecks.hasNumber ? 'text-[#39FF14]' : 'text-slate-500'}`}>
+                  <span>{passwordChecks.hasNumber ? '✓' : '•'}</span> Chữ số (0-9)
+                </div>
+                <div className={`flex items-center gap-1.5 ${passwordChecks.hasSpecial ? 'text-[#39FF14]' : 'text-slate-500'}`}>
+                  <span>{passwordChecks.hasSpecial ? '✓' : '•'}</span> Ký tự đặc biệt (!@#$)
+                </div>
               </div>
             </div>
           )}
@@ -475,15 +532,16 @@ export default function SignupPage() {
                 setErrorMsg('');
                 setCurrentStep(1);
               }}
-              className="px-4 py-3 rounded-xl bg-[#182028] hover:bg-[#222C38] border border-[#2B3542] text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-3 rounded-xl bg-[#0a0c12] hover:bg-[#11141e] border border-[#1e2433] text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
             >
-              <ArrowLeft className="w-4 h-4" /> Quay lại
+              <ArrowLeft className="w-4 h-4 shrink-0" />
+              <span>Quay lại</span>
             </button>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-[#39FF14]/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 whitespace-nowrap shrink-0"
             >
               {isLoading ? (
                 <>
@@ -493,7 +551,7 @@ export default function SignupPage() {
               ) : (
                 <>
                   <span>Đăng Ký &amp; Nhận Mã OTP</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 shrink-0" />
                 </>
               )}
             </button>
@@ -505,11 +563,11 @@ export default function SignupPage() {
       {currentStep === 3 && (
         <form onSubmit={handleVerifyOtp} className="space-y-4 pt-1">
           {otpSuccess ? (
-            <div className="p-6 rounded-2xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-bold text-center space-y-2 animate-in fade-in">
+            <div className="p-6 rounded-2xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-bold text-center space-y-2 animate-in fade-in shadow-[0_0_20px_rgba(57,255,20,0.2)]">
               <CheckCircle2 className="w-10 h-10 text-[#39FF14] mx-auto" />
               <p className="text-base text-white">Tài khoản đã được kích hoạt thành công!</p>
               <p className="text-slate-400 font-normal text-xs">
-                Đang tự động chuyển hướng vào hệ thống...
+                Đang tự động chuyển hướng vào hệ thống xưởng in...
               </p>
             </div>
           ) : (
@@ -530,7 +588,7 @@ export default function SignupPage() {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="000000"
-                    className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-9 pr-4 py-3 text-center tracking-[8px] text-xl font-mono font-black text-white focus:border-[#39FF14] outline-none transition"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-9 pr-4 py-3 text-center tracking-[0.4em] text-xl font-mono font-black text-[#00e5ff] focus:border-[#39FF14] outline-none transition"
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 text-center">
@@ -541,7 +599,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={isVerifyingOtp}
-                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-[#39FF14]/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 whitespace-nowrap shrink-0"
               >
                 {isVerifyingOtp ? (
                   <>
@@ -551,12 +609,12 @@ export default function SignupPage() {
                 ) : (
                   <>
                     <span>Xác Thực Kích Hoạt Tài Khoản</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </>
                 )}
               </button>
 
-              <div className="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-[#232B35]">
+              <div className="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-[#1e2433]">
                 <button
                   type="button"
                   onClick={() => {
@@ -564,16 +622,17 @@ export default function SignupPage() {
                     setInfoMsg('');
                     setCurrentStep(2);
                   }}
-                  className="text-slate-400 hover:text-white transition flex items-center gap-1 cursor-pointer"
+                  className="text-slate-400 hover:text-white transition flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Chỉnh sửa thông tin
+                  <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+                  <span>Chỉnh sửa thông tin</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={resendCooldown > 0 || isResendingOtp}
                   onClick={handleResendOtp}
-                  className="text-[#39FF14] font-bold hover:underline disabled:text-slate-600 disabled:no-underline disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer transition"
+                  className="text-[#39FF14] font-bold hover:underline disabled:text-slate-600 disabled:no-underline disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer transition whitespace-nowrap shrink-0"
                 >
                   {isResendingOtp ? (
                     <>

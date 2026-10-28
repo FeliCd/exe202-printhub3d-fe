@@ -5,7 +5,6 @@ import type { useCart } from '../features/cart/hooks/useCart';
 import type { Design } from '../features/ruler-studio/model';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { CustomRequestForm, CustomRequests } from '../features/custom/CustomRequests';
-import { secondary } from '../components/DataUI';
 import { useAuth } from '../context/AuthContext';
 import { useCustomLanguage, translateCustom as tr } from '../features/ruler-studio/language';
 
@@ -46,34 +45,30 @@ export default function CustomOrderPage({
   };
 
   const headerControls = (
-    <header className="studio-page-controls flex flex-wrap items-center gap-x-4 gap-y-2">
-      <div className="flex items-center gap-2">
-        <h1 id="custom-print-title" className="text-sm font-bold text-white">
-          {tr('Design and order 3D prints')}
-        </h1>
+    <header className="studio-page-controls flex flex-wrap items-center justify-between gap-x-4 gap-y-3 p-4 bg-[#0a0c12] border-b border-white/10">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse" />
+          <h1 id="custom-print-title" className="text-sm font-black tracking-wider text-white uppercase font-mono">
+            {tr('Design and order 3D prints')}
+          </h1>
+        </div>
         {editingCartItemId && (
-          <span className="px-2 py-0.5 text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">
+          <span className="px-2.5 py-0.5 text-[11px] font-bold bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/30 rounded-full font-mono">
             Đang sửa món trong giỏ
           </span>
         )}
       </div>
-      <label className="flex shrink-0 items-center gap-2 text-xs text-slate-300 ml-auto">
-        {tr('Language')}
-        <select
-          aria-label={tr('Language')}
-          value={language}
-          onChange={event => setLanguage(event.target.value as 'vi' | 'en')}
-          className="bg-surface-inset border border-[#39FF14]/40 text-[#39FF14] rounded-lg px-3 py-2"
-        >
-          <option value="vi">Tiếng Việt</option>
-          <option value="en">English</option>
-        </select>
-      </label>
-      <div className="flex gap-2 flex-wrap order-first">
+
+      <div className="flex items-center gap-2 bg-[#040508] p-1 rounded-xl border border-white/10">
         {([['design', '3D Design'], ['upload', 'Upload a file'], ['requests', 'My requests']] as const).map(([key, label]) => (
           <button
             key={key}
-            className={`${secondary} ${tab === key ? 'border-[#39FF14]/50 bg-[#39FF14]/10 text-[#39FF14]' : ''}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition font-mono ${
+              tab === key
+                ? 'bg-[#39FF14] text-slate-950 shadow-md shadow-[#39FF14]/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
             aria-pressed={tab === key}
             onClick={() => setTab(key)}
           >
@@ -81,6 +76,19 @@ export default function CustomOrderPage({
           </button>
         ))}
       </div>
+
+      <label className="flex shrink-0 items-center gap-2 text-xs text-slate-400 font-mono">
+        <span className="text-[11px] uppercase tracking-wider">{tr('Language')}:</span>
+        <select
+          aria-label={tr('Language')}
+          value={language}
+          onChange={event => setLanguage(event.target.value as 'vi' | 'en')}
+          className="bg-[#040508] border border-white/15 text-[#39FF14] font-bold rounded-lg px-2.5 py-1 text-xs outline-none focus:border-[#39FF14]"
+        >
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
+        </select>
+      </label>
     </header>
   );
 
@@ -88,12 +96,12 @@ export default function CustomOrderPage({
     <section
       lang={language}
       aria-labelledby="custom-print-title"
-      className="min-w-0 overflow-hidden rounded-[20px] border border-border bg-surface [&>.ruler-studio]:border-0 [&>.ruler-studio]:rounded-none"
+      className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#040508] shadow-2xl [&>.ruler-studio]:border-0 [&>.ruler-studio]:rounded-none"
     >
-      {tab !== 'design' && <div className="border-b border-border px-4 py-3">{headerControls}</div>}
+      {tab !== 'design' && headerControls}
       {tab === 'design' && (
         <ErrorBoundary>
-          <Suspense fallback={<p className="p-8 text-center text-slate-400">{tr('Loading designer…')}</p>}>
+          <Suspense fallback={<p className="p-12 text-center text-slate-400 font-mono">{tr('Loading designer…')}</p>}>
             <RulerConfigurator
               headerControls={headerControls}
               onAddToCart={onAddToCart}
@@ -107,8 +115,16 @@ export default function CustomOrderPage({
           </Suspense>
         </ErrorBoundary>
       )}
-      {tab === 'upload' && <div className="p-4"><CustomRequestForm translate={tr} onCreated={() => setTab('requests')} /></div>}
-      {tab === 'requests' && <div className="p-4">{isAuthenticated ? <CustomRequests translate={tr} /> : <p>{tr('Sign in to view your requests.')}</p>}</div>}
+      {tab === 'upload' && (
+        <div className="p-6 bg-[#0a0c12]">
+          <CustomRequestForm translate={tr} onCreated={() => setTab('requests')} />
+        </div>
+      )}
+      {tab === 'requests' && (
+        <div className="p-6 bg-[#0a0c12]">
+          {isAuthenticated ? <CustomRequests translate={tr} /> : <p className="text-slate-400">{tr('Sign in to view your requests.')}</p>}
+        </div>
+      )}
     </section>
   );
 }

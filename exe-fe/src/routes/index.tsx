@@ -33,7 +33,6 @@ const PaymentResultPage = lazy(() => import('../pages/PaymentResultPage'));
 const SubscriptionsPage = lazy(() => import('../pages/SubscriptionsPage'));
 const WarrantyPage = lazy(() => import('../pages/WarrantyPage'));
 const DisputesPage = lazy(() => import('../pages/DisputesPage'));
-const Ruler3DPage = lazy(() => import('../pages/Ruler3DPage'));
 const ProfilePage = lazy(() => import('../pages/ProfilePage'));
 const AddressBookPage = lazy(() => import('../pages/AddressBookPage'));
 
@@ -298,13 +297,7 @@ export default function AppRoutes({
         />
         <Route
           path="/ruler-3d"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <Ruler3DPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
+          element={<Navigate to="/custom" replace />}
         />
         <Route
           path="/profile"

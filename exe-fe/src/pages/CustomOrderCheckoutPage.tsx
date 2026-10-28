@@ -263,7 +263,7 @@ export default function CustomOrderCheckoutPage({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-primary/20 border border-primary/40 text-primary">
+              <span className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] shadow-[0_0_15px_rgba(57,255,20,0.2)]">
                 <Ruler className="w-6 h-6" />
               </span>
               Xác Nhận Đặt In Thước 3D
@@ -274,14 +274,14 @@ export default function CustomOrderCheckoutPage({
           </div>
           <Link
             to="/custom"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-surface-inset text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-500 transition"
+            className="whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-[#11141e] text-xs font-semibold text-slate-300 hover:text-[#39FF14] hover:border-[#39FF14]/40 transition"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Chỉnh sửa lại 3D
           </Link>
         </div>
 
         {/* STEPPER PROGRESS BAR (4 Steps) */}
-        <div className="relative rounded-2xl border border-border bg-surface p-4 sm:p-5 shadow-lg">
+        <div className="relative rounded-2xl border border-white/10 bg-[#0a0c12] p-4 sm:p-5 shadow-lg">
           <div className="grid grid-cols-4 gap-2 relative">
             {/* Step Items */}
             {[
@@ -297,15 +297,14 @@ export default function CustomOrderCheckoutPage({
               return (
                 <div
                   key={step.num}
-                  className={`flex flex-col items-center text-center space-y-1.5 cursor-pointer transition ${
+                  className={`flex flex-col items-center text-center space-y-1.5 cursor-pointer transition select-none ${
                     isCurrent
-                      ? 'text-primary'
+                      ? 'text-[#39FF14]'
                       : isPassed
-                      ? 'text-primary'
+                      ? 'text-[#39FF14]'
                       : 'text-slate-500'
                   }`}
                   onClick={() => {
-                    // Only allow clicking back to previous steps, or current
                     if (step.num < currentStep) {
                       setCurrentStep(step.num);
                     }
@@ -314,15 +313,15 @@ export default function CustomOrderCheckoutPage({
                   <div
                     className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm transition-all shadow-md ${
                       isCurrent
-                        ? 'bg-primary text-slate-950 ring-4 ring-primary/20 scale-105'
+                        ? 'bg-[#39FF14] text-[#040508] ring-4 ring-[#39FF14]/20 scale-105 shadow-[0_0_15px_rgba(57,255,20,0.3)]'
                         : isPassed
-                        ? 'bg-primary/10 border border-primary/60 text-primary'
-                        : 'bg-surface-inset border border-border text-slate-500'
+                        ? 'bg-[#39FF14]/15 border border-[#39FF14]/60 text-[#39FF14]'
+                        : 'bg-[#040508] border border-white/10 text-slate-500'
                     }`}
                   >
                     {isPassed ? <Check className="w-5 h-5" /> : <Icon className="w-4 h-4" />}
                   </div>
-                  <span className="text-[11px] sm:text-xs font-bold truncate max-w-[85px] sm:max-w-none">
+                  <span className="text-[11px] sm:text-xs font-bold truncate max-w-[85px] sm:max-w-none font-mono">
                     {step.num}. {step.title}
                   </span>
                 </div>
@@ -344,10 +343,10 @@ export default function CustomOrderCheckoutPage({
       {/* ========================================================================= */}
       {currentStep === 1 && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 space-y-6 shadow-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4">
+          <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-6 sm:p-8 space-y-6 shadow-xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
+                <div className="w-10 h-10 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14]">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
@@ -360,7 +359,7 @@ export default function CustomOrderCheckoutPage({
                 <button
                   type="button"
                   onClick={onOpenAddressModal}
-                  className="px-3 py-1.5 rounded-lg border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition flex items-center gap-1.5"
+                  className="whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg border border-[#39FF14]/40 bg-[#39FF14]/10 hover:bg-[#39FF14]/20 text-[#39FF14] text-xs font-bold transition flex items-center gap-1.5"
                 >
                   <MapPin className="w-3.5 h-3.5" /> Sổ địa chỉ đã lưu
                 </button>
@@ -381,7 +380,7 @@ export default function CustomOrderCheckoutPage({
                   value={recipientName}
                   onChange={e => setRecipientName(e.target.value)}
                   placeholder="Ví dụ: Lê Quốc Khánh"
-                  className="w-full rounded-xl border border-border bg-surface-inset px-3.5 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-[#040508] px-3.5 py-2.5 text-sm text-white focus:border-[#39FF14] focus:outline-none"
                 />
               </div>
 
@@ -392,7 +391,7 @@ export default function CustomOrderCheckoutPage({
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   placeholder="Ví dụ: 0786954657"
-                  className="w-full rounded-xl border border-border bg-surface-inset px-3.5 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-[#040508] px-3.5 py-2.5 text-sm text-white font-mono focus:border-[#39FF14] focus:outline-none"
                 />
               </div>
             </div>
@@ -402,7 +401,7 @@ export default function CustomOrderCheckoutPage({
               <select
                 value={province}
                 onChange={e => setProvince(e.target.value)}
-                className="w-full rounded-xl border border-border bg-surface-inset px-3.5 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-[#040508] px-3.5 py-2.5 text-sm text-white focus:border-[#39FF14] focus:outline-none"
               >
                 {VIETNAM_PROVINCES.map(p => (
                   <option key={p} value={p} className="bg-slate-900 text-white">
@@ -419,7 +418,7 @@ export default function CustomOrderCheckoutPage({
                 value={addressLine}
                 onChange={e => setAddressLine(e.target.value)}
                 placeholder="Số nhà, tên đường, KTX, toà nhà, phòng..."
-                className="w-full rounded-xl border border-border bg-surface-inset px-3.5 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-[#040508] px-3.5 py-2.5 text-sm text-white focus:border-[#39FF14] focus:outline-none"
               />
               <p className="text-[11px] text-slate-400">
                 Gợi ý: Nếu ở KTX hoặc trường đại học, hãy ghi rõ số phòng và toà nhà để shipper giao nhanh nhất.
@@ -427,11 +426,11 @@ export default function CustomOrderCheckoutPage({
             </div>
 
             {/* BUTTON BAR STEP 1 */}
-            <div className="flex justify-end pt-4 border-t border-border/60">
+            <div className="flex justify-end pt-4 border-t border-white/10">
               <button
                 type="button"
                 onClick={handleNextFromStep1}
-                className="px-6 py-3 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-lg shadow-primary/20"
+                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
               >
                 <span>Tiếp tục: Kiểm tra thiết kế 3D</span>
                 <ArrowRight className="w-4 h-4" />
@@ -446,9 +445,9 @@ export default function CustomOrderCheckoutPage({
       {/* ========================================================================= */}
       {currentStep === 2 && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 space-y-6 shadow-xl">
-            <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
+          <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-6 sm:p-8 space-y-6 shadow-xl">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14]">
                 <Ruler className="w-5 h-5" />
               </div>
               <div>
@@ -460,15 +459,15 @@ export default function CustomOrderCheckoutPage({
             {/* 4 Preview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Card 1: Ruler Model Info */}
-              <div className="p-4 rounded-xl border border-border bg-surface-inset space-y-3">
-                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+              <div className="p-4 rounded-xl border border-white/10 bg-[#040508] space-y-3">
+                <div className="flex items-center gap-2 text-[#39FF14] font-bold text-xs uppercase tracking-wider font-mono">
                   <Ruler className="w-4 h-4" /> Mẫu thước &amp; Kích thước
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white">{orderConfig.selectedModel.name}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">{orderConfig.selectedModel.category}</p>
                 </div>
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40 text-xs">
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-xs">
                   <div>
                     <span className="text-slate-400 block text-[10px]">Chiều dài:</span>
                     <strong className="text-white font-mono">{orderConfig.selectedModel.length} cm</strong>
@@ -485,15 +484,15 @@ export default function CustomOrderCheckoutPage({
               </div>
 
               {/* Card 2: Materials & Colors */}
-              <div className="p-4 rounded-xl border border-border bg-surface-inset space-y-3">
-                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+              <div className="p-4 rounded-xl border border-white/10 bg-[#040508] space-y-3">
+                <div className="flex items-center gap-2 text-[#00e5ff] font-bold text-xs uppercase tracking-wider font-mono">
                   <Sparkles className="w-4 h-4" /> Vật liệu &amp; Phối màu
                 </div>
                 <div>
                   <span className="text-xs text-slate-400 block">Vật liệu in 3D:</span>
-                  <strong className="text-white text-sm">{orderConfig.materialType}</strong>
+                  <strong className="text-white text-sm font-mono text-[#39FF14]">{orderConfig.materialType}</strong>
                 </div>
-                <div className="space-y-1.5 pt-2 border-t border-border/40 text-xs">
+                <div className="space-y-1.5 pt-2 border-t border-white/10 text-xs">
                   <span className="text-slate-400 block text-[10px]">Phối màu các lớp:</span>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
@@ -513,18 +512,18 @@ export default function CustomOrderCheckoutPage({
               </div>
 
               {/* Card 3: Custom Laser Engraving */}
-              <div className="p-4 rounded-xl border border-border bg-surface-inset space-y-3">
-                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+              <div className="p-4 rounded-xl border border-white/10 bg-[#040508] space-y-3">
+                <div className="flex items-center gap-2 text-[#ff9100] font-bold text-xs uppercase tracking-wider font-mono">
                   <Layers className="w-4 h-4" /> Nội dung khắc laser
                 </div>
                 <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
+                  <div className="flex justify-between items-center pb-1.5 border-b border-white/10">
                     <span className="text-slate-400">Tên dập nổi:</span>
-                    <strong className="text-primary text-sm font-bold">{orderConfig.studentName}</strong>
+                    <strong className="text-[#39FF14] text-sm font-bold">{orderConfig.studentName}</strong>
                   </div>
-                  <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
+                  <div className="flex justify-between items-center pb-1.5 border-b border-white/10">
                     <span className="text-slate-400">Mã số sinh viên:</span>
-                    <strong className="text-primary font-mono text-sm">{orderConfig.studentId || 'Chưa điền'}</strong>
+                    <strong className="text-[#39FF14] font-mono text-sm">{orderConfig.studentId || 'Chưa điền'}</strong>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">Kiểu Font chữ:</span>
@@ -534,18 +533,18 @@ export default function CustomOrderCheckoutPage({
               </div>
 
               {/* Card 4: Stickers & 3D File */}
-              <div className="p-4 rounded-xl border border-border bg-surface-inset space-y-3">
-                <div className="flex items-center gap-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
+              <div className="p-4 rounded-xl border border-white/10 bg-[#040508] space-y-3">
+                <div className="flex items-center gap-2 text-[#00e5ff] font-bold text-xs uppercase tracking-wider font-mono">
                   <Download className="w-4 h-4" /> Tệp thiết kế &amp; Sticker 3D
                 </div>
                 <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between items-center pb-1.5 border-b border-border/40">
+                  <div className="flex justify-between items-center pb-1.5 border-b border-white/10">
                     <span className="text-slate-400">Sticker 3D đã dán:</span>
-                    <strong className="text-purple-300">{orderConfig.stickersCount} icon dập nổi</strong>
+                    <strong className="text-[#00e5ff] font-mono">{orderConfig.stickersCount} icon dập nổi</strong>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">Tệp mô hình STL:</span>
-                    <span className="text-primary font-mono text-[11px]">Đã tạo và mã hoá</span>
+                    <span className="text-[#39FF14] font-mono text-[11px]">Đã tạo và mã hoá</span>
                   </div>
                   {orderConfig.attachmentUrl && (
                     <div className="pt-1">
@@ -553,7 +552,7 @@ export default function CustomOrderCheckoutPage({
                         href={orderConfig.attachmentUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                        className="text-[11px] text-[#39FF14] hover:underline flex items-center gap-1 font-mono"
                       >
                         <Download className="w-3 h-3" /> Xem hoặc tải tệp STL trên CDN
                       </a>
@@ -564,11 +563,11 @@ export default function CustomOrderCheckoutPage({
             </div>
 
             {/* BUTTON BAR STEP 2 */}
-            <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-border/60">
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="px-5 py-2.5 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center gap-2 text-sm"
+                className="whitespace-nowrap shrink-0 px-5 py-2.5 rounded-xl border border-white/10 bg-[#11141e] text-slate-300 hover:text-white hover:border-[#39FF14]/40 transition flex items-center gap-2 text-sm"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Quay lại: Địa chỉ</span>
@@ -577,7 +576,7 @@ export default function CustomOrderCheckoutPage({
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="px-6 py-3 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-lg shadow-primary/20"
+                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
               >
                 <span>Tiếp tục: Số lượng &amp; Yêu cầu in</span>
                 <ArrowRight className="w-4 h-4" />
@@ -592,9 +591,9 @@ export default function CustomOrderCheckoutPage({
       {/* ========================================================================= */}
       {currentStep === 3 && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 space-y-6 shadow-xl">
-            <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+          <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-6 sm:p-8 space-y-6 shadow-xl">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#ff9100]/15 border border-[#ff9100]/40 flex items-center justify-center text-[#ff9100]">
                 <Layers className="w-5 h-5" />
               </div>
               <div>
@@ -607,29 +606,29 @@ export default function CustomOrderCheckoutPage({
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-300 block">Số lượng cần in:</label>
               <div className="flex items-center gap-4">
-                <div className="flex items-center rounded-xl border border-border bg-surface-inset p-1">
+                <div className="flex items-center rounded-xl border border-white/10 bg-[#040508] p-1">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className="w-9 h-9 rounded-lg bg-surface border border-border hover:bg-slate-800 text-white font-bold flex items-center justify-center disabled:opacity-40"
+                    className="w-9 h-9 rounded-lg bg-[#11141e] border border-white/10 hover:bg-white/10 text-white font-bold flex items-center justify-center disabled:opacity-40"
                   >
                     −
                   </button>
-                  <span className="w-14 text-center font-mono font-black text-lg text-white">
+                  <span className="w-14 text-center font-mono font-black text-lg text-[#39FF14]">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.min(50, quantity + 1))}
                     disabled={quantity >= 50}
-                    className="w-9 h-9 rounded-lg bg-surface border border-border hover:bg-slate-800 text-white font-bold flex items-center justify-center disabled:opacity-40"
+                    className="w-9 h-9 rounded-lg bg-[#11141e] border border-white/10 hover:bg-white/10 text-white font-bold flex items-center justify-center disabled:opacity-40"
                   >
                     +
                   </button>
                 </div>
-                <div className="text-xs text-slate-400">
-                  <span className="font-bold text-white">{formatPrice(unitPrice * quantity)}đ</span> (Đơn giá: {formatPrice(unitPrice)}đ/cây)
+                <div className="text-xs text-slate-400 font-mono">
+                  <span className="font-bold text-[#39FF14]">{formatPrice(unitPrice * quantity)}đ</span> (Đơn giá: {formatPrice(unitPrice)}đ/cây)
                 </div>
               </div>
             </div>
@@ -651,13 +650,13 @@ export default function CustomOrderCheckoutPage({
                     onClick={() => setInfillDensity(opt.value)}
                     className={`p-3.5 rounded-xl border text-left space-y-1 transition ${
                       infillDensity === opt.value
-                        ? 'border-primary bg-primary/10 text-white ring-2 ring-primary/20'
-                        : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
+                        ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-[0_0_15px_rgba(57,255,20,0.15)]'
+                        : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-xs">{opt.title}</span>
-                      {infillDensity === opt.value && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                      {infillDensity === opt.value && <CheckCircle2 className="w-4 h-4 text-[#39FF14]" />}
                     </div>
                     <p className="text-[11px] text-slate-400 leading-relaxed">{opt.desc}</p>
                   </button>
@@ -675,16 +674,16 @@ export default function CustomOrderCheckoutPage({
                 onChange={e => setNotes(e.target.value)}
                 rows={3}
                 placeholder="Ví dụ: Cần gấp trước thứ Sáu để nộp đồ án, đóng gói kỹ bọc chống sốc giúp mình..."
-                className="w-full rounded-xl border border-border bg-surface-inset p-3 text-sm text-white focus:border-primary focus:outline-none placeholder:text-slate-500"
+                className="w-full rounded-xl border border-white/10 bg-[#040508] p-3 text-sm text-white focus:border-[#39FF14] focus:outline-none placeholder:text-slate-500"
               />
             </div>
 
             {/* BUTTON BAR STEP 3 */}
-            <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-border/60">
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="px-5 py-2.5 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center gap-2 text-sm"
+                className="whitespace-nowrap shrink-0 px-5 py-2.5 rounded-xl border border-white/10 bg-[#11141e] text-slate-300 hover:text-white hover:border-[#39FF14]/40 transition flex items-center gap-2 text-sm"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Quay lại: Thiết kế 3D</span>
@@ -693,7 +692,7 @@ export default function CustomOrderCheckoutPage({
               <button
                 type="button"
                 onClick={() => setCurrentStep(4)}
-                className="px-6 py-3 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-lg shadow-primary/20"
+                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
               >
                 <span>Tiếp tục: Phương thức thanh toán</span>
                 <ArrowRight className="w-4 h-4" />
@@ -708,9 +707,9 @@ export default function CustomOrderCheckoutPage({
       {/* ========================================================================= */}
       {currentStep === 4 && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 space-y-6 shadow-xl">
-            <div className="flex items-center gap-3 border-b border-border/60 pb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
+          <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-6 sm:p-8 space-y-6 shadow-xl">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14]">
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
@@ -729,15 +728,15 @@ export default function CustomOrderCheckoutPage({
                   onClick={() => setPaymentMethod('PAYOS')}
                   className={`p-4 rounded-xl border text-left space-y-2 transition relative ${
                     paymentMethod === 'PAYOS'
-                      ? 'border-primary bg-primary/10 text-white ring-2 ring-primary/20 shadow-lg shadow-primary/10'
-                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
+                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-[0_0_20px_rgba(57,255,20,0.15)]'
+                      : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
                   }`}
                 >
-                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-primary/12 border border-primary/50 text-[10px] font-bold text-primary">
+                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[#39FF14]/20 border border-[#39FF14]/40 text-[10px] font-mono font-bold text-[#39FF14]">
                     Khuyên dùng
                   </span>
                   <div className="flex items-center gap-2.5">
-                    <CreditCard className="w-5 h-5 text-primary" />
+                    <CreditCard className="w-5 h-5 text-[#39FF14]" />
                     <div>
                       <p className="font-bold text-sm">Cổng PayOS (VietQR)</p>
                       <p className="text-[11px] text-slate-400">Quét mã QR chuyển khoản tự động 100%</p>
@@ -754,12 +753,12 @@ export default function CustomOrderCheckoutPage({
                   onClick={() => setPaymentMethod('COD')}
                   className={`p-4 rounded-xl border text-left space-y-2 transition ${
                     paymentMethod === 'COD'
-                      ? 'border-primary bg-primary/10 text-white ring-2 ring-primary/20'
-                      : 'border-border bg-surface-inset text-slate-300 hover:border-slate-500'
+                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-[0_0_20px_rgba(57,255,20,0.15)]'
+                      : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Truck className="w-5 h-5 text-primary" />
+                    <Truck className="w-5 h-5 text-[#39FF14]" />
                     <div>
                       <p className="font-bold text-sm">Thanh toán khi nhận hàng (COD)</p>
                       <p className="text-[11px] text-slate-400">Nhận thước, kiểm tra rồi thanh toán tiền mặt</p>
@@ -773,66 +772,66 @@ export default function CustomOrderCheckoutPage({
             </div>
 
             {/* Price Breakdown Card */}
-            <div className="rounded-xl border border-border/80 bg-surface-inset p-5 space-y-3 text-sm">
-              <h3 className="font-bold text-white text-xs uppercase tracking-wider text-slate-300 border-b border-border/40 pb-2">
+            <div className="rounded-xl border border-white/10 bg-[#040508] p-5 space-y-3 text-sm font-mono">
+              <h3 className="font-bold text-white text-xs uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 font-sans">
                 Chi tiết bảng tính chi phí
               </h3>
 
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Đơn giá thước in 3D:</span>
-                <span className="text-white font-mono">{formatPrice(unitPrice)}đ</span>
+                <span className="text-slate-400 font-sans">Đơn giá thước in 3D:</span>
+                <span className="text-white">{formatPrice(unitPrice)}đ</span>
               </div>
 
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Số lượng đặt:</span>
-                <span className="text-white font-mono">× {quantity} cây</span>
+                <span className="text-slate-400 font-sans">Số lượng đặt:</span>
+                <span className="text-white">× {quantity} cây</span>
               </div>
 
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Tạm tính:</span>
-                <span className="text-white font-mono font-bold">{formatPrice(subtotal)}đ</span>
+                <span className="text-slate-400 font-sans">Tạm tính:</span>
+                <span className="text-white font-bold">{formatPrice(subtotal)}đ</span>
               </div>
 
               {vipDiscount > 0 && (
-                <div className="flex justify-between items-center text-xs text-primary">
-                  <span>Ưu đãi gói hội viên VIP (-15%):</span>
-                  <span className="font-mono font-bold">-{formatPrice(vipDiscount)}đ</span>
+                <div className="flex justify-between items-center text-xs text-[#39FF14]">
+                  <span className="font-sans">Ưu đãi gói hội viên VIP (-15%):</span>
+                  <span className="font-bold">-{formatPrice(vipDiscount)}đ</span>
                 </div>
               )}
 
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Phí giao hàng:</span>
-                <span className="text-white font-mono">
+                <span className="text-slate-400 font-sans">Phí giao hàng:</span>
+                <span className="text-white">
                   {shippingFee === 0 ? (
-                    <span className="text-primary font-bold">Miễn phí</span>
+                    <span className="text-[#39FF14] font-bold font-sans">Miễn phí</span>
                   ) : (
                     `${formatPrice(shippingFee)}đ`
                   )}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center pt-3 border-t border-border text-base">
-                <span className="font-bold text-white">TỔNG TIỀN THANH TOÁN:</span>
-                <span className="text-2xl font-black text-primary font-mono">
+              <div className="flex justify-between items-center pt-3 border-t border-white/10 text-base">
+                <span className="font-bold text-white font-sans">TỔNG TIỀN THANH TOÁN:</span>
+                <span className="text-2xl font-black text-[#39FF14]">
                   {formatPrice(totalAmount)}đ
                 </span>
               </div>
             </div>
 
             {/* Summary of Recipient */}
-            <div className="p-3.5 rounded-xl border border-border/60 bg-surface-inset/50 text-xs text-slate-300 flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl border border-white/10 bg-[#040508] text-xs text-slate-300 flex items-start gap-2.5">
+              <MapPin className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
               <div>
-                <strong>Giao đến:</strong> {recipientName} ({phone}) — {addressLine}, {province}
+                <strong className="text-white">Giao đến:</strong> {recipientName} ({phone}) — {addressLine}, {province}
               </div>
             </div>
 
             {/* BUTTON BAR STEP 4 */}
-            <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-border/60">
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="px-5 py-2.5 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center gap-2 text-sm"
+                className="whitespace-nowrap shrink-0 px-5 py-2.5 rounded-xl border border-white/10 bg-[#11141e] text-slate-300 hover:text-white hover:border-[#39FF14]/40 transition flex items-center gap-2 text-sm"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Quay lại: Số lượng</span>
@@ -848,7 +847,7 @@ export default function CustomOrderCheckoutPage({
                     handleFinalSubmit();
                   }
                 }}
-                className="px-8 py-3.5 rounded-xl bg-primary text-slate-950 font-black hover:brightness-110 active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-xl shadow-primary/20 uppercase tracking-tight cursor-pointer disabled:opacity-50"
+                className="whitespace-nowrap shrink-0 px-8 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_25px_rgba(57,255,20,0.35)] uppercase tracking-tight cursor-pointer disabled:opacity-50"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>
@@ -868,7 +867,7 @@ export default function CustomOrderCheckoutPage({
       {/* POPUP XÁC NHẬN THANH TOÁN TRƯỚC 100% QUA PAYOS */}
       {/* ========================================================================= */}
       <Modal open={showPayOSConfirmModal} onClose={() => setShowPayOSConfirmModal(false)} label="Xác nhận thanh toán đơn in 3D">
-        <div className="w-full max-w-lg rounded-3xl border border-primary/50 bg-[#12141a] p-5 sm:p-7 shadow-2xl space-y-4 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
+        <div className="w-full max-w-lg rounded-3xl border border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-7 shadow-[0_0_40px_rgba(57,255,20,0.15)] space-y-4 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <button
             type="button"
             onClick={() => setShowPayOSConfirmModal(false)}
@@ -879,7 +878,7 @@ export default function CustomOrderCheckoutPage({
           </button>
 
           <div className="flex items-center gap-3 pr-10">
-            <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] shrink-0">
               <QrCode className="w-6 h-6" />
             </div>
             <div className="min-w-0">
@@ -888,25 +887,25 @@ export default function CustomOrderCheckoutPage({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/80 bg-surface-inset p-4 space-y-2.5 text-xs">
-            <div className="flex justify-between items-center pb-2 border-b border-border/40">
-              <span className="text-slate-400">Mẫu thước:</span>
-              <span className="font-bold text-white">{orderConfig.selectedModel.name}</span>
+          <div className="rounded-2xl border border-white/10 bg-[#040508] p-4 space-y-2.5 text-xs font-mono">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <span className="text-slate-400 font-sans">Mẫu thước:</span>
+              <span className="font-bold text-white font-sans">{orderConfig.selectedModel.name}</span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-border/40">
-              <span className="text-slate-400">Số lượng:</span>
-              <span className="font-mono text-white">{quantity} cây</span>
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <span className="text-slate-400 font-sans">Số lượng:</span>
+              <span className="text-white">{quantity} cây</span>
             </div>
             <div className="flex justify-between items-center pt-1 text-sm">
-              <span className="text-slate-300 font-medium">Số tiền thanh toán:</span>
-              <span className="text-2xl font-black text-primary font-mono">
+              <span className="text-slate-300 font-medium font-sans">Số tiền thanh toán:</span>
+              <span className="text-2xl font-black text-[#39FF14]">
                 {formatPrice(totalAmount)}đ
               </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3.5 text-xs text-amber-300 leading-relaxed flex items-start gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="rounded-xl border border-[#ff9100]/40 bg-[#ff9100]/10 p-3.5 text-xs text-[#ff9100] leading-relaxed flex items-start gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-[#ff9100] shrink-0 mt-0.5" />
             <span>
               Bạn có xác nhận muốn <strong>thanh toán trước 100% số tiền ({formatPrice(totalAmount)}đ)</strong> để xưởng <strong>PrintHub 3D</strong> tiếp nhận tệp thiết kế và bắt đầu quy trình in 3D ngay không?
             </span>
@@ -917,7 +916,7 @@ export default function CustomOrderCheckoutPage({
               type="button"
               disabled={isSubmitting}
               onClick={handleFinalSubmit}
-              className="flex-1 py-3 px-4 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-primary/20 min-h-[44px]"
+              className="whitespace-nowrap shrink-0 flex-1 py-3 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)] min-h-[44px]"
             >
               <CreditCard className="w-4 h-4" />
               {isSubmitting ? 'Đang mở cổng PayOS...' : 'Xác nhận & Mở cổng PayOS'}
@@ -925,7 +924,7 @@ export default function CustomOrderCheckoutPage({
             <button
               type="button"
               onClick={() => setShowPayOSConfirmModal(false)}
-              className="py-3 px-4 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white transition text-sm min-h-[44px] flex items-center justify-center"
+              className="whitespace-nowrap shrink-0 py-3 px-4 rounded-xl border border-white/10 bg-[#11141e] text-slate-300 hover:text-white transition text-sm min-h-[44px] flex items-center justify-center"
             >
               Để thanh toán sau
             </button>

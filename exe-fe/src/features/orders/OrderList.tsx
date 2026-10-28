@@ -17,7 +17,7 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
 import ReviewModal from '../reviews/ReviewModal';
-import { RemoteState, Notice, Status, button, secondary } from '../../components/DataUI';
+import { RemoteState, Notice, Status } from '../../components/DataUI';
 import { money } from '../../utils/format';
 
 // Stepper 5 bước chuẩn hóa
@@ -65,9 +65,9 @@ function OrderStepper({ status }: { status: string }) {
   return (
     <div className="py-2">
       <div className="flex items-center justify-between relative">
-        <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-border -z-0" />
+        <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-white/10 -z-0" />
         <div
-          className="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-primary transition-all duration-500 -z-0"
+          className="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-[#39FF14] shadow-[0_0_10px_rgba(57,255,20,0.5)] transition-all duration-500 -z-0"
           style={{ width: `${Math.max(0, Math.min(100, (currentIdx / (STEPS.length - 1)) * 100))}%` }}
         />
 
@@ -77,21 +77,21 @@ function OrderStepper({ status }: { status: string }) {
           const Icon = step.icon;
 
           return (
-            <div key={step.key} className="flex flex-col items-center relative z-10 group">
+            <div key={step.key} className="flex flex-col items-center relative z-10 group select-none">
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
                   isDone
-                    ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                    ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
                     : isCurrent
-                    ? 'bg-slate-900 border-2 border-primary text-primary shadow-lg shadow-primary/40 ring-4 ring-primary/20 scale-110'
-                    : 'bg-surface-inset border border-border text-slate-500'
+                    ? 'bg-[#040508] border-2 border-[#39FF14] text-[#39FF14] shadow-[0_0_20px_rgba(57,255,20,0.4)] ring-4 ring-[#39FF14]/20 scale-110'
+                    : 'bg-[#040508] border border-white/15 text-slate-500'
                 }`}
               >
                 {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : <Icon className="w-4 h-4" />}
               </div>
               <span
-                className={`text-[11px] font-bold mt-2 text-center whitespace-nowrap hidden sm:block ${
-                  isCurrent ? 'text-primary' : isDone ? 'text-slate-200' : 'text-slate-500'
+                className={`text-[11px] font-mono font-bold mt-2 text-center whitespace-nowrap hidden sm:block ${
+                  isCurrent ? 'text-[#39FF14]' : isDone ? 'text-slate-200' : 'text-slate-500'
                 }`}
               >
                 {step.label}
@@ -214,30 +214,30 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
   return (
     <div className="space-y-6 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-primary/10 border border-primary/30 text-primary">
+            <span className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] shadow-[0_0_15px_rgba(57,255,20,0.2)]">
               {history ? <Package className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
             </span>
             <h1 className="text-2xl font-black text-white tracking-tight">{pageTitle}</h1>
           </div>
-          <p className="text-xs sm:text-sm text-text-muted max-w-2xl">{pageDesc}</p>
+          <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">{pageDesc}</p>
         </div>
 
-        <button className={`${secondary} flex items-center gap-1.5 self-start sm:self-auto shrink-0`} onClick={handleReload}>
-          <RotateCcw className="h-3.5 w-3.5" /> Tải lại
+        <button className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl border border-white/10 bg-[#11141e] hover:bg-[#1a2030] text-slate-200 hover:text-white transition flex items-center gap-1.5 self-start sm:self-auto text-xs font-semibold" onClick={handleReload}>
+          <RotateCcw className="h-3.5 w-3.5 text-[#39FF14]" /> Tải lại
         </button>
       </div>
 
       {/* Admin Tab Filters: Phân biệt rõ Đơn Marketplace vs Đơn Custom */}
       {admin && (
-        <div className="flex items-center gap-2 p-1.5 bg-surface-inset rounded-2xl border border-border overflow-x-auto text-xs font-bold scrollbar-none">
+        <div className="flex items-center gap-2 p-1.5 bg-[#0a0c12] rounded-2xl border border-white/10 overflow-x-auto text-xs font-bold scrollbar-none font-mono">
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
               activeTab === 'ALL'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40'
+                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -246,9 +246,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
           <button
             onClick={() => setActiveTab('MARKETPLACE')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'MARKETPLACE'
-                ? 'bg-primary text-slate-950 shadow-md shadow-primary/40'
+                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -258,9 +258,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
           <button
             onClick={() => setActiveTab('CUSTOM')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'CUSTOM'
-                ? 'bg-amber-600 text-white shadow-md shadow-amber-900/40'
+                ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -272,12 +272,12 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
       {/* Buyer History Filter Tabs */}
       {!admin && history && (
-        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-border/80 bg-surface-inset scrollbar-none text-xs font-bold">
+        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-white/10 bg-[#0a0c12] scrollbar-none text-xs font-bold font-mono">
           <button
             onClick={() => setHistoryTab('ALL')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
               historyTab === 'ALL'
-                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -285,9 +285,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           </button>
           <button
             onClick={() => setHistoryTab('COMPLETED')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               historyTab === 'COMPLETED'
-                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -296,9 +296,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           </button>
           <button
             onClick={() => setHistoryTab('CANCELLED')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               historyTab === 'CANCELLED'
-                ? 'bg-red-500 text-white shadow-md shadow-red-900/40'
+                ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -309,12 +309,12 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
       {/* Buyer Active Order Filter Tabs */}
       {!admin && !history && (
-        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-border/80 bg-surface-inset scrollbar-none text-xs font-bold">
+        <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-white/10 bg-[#0a0c12] scrollbar-none text-xs font-bold font-mono">
           <button
             onClick={() => setActiveOrderTab('ALL')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
               activeOrderTab === 'ALL'
-                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -322,9 +322,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           </button>
           <button
             onClick={() => setActiveOrderTab('PENDING')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeOrderTab === 'PENDING'
-                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-900/40'
+                ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -332,9 +332,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           </button>
           <button
             onClick={() => setActiveOrderTab('PRINTING')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeOrderTab === 'PRINTING'
-                ? 'bg-primary text-slate-950 shadow-md shadow-primary/30'
+                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -342,9 +342,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           </button>
           <button
             onClick={() => setActiveOrderTab('SHIPPING')}
-            className={`px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeOrderTab === 'SHIPPING'
-                ? 'bg-blue-500 text-white shadow-md shadow-blue-900/40'
+                ? 'bg-[#00e5ff] text-[#040508] shadow-[0_0_15px_rgba(0,229,255,0.3)] font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -366,32 +366,32 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             return (
               <div
                 key={o.id}
-                className="space-y-4 rounded-2xl border border-border/80 bg-surface p-5 sm:p-6 shadow-lg transition-all hover:border-purple-500/40 relative overflow-hidden"
+                className="space-y-4 rounded-2xl border border-white/10 bg-[#0a0c12] p-5 sm:p-6 shadow-xl transition-all hover:border-[#39FF14]/40 relative overflow-hidden backdrop-blur-md"
               >
                 {/* Dải màu nhận diện Đơn Marketplace */}
                 {admin && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-blue-500" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
                 )}
 
                 {/* Header row */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3.5">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       {admin && (
-                        <span className="px-2.5 py-0.5 rounded-md bg-primary/12 text-primary font-extrabold text-[11px] border border-primary/30 flex items-center gap-1">
+                        <span className="px-2.5 py-0.5 rounded-md bg-[#39FF14]/15 text-[#39FF14] font-extrabold text-[11px] border border-[#39FF14]/40 flex items-center gap-1 font-mono">
                           <ShoppingBag className="w-3 h-3" /> MARKETPLACE
                         </span>
                       )}
                       <span className="font-mono text-sm sm:text-base font-bold text-white break-all">#{o.id}</span>
                       <button
                         onClick={() => copyOrderId(o.id)}
-                        className="inline-flex items-center gap-1 rounded-md bg-surface-inset px-2 py-0.5 text-[11px] text-slate-400 hover:text-white transition-colors"
+                        className="inline-flex items-center gap-1 rounded-md bg-[#040508] border border-white/10 px-2 py-0.5 text-[11px] text-slate-400 hover:text-white transition-colors"
                         title="Sao chép mã đơn"
                       >
                         {copiedId === o.id ? (
                           <>
-                            <Check className="h-3 w-3 text-primary" />
-                            <span className="text-primary font-medium">Đã chép</span>
+                            <Check className="h-3 w-3 text-[#39FF14]" />
+                            <span className="text-[#39FF14] font-medium font-mono">Đã chép</span>
                           </>
                         ) : (
                           <>
@@ -401,9 +401,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         )}
                       </button>
                     </div>
-                    <p className="text-xs text-slate-400">
-                      Thời gian đặt: <span className="text-slate-300">{new Date(o.createdAt).toLocaleString('vi-VN')}</span> ·{' '}
-                      Khách hàng: <span className="text-slate-200 font-bold">{admin ? o.buyerName : 'Bạn'}</span>
+                    <p className="text-xs text-slate-400 font-mono">
+                      Thời gian đặt: <span className="text-slate-300 font-sans">{new Date(o.createdAt).toLocaleString('vi-VN')}</span> ·{' '}
+                      Khách hàng: <span className="text-white font-bold font-sans">{admin ? o.buyerName : 'Bạn'}</span>
                     </p>
                   </div>
 
@@ -414,31 +414,31 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 </div>
 
                 {/* Stepper */}
-                <div className="rounded-xl border border-border/50 bg-surface-inset/40 p-3 sm:p-4">
+                <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3 sm:p-4">
                   <OrderStepper status={o.status} />
                 </div>
 
                 {/* Danh sách sản phẩm in 3D */}
-                <div className="rounded-xl border border-border/60 bg-surface-inset p-3.5 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 pb-1 border-b border-border/40">
-                    <ShoppingBag className="h-3.5 w-3.5 text-primary" />
+                <div className="rounded-xl border border-white/10 bg-[#040508] p-3.5 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 pb-1 border-b border-white/10 font-mono">
+                    <ShoppingBag className="h-3.5 w-3.5 text-[#39FF14]" />
                     <span>Sản phẩm đặt in ({o.items?.length || 0})</span>
                   </div>
-                  <ul className="divide-y divide-border/40">
+                  <ul className="divide-y divide-white/10">
                     {o.items?.map((i: OrderItemDTO, n: number) => (
                       <li key={n} className="py-2.5 flex flex-wrap items-center justify-between gap-3 text-sm">
                         <div className="space-y-0.5 max-w-md">
                           <p className="font-semibold text-white">{i.productTitle}</p>
-                          <div className="flex flex-wrap gap-2 text-xs text-slate-400">
+                          <div className="flex flex-wrap gap-2 text-xs text-slate-400 font-mono">
                             <span>Số lượng: <strong className="text-white">{i.quantity}</strong></span>
                             {i.color && <span>· Màu: <strong className="text-slate-300">{i.color}</strong></span>}
-                            {i.engravingText && <span>· Khắc tên: <strong className="text-slate-300">"{i.engravingText}"</strong></span>}
+                            {i.engravingText && <span>· Khắc tên: <strong className="text-[#39FF14]">"{i.engravingText}"</strong></span>}
                           </div>
                         </div>
                         <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
                           <div>
-                            <p className="font-mono font-semibold text-slate-200">{money(i.unitPrice * i.quantity)}</p>
-                            <p className="text-xs text-slate-400">{money(i.unitPrice)} / cái</p>
+                            <p className="font-mono font-bold text-white">{money(i.unitPrice * i.quantity)}</p>
+                            <p className="text-xs text-slate-400 font-mono">{money(i.unitPrice)} / cái</p>
                           </div>
                           {o.status === 'COMPLETED' && !admin && (
                             <div className="pt-0.5">
@@ -446,7 +446,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                                 <button
                                   type="button"
                                   onClick={() => setReviewTarget({ orderId: o.id, item: i })}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition active:scale-95"
+                                  className="whitespace-nowrap shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-bold hover:bg-[#39FF14]/20 transition active:scale-95 font-mono"
                                   title="Xem hoặc chỉnh sửa đánh giá"
                                 >
                                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
@@ -456,7 +456,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                                 <button
                                   type="button"
                                   onClick={() => setReviewTarget({ orderId: o.id, item: i })}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-xs font-bold transition shadow-sm active:scale-95"
+                                  className="whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-xs font-bold transition shadow-sm active:scale-95"
                                   title="Đánh giá chất lượng in cho sản phẩm này"
                                 >
                                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -473,9 +473,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
                 {/* Địa chỉ & Thanh toán */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl border border-border/60 bg-surface-inset/60 p-3.5 space-y-1.5">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-                      <MapPin className="h-4 w-4 text-primary shrink-0" />
+                  <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3.5 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 font-mono">
+                      <MapPin className="h-4 w-4 text-[#39FF14] shrink-0" />
                       <span>Địa chỉ giao hàng</span>
                     </div>
                     {o.shippingInfo ? (
@@ -489,10 +489,10 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                     )}
                   </div>
 
-                  <div className="rounded-xl border border-border/60 bg-surface-inset/60 p-3.5 space-y-1.5">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-                      <CreditCard className="h-4 w-4 text-primary shrink-0" />
-                      <span>Phương thức & Tình trạng thanh toán</span>
+                  <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3.5 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 font-mono">
+                      <CreditCard className="h-4 w-4 text-[#39FF14] shrink-0" />
+                      <span>Phương thức &amp; Tình trạng thanh toán</span>
                     </div>
                     <div className="text-xs space-y-2 text-slate-300 pl-6">
                       <p>
@@ -510,16 +510,16 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 </div>
 
                 {/* Footer Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-border/60">
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/10">
                   <div>
-                    <span className="text-xs text-slate-400 block">Tổng tiền thanh toán:</span>
-                    <span className="text-xl sm:text-2xl font-black text-primary">{money(o.totalAmount)}</span>
+                    <span className="text-xs text-slate-400 block font-mono">Tổng tiền thanh toán:</span>
+                    <span className="text-xl sm:text-2xl font-black text-[#39FF14] font-mono">{money(o.totalAmount)}</span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2.5">
                     {admin && next && (
                       <button
-                        className={button}
+                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(57,255,20,0.3)] transition"
                         disabled={action.busy}
                         onClick={() => handleNextStatus(o.id, next, false)}
                       >
@@ -541,28 +541,28 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             return (
               <div
                 key={c.id}
-                className="space-y-4 rounded-2xl border border-amber-600/40 bg-surface p-5 sm:p-6 shadow-lg transition-all hover:border-amber-500 relative overflow-hidden"
+                className="space-y-4 rounded-2xl border border-[#ff9100]/40 bg-[#0a0c12] p-5 sm:p-6 shadow-xl transition-all hover:border-[#ff9100] relative overflow-hidden backdrop-blur-md"
               >
                 {/* Dải màu nhận diện Đơn Custom */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ff9100] via-[#ffaa33] to-[#39FF14]" />
 
                 {/* Header row */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3.5">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-md bg-amber-950 text-amber-300 font-extrabold text-[11px] border border-amber-800 flex items-center gap-1">
+                      <span className="px-2.5 py-0.5 rounded-md bg-[#ff9100]/15 text-[#ff9100] font-extrabold text-[11px] border border-[#ff9100]/40 flex items-center gap-1 font-mono">
                         <Sparkles className="w-3 h-3" /> ĐƠN IN CUSTOM 3D
                       </span>
                       <span className="font-mono text-sm sm:text-base font-bold text-white break-all">#CUS-{c.id.substring(0, 8)}</span>
                       <button
                         onClick={() => copyOrderId(c.id)}
-                        className="inline-flex items-center gap-1 rounded-md bg-surface-inset px-2 py-0.5 text-[11px] text-slate-400 hover:text-white transition-colors"
+                        className="inline-flex items-center gap-1 rounded-md bg-[#040508] border border-white/10 px-2 py-0.5 text-[11px] text-slate-400 hover:text-white transition-colors"
                         title="Sao chép mã đơn"
                       >
                         {copiedId === c.id ? (
                           <>
-                            <Check className="h-3 w-3 text-primary" />
-                            <span className="text-primary font-medium">Đã chép</span>
+                            <Check className="h-3 w-3 text-[#39FF14]" />
+                            <span className="text-[#39FF14] font-medium font-mono">Đã chép</span>
                           </>
                         ) : (
                           <>
@@ -572,9 +572,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         )}
                       </button>
                     </div>
-                    <p className="text-xs text-slate-400">
-                      Thời gian yêu cầu: <span className="text-slate-300">{new Date(c.createdAt).toLocaleString('vi-VN')}</span> ·{' '}
-                      Sinh viên / Khách: <span className="text-slate-200 font-bold">{c.buyerName}</span>
+                    <p className="text-xs text-slate-400 font-mono">
+                      Thời gian yêu cầu: <span className="text-slate-300 font-sans">{new Date(c.createdAt).toLocaleString('vi-VN')}</span> ·{' '}
+                      Sinh viên / Khách: <span className="text-white font-bold font-sans">{c.buyerName}</span>
                     </p>
                   </div>
 
@@ -585,13 +585,13 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 </div>
 
                 {/* Stepper */}
-                <div className="rounded-xl border border-border/50 bg-surface-inset/40 p-3 sm:p-4">
+                <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3 sm:p-4">
                   <OrderStepper status={c.status} />
                 </div>
 
                 {/* Thông số kỹ thuật in thước custom */}
-                <div className="rounded-xl border border-amber-800/40 bg-surface-inset p-3.5 space-y-2">
-                  <div className="flex items-center justify-between pb-1 border-b border-border/40 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                <div className="rounded-xl border border-[#ff9100]/30 bg-[#040508] p-3.5 space-y-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-white/10 text-xs font-semibold uppercase tracking-wider text-[#ff9100] font-mono">
                     <div className="flex items-center gap-2">
                       <FileCheck className="h-3.5 w-3.5" />
                       <span>Thông số chế tác thước cá nhân hóa</span>
@@ -601,7 +601,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         href={c.attachmentUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[#39FF14] hover:underline normal-case font-bold"
+                        className="inline-flex items-center gap-1 text-[#39FF14] hover:underline normal-case font-bold font-mono"
                       >
                         <Download className="w-3.5 h-3.5" /> Tải Tệp 3D
                       </a>
@@ -610,42 +610,42 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
                     <div>
-                      <span className="text-text-muted block">Mẫu Thước:</span>
-                      <strong className="text-white text-sm">{c.rulerModel || 'Thước Kỹ Thuật'}</strong>
+                      <span className="text-slate-400 block font-mono">Mẫu Thước:</span>
+                      <strong className="text-white text-sm font-sans">{c.rulerModel || 'Thước Kỹ Thuật'}</strong>
                     </div>
 
                     <div>
-                      <span className="text-text-muted block">Khắc Tên &amp; MSSV:</span>
-                      <strong className="text-purple-300 text-sm">
+                      <span className="text-slate-400 block font-mono">Khắc Tên &amp; MSSV:</span>
+                      <strong className="text-[#39FF14] text-sm font-mono">
                         {c.customName || 'Không khắc'} {c.customStudentId ? `(${c.customStudentId})` : ''}
                       </strong>
                     </div>
 
                     <div>
-                      <span className="text-text-muted block">Màu sắc &amp; Kiểu chữ:</span>
-                      <span className="text-slate-200 font-semibold">
+                      <span className="text-slate-400 block font-mono">Màu sắc &amp; Kiểu chữ:</span>
+                      <span className="text-slate-200 font-semibold font-mono">
                         Màu: {c.color || 'Mặc định'} · Font: {c.fontStyle || 'Chuẩn'}
                       </span>
                     </div>
 
                     <div>
-                      <span className="text-text-muted block">Số lượng in:</span>
-                      <strong className="text-white text-sm">{c.quantity || 1} cái</strong>
+                      <span className="text-slate-400 block font-mono">Số lượng in:</span>
+                      <strong className="text-white text-sm font-mono">{c.quantity || 1} cái</strong>
                     </div>
                   </div>
 
                   {c.requirements && (
-                    <div className="pt-2 text-xs text-slate-300 border-t border-border/30">
-                      <span className="text-text-muted">Ghi chú riêng:</span> {c.requirements}
+                    <div className="pt-2 text-xs text-slate-300 border-t border-white/10 font-mono">
+                      <span className="text-slate-400 font-sans">Ghi chú riêng:</span> {c.requirements}
                     </div>
                   )}
                 </div>
 
                 {/* Địa chỉ & Thanh toán đơn custom */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl border border-border/60 bg-surface-inset/60 p-3.5 space-y-1.5">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-                      <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
+                  <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3.5 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 font-mono">
+                      <MapPin className="h-4 w-4 text-[#ff9100] shrink-0" />
                       <span>Địa chỉ giao hàng</span>
                     </div>
                     <div className="text-xs space-y-1 text-slate-300 pl-6">
@@ -654,9 +654,9 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-border/60 bg-surface-inset/60 p-3.5 space-y-1.5">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-                      <CreditCard className="h-4 w-4 text-amber-400 shrink-0" />
+                  <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3.5 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 font-mono">
+                      <CreditCard className="h-4 w-4 text-[#ff9100] shrink-0" />
                       <span>Phương thức thanh toán đã chọn</span>
                     </div>
                     <div className="text-xs space-y-2 text-slate-300 pl-6">
@@ -675,10 +675,10 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 </div>
 
                 {/* Footer Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-border/60">
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/10">
                   <div>
-                    <span className="text-xs text-slate-400 block">Giá chốt báo giá:</span>
-                    <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono">
+                    <span className="text-xs text-slate-400 block font-mono">Giá chốt báo giá:</span>
+                    <span className="text-xl sm:text-2xl font-black text-[#ff9100] font-mono">
                       {money(c.quotedPrice || 0)}
                     </span>
                   </div>
@@ -686,7 +686,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   <div className="flex flex-wrap items-center gap-2.5">
                     {next && (
                       <button
-                        className={button}
+                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#ff9100] hover:bg-[#ff9e1a] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(255,145,0,0.3)] transition"
                         disabled={action.busy}
                         onClick={() => handleNextStatus(c.id, next, true)}
                       >

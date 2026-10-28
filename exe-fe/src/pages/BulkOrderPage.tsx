@@ -12,34 +12,37 @@ export default function BulkOrderPage() {
       />
 
       {/* Discount Tiers Banner */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-surface border border-border/80 flex items-center gap-3 shadow-md">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-black shrink-0">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
+        <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 flex items-center gap-3 shadow-md hover:border-[#39FF14]/40 transition group">
+          <div className="w-10 h-10 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] font-black shrink-0">
             <Tag className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-text-muted">Từ 10 - 49 sản phẩm</p>
-            <p className="text-base font-black text-white">Giảm 15% trọn gói</p>
+            <p className="text-xs text-slate-400 font-sans">Từ 10 - 49 sản phẩm</p>
+            <p className="text-base font-black text-white group-hover:text-[#39FF14] transition">Giảm 15% trọn gói</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-surface border border-primary/40 flex items-center gap-3 shadow-md shadow-primary/5">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/50 flex items-center justify-center text-primary font-black shrink-0">
+        <div className="p-4 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/50 flex items-center gap-3 shadow-[0_0_25px_rgba(57,255,20,0.15)] group relative overflow-hidden">
+          <div className="absolute top-0 right-0 px-2 py-0.5 bg-[#39FF14]/20 border-b border-l border-[#39FF14]/40 text-[9px] font-bold text-[#39FF14] uppercase">
+            POPULAR
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#39FF14]/20 border border-[#39FF14]/60 flex items-center justify-center text-[#39FF14] font-black shrink-0 shadow-[0_0_15px_rgba(57,255,20,0.3)]">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-primary font-semibold">Từ 50 - 99 sản phẩm</p>
-            <p className="text-base font-black text-white">Giảm 25% + Khắc tên</p>
+            <p className="text-xs text-[#39FF14] font-semibold font-sans">Từ 50 - 99 sản phẩm</p>
+            <p className="text-base font-black text-white">Giảm 25% + Khắc laser</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-surface border border-border/80 flex items-center gap-3 shadow-md">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 font-black shrink-0">
+        <div className="p-4 rounded-2xl bg-[#0a0c12] border border-[#ff9100]/40 flex items-center gap-3 shadow-[0_0_20px_rgba(255,145,0,0.1)] group">
+          <div className="w-10 h-10 rounded-xl bg-[#ff9100]/15 border border-[#ff9100]/40 flex items-center justify-center text-[#ff9100] font-black shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-text-muted">Từ 100+ sản phẩm</p>
-            <p className="text-base font-black text-white">Giảm 35% + Free Ship</p>
+            <p className="text-xs text-slate-400 font-sans">Từ 100+ sản phẩm</p>
+            <p className="text-base font-black text-white group-hover:text-[#ff9100] transition">Giảm 35% + Free Ship</p>
           </div>
         </div>
       </div>

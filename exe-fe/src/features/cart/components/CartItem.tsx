@@ -41,19 +41,19 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
   const lineId = item.clientLineId || item.id;
 
   return (
-    <div className={`p-3 rounded-xl bg-surface border transition-colors flex items-start gap-3 relative group ${selected ? 'border-[#39FF14]/60 bg-[#39FF14]/5' : 'border-border'}`}>
+    <div className={`p-3.5 rounded-xl bg-[#0a0c12] border transition-all flex items-start gap-3 relative group ${selected ? 'border-[#39FF14]/60 bg-[#39FF14]/5 shadow-[0_0_20px_rgba(57,255,20,0.08)]' : 'border-white/10 hover:border-white/20'}`}>
       {onToggleSelect && (
         <label className="flex items-center cursor-pointer pt-3 select-none">
           <input
             type="checkbox"
             checked={!!selected}
             onChange={onToggleSelect}
-            className="w-4 h-4 rounded border-border text-[#39FF14] focus:ring-[#39FF14] bg-surface-raised cursor-pointer accent-[#39FF14]"
+            className="w-4 h-4 rounded border-white/20 text-[#39FF14] focus:ring-[#39FF14] bg-[#040508] cursor-pointer accent-[#39FF14]"
           />
         </label>
       )}
 
-      <div className={`w-14 h-14 rounded-lg bg-surface-raised border border-border flex items-center justify-center font-mono text-xs ${colorClass} shrink-0 overflow-hidden p-1`}>
+      <div className={`w-14 h-14 rounded-lg bg-[#040508] border border-white/10 flex items-center justify-center font-mono text-xs ${colorClass} shrink-0 overflow-hidden p-1`}>
         {hasImage ? (
           <img src={imgSrc} alt={item.product.name} className="w-full h-full object-contain" />
         ) : (
@@ -62,12 +62,12 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
       </div>
 
       <div className="flex-1 text-xs">
-        <h5 className="font-bold text-white text-sm">{item.product.name}</h5>
+        <h5 className="font-bold text-white text-sm group-hover:text-[#39FF14] transition-colors">{item.product.name}</h5>
 
         {item.product.rulerDesign && (
           <button
             type="button"
-            className="mt-1 text-xs text-[#39FF14] hover:underline inline-flex items-center gap-1 font-semibold block"
+            className="mt-1 text-xs text-[#39FF14] hover:underline inline-flex items-center gap-1 font-semibold whitespace-nowrap shrink-0"
             onClick={() => navigate('/custom', {
               state: {
                 rulerDesign: item.product.rulerDesign,
@@ -82,35 +82,35 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
         )}
 
         {item.engraving && (
-          <p className="text-primary font-medium text-sm mt-0.5">Khắc: "{item.engraving}"</p>
+          <p className="text-[#39FF14] font-mono text-xs mt-0.5">Khắc: "{item.engraving}"</p>
         )}
         {item.colorOption && (
-          <p className="text-slate-400 font-medium text-sm mt-0.5">Màu sắc: {item.colorOption}</p>
+          <p className="text-slate-400 font-mono text-xs mt-0.5">Màu sắc: {item.colorOption}</p>
         )}
 
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-2.5">
           <div>
             {item.product.rulerDesign ? (
               <div className="flex flex-col">
-                <span className="font-bold text-[#39FF14] text-sm">{formatPrice(item.product.price)}đ</span>
-                <span className="text-[10px] text-slate-400">Giá ước tính Studio</span>
+                <span className="font-bold text-[#39FF14] font-mono text-sm">{formatPrice(item.product.price)}đ</span>
+                <span className="text-[10px] text-slate-500 font-mono">Giá ước tính Studio</span>
               </div>
             ) : (
-              <span className="font-bold text-slate-100 text-sm">{formatPrice(item.product.price)}đ</span>
+              <span className="font-bold text-white font-mono text-sm">{formatPrice(item.product.price)}đ</span>
             )}
           </div>
 
-          <div className="flex items-center border border-border rounded-xl bg-surface-raised overflow-hidden">
+          <div className="flex items-center border border-white/15 rounded-lg bg-[#11141e] overflow-hidden">
             <button
-              className="w-9 h-9 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-surface-inset transition active:scale-95 cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-white/5 transition active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
               aria-label={`Giảm số lượng ${item.product.name}`}
               onClick={() => onUpdateQuantity(lineId, -1)}
             >
               -
             </button>
-            <span className="min-w-[2.25rem] px-2 text-center text-xs font-mono font-bold text-white select-none">{item.quantity}</span>
+            <span className="min-w-[2rem] px-2 text-center text-xs font-mono font-bold text-white select-none">{item.quantity}</span>
             <button
-              className="w-9 h-9 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-surface-inset transition active:scale-95 cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-white/5 transition active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
               aria-label={`Tăng số lượng ${item.product.name}`}
               onClick={() => onUpdateQuantity(lineId, 1)}
             >

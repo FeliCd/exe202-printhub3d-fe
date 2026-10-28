@@ -153,7 +153,7 @@ export default function LoginPage() {
 
       {/* Thông báo lỗi đăng nhập */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs flex items-center gap-2 animate-in fade-in">
+        <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2 animate-in fade-in">
           <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
           <span>{errorMsg}</span>
         </div>
@@ -177,7 +177,7 @@ export default function LoginPage() {
               value={userNameOrEmail}
               onChange={(e) => setUserNameOrEmail(e.target.value)}
               placeholder="tennguoidung hoặc email@domain.com"
-              className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition"
+              className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
             />
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={openForgotModal}
-              className="text-xs text-[#39FF14] hover:underline font-semibold transition cursor-pointer"
+              className="text-xs text-[#39FF14] hover:underline font-semibold transition cursor-pointer whitespace-nowrap shrink-0"
             >
               Quên mật khẩu?
             </button>
@@ -206,7 +206,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Nhập mật khẩu của bạn"
-              className="w-full bg-[#182028] border border-[#2B3542] rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition"
+              className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
             />
             <button
               type="button"
@@ -224,17 +224,17 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-[#39FF14]/20 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+          className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed mt-2 whitespace-nowrap shrink-0"
         >
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-              <span>Đang đăng nhập vào xưởng...</span>
+              <span>Đang kết nối xưởng in...</span>
             </>
           ) : (
             <>
-              <span>Đăng Nhập Ngay</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Đăng Nhập Vào Hệ Thống</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </>
           )}
         </button>
@@ -243,20 +243,20 @@ export default function LoginPage() {
       {/* Forgot Password Modal with OTP Flow */}
       {showForgotModal && (
         <Modal open={showForgotModal} onClose={() => setShowForgotModal(false)} label="Quên mật khẩu">
-          <div className="bg-[#11161C] border border-[#28323E] rounded-3xl p-6 sm:p-7 max-w-md w-full text-xs space-y-4 shadow-2xl relative text-[#F1F5F9]">
+          <div className="bg-[#0a0c12] border border-[#1e2433] rounded-3xl p-6 sm:p-7 max-w-md w-full text-xs space-y-4 shadow-2xl relative text-[#F1F5F9]">
             <button
               aria-label="Đóng"
               onClick={() => setShowForgotModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-[#1A222B] transition"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-[#11141e] transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center space-y-1.5">
-              <div className="w-12 h-12 rounded-2xl bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 flex items-center justify-center mx-auto mb-2">
+              <div className="w-12 h-12 rounded-2xl bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 flex items-center justify-center mx-auto mb-2 shadow-[0_0_12px_rgba(57,255,20,0.2)]">
                 <KeyRound className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-black text-white">Quên Mật Khẩu Tài Khoản</h3>
+              <h3 className="text-lg font-black text-white">Khôi Phục Mật Khẩu</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
                 {forgotStep === 'email' && 'Nhập email đã đăng ký để nhận mã xác thực OTP (6 chữ số).'}
                 {forgotStep === 'otp' && `Nhập mã OTP đã gửi đến ${forgotEmail} và thiết lập mật khẩu mới.`}
@@ -265,7 +265,7 @@ export default function LoginPage() {
             </div>
 
             {forgotError && (
-              <div className="p-3 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{forgotError}</span>
               </div>
@@ -281,13 +281,13 @@ export default function LoginPage() {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="email@example.com"
-                    className="w-full bg-[#182028] border border-[#2B3542] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 shadow-[0_0_12px_rgba(57,255,20,0.3)] whitespace-nowrap shrink-0"
                 >
                   {forgotLoading ? (
                     <>
@@ -295,7 +295,7 @@ export default function LoginPage() {
                     </>
                   ) : (
                     <>
-                      Gửi Mã OTP Về Email <ArrowRight className="w-4 h-4" />
+                      Gửi Mã OTP Về Email <ArrowRight className="w-4 h-4 shrink-0" />
                     </>
                   )}
                 </button>
@@ -313,7 +313,7 @@ export default function LoginPage() {
                     value={forgotOtp}
                     onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ''))}
                     placeholder="123456"
-                    className="w-full bg-[#182028] border border-[#2B3542] rounded-xl p-3 text-white font-mono text-center text-lg tracking-widest outline-none focus:border-[#39FF14] transition"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-[#00e5ff] font-mono text-center text-lg tracking-[0.4em] outline-none focus:border-[#39FF14] transition"
                   />
                 </div>
 
@@ -326,7 +326,7 @@ export default function LoginPage() {
                     value={forgotNewPassword}
                     onChange={(e) => setForgotNewPassword(e.target.value)}
                     placeholder="Mật khẩu mới gồm hoa, thường, số..."
-                    className="w-full bg-[#182028] border border-[#2B3542] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition font-mono"
                   />
                 </div>
 
@@ -338,7 +338,7 @@ export default function LoginPage() {
                     value={forgotConfirmPassword}
                     onChange={(e) => setForgotConfirmPassword(e.target.value)}
                     placeholder="Nhập lại mật khẩu mới"
-                    className="w-full bg-[#182028] border border-[#2B3542] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition font-mono"
                   />
                 </div>
 
@@ -346,7 +346,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setForgotStep('email')}
-                    className="text-slate-400 hover:text-white"
+                    className="text-slate-400 hover:text-white cursor-pointer whitespace-nowrap shrink-0"
                   >
                     ← Đổi Email khác
                   </button>
@@ -354,7 +354,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleSendForgotOtp}
                     disabled={forgotLoading}
-                    className="text-[#39FF14] hover:underline font-semibold"
+                    className="text-[#39FF14] hover:underline font-semibold cursor-pointer whitespace-nowrap shrink-0"
                   >
                     Gửi lại mã OTP
                   </button>
@@ -363,7 +363,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2"
+                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2 shadow-[0_0_12px_rgba(57,255,20,0.3)] whitespace-nowrap shrink-0"
                 >
                   {forgotLoading ? (
                     <>
@@ -378,7 +378,7 @@ export default function LoginPage() {
 
             {forgotStep === 'success' && (
               <div className="text-center space-y-4 py-2">
-                <div className="w-12 h-12 rounded-full bg-[#39FF14]/15 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] mx-auto">
+                <div className="w-12 h-12 rounded-full bg-[#39FF14]/15 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] mx-auto shadow-[0_0_15px_rgba(57,255,20,0.3)]">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <p className="text-sm text-slate-300">
@@ -391,7 +391,7 @@ export default function LoginPage() {
                     setUserNameOrEmail(forgotEmail);
                     setShowForgotModal(false);
                   }}
-                  className="w-full py-3 rounded-xl bg-[#39FF14] text-slate-950 font-black text-xs transition cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition cursor-pointer shadow-[0_0_12px_rgba(57,255,20,0.3)] whitespace-nowrap shrink-0"
                 >
                   Đăng Nhập Ngay Với Mật Khẩu Mới
                 </button>

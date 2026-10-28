@@ -82,18 +82,18 @@ export default function PaymentResultPage() {
   const customerName = user?.name || user?.email || 'Lê Quốc Khánh';
 
   return (
-    <div className="min-h-[85vh] bg-[#0B0C0E] text-neutral-200 py-10 px-4 sm:px-6">
+    <div className="min-h-[85vh] bg-[#040508] text-slate-200 py-10 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         {/* ========================================================================= */}
         {/* CASE 1: LOADING SESSION & VERIFYING PAYOS TRANSACTION                     */}
         {/* ========================================================================= */}
         {isLoading || (remote.loading && !remote.data) ? (
           <div className="py-20 text-center space-y-4 max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(57,255,20,0.2)]">
+            <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(57,255,20,0.2)]">
               <RefreshCw className="w-8 h-8 animate-spin" />
             </div>
             <h2 className="text-xl font-bold text-white">Đang kiểm tra kết quả giao dịch...</h2>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-slate-400">
               Vui lòng đợi giây lát trong khi hệ thống xác thực thanh toán với cổng VietQR PayOS.
             </p>
           </div>
@@ -107,20 +107,20 @@ export default function PaymentResultPage() {
               <div className="space-y-4">
                 {/* Status Badge & Icon */}
                 <div className="flex items-center gap-3">
-                  <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.25)]">
+                  <div className="w-16 h-16 rounded-2xl bg-[#ff9100]/15 border border-[#ff9100]/40 text-[#ff9100] flex items-center justify-center shadow-[0_0_25px_rgba(255,145,0,0.2)]">
                     <AlertTriangle className="w-8 h-8" />
                   </div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-950/60 border border-amber-500/30 text-amber-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    Đã hủy giao dịch thanh toán
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#ff9100]/20 border border-[#ff9100]/40 text-[#ff9100]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff9100] animate-pulse" />
+                    ĐÃ HỦY GIAO DỊCH
                   </span>
                 </div>
 
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold text-white tracking-tight">
+                  <h1 className="text-3xl font-black text-white tracking-tight">
                     Bạn đã hủy giao dịch PayOS!
                   </h1>
-                  <p className="text-neutral-400 text-sm leading-relaxed">
+                  <p className="text-slate-400 text-sm leading-relaxed">
                     Đơn hàng thanh toán trực tuyến đã được dừng lại. {restored
                       ? 'Các sản phẩm trong đơn đã được tự động lưu lại trong giỏ hàng để bạn thuận tiện đặt lại bất cứ lúc nào.'
                       : 'Tài khoản của bạn chưa bị trừ bất kỳ khoản phí nào.'}
@@ -132,7 +132,7 @@ export default function PaymentResultPage() {
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
                   to="/cart"
-                  className="bg-primary hover:bg-primary text-black font-semibold py-3.5 px-6 rounded-xl transition shadow-lg shadow-primary/20 flex items-center justify-center gap-2 text-sm"
+                  className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>Quay lại giỏ hàng</span>
@@ -140,17 +140,17 @@ export default function PaymentResultPage() {
 
                 <Link
                   to="/orders"
-                  className="bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm"
+                  className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm font-semibold"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Xem đơn hàng của tôi</span>
                 </Link>
               </div>
 
-              <div className="pt-2 text-xs text-neutral-400 flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-neutral-500" />
+              <div className="pt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <HelpCircle className="w-4 h-4 text-slate-500" />
                 <span>Cần hỗ trợ gấp về đơn hàng?</span>
-                <Link to="/help" className="text-primary underline hover:text-primary ml-1">
+                <Link to="/contact" className="text-[#39FF14] underline hover:text-[#32e012] ml-1">
                   Liên hệ CSKH PrintHub
                 </Link>
               </div>
@@ -158,41 +158,41 @@ export default function PaymentResultPage() {
 
             {/* Right Column: Cancelled Receipt */}
             <div className="lg:col-span-6">
-              <div className="rounded-2xl bg-[#141518] border border-neutral-800/80 shadow-2xl p-6 relative overflow-hidden space-y-5">
-                <div className="flex justify-between items-center pb-3 border-b border-neutral-800/80">
-                  <span className="text-xs font-semibold text-neutral-400 tracking-wider">
+              <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-2xl p-6 relative overflow-hidden space-y-5">
+                <div className="flex justify-between items-center pb-3 border-b border-white/10">
+                  <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">
                     CHI TIẾT GIAO DỊCH
                   </span>
-                  <span className="font-mono text-neutral-400 text-sm">{transactionCode}</span>
+                  <span className="font-mono text-slate-400 text-sm">{transactionCode}</span>
                 </div>
 
-                <div className="bg-[#1A1C20] border border-neutral-800 rounded-xl p-4 flex justify-between items-center">
-                  <span className="text-sm font-medium text-neutral-300">Trạng thái:</span>
-                  <span className="text-sm font-bold text-amber-400 uppercase tracking-wide">
+                <div className="bg-[#040508] border border-white/10 rounded-xl p-4 flex justify-between items-center">
+                  <span className="text-sm font-medium text-slate-300">Trạng thái:</span>
+                  <span className="text-sm font-bold text-[#ff9100] uppercase tracking-wide font-mono">
                     Chưa thanh toán (HỦY)
                   </span>
                 </div>
 
                 <div className="space-y-3.5 text-sm py-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Cổng thanh toán:</span>
+                    <span className="text-slate-400">Cổng thanh toán:</span>
                     <span className="font-semibold text-white flex items-center gap-1.5">
-                      <CreditCard className="w-4 h-4 text-primary" /> PayOS (VietQR)
+                      <CreditCard className="w-4 h-4 text-[#39FF14]" /> PayOS (VietQR)
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Thời gian:</span>
-                    <span className="font-mono text-neutral-300">{formattedDate}</span>
+                    <span className="text-slate-400">Thời gian:</span>
+                    <span className="font-mono text-slate-300">{formattedDate}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Tài khoản:</span>
+                    <span className="text-slate-400">Tài khoản:</span>
                     <span className="font-medium text-white">{customerName}</span>
                   </div>
                 </div>
 
-                <div className="bg-amber-950/20 border border-amber-900/40 rounded-xl p-3.5 flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
-                  <p className="text-xs text-amber-300/80 leading-relaxed">
+                <div className="bg-[#ff9100]/10 border border-[#ff9100]/30 rounded-xl p-3.5 flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-[#ff9100] shrink-0" />
+                  <p className="text-xs text-[#ff9100] leading-relaxed">
                     Giao dịch này không trừ tiền trong tài khoản ngân hàng của bạn. Bạn có thể chọn thanh toán COD khi đặt lại.
                   </p>
                 </div>
@@ -203,17 +203,17 @@ export default function PaymentResultPage() {
           /* ========================================================================= */
           /* CASE 3: UNAUTHENTICATED SESSION                                           */
           /* ========================================================================= */
-          <div className="max-w-md mx-auto py-16 text-center space-y-5 rounded-3xl bg-[#141518] border border-neutral-800 p-8 shadow-2xl">
-            <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center mx-auto">
+          <div className="max-w-md mx-auto py-16 text-center space-y-5 rounded-3xl bg-[#0a0c12] border border-white/10 p-8 shadow-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(57,255,20,0.2)]">
               <ShieldCheck className="w-7 h-7" />
             </div>
             <h2 className="text-2xl font-bold text-white">Xác minh tài khoản</h2>
-            <p className="text-sm text-neutral-400 leading-relaxed">
+            <p className="text-sm text-slate-400 leading-relaxed">
               Vui lòng đăng nhập để hệ thống liên kết biên lai và ghi nhận lịch sử đơn hàng cho bạn.
             </p>
             <Link
               to={`/login?redirect=${encodeURIComponent('/payment-result?' + params.toString())}`}
-              className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary text-black font-semibold transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-primary/20"
+              className="whitespace-nowrap shrink-0 w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold transition flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
             >
               Đăng nhập ngay <ArrowRight className="w-4 h-4" />
             </Link>
@@ -230,21 +230,21 @@ export default function PaymentResultPage() {
               <div className="space-y-4">
                 {/* Badge trạng thái & Icon thành công */}
                 <div className="flex items-center gap-3.5">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center shadow-[0_0_20px_rgba(57,255,20,0.25)] shrink-0">
+                  <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] flex items-center justify-center shadow-[0_0_30px_rgba(57,255,20,0.3)] shrink-0">
                     <Check className="w-8 h-8 stroke-[2.5]" />
                   </div>
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-primary/7 border border-primary/30 text-primary">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    Đã thanh toán thành công
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] animate-pulse" />
+                    ĐÃ THANH TOÁN THÀNH CÔNG
                   </span>
                 </div>
 
                 {/* Tiêu đề & Nội dung mô tả */}
                 <div className="space-y-2.5">
-                  <h1 className="text-3xl font-bold text-white tracking-tight">
+                  <h1 className="text-3xl font-black text-white tracking-tight">
                     Đã xác nhận thanh toán!
                   </h1>
-                  <p className="text-neutral-400 text-sm leading-relaxed max-w-lg">
+                  <p className="text-slate-400 text-sm leading-relaxed max-w-lg">
                     Hệ thống đã nhận được tiền. Đơn hàng của bạn đã được cập nhật trạng thái và tự động chuyển sang hàng đợi chuẩn bị gia công in 3D.
                   </p>
                 </div>
@@ -255,27 +255,27 @@ export default function PaymentResultPage() {
                 {/* Primary CTA */}
                 <Link
                   to="/orders"
-                  className="bg-primary hover:bg-primary text-black font-semibold py-3.5 px-6 rounded-xl transition shadow-lg shadow-primary/20 flex items-center justify-center gap-2 text-sm text-center"
+                  className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm text-center"
                 >
-                  <span>Xem & Theo dõi đơn hàng</span>
+                  <span>Xem &amp; Theo dõi đơn hàng</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
                 {/* Secondary CTA */}
                 <Link
                   to="/custom"
-                  className="bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center"
+                  className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
                 >
-                  <PlusCircle className="w-4 h-4 text-primary" />
+                  <PlusCircle className="w-4 h-4 text-[#39FF14]" />
                   <span>Gửi yêu cầu in mới</span>
                 </Link>
               </div>
 
               {/* Nút hỗ trợ */}
-              <div className="pt-2 text-xs text-neutral-400 flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-neutral-500" />
+              <div className="pt-2 text-xs text-slate-400 flex items-center gap-1.5">
+                <HelpCircle className="w-4 h-4 text-slate-500" />
                 <span>Cần hỗ trợ gấp về đơn hàng?</span>
-                <Link to="/help" className="text-primary underline hover:text-primary ml-1">
+                <Link to="/contact" className="text-[#39FF14] underline hover:text-[#32e012] ml-1">
                   Liên hệ CSKH PrintHub
                 </Link>
               </div>
@@ -285,62 +285,62 @@ export default function PaymentResultPage() {
             {/* CỘT PHẢI: Hóa đơn điện tử & Trạng thái tiến độ (lg:col-span-6)         */}
             {/* --------------------------------------------------------------------- */}
             <div className="lg:col-span-6">
-              <div className="rounded-2xl bg-[#141518] border border-neutral-800/80 shadow-2xl p-6 relative overflow-hidden space-y-4">
+              <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-2xl p-6 relative overflow-hidden space-y-4">
                 {/* Header của Card */}
                 <div className="flex justify-between items-center pb-2">
-                  <span className="text-xs font-semibold text-neutral-400 tracking-wider">
+                  <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">
                     CHI TIẾT THANH TOÁN
                   </span>
-                  <span className="font-mono text-neutral-200 font-bold text-sm">
+                  <span className="font-mono text-white font-bold text-sm">
                     {transactionCode}
                   </span>
                 </div>
 
                 {/* Khối số tiền tổng cộng (Highlight Amount) */}
-                <div className="bg-[#1A1C20] border border-neutral-800 rounded-xl p-4 flex justify-between items-center my-4">
-                  <span className="text-sm font-medium text-neutral-300">Tổng thanh toán</span>
-                  <span className="text-2xl font-black text-primary font-mono tracking-tight">
+                <div className="bg-[#040508] border border-white/10 rounded-xl p-4 flex justify-between items-center my-4 font-mono">
+                  <span className="text-sm font-medium text-slate-300 font-sans">Tổng thanh toán</span>
+                  <span className="text-2xl font-black text-[#39FF14] tracking-tight">
                     {money(displayAmount)}
                   </span>
                 </div>
 
                 {/* Bảng thông tin chi tiết (Key - Value Rows) */}
-                <div className="space-y-3.5 text-sm border-t border-b border-neutral-800/80 py-4 my-4">
+                <div className="space-y-3.5 text-sm border-t border-b border-white/10 py-4 my-4 font-mono">
                   {/* Cổng thanh toán */}
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Cổng thanh toán:</span>
-                    <span className="font-semibold text-white flex items-center gap-1.5">
-                      <CreditCard className="w-4 h-4 text-primary" />
+                    <span className="text-slate-400 font-sans">Cổng thanh toán:</span>
+                    <span className="font-semibold text-white flex items-center gap-1.5 font-sans">
+                      <CreditCard className="w-4 h-4 text-[#39FF14]" />
                       <span>PayOS (VietQR)</span>
                     </span>
                   </div>
 
                   {/* Thời gian giao dịch */}
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Thời gian giao dịch:</span>
-                    <span className="font-mono text-neutral-300">{formattedDate}</span>
+                    <span className="text-slate-400 font-sans">Thời gian giao dịch:</span>
+                    <span className="text-slate-300">{formattedDate}</span>
                   </div>
 
                   {/* Tài khoản người mua */}
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Tài khoản người mua:</span>
-                    <span className="font-medium text-white">{customerName}</span>
+                    <span className="text-slate-400 font-sans">Tài khoản người mua:</span>
+                    <span className="font-medium text-white font-sans">{customerName}</span>
                   </div>
 
                   {/* Điểm thưởng tích lũy */}
                   <div className="flex justify-between items-center">
-                    <span className="text-neutral-400">Điểm thưởng tích lũy:</span>
-                    <span className="font-bold text-amber-400 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span className="text-slate-400 font-sans">Điểm thưởng tích lũy:</span>
+                    <span className="font-bold text-[#ff9100] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#ff9100]" />
                       <span>+{rewardPoints} xu PrintHub (Đã cộng vào ví)</span>
                     </span>
                   </div>
                 </div>
 
                 {/* Thẻ trạng thái tiến độ xưởng in (Printing Queue Mini Tracker) */}
-                <div className="bg-primary/2 border border-primary/40 rounded-xl p-3 flex items-center gap-3">
-                  <Printer className="w-5 h-5 text-primary shrink-0 animate-pulse" />
-                  <p className="text-xs text-primary/80 leading-relaxed">
+                <div className="bg-[#39FF14]/5 border border-[#39FF14]/30 rounded-xl p-3 flex items-center gap-3">
+                  <Printer className="w-5 h-5 text-[#39FF14] shrink-0 animate-pulse" />
+                  <p className="text-xs text-slate-300 leading-relaxed">
                     Đang xếp lịch máy in... Kỹ thuật viên sẽ kiểm tra file 3D trước khi nạp nhựa.
                   </p>
                 </div>
