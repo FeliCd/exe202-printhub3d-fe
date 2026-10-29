@@ -16,24 +16,26 @@ import {
   FileText,
   HelpCircle,
   ChevronDown,
+  ShoppingBag,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface UserSidebarProps {
   isOpen: boolean;
   onOpenAddressModal: () => void;
+  cartCount?: number;
 }
 
 type SidebarGroup = 'shopping' | 'transactions' | 'account';
 
-export default function UserSidebar({ isOpen }: UserSidebarProps) {
+export default function UserSidebar({ isOpen, cartCount }: UserSidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const isActive = (path: string) => location.pathname === path;
 
-  const routeGroup = ['/catalog', '/custom', '/bulk-order'].includes(location.pathname)
+  const routeGroup = ['/catalog', '/custom', '/bulk-order', '/cart'].includes(location.pathname)
     ? 'shopping'
     : ['/orders', '/order-history', '/file-vault', '/quotations', '/subscriptions'].includes(location.pathname)
       ? 'transactions'
@@ -188,6 +190,26 @@ export default function UserSidebar({ isOpen }: UserSidebarProps) {
                 >
                   <Layers className="w-4 h-4 text-text-muted shrink-0" />
                   <span>Đặt Hàng Hàng Loạt</span>
+                </Link>
+
+                <Link
+                  to="/cart"
+                  aria-current={isActive('/cart') ? 'page' : undefined}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isActive('/cart')
+                      ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold shadow-md'
+                      : 'text-slate-300 hover:bg-surface hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <ShoppingBag className="w-4 h-4 text-[#39FF14] shrink-0" />
+                    <span>Giỏ hàng của bạn</span>
+                  </div>
+                  {cartCount !== undefined && cartCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#39FF14] text-[#040508] shadow-[0_0_8px_rgba(57,255,20,0.5)]">
+                      {cartCount}
+                    </span>
+                  )}
                 </Link>
               </nav>
             </div>

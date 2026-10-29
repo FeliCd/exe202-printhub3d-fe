@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { send, errorText } from '../services/api';
-import { payOrder } from '../services/paymentService';
 import { formatPrice } from '../utils/format';
-import Modal from '../components/Modal';
 import type { ShippingAddress } from '../features/address/data';
 import {
   MapPin,
@@ -18,12 +16,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Download,
-  ShieldCheck,
-  QrCode,
-  X,
   RotateCcw,
   Check,
-  ShoppingBag,
+  Send,
+  Info,
 } from 'lucide-react';
 
 export interface CustomRulerOrderConfig {
@@ -134,7 +130,6 @@ export default function CustomOrderCheckoutPage({
   const [paymentMethod, setPaymentMethod] = useState<'PAYOS' | 'COD'>('PAYOS');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [showPayOSConfirmModal, setShowPayOSConfirmModal] = useState(false);
 
   // Pricing Calculation
   const unitPrice = orderConfig?.estimatedPrice || 45000;
@@ -190,7 +185,7 @@ export default function CustomOrderCheckoutPage({
         .join('; ');
 
       // Post custom order to backend
-      const res = await send<any>('/custom-orders', {
+      await send<any>('/custom-orders', {
         attachmentUrl: orderConfig.attachmentUrl,
         quantity,
         shippingAddress: fullShippingAddress,
@@ -203,31 +198,15 @@ export default function CustomOrderCheckoutPage({
         paymentMethod,
       });
 
-      const createdOrder = res?.data?.result || res?.data || res?.result || res;
-      const orderId = createdOrder?.id;
-
       // Clean up session storage
       sessionStorage.removeItem('printhub_custom_ruler_order');
 
-      // If PAYOS and orderId exists, trigger payOrder directly or redirect
-      if (paymentMethod === 'PAYOS' && orderId) {
-        try {
-          await payOrder(orderId, 'CUSTOM_ORDER');
-          return;
-        } catch (paymentErr) {
-          console.warn('Chưa mở được PayOS trực tiếp, chuyển hướng về /quotations:', paymentErr);
-          navigate('/quotations?status=PENDING_PAYMENT');
-          return;
-        }
-      }
-
-      // If COD or other, navigate to quotations list
+      // Chuyển hướng về trang báo giá theo chuẩn Flow 01 (yêu cầu ở trạng thái REQUESTED, chờ kỹ thuật viên báo giá)
       navigate('/quotations?created=true');
     } catch (err) {
       setSubmitError(errorText(err));
     } finally {
       setIsSubmitting(false);
-      setShowPayOSConfirmModal(false);
     }
   };
 
@@ -288,7 +267,7 @@ export default function CustomOrderCheckoutPage({
               { num: 1, title: 'Địa chỉ nhận', icon: MapPin },
               { num: 2, title: 'Mẫu thước 3D', icon: Ruler },
               { num: 3, title: 'Số lượng & Ghi chú', icon: Layers },
-              { num: 4, title: 'Thanh toán', icon: CreditCard },
+              { num: 4, title: 'Gửi báo giá', icon: Send },
             ].map(step => {
               const isPassed = currentStep > step.num;
               const isCurrent = currentStep === step.num;
@@ -694,7 +673,7 @@ export default function CustomOrderCheckoutPage({
                 onClick={() => setCurrentStep(4)}
                 className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
               >
-                <span>Tiếp tục: Phương thức thanh toán</span>
+                <span>Tiếp tục: Xác nhận &amp; Gửi báo giá</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -703,24 +682,26 @@ export default function CustomOrderCheckoutPage({
       )}
 
       {/* ========================================================================= */}
-      {/* STEP 4: 💳 PHƯƠNG THỨC THANH TOÁN & XÁC NHẬN TẠO ĐƠN */}
+      {/* STEP 4: 📨 XÁC NHẬN THÔNG TIN & GỬI YÊU CẦU BÁO GIÁ */}
       {/* ========================================================================= */}
       {currentStep === 4 && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
           <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-6 sm:p-8 space-y-6 shadow-xl">
             <div className="flex items-center gap-3 border-b border-white/10 pb-4">
               <div className="w-10 h-10 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14]">
-                <CreditCard className="w-5 h-5" />
+                <Send className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Bước 4: Chọn phương thức thanh toán &amp; Báo giá chi tiết</h2>
-                <p className="text-xs text-slate-400">Kiểm tra chiết tính chi phí và gửi lệnh sản xuất đến xưởng PrintHub.</p>
+                <h2 className="text-lg font-bold text-white">Bước 4: Xác nhận thông tin &amp; Gửi yêu cầu báo giá</h2>
+                <p className="text-xs text-slate-400">Kiểm tra thông số chi tiết và gửi yêu cầu thẩm định đến kỹ sư xưởng PrintHub 3D.</p>
               </div>
             </div>
 
             {/* Payment Method Radio Cards */}
             <div className="space-y-3">
-              <label className="text-xs font-bold text-slate-300 block">Hình thức thanh toán:</label>
+              <label className="text-xs font-bold text-slate-300 block">
+                Phương thức thanh toán dự kiến: <span className="font-normal text-slate-400">(Áp dụng khi bạn duyệt báo giá chính thức)</span>
+              </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* PayOS Option */}
                 <button
@@ -739,11 +720,11 @@ export default function CustomOrderCheckoutPage({
                     <CreditCard className="w-5 h-5 text-[#39FF14]" />
                     <div>
                       <p className="font-bold text-sm">Cổng PayOS (VietQR)</p>
-                      <p className="text-[11px] text-slate-400">Quét mã QR chuyển khoản tự động 100%</p>
+                      <p className="text-[11px] text-slate-400">Quét mã VietQR chuyển khoản tự động</p>
                     </div>
                   </div>
                   <p className="text-[11px] text-slate-400 pt-1">
-                    ⚡ Xưởng tự động nhận lệnh và lên máy in 3D ngay sau khi quét mã thành công.
+                    ⚡ Thanh toán trực tuyến sau khi kỹ thuật viên gửi báo giá chính thức.
                   </p>
                 </button>
 
@@ -765,7 +746,7 @@ export default function CustomOrderCheckoutPage({
                     </div>
                   </div>
                   <p className="text-[11px] text-slate-400 pt-1">
-                    📦 Nhân viên bưu tá giao hàng tận nơi thu tiền trực tiếp.
+                    📦 Bưu tá thu tiền mặt trực tiếp khi bàn giao sản phẩm hoàn thiện.
                   </p>
                 </button>
               </div>
@@ -773,13 +754,21 @@ export default function CustomOrderCheckoutPage({
 
             {/* Price Breakdown Card */}
             <div className="rounded-xl border border-white/10 bg-[#040508] p-5 space-y-3 text-sm font-mono">
-              <h3 className="font-bold text-white text-xs uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 font-sans">
-                Chi tiết bảng tính chi phí
+              <h3 className="font-bold text-white text-xs uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 font-sans flex items-center justify-between">
+                <span>Dự toán chi phí sơ bộ</span>
+                <span className="text-[10px] text-[#00e5ff] font-mono normal-case">Chưa phải báo giá chính thức</span>
               </h3>
 
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-sans">Đơn giá thước in 3D:</span>
-                <span className="text-white">{formatPrice(unitPrice)}đ</span>
+              <div className="rounded-xl border border-[#00e5ff]/40 bg-[#00e5ff]/10 p-3 text-xs text-[#00e5ff] leading-relaxed flex items-start gap-2.5 font-sans">
+                <Info className="w-4 h-4 text-[#00e5ff] shrink-0 mt-0.5" />
+                <span>
+                  <strong>Quy trình báo giá:</strong> Bảng tính bên dưới là <strong>dự toán sơ bộ</strong> theo thông số 3D. Sau khi bạn gửi yêu cầu, kỹ sư xưởng PrintHub 3D sẽ kiểm tra file thiết kế thực tế và gửi báo giá chính thức trong vòng 24 giờ.
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center text-xs pt-1">
+                <span className="text-slate-400 font-sans">Đơn giá dự toán:</span>
+                <span className="text-white">~{formatPrice(unitPrice)}đ</span>
               </div>
 
               <div className="flex justify-between items-center text-xs">
@@ -789,7 +778,7 @@ export default function CustomOrderCheckoutPage({
 
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400 font-sans">Tạm tính:</span>
-                <span className="text-white font-bold">{formatPrice(subtotal)}đ</span>
+                <span className="text-white font-bold">~{formatPrice(subtotal)}đ</span>
               </div>
 
               {vipDiscount > 0 && (
@@ -800,20 +789,20 @@ export default function CustomOrderCheckoutPage({
               )}
 
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-sans">Phí giao hàng:</span>
+                <span className="text-slate-400 font-sans">Phí giao hàng dự kiến:</span>
                 <span className="text-white">
                   {shippingFee === 0 ? (
                     <span className="text-[#39FF14] font-bold font-sans">Miễn phí</span>
                   ) : (
-                    `${formatPrice(shippingFee)}đ`
+                    `~${formatPrice(shippingFee)}đ`
                   )}
                 </span>
               </div>
 
               <div className="flex justify-between items-center pt-3 border-t border-white/10 text-base">
-                <span className="font-bold text-white font-sans">TỔNG TIỀN THANH TOÁN:</span>
+                <span className="font-bold text-white font-sans">DỰ TOÁN TỔNG CỘNG:</span>
                 <span className="text-2xl font-black text-[#39FF14]">
-                  {formatPrice(totalAmount)}đ
+                  ~{formatPrice(totalAmount)}đ
                 </span>
               </div>
             </div>
@@ -840,97 +829,20 @@ export default function CustomOrderCheckoutPage({
               <button
                 type="button"
                 disabled={isSubmitting}
-                onClick={() => {
-                  if (paymentMethod === 'PAYOS') {
-                    setShowPayOSConfirmModal(true);
-                  } else {
-                    handleFinalSubmit();
-                  }
-                }}
+                onClick={handleFinalSubmit}
                 className="whitespace-nowrap shrink-0 px-8 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_25px_rgba(57,255,20,0.35)] uppercase tracking-tight cursor-pointer disabled:opacity-50"
               >
-                <ShoppingBag className="w-4 h-4" />
+                <Send className="w-4 h-4" />
                 <span>
                   {isSubmitting
-                    ? 'Đang tạo đơn hàng...'
-                    : paymentMethod === 'PAYOS'
-                    ? `Thanh toán PayOS (${formatPrice(totalAmount)}đ)`
-                    : 'Xác nhận đặt hàng (COD)'}
+                    ? 'Đang gửi yêu cầu báo giá...'
+                    : 'Gửi Yêu Cầu Báo Giá Đến Xưởng'}
                 </span>
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* ========================================================================= */}
-      {/* POPUP XÁC NHẬN THANH TOÁN TRƯỚC 100% QUA PAYOS */}
-      {/* ========================================================================= */}
-      <Modal open={showPayOSConfirmModal} onClose={() => setShowPayOSConfirmModal(false)} label="Xác nhận thanh toán đơn in 3D">
-        <div className="w-full max-w-lg rounded-3xl border border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-7 shadow-[0_0_40px_rgba(57,255,20,0.15)] space-y-4 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
-          <button
-            type="button"
-            onClick={() => setShowPayOSConfirmModal(false)}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg transition"
-            aria-label="Đóng cửa sổ"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="flex items-center gap-3 pr-10">
-            <div className="w-12 h-12 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] shrink-0">
-              <QrCode className="w-6 h-6" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-black text-white">Xác nhận thanh toán đơn in 3D</h3>
-              <p className="text-xs text-slate-400">Cổng thanh toán tự động VietQR PayOS</p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-[#040508] p-4 space-y-2.5 text-xs font-mono">
-            <div className="flex justify-between items-center pb-2 border-b border-white/10">
-              <span className="text-slate-400 font-sans">Mẫu thước:</span>
-              <span className="font-bold text-white font-sans">{orderConfig.selectedModel.name}</span>
-            </div>
-            <div className="flex justify-between items-center pb-2 border-b border-white/10">
-              <span className="text-slate-400 font-sans">Số lượng:</span>
-              <span className="text-white">{quantity} cây</span>
-            </div>
-            <div className="flex justify-between items-center pt-1 text-sm">
-              <span className="text-slate-300 font-medium font-sans">Số tiền thanh toán:</span>
-              <span className="text-2xl font-black text-[#39FF14]">
-                {formatPrice(totalAmount)}đ
-              </span>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[#ff9100]/40 bg-[#ff9100]/10 p-3.5 text-xs text-[#ff9100] leading-relaxed flex items-start gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-[#ff9100] shrink-0 mt-0.5" />
-            <span>
-              Bạn có xác nhận muốn <strong>thanh toán trước 100% số tiền ({formatPrice(totalAmount)}đ)</strong> để xưởng <strong>PrintHub 3D</strong> tiếp nhận tệp thiết kế và bắt đầu quy trình in 3D ngay không?
-            </span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={handleFinalSubmit}
-              className="whitespace-nowrap shrink-0 flex-1 py-3 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)] min-h-[44px]"
-            >
-              <CreditCard className="w-4 h-4" />
-              {isSubmitting ? 'Đang mở cổng PayOS...' : 'Xác nhận & Mở cổng PayOS'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowPayOSConfirmModal(false)}
-              className="whitespace-nowrap shrink-0 py-3 px-4 rounded-xl border border-white/10 bg-[#11141e] text-slate-300 hover:text-white transition text-sm min-h-[44px] flex items-center justify-center"
-            >
-              Để thanh toán sau
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

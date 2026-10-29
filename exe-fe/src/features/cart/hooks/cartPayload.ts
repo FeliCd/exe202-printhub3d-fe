@@ -18,7 +18,6 @@ export function serializeCartItems(items: CartItem[]): CartPayloadItem[] {
         quantity: item.quantity,
         customDesign: JSON.stringify(item.product.rulerDesign),
         customName: item.product.name,
-        customPrice: item.product.price,
         thumbnailUrl: item.product.imageUrl || item.product.thumbnail,
         clientLineId: item.clientLineId,
         revision: item.revision,

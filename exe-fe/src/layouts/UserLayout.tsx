@@ -17,7 +17,7 @@ export default function UserLayout({
 }: UserLayoutProps) {
   return (
     <AppShell cartCount={cartCount} onOpenCart={onOpenCart}
-      sidebar={<UserSidebar isOpen={true} onOpenAddressModal={onOpenAddressModal} />}>
+      sidebar={<UserSidebar isOpen={true} onOpenAddressModal={onOpenAddressModal} cartCount={cartCount} />}>
       {children}
     </AppShell>
   );

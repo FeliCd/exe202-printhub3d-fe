@@ -17,11 +17,10 @@ import {
   ShoppingBag,
   ArrowRight,
   X,
-  Truck,
   Package,
   Layers,
-  AlertTriangle,
   Info,
+  Send,
 } from 'lucide-react';
 
 interface Props {
@@ -48,8 +47,8 @@ interface CheckoutOrderDTO {
 export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal }: Props) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'MARKETPLACE' | 'CUSTOM'>('MARKETPLACE');
   const [method, setMethod] = useState<'COD' | 'PAYOS'>('PAYOS');
-  const [shippingMode, setShippingMode] = useState<'COMMON' | 'SEPARATE'>('COMMON');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [createdCheckoutOrder, setCreatedCheckoutOrder] = useState<CheckoutOrderDTO | null>(null);
   const [confirmOrder, setConfirmOrder] = useState<{ id: string; totalAmount: number; checkoutUrl?: string } | null>(null);
@@ -62,7 +61,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
     }
   }, [cart.items]);
 
-  // Phân chia thành 2 nhóm
+  // Phân chia thành 2 nhóm độc lập
   const marketplaceItems = useMemo(
     () => cart.items.filter(item => !item.product.rulerDesign),
     [cart.items]
@@ -72,7 +71,16 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
     [cart.items]
   );
 
-  // Lọc các món đang được tick chọn
+  // Tự động chuyển tab nếu nhóm hiện tại trống nhưng nhóm kia có hàng
+  useEffect(() => {
+    if (marketplaceItems.length === 0 && customItems.length > 0) {
+      setActiveTab('CUSTOM');
+    } else if (customItems.length === 0 && marketplaceItems.length > 0) {
+      setActiveTab('MARKETPLACE');
+    }
+  }, [marketplaceItems.length, customItems.length]);
+
+  // Lọc các món đang được tick chọn theo từng nhóm
   const selectedMarketplaceItems = useMemo(
     () => marketplaceItems.filter(item => selectedIds.has(item.clientLineId || item.id)),
     [marketplaceItems, selectedIds]
@@ -82,15 +90,18 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
     [customItems, selectedIds]
   );
 
-  const selectedCount = selectedMarketplaceItems.length + selectedCustomItems.length;
-  const isAllSelected = cart.items.length > 0 && selectedCount === cart.items.length;
+  const currentTabItems = activeTab === 'MARKETPLACE' ? marketplaceItems : customItems;
+  const selectedTabItems = activeTab === 'MARKETPLACE' ? selectedMarketplaceItems : selectedCustomItems;
+  const isAllTabSelected = currentTabItems.length > 0 && selectedTabItems.length === currentTabItems.length;
 
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelectedIds(new Set());
+  const toggleSelectAllTab = () => {
+    const next = new Set(selectedIds);
+    if (isAllTabSelected) {
+      currentTabItems.forEach(i => next.delete(i.clientLineId || i.id));
     } else {
-      setSelectedIds(new Set(cart.items.map(i => i.clientLineId || i.id)));
+      currentTabItems.forEach(i => next.add(i.clientLineId || i.id));
     }
+    setSelectedIds(next);
   };
 
   const toggleItemSelect = (id: string) => {
@@ -100,48 +111,28 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
     setSelectedIds(next);
   };
 
-  // Kiểm tra multi-seller trong các món Marketplace được chọn
-  const marketplaceSellers = useMemo(() => {
-    const sellers = new Set<string>();
-    for (const item of selectedMarketplaceItems) {
-      // Nếu có thông tin người bán
-      const sellerId = (item.product as any)?.sellerId || (item.product as any)?.seller?.id;
-      if (sellerId) sellers.add(sellerId);
-    }
-    return sellers;
-  }, [selectedMarketplaceItems]);
-
-  const hasMultipleSellers = marketplaceSellers.size > 1;
-
-  // Nếu nhiều seller khác nhau, ép chuyển sang Giao riêng
-  useEffect(() => {
-    if (hasMultipleSellers && shippingMode === 'COMMON') {
-      setShippingMode('SEPARATE');
-    }
-  }, [hasMultipleSellers, shippingMode]);
-
-  // Tính toán tiền tạm tính
+  // Tiền thanh toán Marketplace
   const marketplaceSubtotal = selectedMarketplaceItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
+  const marketplaceShippingFee = selectedMarketplaceItems.length > 0 ? 30000 : 0;
+  const marketplaceTotalAmount = marketplaceSubtotal + marketplaceShippingFee;
+
+  // Dự toán ước tính Custom (không thu tiền trực tiếp tại giỏ)
   const customEstimatedSubtotal = selectedCustomItems.reduce(
     (sum, item) => sum + (item.product.price || 0) * item.quantity,
     0
   );
 
-  const shippingFee = selectedCount > 0 ? 30000 : 0;
-  // Tính đủ cả sản phẩm có sẵn lẫn thước custom đã có giá tính sẵn
-  const totalSubtotal = marketplaceSubtotal + customEstimatedSubtotal;
-  const totalAmount = totalSubtotal + shippingFee;
-
-  const handleCheckout = () =>
+  // Đặt hàng Marketplace
+  const handleMarketplaceCheckout = () =>
     action.run(async () => {
       if (cart.loading || cart.saving || cart.error || !cart.items.length) {
         throw new Error('Giỏ hàng chưa sẵn sàng. Vui lòng chờ đồng bộ hoặc tải lại trang.');
       }
-      if (selectedCount === 0) {
-        throw new Error('Vui lòng chọn ít nhất 1 sản phẩm từ giỏ hàng để đặt hàng.');
+      if (selectedMarketplaceItems.length === 0) {
+        throw new Error('Vui lòng chọn ít nhất 1 sản phẩm có sẵn để đặt hàng.');
       }
       if (!isAuthenticated) {
         navigate('/login?redirect=/cart');
@@ -152,11 +143,12 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       }
 
       const fullAddress = `${a.recipientName} - ${a.phone} - ${a.addressLine}, ${a.province}`;
+      const marketplaceIds = selectedMarketplaceItems.map(i => i.clientLineId || i.id);
 
-      // Gọi API tạo đơn thanh toán cha (CheckoutOrder)
+      // Gọi API tạo đơn Marketplace thuần túy (không trộn custom)
       const res = await send<CheckoutOrderDTO>('/checkout-orders', {
-        selectedLineIds: Array.from(selectedIds),
-        shippingMode,
+        selectedLineIds: marketplaceIds,
+        shippingMode: 'COMMON',
         shippingAddress: fullAddress,
         recipientName: a.recipientName,
         recipientPhone: a.phone,
@@ -168,14 +160,58 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       if (res.paymentLinkUrl && method === 'PAYOS') {
         setConfirmOrder({
           id: res.id,
-          totalAmount: res.totalAmount || totalAmount,
+          totalAmount: res.totalAmount || marketplaceTotalAmount,
           checkoutUrl: res.paymentLinkUrl,
         });
       }
 
-      // Xóa các món đã chọn khỏi state local (backend đã xóa trong DB khi tạo checkout-order)
-      cart.removeLocalItems(Array.from(selectedIds));
-      setSelectedIds(new Set());
+      // Xóa các món marketplace đã đặt khỏi giỏ
+      cart.removeLocalItems(marketplaceIds);
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        marketplaceIds.forEach(id => next.delete(id));
+        return next;
+      });
+    });
+
+  // Gửi yêu cầu báo giá Custom (REQUESTED, không thanh toán ngay)
+  const handleCustomQuoteSubmit = () =>
+    action.run(async () => {
+      if (selectedCustomItems.length === 0) {
+        throw new Error('Vui lòng chọn ít nhất 1 thiết kế in 3D để gửi yêu cầu báo giá.');
+      }
+      if (!isAuthenticated) {
+        navigate('/login?redirect=/cart');
+        return;
+      }
+      if (!a.id) {
+        throw new Error('Vui lòng chọn địa chỉ giao hàng trước khi gửi yêu cầu báo giá.');
+      }
+
+      const fullAddress = `${a.recipientName} - ${a.phone} - ${a.addressLine}, ${a.province}`;
+      const customItemIds = selectedCustomItems.map(i => i.clientLineId || i.id);
+
+      for (const item of selectedCustomItems) {
+        await send('/custom-orders', {
+          quantity: item.quantity,
+          shippingAddress: fullAddress,
+          requirements: item.product.rulerDesign ? JSON.stringify(item.product.rulerDesign) : item.product.name,
+          rulerModel: item.product.name,
+          attachmentUrl: item.product.imageUrl || item.product.thumbnail,
+          paymentMethod: 'PAYOS',
+        });
+      }
+
+      // Xóa các món custom đã gửi khỏi giỏ
+      cart.removeLocalItems(customItemIds);
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        customItemIds.forEach(id => next.delete(id));
+        return next;
+      });
+
+      // Điều hướng về trang báo giá theo chuẩn Flow 01
+      navigate('/quotations?created=true');
     });
 
   return (
@@ -258,7 +294,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                 {createdCheckoutOrder.status === 'PENDING_QUOTE' ? (
                   <>
-                    Mã đơn cha: <strong className="text-white font-mono">#{createdCheckoutOrder.id}</strong> ({createdCheckoutOrder.shippingMode === 'COMMON' ? 'Giao chung' : 'Giao riêng'}).
+                    Mã đơn cha: <strong className="text-white font-mono">#{createdCheckoutOrder.id}</strong>.
                     <br />
                     Các sản phẩm in 3D custom đang được gửi đến xưởng để kỹ thuật viên thẩm định và báo giá chi tiết.
                     Sau khi có báo giá, bạn sẽ nhận được thông báo để duyệt và tiến hành thanh toán.
@@ -285,9 +321,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-xl border border-white/10 bg-[#040508] p-4 text-xs sm:text-sm font-mono">
               <div>
-                <span className="text-xs text-slate-400 block mb-1 font-sans">Phương thức giao hàng:</span>
+                <span className="text-xs text-slate-400 block mb-1 font-sans">Hình thức vận chuyển:</span>
                 <span className="font-semibold text-white">
-                  {createdCheckoutOrder.shippingMode === 'COMMON' ? '📦 Giao chung 1 đợt' : '🚚 Giao riêng từng phần'}
+                  🚚 Tiêu chuẩn PrintHub (Giao tận nơi)
                 </span>
               </div>
               <div>
@@ -357,258 +393,326 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
           {cart.items.length > 0 && (
             <div className="space-y-6">
-              {/* THANH CHỌN TẤT CẢ VÀ THỐNG KÊ */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/10 bg-[#0a0c12] shadow-sm">
-                <label className="flex items-center gap-3 cursor-pointer select-none text-sm font-semibold text-white">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded border-white/20 text-[#39FF14] focus:ring-[#39FF14] bg-[#040508] cursor-pointer accent-[#39FF14]"
-                  />
-                  <span>Chọn tất cả ({cart.items.length} món)</span>
-                </label>
+              {/* TAB SELECTOR: MARKETPLACE VS CUSTOM */}
+              <div className="flex flex-wrap items-center gap-3 p-1.5 rounded-2xl border border-white/10 bg-[#0a0c12]">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('MARKETPLACE')}
+                  className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition cursor-pointer whitespace-nowrap ${
+                    activeTab === 'MARKETPLACE'
+                      ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_20px_rgba(57,255,20,0.3)] ring-2 ring-[#39FF14]/20'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Package className="w-4 h-4" />
+                  <span>Sản phẩm có sẵn (Marketplace)</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                    activeTab === 'MARKETPLACE' ? 'bg-black/20 text-[#040508]' : 'bg-[#040508] text-slate-300 border border-white/10'
+                  }`}>
+                    {marketplaceItems.length}
+                  </span>
+                </button>
 
-                <span className="text-xs text-slate-400">
-                  Đã chọn: <strong className="text-[#39FF14] font-mono text-sm">{selectedCount}</strong> món
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('CUSTOM')}
+                  className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition cursor-pointer whitespace-nowrap ${
+                    activeTab === 'CUSTOM'
+                      ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_20px_rgba(57,255,20,0.3)] ring-2 ring-[#39FF14]/20'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>Thiết kế in 3D (Custom - Báo giá)</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                    activeTab === 'CUSTOM' ? 'bg-black/20 text-[#040508]' : 'bg-[#040508] text-slate-300 border border-white/10'
+                  }`}>
+                    {customItems.length}
+                  </span>
+                </button>
               </div>
 
-              {/* 2-COLUMN LAYOUT: Desktop side-by-side, Mobile stacked */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* CỘT TRÁI: DANH SÁCH SẢN PHẨM (7 cols) */}
-                <div className="lg:col-span-7 space-y-6">
-                  {/* NHÓM 1: SẢN PHẨM CÓ SẴN (MARKETPLACE) */}
-                  {marketplaceItems.length > 0 && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between pb-1 border-b border-white/10">
-                        <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                          <Package className="w-4 h-4 text-[#00e5ff]" />
-                          Sản phẩm có sẵn (Marketplace - Giao ngay)
-                        </h3>
-                        <span className="text-xs font-mono text-slate-400">
-                          {marketplaceItems.length} sản phẩm
-                        </span>
-                      </div>
-
-                      <div className="space-y-2.5">
-                        {marketplaceItems.map(item => {
-                          const lineId = item.clientLineId || item.id;
-                          return (
-                            <CartItem
-                              key={lineId}
-                              item={item}
-                              onUpdateQuantity={cart.updateQuantity}
-                              selected={selectedIds.has(lineId)}
-                              onToggleSelect={() => toggleItemSelect(lineId)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* NHÓM 2: THIẾT KẾ IN 3D CUSTOM */}
-                  {customItems.length > 0 && (
-                    <div className="space-y-3 pt-2">
-                      <div className="flex items-center justify-between pb-1 border-b border-white/10">
-                        <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                          <Layers className="w-4 h-4 text-[#39FF14]" />
-                          Thiết kế in 3D Cá nhân hóa (Custom - Thẩm định & In theo yêu cầu)
-                        </h3>
-                        <span className="text-xs font-mono text-slate-400">
-                          {customItems.length} thiết kế
-                        </span>
-                      </div>
-
-                      <div className="rounded-xl border border-[#39FF14]/30 bg-[#39FF14]/5 p-3.5 text-xs text-slate-300 leading-relaxed flex items-start gap-2.5 shadow-sm">
-                        <Info className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
-                        <span>
-                          Các mẫu thước trong giỏ có thể mở lại trong <strong className="text-white">3D Studio</strong> để chỉnh sửa màu sắc, vạch chia hoặc khắc chữ bất cứ lúc nào.
-                          Thước thẳng có giá ước tính; các mẫu thước phức tạp sẽ được xưởng thẩm định và báo giá chính thức khi tạo đơn.
-                        </span>
-                      </div>
-
-                      <div className="space-y-2.5">
-                        {customItems.map(item => {
-                          const lineId = item.clientLineId || item.id;
-                          return (
-                            <CartItem
-                              key={lineId}
-                              item={item}
-                              onUpdateQuantity={cart.updateQuantity}
-                              selected={selectedIds.has(lineId)}
-                              onToggleSelect={() => toggleItemSelect(lineId)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* CỘT PHẢI: CẤU HÌNH VẬN CHUYỂN & THANH TOÁN (5 cols sticky) */}
-                <div className="lg:col-span-5 lg:sticky lg:top-20">
-                  <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
-                    {/* CHỌN HÌNH THỨC GIAO HÀNG */}
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <Truck className="w-4 h-4 text-[#39FF14]" /> Phương thức giao hàng
-                      </h4>
-
-                      {hasMultipleSellers && (
-                        <div className="mb-2.5 rounded-lg border border-[#ff9100]/40 bg-[#ff9100]/10 p-2.5 text-xs text-[#ff9100] flex items-start gap-2">
-                          <AlertTriangle className="w-4 h-4 text-[#ff9100] shrink-0 mt-0.5" />
-                          <span>
-                            Các sản phẩm bán sẵn bạn chọn đến từ nhiều người bán khác nhau. Hệ thống tự động chuyển sang phương thức <strong>Giao riêng</strong>.
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <label
-                          className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                            shippingMode === 'COMMON'
-                              ? 'border-[#39FF14] bg-[#39FF14]/10 shadow-[0_0_15px_rgba(57,255,20,0.15)]'
-                              : hasMultipleSellers
-                              ? 'opacity-40 border-white/5 cursor-not-allowed bg-[#040508]'
-                              : 'border-white/10 bg-[#040508] hover:border-white/20'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="shippingMode"
-                            value="COMMON"
-                            disabled={hasMultipleSellers}
-                            checked={shippingMode === 'COMMON'}
-                            onChange={() => setShippingMode('COMMON')}
-                            className="mt-1 accent-[#39FF14]"
-                          />
-                          <div className="text-xs space-y-1">
-                            <span className="font-bold text-white block">📦 Giao chung 1 đợt</span>
-                            <p className="text-slate-400 leading-relaxed text-[11px]">
-                              Gom cả món Marketplace và Custom vào 1 đơn cha. Chờ xưởng báo giá xong toàn bộ món custom rồi giao chung một kiện.
-                            </p>
-                          </div>
-                        </label>
-
-                        <label
-                          className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                            shippingMode === 'SEPARATE'
-                              ? 'border-[#39FF14] bg-[#39FF14]/10 shadow-[0_0_15px_rgba(57,255,20,0.15)]'
-                              : 'border-white/10 bg-[#040508] hover:border-white/20'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="shippingMode"
-                            value="SEPARATE"
-                            checked={shippingMode === 'SEPARATE'}
-                            onChange={() => setShippingMode('SEPARATE')}
-                            className="mt-1 accent-[#39FF14]"
-                          />
-                          <div className="text-xs space-y-1">
-                            <span className="font-bold text-white block">🚚 Giao riêng từng phần</span>
-                            <p className="text-slate-400 leading-relaxed text-[11px]">
-                              Sản phẩm Marketplace xuất kho giao ngay; Thiết kế Custom tiếp tục chờ báo giá và sản xuất giao đợt 2.
-                            </p>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* ĐỊA CHỈ NHẬN HÀNG */}
-                    <div className="pt-3 border-t border-white/10">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-white text-xs flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-[#39FF14]" /> Địa chỉ giao hàng
-                        </h4>
-                        <button className="whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs transition" disabled={action.busy} onClick={onOpenAddressModal}>
-                          {a.id ? 'Thay đổi địa chỉ' : '+ Chọn địa chỉ'}
-                        </button>
-                      </div>
-                      <p className="text-slate-300 text-xs mt-1.5 leading-relaxed">
-                        {a.id
-                          ? `${a.recipientName} · ${a.phone} · ${a.addressLine}, ${a.province}`
-                          : 'Chưa chọn địa chỉ nhận hàng. Vui lòng bấm "+ Chọn địa chỉ" để tiếp tục.'}
+              {/* ========================================================================= */}
+              {/* TAB 1: SẢN PHẨM CÓ SẴN (MARKETPLACE) */}
+              {/* ========================================================================= */}
+              {activeTab === 'MARKETPLACE' && (
+                <div className="space-y-6">
+                  {marketplaceItems.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-10 text-center space-y-4">
+                      <Package className="w-12 h-12 text-[#39FF14]/50 mx-auto" />
+                      <p className="text-slate-300 font-medium text-sm">
+                        Không có sản phẩm có sẵn nào trong giỏ hàng.
                       </p>
+                      <Link
+                        to="/catalog"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#39FF14] text-[#040508] font-bold text-xs shadow-lg shadow-[#39FF14]/20 hover:brightness-110 transition whitespace-nowrap shrink-0"
+                      >
+                        Khám phá Cửa hàng Marketplace <ArrowRight className="w-4 h-4" />
+                      </Link>
                     </div>
-
-                    {/* PHƯƠNG THỨC THANH TOÁN */}
-                    <div className="pt-3 border-t border-white/10">
-                      <h4 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-2">
-                        <CreditCard className="w-4 h-4 text-[#39FF14]" /> Hình thức thanh toán
-                      </h4>
-                      <div className="flex flex-wrap gap-4">
-                        <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
+                  ) : (
+                    <>
+                      {/* THANH CHỌN TẤT CẢ VÀ THỐNG KÊ */}
+                      <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/10 bg-[#0a0c12] shadow-sm">
+                        <label className="flex items-center gap-3 cursor-pointer select-none text-sm font-semibold text-white">
                           <input
-                            type="radio"
-                            name="payment-method"
-                            disabled={action.busy}
-                            className="accent-[#39FF14]"
-                            checked={method === 'PAYOS'}
-                            onChange={() => setMethod('PAYOS')}
+                            type="checkbox"
+                            checked={isAllTabSelected}
+                            onChange={toggleSelectAllTab}
+                            className="w-4 h-4 rounded border-white/20 text-[#39FF14] focus:ring-[#39FF14] bg-[#040508] cursor-pointer accent-[#39FF14]"
                           />
-                          <span>Thanh toán trực tuyến VietQR (PayOS)</span>
+                          <span>Chọn tất cả sản phẩm có sẵn ({marketplaceItems.length} món)</span>
                         </label>
-                        <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
-                          <input
-                            type="radio"
-                            name="payment-method"
-                            disabled={action.busy}
-                            className="accent-[#39FF14]"
-                            checked={method === 'COD'}
-                            onChange={() => setMethod('COD')}
-                          />
-                          <span>Thanh toán khi nhận hàng (COD)</span>
-                        </label>
-                      </div>
-                    </div>
 
-                    {/* BẢNG TÍNH TIỀN TẠM TÍNH */}
-                    <div className="pt-3 border-t border-white/10 space-y-2 text-xs">
-                      <div className="flex justify-between text-slate-300">
-                        <span>Sản phẩm có sẵn ({selectedMarketplaceItems.length} món):</span>
-                        <span className="font-mono text-white">{money(marketplaceSubtotal)}</span>
-                      </div>
-
-                      {selectedCustomItems.length > 0 && (
-                        <div className="flex justify-between text-[#39FF14]">
-                          <span>Thiết kế Custom ({selectedCustomItems.length} món):</span>
-                          <span className="font-mono font-medium">
-                            {customEstimatedSubtotal > 0
-                              ? `~${money(customEstimatedSubtotal)} (ước tính)`
-                              : 'Chờ xưởng báo giá'}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="flex justify-between text-slate-300">
-                        <span>Phí vận chuyển dự kiến:</span>
-                        <span className="font-mono text-white">{money(shippingFee)}</span>
-                      </div>
-
-                      <div className="flex justify-between items-center pt-2.5 border-t border-white/10 text-sm">
-                        <div>
-                          <span className="font-bold text-white block">Tổng thanh toán:</span>
-                        </div>
-                        <span className="text-2xl font-black text-[#39FF14] font-mono">
-                          {money(totalAmount)}
+                        <span className="text-xs text-slate-400">
+                          Đã chọn: <strong className="text-[#39FF14] font-mono text-sm">{selectedMarketplaceItems.length}</strong> món
                         </span>
                       </div>
-                    </div>
 
-                    {/* NÚT BẤM ĐẶT HÀNG */}
-                    <button
-                      className="whitespace-nowrap shrink-0 w-full py-3.5 text-base font-black bg-[#39FF14] hover:bg-[#32e012] text-[#040508] rounded-xl shadow-[0_0_25px_rgba(57,255,20,0.35)] transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-                      disabled={action.busy || cart.loading || cart.saving || !a.id || selectedCount === 0}
-                      onClick={() => void handleCheckout()}
-                    >
-                      {action.busy ? 'Đang tạo đơn hàng…' : `Xác nhận đặt hàng (${selectedCount} món)`}
-                    </button>
-                  </div>
+                      {/* 2-COLUMN LAYOUT: MARKETPLACE */}
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        {/* CỘT TRÁI: DANH SÁCH SẢN PHẨM (7 cols) */}
+                        <div className="lg:col-span-7 space-y-3">
+                          {marketplaceItems.map(item => {
+                            const lineId = item.clientLineId || item.id;
+                            return (
+                              <CartItem
+                                key={lineId}
+                                item={item}
+                                onUpdateQuantity={cart.updateQuantity}
+                                selected={selectedIds.has(lineId)}
+                                onToggleSelect={() => toggleItemSelect(lineId)}
+                              />
+                            );
+                          })}
+                        </div>
+
+                        {/* CỘT PHẢI: THANH TOÁN MARKETPLACE (5 cols) */}
+                        <div className="lg:col-span-5 lg:sticky lg:top-20">
+                          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
+                            {/* ĐỊA CHỈ NHẬN HÀNG */}
+                            <div>
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-white text-xs flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-[#39FF14]" /> Địa chỉ giao hàng
+                                </h4>
+                                <button className="whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs transition cursor-pointer" disabled={action.busy} onClick={onOpenAddressModal}>
+                                  {a.id ? 'Thay đổi' : '+ Chọn địa chỉ'}
+                                </button>
+                              </div>
+                              <p className="text-slate-300 text-xs mt-1.5 leading-relaxed">
+                                {a.id
+                                  ? `${a.recipientName} · ${a.phone} · ${a.addressLine}, ${a.province}`
+                                  : 'Chưa chọn địa chỉ nhận hàng. Vui lòng bấm "+ Chọn địa chỉ" để tiếp tục.'}
+                              </p>
+                            </div>
+
+                            {/* PHƯƠNG THỨC THANH TOÁN */}
+                            <div className="pt-3 border-t border-white/10">
+                              <h4 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-2">
+                                <CreditCard className="w-4 h-4 text-[#39FF14]" /> Hình thức thanh toán
+                              </h4>
+                              <div className="flex flex-wrap gap-4">
+                                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
+                                  <input
+                                    type="radio"
+                                    name="payment-method"
+                                    disabled={action.busy}
+                                    className="accent-[#39FF14]"
+                                    checked={method === 'PAYOS'}
+                                    onChange={() => setMethod('PAYOS')}
+                                  />
+                                  <span>Thanh toán VietQR (PayOS)</span>
+                                </label>
+                                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
+                                  <input
+                                    type="radio"
+                                    name="payment-method"
+                                    disabled={action.busy}
+                                    className="accent-[#39FF14]"
+                                    checked={method === 'COD'}
+                                    onChange={() => setMethod('COD')}
+                                  />
+                                  <span>Khi nhận hàng (COD)</span>
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* BẢNG TÍNH TIỀN MARKETPLACE */}
+                            <div className="pt-3 border-t border-white/10 space-y-2 text-xs">
+                              <div className="flex justify-between text-slate-300">
+                                <span>Tiền hàng ({selectedMarketplaceItems.length} món):</span>
+                                <span className="font-mono text-white">{money(marketplaceSubtotal)}</span>
+                              </div>
+
+                              <div className="flex justify-between text-slate-300">
+                                <span>Phí vận chuyển:</span>
+                                <span className="font-mono text-white">{money(marketplaceShippingFee)}</span>
+                              </div>
+
+                              <div className="flex justify-between items-center pt-2.5 border-t border-white/10 text-sm">
+                                <span className="font-bold text-white block">Tổng thanh toán:</span>
+                                <span className="text-2xl font-black text-[#39FF14] font-mono">
+                                  {money(marketplaceTotalAmount)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* NÚT BẤM ĐẶT HÀNG */}
+                            <button
+                              className="whitespace-nowrap shrink-0 w-full py-3.5 text-base font-black bg-[#39FF14] hover:bg-[#32e012] text-[#040508] rounded-xl shadow-[0_0_25px_rgba(57,255,20,0.35)] transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-2 cursor-pointer"
+                              disabled={action.busy || cart.loading || cart.saving || !a.id || selectedMarketplaceItems.length === 0}
+                              onClick={() => void handleMarketplaceCheckout()}
+                            >
+                              {action.busy ? 'Đang tạo đơn hàng…' : `Xác nhận đặt hàng (${selectedMarketplaceItems.length} món)`}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* TAB 2: THIẾT KẾ IN 3D CUSTOM (BÁO GIÁ) */}
+              {/* ========================================================================= */}
+              {activeTab === 'CUSTOM' && (
+                <div className="space-y-6">
+                  {customItems.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-10 text-center space-y-4">
+                      <Layers className="w-12 h-12 text-[#39FF14]/50 mx-auto" />
+                      <p className="text-slate-300 font-medium text-sm">
+                        Chưa có thiết kế in 3D cá nhân hóa nào trong giỏ hàng.
+                      </p>
+                      <Link
+                        to="/custom"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#39FF14] text-[#040508] font-bold text-xs shadow-lg shadow-[#39FF14]/20 hover:brightness-110 transition whitespace-nowrap shrink-0"
+                      >
+                        Mở công cụ thiết kế Thước 3D <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      {/* INFORMATIONAL NOTICE BANNER */}
+                      <div className="rounded-2xl border border-[#39FF14]/30 bg-[#39FF14]/5 p-4 text-xs text-slate-300 leading-relaxed flex items-start gap-3 shadow-md">
+                        <Info className="w-5 h-5 text-[#39FF14] shrink-0 mt-0.5" />
+                        <div>
+                          <strong className="text-white text-sm block mb-1">Quy trình thẩm định và báo giá in 3D:</strong>
+                          Tất cả thiết kế trong tab này sẽ được gửi đến kỹ sư xưởng PrintHub 3D để kiểm tra tệp 3D (slicing, độ dày thành, khối lượng nhựa) và phát hành báo giá chính thức trong vòng 24 giờ.
+                          <span className="text-[#39FF14] font-semibold block mt-1">
+                            ✓ Bạn chưa phải thanh toán bất kỳ khoản tiền nào ở bước gửi yêu cầu này.
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* THANH CHỌN TẤT CẢ VÀ THỐNG KÊ */}
+                      <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/10 bg-[#0a0c12] shadow-sm">
+                        <label className="flex items-center gap-3 cursor-pointer select-none text-sm font-semibold text-white">
+                          <input
+                            type="checkbox"
+                            checked={isAllTabSelected}
+                            onChange={toggleSelectAllTab}
+                            className="w-4 h-4 rounded border-white/20 text-[#39FF14] focus:ring-[#39FF14] bg-[#040508] cursor-pointer accent-[#39FF14]"
+                          />
+                          <span>Chọn tất cả thiết kế custom ({customItems.length} mẫu)</span>
+                        </label>
+
+                        <span className="text-xs text-slate-400">
+                          Đã chọn: <strong className="text-[#39FF14] font-mono text-sm">{selectedCustomItems.length}</strong> thiết kế
+                        </span>
+                      </div>
+
+                      {/* 2-COLUMN LAYOUT: CUSTOM REQUEST */}
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        {/* CỘT TRÁI: DANH SÁCH THIẾT KẾ CUSTOM (7 cols) */}
+                        <div className="lg:col-span-7 space-y-3">
+                          {customItems.map(item => {
+                            const lineId = item.clientLineId || item.id;
+                            return (
+                              <CartItem
+                                key={lineId}
+                                item={item}
+                                onUpdateQuantity={cart.updateQuantity}
+                                selected={selectedIds.has(lineId)}
+                                onToggleSelect={() => toggleItemSelect(lineId)}
+                              />
+                            );
+                          })}
+                        </div>
+
+                        {/* CỘT PHẢI: GỬI YÊU CẦU BÁO GIÁ (5 cols) */}
+                        <div className="lg:col-span-5 lg:sticky lg:top-20">
+                          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
+                            <div className="flex items-center gap-2.5 pb-2 border-b border-white/10">
+                              <div className="w-8 h-8 rounded-lg bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14]">
+                                <Send className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                                  Gửi yêu cầu báo giá đến xưởng
+                                </h4>
+                                <p className="text-[11px] text-slate-400">Kỹ thuật viên sẽ phản hồi trong 24h</p>
+                              </div>
+                            </div>
+
+                            {/* ĐỊA CHỈ GIAO HÀNG (ĐỂ TÍNH PHÍ VẬN CHUYỂN KHI BÁO GIÁ) */}
+                            <div>
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-white text-xs flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-[#39FF14]" /> Địa chỉ giao nhận dự kiến
+                                </h4>
+                                <button className="whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs transition" disabled={action.busy} onClick={onOpenAddressModal}>
+                                  {a.id ? 'Thay đổi' : '+ Chọn địa chỉ'}
+                                </button>
+                              </div>
+                              <p className="text-slate-300 text-xs mt-1.5 leading-relaxed">
+                                {a.id
+                                  ? `${a.recipientName} · ${a.phone} · ${a.addressLine}, ${a.province}`
+                                  : 'Chưa chọn địa chỉ. Vui lòng bấm "+ Chọn địa chỉ" để xưởng tính cước giao hàng.'}
+                              </p>
+                            </div>
+
+                            {/* BẢNG TÍNH DỰ TOÁN SƠ BỘ */}
+                            <div className="pt-3 border-t border-white/10 space-y-2.5 text-xs">
+                              <div className="flex justify-between text-slate-300">
+                                <span>Số lượng thiết kế:</span>
+                                <span className="font-mono text-white font-bold">{selectedCustomItems.length} mẫu</span>
+                              </div>
+
+                              <div className="flex justify-between text-slate-300">
+                                <span>Dự toán sơ bộ (ước tính):</span>
+                                <span className="font-mono text-[#39FF14] font-medium">
+                                  {customEstimatedSubtotal > 0 ? `~${money(customEstimatedSubtotal)}` : 'Chờ xưởng báo giá'}
+                                </span>
+                              </div>
+
+                              <div className="p-3 rounded-xl border border-white/10 bg-[#040508] text-[11px] text-slate-400 space-y-1">
+                                <p className="text-slate-300 font-semibold">ℹ️ Lưu ý về báo giá:</p>
+                                <p>Đơn giá chính thức sẽ được kỹ thuật viên báo sau khi kiểm tra độ mịn lớp in (layer height 0.16mm) và kết cấu sợi in PLA Pro+.</p>
+                              </div>
+                            </div>
+
+                            {/* NÚT GỬI YÊU CẦU BÁO GIÁ */}
+                            <button
+                              className="whitespace-nowrap shrink-0 w-full py-3.5 text-sm font-black bg-[#39FF14] hover:bg-[#32e012] text-[#040508] rounded-xl shadow-[0_0_25px_rgba(57,255,20,0.35)] transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 cursor-pointer"
+                              disabled={action.busy || !a.id || selectedCustomItems.length === 0}
+                              onClick={() => void handleCustomQuoteSubmit()}
+                            >
+                              <Send className="w-4 h-4" />
+                              <span>
+                                {action.busy
+                                  ? 'Đang gửi yêu cầu báo giá...'
+                                  : `Gửi Yêu Cầu Báo Giá (${selectedCustomItems.length} thiết kế)`}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </>

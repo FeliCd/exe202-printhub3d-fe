@@ -296,10 +296,6 @@ export default function AppRoutes({
           }
         />
         <Route
-          path="/ruler-3d"
-          element={<Navigate to="/custom" replace />}
-        />
-        <Route
           path="/profile"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>

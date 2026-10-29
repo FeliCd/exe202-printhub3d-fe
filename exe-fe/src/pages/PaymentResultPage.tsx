@@ -1,8 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useRemote } from '../hooks/useRemote';
-import { send } from '../services/api';
 import { money } from '../utils/format';
 import {
   Check,
@@ -24,46 +23,13 @@ export default function PaymentResultPage() {
   const code = params.get('orderCode');
   const isCancelled = params.get('cancel') === 'true' || params.get('status') === 'CANCELLED';
   const { user, isAuthenticated, isLoading } = useAuth();
-  const [restored, setRestored] = useState(false);
 
   const remote = useRemote<{ status: string; amount: number; orderCode?: string }>(
     isAuthenticated && code && !isCancelled ? `/payments/verify/${encodeURIComponent(code)}` : null
   );
 
-  // Restore cart if payment was cancelled
+  // Poll if pending
   useEffect(() => {
-    if (isCancelled) {
-      const backupRaw = sessionStorage.getItem('printhub_cart_backup');
-      const pendingOrderId = sessionStorage.getItem('printhub_pending_payos_order');
-      if (backupRaw) {
-        try {
-          const items = JSON.parse(backupRaw);
-          if (isAuthenticated) {
-            send('/cart', { items }, 'put')
-              .then(() => setRestored(true))
-              .catch(() => undefined);
-          } else {
-            localStorage.setItem('printhub_guest_cart', backupRaw);
-            Promise.resolve().then(() => setRestored(true));
-          }
-        } catch {
-          // ignore
-        }
-        sessionStorage.removeItem('printhub_cart_backup');
-      }
-      if (pendingOrderId && isAuthenticated) {
-        send(`/orders/${pendingOrderId}/status`, { status: 'CANCELLED' }, 'put').catch(() => undefined);
-        sessionStorage.removeItem('printhub_pending_payos_order');
-      }
-    }
-  }, [isAuthenticated, isCancelled]);
-
-  // Clean up cart backup and poll if pending
-  useEffect(() => {
-    if (remote.data?.status === 'PAID') {
-      sessionStorage.removeItem('printhub_cart_backup');
-      sessionStorage.removeItem('printhub_pending_payos_order');
-    }
     if (remote.data?.status !== 'PENDING') return;
     const timer = setTimeout(remote.reload, 5000);
     return () => clearTimeout(timer);
@@ -76,10 +42,10 @@ export default function PaymentResultPage() {
     return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} - ${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }, []);
 
-  const displayAmount = remote.data?.amount ?? 8000;
-  const rewardPoints = Math.max(8, Math.floor(displayAmount / 1000));
-  const transactionCode = code ? `#ORD-${code}` : '#ORD-88492015';
-  const customerName = user?.name || user?.email || 'Lê Quốc Khánh';
+  const displayAmount = remote.data?.amount;
+  const rewardPoints = displayAmount ? Math.floor(displayAmount / 1000) : 0;
+  const transactionCode = code ? `#ORD-${code}` : '';
+  const customerName = user?.name || user?.email || 'Khách hàng';
 
   return (
     <div className="min-h-[85vh] bg-[#040508] text-slate-200 py-10 px-4 sm:px-6">
@@ -118,12 +84,10 @@ export default function PaymentResultPage() {
 
                 <div className="space-y-2">
                   <h1 className="text-3xl font-black text-white tracking-tight">
-                    Bạn đã hủy giao dịch PayOS!
+                    Bạn đã dừng giao dịch PayOS!
                   </h1>
                   <p className="text-slate-400 text-sm leading-relaxed">
-                    Đơn hàng thanh toán trực tuyến đã được dừng lại. {restored
-                      ? 'Các sản phẩm trong đơn đã được tự động lưu lại trong giỏ hàng để bạn thuận tiện đặt lại bất cứ lúc nào.'
-                      : 'Tài khoản của bạn chưa bị trừ bất kỳ khoản phí nào.'}
+                    Giao dịch thanh toán trực tuyến qua cổng VietQR đã được dừng lại. Tài khoản của bạn chưa bị trừ bất kỳ khoản phí nào. Bạn có thể mở lại đơn hàng để thanh toán lại hoặc chọn phương thức COD khi thuận tiện.
                   </p>
                 </div>
               </div>
@@ -218,6 +182,33 @@ export default function PaymentResultPage() {
               Đăng nhập ngay <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+        ) : !code ? (
+          /* ========================================================================= */
+          /* CASE 3.5: NO TRANSACTION CODE (MISSING ORDER CODE)                        */
+          /* ========================================================================= */
+          <div className="max-w-md mx-auto py-16 text-center space-y-5 rounded-3xl bg-[#0a0c12] border border-white/10 p-8 shadow-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-[#ff9100]/15 border border-[#ff9100]/40 text-[#ff9100] flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(255,145,0,0.2)]">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Không tìm thấy mã giao dịch</h2>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Đường dẫn không chứa thông tin mã giao dịch để đối chiếu với hệ thống thanh toán. Vui lòng kiểm tra lại trạng thái đơn hàng của bạn.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <Link
+                to="/orders"
+                className="whitespace-nowrap shrink-0 px-5 py-2.5 rounded-xl bg-[#39FF14] text-[#040508] font-bold text-xs shadow-lg shadow-[#39FF14]/20 hover:brightness-110 transition"
+              >
+                Quản lý đơn hàng
+              </Link>
+              <Link
+                to="/quotations"
+                className="whitespace-nowrap shrink-0 px-5 py-2.5 rounded-xl bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 font-semibold text-xs transition"
+              >
+                Tiến trình báo giá custom
+              </Link>
+            </div>
+          </div>
         ) : (
           /* ========================================================================= */
           /* CASE 4: PAYMENT SUCCESS / CONFIRMED (SPLIT 2 COLS TECH LAYOUT)            */
@@ -300,7 +291,7 @@ export default function PaymentResultPage() {
                 <div className="bg-[#040508] border border-white/10 rounded-xl p-4 flex justify-between items-center my-4 font-mono">
                   <span className="text-sm font-medium text-slate-300 font-sans">Tổng thanh toán</span>
                   <span className="text-2xl font-black text-[#39FF14] tracking-tight">
-                    {money(displayAmount)}
+                    {displayAmount ? money(displayAmount) : 'Đang đối chiếu...'}
                   </span>
                 </div>
 
@@ -328,13 +319,15 @@ export default function PaymentResultPage() {
                   </div>
 
                   {/* Điểm thưởng tích lũy */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-sans">Điểm thưởng tích lũy:</span>
-                    <span className="font-bold text-[#ff9100] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#ff9100]" />
-                      <span>+{rewardPoints} xu PrintHub (Đã cộng vào ví)</span>
-                    </span>
-                  </div>
+                  {rewardPoints > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-sans">Điểm thưởng tích lũy:</span>
+                      <span className="font-bold text-[#ff9100] flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-[#ff9100]" />
+                        <span>+{rewardPoints} xu PrintHub (Đã cộng vào ví)</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Thẻ trạng thái tiến độ xưởng in (Printing Queue Mini Tracker) */}
