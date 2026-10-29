@@ -17,6 +17,8 @@ export interface CustomDTO {
   fontStyle?: string;
   paymentMethod?: string;
   paymentStatus?: string;
+  allowedActions?: string[];
+  blockedActions?: { action: string; reasonCode: string; message: string }[];
 }
 
 export interface CustomOrderCreateRequest {

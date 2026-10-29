@@ -499,13 +499,31 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const next = (c: CustomDTO) =>
-    ({
-      ACCEPTED: c.paymentMethod === 'COD' ? 'PRINTING' : '',
-      PAID: 'PRINTING',
-      PRINTING: 'SHIPPING',
-      SHIPPING: 'COMPLETED',
-    }[c.status]);
+  const next = (c: CustomDTO): string | undefined => {
+    if (c.allowedActions && c.allowedActions.length > 0) {
+      const act = c.allowedActions.find(a => a !== 'CANCEL' && a !== 'QUOTE');
+      if (act) {
+        switch (act) {
+          case 'START_PREPARATION': return 'PREPARING';
+          case 'START_PRINTING': return 'PRINTING';
+          case 'START_SHIPPING': return 'SHIPPING';
+          case 'COMPLETE_DELIVERY': return 'COMPLETED';
+          default: return act;
+        }
+      }
+    }
+    // Fallback nếu chưa có allowedActions từ server
+    if (c.status === 'ACCEPTED') {
+      if (c.paymentMethod === 'COD') return 'PREPARING';
+      if (c.paymentMethod === 'PAYOS' && (c.paymentStatus === 'SUCCESS' || c.paymentStatus === 'PAID')) return 'PREPARING';
+      return undefined;
+    }
+    if (c.status === 'PAID') return 'PREPARING';
+    if (c.status === 'PREPARING') return 'PRINTING';
+    if (c.status === 'PRINTING') return 'SHIPPING';
+    if (c.status === 'SHIPPING') return 'COMPLETED';
+    return undefined;
+  };
 
   // Filter tabs logic
   const allOrders = useMemo(() => remote.data || [], [remote.data]);
@@ -1142,6 +1160,12 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         <span>{tr("Chuyển sang:")} {next(c)}</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </button>
+                    )}
+                    {!next(c) && c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && c.paymentStatus !== 'SUCCESS' && (
+                      <span className="px-3 py-1 rounded-lg border border-amber-500/40 bg-amber-950/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400" />
+                        Chờ khách quét mã PayOS
+                      </span>
                     )}
                   </div>
                 )}

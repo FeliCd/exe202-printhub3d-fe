@@ -20,6 +20,12 @@ export interface ShippingInfoDTO {
   trackingNumber?: string;
 }
 
+export interface BlockedActionDTO {
+  action: string;
+  reasonCode: string;
+  message: string;
+}
+
 export interface OrderDTO {
   id: string;
   buyerName: string;
@@ -32,6 +38,9 @@ export interface OrderDTO {
   orderCode?: string;
   items: OrderItemDTO[];
   shippingInfo?: ShippingInfoDTO;
+  paymentDueAt?: string;
+  allowedActions?: string[];
+  blockedActions?: BlockedActionDTO[];
 }
 
 export const orderService = {

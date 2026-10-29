@@ -12,6 +12,7 @@ import {
   Layers,
   FileCheck,
   Star,
+  Clock,
 } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
@@ -121,6 +122,8 @@ interface CustomOrderAdminItem {
   paymentStatus?: string;
   shippingAddress?: string;
   createdAt: string;
+  allowedActions?: string[];
+  blockedActions?: { action: string; reasonCode: string; message: string }[];
 }
 
 export default function OrderList({ admin = false, history = false }: { admin?: boolean; history?: boolean }) {
@@ -164,26 +167,51 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED', 'CANCELLED'].includes(c.status)
   );
 
+  const actionToStatus = (act: string): string => {
+    switch (act) {
+      case 'START_PREPARATION': return 'PREPARING';
+      case 'START_PRINTING': return 'PRINTING';
+      case 'START_SHIPPING': return 'SHIPPING';
+      case 'COMPLETE_DELIVERY': return 'COMPLETED';
+      case 'CANCEL': return 'CANCELLED';
+      default: return act;
+    }
+  };
+
   const nextStateMarketplace = (o: OrderDTO): string => {
-    const map: Record<string, string> = {
-      PENDING: o.paymentMethod === 'COD' ? 'PREPARING' : '',
-      PAID: 'PREPARING',
-      PREPARING: 'PRINTING',
-      PRINTING: 'SHIPPING',
-      SHIPPING: 'COMPLETED',
-    };
-    return map[o.status] || '';
+    if (o.allowedActions && o.allowedActions.length > 0) {
+      const act = o.allowedActions.find(a => a !== 'CANCEL');
+      return act ? actionToStatus(act) : '';
+    }
+    // Fallback nếu chưa có allowedActions từ server
+    if (o.status === 'PENDING') {
+      if (o.paymentMethod === 'COD') return 'PREPARING';
+      if (o.paymentMethod === 'PAYOS' && (o.paymentStatus === 'SUCCESS' || o.paymentStatus === 'PAID')) return 'PREPARING';
+      return '';
+    }
+    if (o.status === 'PAID') return 'PREPARING';
+    if (o.status === 'PREPARING') return 'SHIPPING';
+    if (o.status === 'PRINTING') return 'SHIPPING';
+    if (o.status === 'SHIPPING') return 'COMPLETED';
+    return '';
   };
 
   const nextStateCustom = (c: CustomOrderAdminItem): string => {
-    const map: Record<string, string> = {
-      ACCEPTED: 'PREPARING',
-      PAID: 'PREPARING',
-      PREPARING: 'PRINTING',
-      PRINTING: 'SHIPPING',
-      SHIPPING: 'COMPLETED',
-    };
-    return map[c.status] || '';
+    if (c.allowedActions && c.allowedActions.length > 0) {
+      const act = c.allowedActions.find(a => a !== 'CANCEL' && a !== 'QUOTE');
+      return act ? actionToStatus(act) : '';
+    }
+    // Fallback nếu chưa có allowedActions từ server
+    if (c.status === 'ACCEPTED') {
+      if (c.paymentMethod === 'COD') return 'PREPARING';
+      if (c.paymentMethod === 'PAYOS' && (c.paymentStatus === 'SUCCESS' || c.paymentStatus === 'PAID')) return 'PREPARING';
+      return '';
+    }
+    if (c.status === 'PAID') return 'PREPARING';
+    if (c.status === 'PREPARING') return 'PRINTING';
+    if (c.status === 'PRINTING') return 'SHIPPING';
+    if (c.status === 'SHIPPING') return 'COMPLETED';
+    return '';
   };
 
   const copyOrderId = (id: string) => {
@@ -192,9 +220,21 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleNextStatus = async (orderId: string, nextStatus: string, isCustom: boolean) => {
+  const handleNextStatus = async (
+    orderId: string,
+    nextStatus: string,
+    isCustom: boolean,
+    totalAmount?: number,
+    paymentMethod?: string
+  ) => {
+    if (nextStatus === 'COMPLETED' && paymentMethod === 'COD') {
+      const confirmed = window.confirm(
+        `Xác nhận hoàn thành giao hàng và đã thu đủ ${money(totalAmount || 0)} tiền mặt COD từ khách hàng?`
+      );
+      if (!confirmed) return;
+    }
     if (isCustom) {
-      await action.run(() => send(`/admin/custom-orders/${orderId}/status`, { status: nextStatus }, 'put'));
+      await action.run(() => send(`/custom-orders/${orderId}/status`, { status: nextStatus }, 'put'));
     } else {
       await action.run(() => send(`/orders/${orderId}/status`, { status: nextStatus }, 'put'));
     }
@@ -505,6 +545,12 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         <span>Thanh toán:</span>
                         <Status value={o.paymentStatus || (o.status === 'PAID' ? 'PAID' : 'UNPAID')} />
                       </div>
+                      {o.status === 'PENDING' && o.paymentMethod === 'PAYOS' && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-[#ff9100] font-mono font-semibold pt-1">
+                          <Clock className="w-3.5 h-3.5 animate-pulse text-[#ff9100] shrink-0" />
+                          <span>Hạn thanh toán 15 phút (Đang giữ chỗ tồn kho)</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -519,12 +565,18 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   <div className="flex flex-wrap items-center gap-2.5">
                     {admin && next && (
                       <button
-                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(57,255,20,0.3)] transition"
+                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(57,255,20,0.3)] transition cursor-pointer"
                         disabled={action.busy}
-                        onClick={() => handleNextStatus(o.id, next, false)}
+                        onClick={() => handleNextStatus(o.id, next, false, o.totalAmount, o.paymentMethod)}
                       >
                         Chuyển sang <Status value={next} className="ml-1" />
                       </button>
+                    )}
+                    {admin && !next && o.status === 'PENDING' && o.paymentMethod === 'PAYOS' && o.paymentStatus !== 'SUCCESS' && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-300 text-xs font-semibold">
+                        <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400 shrink-0" />
+                        <span>Chờ khách quét mã PayOS</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -686,12 +738,18 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   <div className="flex flex-wrap items-center gap-2.5">
                     {next && (
                       <button
-                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#ff9100] hover:bg-[#ff9e1a] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(255,145,0,0.3)] transition"
+                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#ff9100] hover:bg-[#ff9e1a] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(255,145,0,0.3)] transition cursor-pointer"
                         disabled={action.busy}
-                        onClick={() => handleNextStatus(c.id, next, true)}
+                        onClick={() => handleNextStatus(c.id, next, true, c.quotedPrice, c.paymentMethod)}
                       >
                         Chuyển sang <Status value={next} className="ml-1" />
                       </button>
+                    )}
+                    {!next && c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && c.paymentStatus !== 'SUCCESS' && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-300 text-xs font-semibold">
+                        <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400 shrink-0" />
+                        <span>Chờ khách quét mã PayOS</span>
+                      </div>
                     )}
                   </div>
                 </div>
