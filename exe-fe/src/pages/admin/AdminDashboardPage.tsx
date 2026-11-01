@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <h1 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight break-words">
-            Trung Tâm Nông Trại In 3D <span className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]">PrintHub Farm</span>
+            Trung Tâm Điều Khiển <span className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]">PrintHub 3D</span>
           </h1>
         </div>
 

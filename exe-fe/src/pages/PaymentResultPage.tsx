@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useRemote } from '../hooks/useRemote';
 import { money } from '../utils/format';
+import type { VerifyPaymentResponse } from '../services/paymentService';
 import {
   Check,
   ArrowRight,
@@ -24,7 +25,7 @@ export default function PaymentResultPage() {
   const isCancelled = params.get('cancel') === 'true' || params.get('status') === 'CANCELLED';
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  const remote = useRemote<{ status: string; amount: number; orderCode?: string }>(
+  const remote = useRemote<VerifyPaymentResponse>(
     isAuthenticated && code && !isCancelled ? `/payments/verify/${encodeURIComponent(code)}` : null
   );
 
@@ -42,10 +43,16 @@ export default function PaymentResultPage() {
     return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} - ${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }, []);
 
+  const isSubscriptionPurchase =
+    params.get('type') === 'SUBSCRIPTION_PURCHASE' ||
+    remote.data?.targetType === 'SUBSCRIPTION_PURCHASE';
+
   const displayAmount = remote.data?.amount;
-  const rewardPoints = displayAmount ? Math.floor(displayAmount / 1000) : 0;
+  // Flow 06 & Flow 08: 1 point per 10,000 VND for completed orders; 0 points for subscriptions
+  const rewardPoints = (!isSubscriptionPurchase && displayAmount) ? Math.floor(displayAmount / 10000) : 0;
   const transactionCode = code ? `#ORD-${code}` : '';
   const customerName = user?.name || user?.email || 'Khách hàng';
+
 
   return (
     <div className="min-h-[85vh] bg-[#040508] text-slate-200 py-10 px-4 sm:px-6">
@@ -95,19 +102,19 @@ export default function PaymentResultPage() {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
-                  to="/cart"
+                  to={isSubscriptionPurchase ? "/subscriptions" : "/cart"}
                   className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>Quay lại giỏ hàng</span>
+                  <span>{isSubscriptionPurchase ? "Xem các gói hội viên" : "Quay lại giỏ hàng"}</span>
                 </Link>
 
                 <Link
-                  to="/orders"
+                  to={isSubscriptionPurchase ? "/profile" : "/orders"}
                   className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm font-semibold"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>Xem đơn hàng của tôi</span>
+                  <span>{isSubscriptionPurchase ? "Trang cá nhân" : "Xem đơn hàng của tôi"}</span>
                 </Link>
               </div>
 
@@ -226,40 +233,60 @@ export default function PaymentResultPage() {
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] animate-pulse" />
-                    ĐÃ THANH TOÁN THÀNH CÔNG
+                    {isSubscriptionPurchase ? 'KÍCH HOẠT GÓI THÀNH CÔNG' : 'ĐÃ THANH TOÁN THÀNH CÔNG'}
                   </span>
                 </div>
 
                 {/* Tiêu đề & Nội dung mô tả */}
                 <div className="space-y-2.5">
                   <h1 className="text-3xl font-black text-white tracking-tight">
-                    Đã xác nhận thanh toán!
+                    {isSubscriptionPurchase ? 'Đã kích hoạt gói hội viên!' : 'Đã xác nhận thanh toán!'}
                   </h1>
                   <p className="text-slate-400 text-sm leading-relaxed max-w-lg">
-                    Hệ thống đã nhận được tiền. Đơn hàng của bạn đã được cập nhật trạng thái và tự động chuyển sang hàng đợi chuẩn bị gia công in 3D.
+                    {isSubscriptionPurchase
+                      ? `Chúc mừng bạn! Gói hội viên ${remote.data?.planName ? `"${remote.data.planName}"` : 'VIP'} đã được thanh toán và kích hoạt thành công trên tài khoản của bạn. Bạn có thể sử dụng ngay các đặc quyền ưu đãi in 3D và ưu tiên gia công.`
+                      : 'Hệ thống đã nhận được tiền. Đơn hàng của bạn đã được cập nhật trạng thái và tự động chuyển sang hàng đợi chuẩn bị gia công in 3D.'}
                   </p>
                 </div>
               </div>
 
               {/* Nhóm nút bấm hành động (Call To Action) */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {/* Primary CTA */}
-                <Link
-                  to="/orders"
-                  className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm text-center"
-                >
-                  <span>Xem &amp; Theo dõi đơn hàng</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-
-                {/* Secondary CTA */}
-                <Link
-                  to="/custom"
-                  className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
-                >
-                  <PlusCircle className="w-4 h-4 text-[#39FF14]" />
-                  <span>Gửi yêu cầu in mới</span>
-                </Link>
+                {isSubscriptionPurchase ? (
+                  <>
+                    <Link
+                      to="/subscriptions"
+                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm text-center"
+                    >
+                      <span>Xem quyền lợi hội viên</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
+                    >
+                      <Sparkles className="w-4 h-4 text-[#39FF14]" />
+                      <span>Trang cá nhân &amp; Ví điểm</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/orders"
+                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm text-center"
+                    >
+                      <span>Xem &amp; Theo dõi đơn hàng</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      to="/custom"
+                      className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
+                    >
+                      <PlusCircle className="w-4 h-4 text-[#39FF14]" />
+                      <span>Gửi yêu cầu in mới</span>
+                    </Link>
+                  </>
+                )}
               </div>
 
               {/* Nút hỗ trợ */}
@@ -318,25 +345,34 @@ export default function PaymentResultPage() {
                     <span className="font-medium text-white font-sans">{customerName}</span>
                   </div>
 
-                  {/* Điểm thưởng tích lũy */}
-                  {rewardPoints > 0 && (
-                    <div className="flex justify-between items-center">
+                  {/* Điểm thưởng tích lũy (Flow 06 & Flow 08 rules) */}
+                  {isSubscriptionPurchase ? (
+                    <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-400 font-sans">Điểm thưởng tích lũy:</span>
-                      <span className="font-bold text-[#ff9100] flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-[#ff9100]" />
-                        <span>+{rewardPoints} xu PrintHub (Đã cộng vào ví)</span>
+                      <span className="text-slate-400 font-mono italic">
+                        0 xu (Gói hội viên không áp dụng tích điểm)
                       </span>
                     </div>
-                  )}
+                  ) : rewardPoints > 0 ? (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-sans">Điểm thưởng dự kiến:</span>
+                      <span className="font-bold text-[#ff9100] flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-[#ff9100]" />
+                        <span>+{rewardPoints} xu (Cộng vào ví khi đơn hoàn tất)</span>
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
 
-                {/* Thẻ trạng thái tiến độ xưởng in (Printing Queue Mini Tracker) */}
-                <div className="bg-[#39FF14]/5 border border-[#39FF14]/30 rounded-xl p-3 flex items-center gap-3">
-                  <Printer className="w-5 h-5 text-[#39FF14] shrink-0 animate-pulse" />
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    Đang xếp lịch máy in... Kỹ thuật viên sẽ kiểm tra file 3D trước khi nạp nhựa.
-                  </p>
-                </div>
+                {/* Thẻ trạng thái tiến độ xưởng in (chỉ hiển thị cho đơn in 3D) */}
+                {!isSubscriptionPurchase && (
+                  <div className="bg-[#39FF14]/5 border border-[#39FF14]/30 rounded-xl p-3 flex items-center gap-3">
+                    <Printer className="w-5 h-5 text-[#39FF14] shrink-0 animate-pulse" />
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Đang xếp lịch máy in... Kỹ thuật viên sẽ kiểm tra file 3D trước khi nạp nhựa.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -345,3 +381,4 @@ export default function PaymentResultPage() {
     </div>
   );
 }
+
