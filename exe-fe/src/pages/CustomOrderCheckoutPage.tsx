@@ -131,13 +131,70 @@ export default function CustomOrderCheckoutPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // Pricing Calculation
+  // Pricing Calculation & Flow 09 Dynamic Entitlement
+  const [activePlan, setActivePlan] = useState<{
+    name: string;
+    discountPercent: number;
+    maxDiscountAmount: number | null;
+    freeShipping: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    send<{ subscriptions?: Array<{ name?: string; planName?: string; isActive?: boolean; endDate?: string; structuredBenefits?: string }> }>('/subscriptions/me')
+      .then((res) => {
+        if (!isMounted || !res?.subscriptions) return;
+        const now = new Date();
+        const activeSub = res.subscriptions.find((s) => s.isActive && (!s.endDate || new Date(s.endDate) > now));
+        if (activeSub) {
+          let discountPercent = 0;
+          let maxDiscountAmount: number | null = null;
+          let freeShipping = false;
+          if (activeSub.structuredBenefits) {
+            try {
+              const parsed = JSON.parse(activeSub.structuredBenefits);
+              if (parsed.discount?.percent) {
+                discountPercent = Number(parsed.discount.percent) || 0;
+              }
+              if (parsed.discount?.maxDiscountAmount) {
+                maxDiscountAmount = Number(parsed.discount.maxDiscountAmount);
+              }
+              if (parsed.shipping?.freeUsesPerTerm && Number(parsed.shipping.freeUsesPerTerm) > 0) {
+                freeShipping = true;
+              }
+            } catch {
+              discountPercent = 10;
+            }
+          } else {
+            discountPercent = 10;
+          }
+          setActivePlan({
+            name: activeSub.planName || activeSub.name || 'Gói Hội Viên',
+            discountPercent,
+            maxDiscountAmount,
+            freeShipping,
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load user subscription entitlement:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const unitPrice = orderConfig?.estimatedPrice || 45000;
   const subtotal = unitPrice * quantity;
-  // If user has VIP, grant 15% discount
-  const isVip = user?.role === 'ADMIN' || (user as any)?.subscriptionType === 'CUSTOMER_VIP';
-  const vipDiscount = isVip ? Math.round(subtotal * 0.15) : 0;
-  const shippingFee = subtotal >= 100000 || isVip ? 0 : 15000;
+  let rawDiscount = 0;
+  if (activePlan && activePlan.discountPercent > 0) {
+    rawDiscount = Math.round(subtotal * (activePlan.discountPercent / 100));
+    if (activePlan.maxDiscountAmount != null && rawDiscount > activePlan.maxDiscountAmount) {
+      rawDiscount = activePlan.maxDiscountAmount;
+    }
+  }
+  const vipDiscount = rawDiscount;
+  const shippingFee = (subtotal >= 100000 || activePlan?.freeShipping) ? 0 : 15000;
   const totalAmount = Math.max(0, subtotal - vipDiscount + shippingFee);
 
   // Validation Step 1
@@ -781,9 +838,11 @@ export default function CustomOrderCheckoutPage({
                 <span className="text-white font-bold">~{formatPrice(subtotal)}đ</span>
               </div>
 
-              {vipDiscount > 0 && (
+              {vipDiscount > 0 && activePlan && (
                 <div className="flex justify-between items-center text-xs text-[#39FF14]">
-                  <span className="font-sans">Ưu đãi gói hội viên VIP (-15%):</span>
+                  <span className="font-sans">
+                    Ưu đãi hội viên ({activePlan.name} -{activePlan.discountPercent}%):
+                  </span>
                   <span className="font-bold">-{formatPrice(vipDiscount)}đ</span>
                 </div>
               )}
@@ -792,7 +851,9 @@ export default function CustomOrderCheckoutPage({
                 <span className="text-slate-400 font-sans">Phí giao hàng dự kiến:</span>
                 <span className="text-white">
                   {shippingFee === 0 ? (
-                    <span className="text-[#39FF14] font-bold font-sans">Miễn phí</span>
+                    <span className="text-[#39FF14] font-bold font-sans">
+                      Miễn phí {activePlan?.freeShipping ? `(Đặc quyền ${activePlan.name})` : '(Đơn từ 100k)'}
+                    </span>
                   ) : (
                     `~${formatPrice(shippingFee)}đ`
                   )}

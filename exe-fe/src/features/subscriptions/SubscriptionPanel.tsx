@@ -15,6 +15,10 @@ import {
   ArrowDownLeft,
   AlertCircle,
   RefreshCw,
+  Percent,
+  Truck,
+  Zap,
+  Info,
 } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send, errorText } from '../../services/api';
@@ -30,13 +34,82 @@ import pointService, {
 export interface Plan {
   id: string;
   name: string;
-  price: number;
+  price: number | null;
   benefits: string;
-  requiredPoints: number;
+  description?: string;
+  requiredPoints: number | null;
   durationDays?: number;
+  planVersion?: number;
+  allowMoneyPurchase?: boolean;
+  allowPointRedemption?: boolean;
+  allowAdminGift?: boolean;
+  structuredBenefits?: string;
   isActive: boolean;
   type?: string;
 }
+
+export interface StructuredBenefits {
+  discount?: {
+    percent?: number;
+    appliesTo?: string[];
+    minEligibleSubtotal?: number;
+    maxDiscountAmount?: number;
+  };
+  shipping?: {
+    freeUsesPerTerm?: number;
+    maxDiscountAmountPerUse?: number;
+    appliesTo?: string[];
+  };
+  production?: {
+    priorityEnabled?: boolean;
+    appliesTo?: string[];
+  };
+}
+
+export function parseBenefits(raw?: string | object | null): StructuredBenefits | null {
+  if (!raw) return null;
+  if (typeof raw === 'object') return raw as StructuredBenefits;
+  try {
+    return JSON.parse(raw) as StructuredBenefits;
+  } catch {
+    return null;
+  }
+}
+
+export interface PlanFormState {
+  name: string;
+  type: string;
+  description: string;
+  durationDays: string;
+  allowMoneyPurchase: boolean;
+  price: string;
+  allowPointRedemption: boolean;
+  requiredPoints: string;
+  allowAdminGift: boolean;
+  discountPercent: string;
+  maxDiscountAmount: string;
+  freeShippingUses: string;
+  maxShippingDiscount: string;
+  priorityEnabled: boolean;
+  planVersion?: number;
+}
+
+const emptyFormState: PlanFormState = {
+  name: '',
+  type: 'CUSTOMER',
+  description: '',
+  durationDays: '30',
+  allowMoneyPurchase: true,
+  price: '99000',
+  allowPointRedemption: true,
+  requiredPoints: '100',
+  allowAdminGift: true,
+  discountPercent: '10',
+  maxDiscountAmount: '50000',
+  freeShippingUses: '2',
+  maxShippingDiscount: '30000',
+  priorityEnabled: false,
+};
 
 export interface Membership {
   points: number;
@@ -81,14 +154,6 @@ export interface SubscriptionPurchaseResponse {
   status: string;
 }
 
-const empty = {
-  name: '',
-  price: '0',
-  benefits: '',
-  requiredPoints: '100',
-  durationDays: '30',
-};
-
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -111,7 +176,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   });
 
   const [editing, setEditing] = useState('');
-  const [form, setForm] = useState(empty);
+  const [form, setForm] = useState<PlanFormState>(emptyFormState);
   const [open, setOpen] = useState(false);
   const [giftUser, setGiftUser] = useState('');
 
@@ -160,30 +225,111 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   const availablePoints = wallet?.availableToSpend ?? membership.data?.points ?? 0;
 
   // =========================================================================
-  // ADMIN: CẤU HÌNH GÓI HỘI VIÊN (Save / Edit Plan)
+  // ADMIN: CẤU HÌNH GÓI HỘI VIÊN (Save / Edit Plan - Flow 09)
   // =========================================================================
   const handleSavePlan = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccessFeedback(null);
     setCustomError(null);
 
+    if (!form.name.trim()) {
+      setCustomError('Vui lòng nhập tên gói hội viên.');
+      return;
+    }
+
+    if (!form.allowMoneyPurchase && !form.allowPointRedemption && !form.allowAdminGift) {
+      setCustomError('Gói dịch vụ phải bật ít nhất một phương thức nhận (Tiền mặt, Điểm hoặc Tặng quà).');
+      return;
+    }
+
+    if (form.allowMoneyPurchase && (Number(form.price) < 0 || isNaN(Number(form.price)))) {
+      setCustomError('Vui lòng nhập giá tiền mặt hợp lệ (>= 0 VNĐ) khi bật kênh mua tiền.');
+      return;
+    }
+
+    if (form.allowPointRedemption && (Number(form.requiredPoints) < 0 || isNaN(Number(form.requiredPoints)))) {
+      setCustomError('Vui lòng nhập số điểm thưởng hợp lệ (>= 0 xu) khi bật kênh đổi điểm.');
+      return;
+    }
+
+    const structuredObj: StructuredBenefits = {
+      discount: {
+        percent: Math.min(100, Math.max(0, Number(form.discountPercent) || 0)),
+        appliesTo: ['MARKETPLACE', 'CUSTOM'],
+        minEligibleSubtotal: 0,
+        maxDiscountAmount: Number(form.maxDiscountAmount) || 0,
+      },
+      shipping: {
+        freeUsesPerTerm: Math.max(0, Number(form.freeShippingUses) || 0),
+        maxDiscountAmountPerUse: Number(form.maxShippingDiscount) || 0,
+        appliesTo: ['MARKETPLACE', 'CUSTOM'],
+      },
+      production: {
+        priorityEnabled: form.priorityEnabled,
+        appliesTo: ['CUSTOM'],
+      },
+    };
+
+    const discountSummary = Number(form.discountPercent) > 0
+      ? `Giảm ${form.discountPercent}% cho mọi đơn in (tối đa ${money(Number(form.maxDiscountAmount))})`
+      : '';
+    const shipSummary = Number(form.freeShippingUses) > 0
+      ? `Miễn/giảm phí ship ${form.freeShippingUses} lượt/kỳ (tối đa ${money(Number(form.maxShippingDiscount))}/lượt)`
+      : '';
+    const prioritySummary = form.priorityEnabled ? 'Ưu tiên xếp lịch in sản phẩm 3D' : '';
+    const customSummary = [discountSummary, shipSummary, prioritySummary].filter(Boolean).join('. ');
+    const benefitsText = customSummary || form.description.trim() || 'Ưu đãi thành viên PrintHub VIP';
+
     const payload = {
       name: form.name.trim(),
-      benefits: form.benefits.trim(),
-      price: Number(form.price),
-      requiredPoints: Number(form.requiredPoints),
-      durationDays: Number(form.durationDays || 30),
+      benefits: benefitsText,
+      description: form.description.trim(),
+      durationDays: Math.max(1, Number(form.durationDays) || 30),
+      allowMoneyPurchase: form.allowMoneyPurchase,
+      price: form.allowMoneyPurchase ? Number(form.price) : null,
+      allowPointRedemption: form.allowPointRedemption,
+      requiredPoints: form.allowPointRedemption ? Number(form.requiredPoints) : null,
+      allowAdminGift: form.allowAdminGift,
+      planVersion: editing ? form.planVersion : undefined,
+      structuredBenefits: JSON.stringify(structuredObj),
     };
 
     if (
       await action.run(() =>
-        send(`/admin/subscriptions/customer${editing ? '/' + editing : ''}`, payload, editing ? 'put' : 'post')
+        send(
+          `/admin/subscriptions/customer${editing ? '/' + editing : ''}`,
+          payload,
+          editing ? 'put' : 'post'
+        )
       )
     ) {
       setOpen(false);
       remote.reload();
-      setSuccessFeedback(editing ? 'Đã cập nhật gói hội viên thành công!' : 'Đã tạo mới gói hội viên thành công!');
+      setSuccessFeedback(editing ? 'Đã cập nhật cấu hình gói hội viên thành công!' : 'Đã tạo mới gói hội viên thành công!');
     }
+  };
+
+  const handleEditClick = (p: Plan) => {
+    setEditing(p.id);
+    const parsed = parseBenefits(p.structuredBenefits);
+    setForm({
+      name: p.name || '',
+      type: p.type || 'CUSTOMER',
+      description: p.description || '',
+      durationDays: String(p.durationDays || 30),
+      allowMoneyPurchase: p.allowMoneyPurchase !== false,
+      price: p.price != null ? String(p.price) : '99000',
+      allowPointRedemption: p.allowPointRedemption !== false,
+      requiredPoints: p.requiredPoints != null ? String(p.requiredPoints) : '100',
+      allowAdminGift: p.allowAdminGift !== false,
+      discountPercent: String(parsed?.discount?.percent ?? 10),
+      maxDiscountAmount: String(parsed?.discount?.maxDiscountAmount ?? 50000),
+      freeShippingUses: String(parsed?.shipping?.freeUsesPerTerm ?? 2),
+      maxShippingDiscount: String(parsed?.shipping?.maxDiscountAmountPerUse ?? 30000),
+      priorityEnabled: Boolean(parsed?.production?.priorityEnabled),
+      planVersion: p.planVersion || 1,
+    });
+    setOpen(true);
   };
 
   // =========================================================================
@@ -288,7 +434,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
     if (
       !confirm(
         `Xác nhận thanh toán gói "${plan.name}" (${duration} ngày) qua cổng VietQR PayOS với số tiền ${money(
-          plan.price
+          plan.price || 0
         )}?`
       )
     ) {
@@ -453,7 +599,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               onClick={() => {
                 setOpen(true);
                 setEditing('');
-                setForm(empty);
+                setForm(emptyFormState);
               }}
               className="px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs uppercase tracking-tight transition shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0 self-start sm:self-auto whitespace-nowrap cursor-pointer"
             >
@@ -574,13 +720,21 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       {/* ========================================================================= */}
       {/* MODAL THÊM / CHỈNH SỬA GÓI (Admin)                                         */}
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
+      {/* MODAL THÊM / CHỈNH SỬA GÓI (Admin - Flow 09)                               */}
+      {/* ========================================================================= */}
       <Modal open={open} onClose={() => setOpen(false)} label={editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}>
-        <div className="w-full max-w-md bg-[#0a0c12] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
+        <div className="w-full max-w-xl bg-[#0a0c12] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <div className="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
-            <h3 className="text-base font-bold text-white flex items-center gap-2 font-mono">
-              <Sparkles className="w-4 h-4 text-[#39FF14]" />
-              {editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}
-            </h3>
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2 font-mono">
+                <Sparkles className="w-4 h-4 text-[#39FF14]" />
+                {editing ? `Chỉnh Sửa Gói Hội Viên (v${form.planVersion || 1})` : 'Tạo Gói Hội Viên Mới'}
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                Cấu hình thời hạn, kênh phân phối và quyền lợi thực thi có cấu trúc máy đọc được
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -592,94 +746,282 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
           </div>
 
           <form onSubmit={handleSavePlan} className="space-y-4 text-xs">
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 font-mono">Tên gói hội viên *</label>
-              <input
-                className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
-                required
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="VD: Gói Khách Hàng VIP Gold, Gói Hội Viên Sinh Viên..."
-              />
-            </div>
+            {/* NHÓM 1: THÔNG TIN CƠ BẢN & THỜI HẠN */}
+            <div className="p-3.5 rounded-xl bg-[#040508] border border-white/5 space-y-3">
+              <span className="text-[11px] font-bold text-[#00e5ff] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5" /> 1. Thông Tin Chung &amp; Thời Hạn Gói
+              </span>
 
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 font-mono">Quyền lợi &amp; Ưu đãi *</label>
-              <textarea
-                className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] transition resize-none"
-                required
-                rows={3}
-                value={form.benefits}
-                onChange={(e) => setForm({ ...form, benefits: e.target.value })}
-                placeholder="Giảm 15% cho mọi đơn in thước, miễn phí giao hàng KTX, ưu tiên máy in..."
-              />
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="font-bold text-slate-300 font-mono">Tên gói hội viên *</label>
+                  <input
+                    className="w-full bg-[#0a0c12] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
+                    required
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="VD: Gói Sinh Viên VIP Silver, Gói Hội Viên 60 Ngày..."
+                  />
+                </div>
 
-            {/* FLOW 08: GIÁ TIỀN MẶT MUA QUA PAYOS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-300 font-mono">Giá tiền mặt PayOS (VNĐ) *</label>
-                <input
-                  className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
-                  required
-                  type="number"
-                  min={0}
-                  step={1000}
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  placeholder="VD: 99000 (0 nếu chỉ đổi điểm)"
-                />
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-300 font-mono">Thời hạn gói (ngày) *</label>
+                  <input
+                    className="w-full bg-[#0a0c12] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
+                    required
+                    type="number"
+                    min={1}
+                    value={form.durationDays}
+                    onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
+                    placeholder="VD: 30"
+                  />
+                </div>
               </div>
 
-              {/* FLOW 07: THỜI HẠN GÓI (NGÀY) */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-300 font-mono">Thời hạn gói (ngày) *</label>
+              <div className="space-y-1">
+                <label className="font-bold text-slate-300 font-mono">Mô tả tiếp thị (Marketing description)</label>
                 <input
-                  className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
-                  required
-                  type="number"
-                  min={1}
-                  value={form.durationDays}
-                  onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
-                  placeholder="VD: 30"
+                  className="w-full bg-[#0a0c12] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="VD: Gói ưu đãi đặc quyền dành cho sinh viên kiến trúc & cơ khí"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 font-mono">Số điểm thưởng để đổi gói (Points) *</label>
-              <input
-                className="w-full bg-[#040508] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
-                required
-                type="number"
-                min={0}
-                value={form.requiredPoints}
-                onChange={(e) => setForm({ ...form, requiredPoints: e.target.value })}
-                placeholder="VD: 100 (0 nếu chỉ bán tiền mặt)"
-              />
+            {/* NHÓM 2: PHƯƠNG THỨC PHÂN PHỐI & GIÁ QUY ĐỔI */}
+            <div className="p-3.5 rounded-xl bg-[#040508] border border-white/5 space-y-3">
+              <span className="text-[11px] font-bold text-[#39FF14] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5" /> 2. Kênh Nhận Gói &amp; Đơn Giá Quy Đổi
+              </span>
+
+              {/* Kênh 1: Mua tiền mặt PayOS */}
+              <div className="space-y-2 p-2.5 rounded-lg bg-[#0a0c12] border border-white/5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.allowMoneyPurchase}
+                    onChange={(e) => setForm({ ...form, allowMoneyPurchase: e.target.checked })}
+                    className="accent-[#00e5ff] w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span className="font-bold text-slate-200">Cho phép mua bằng tiền mặt (VietQR PayOS)</span>
+                </label>
+
+                {form.allowMoneyPurchase && (
+                  <div className="pl-6 pt-1">
+                    <label className="text-[11px] text-slate-400 font-mono block mb-1">Giá tiền mặt một kỳ (VNĐ) *</label>
+                    <input
+                      className="w-full bg-[#040508] border border-white/10 rounded-lg p-2 text-xs text-white outline-none focus:border-[#00e5ff] font-mono transition"
+                      required={form.allowMoneyPurchase}
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      placeholder="VD: 99000"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Kênh 2: Đổi điểm thưởng */}
+              <div className="space-y-2 p-2.5 rounded-lg bg-[#0a0c12] border border-white/5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.allowPointRedemption}
+                    onChange={(e) => setForm({ ...form, allowPointRedemption: e.target.checked })}
+                    className="accent-[#39FF14] w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span className="font-bold text-slate-200">Cho phép đổi bằng điểm thưởng PrintHub (Xu)</span>
+                </label>
+
+                {form.allowPointRedemption && (
+                  <div className="pl-6 pt-1">
+                    <label className="text-[11px] text-slate-400 font-mono block mb-1">Số điểm thưởng một kỳ (Xu) *</label>
+                    <input
+                      className="w-full bg-[#040508] border border-white/10 rounded-lg p-2 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
+                      required={form.allowPointRedemption}
+                      type="number"
+                      min={0}
+                      value={form.requiredPoints}
+                      onChange={(e) => setForm({ ...form, requiredPoints: e.target.value })}
+                      placeholder="VD: 100"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Kênh 3: Admin tặng */}
+              <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-white/5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.allowAdminGift}
+                    onChange={(e) => setForm({ ...form, allowAdminGift: e.target.checked })}
+                    className="accent-[#c084fc] w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span className="font-bold text-slate-200">Cho phép Quản trị viên tặng gói quà (Flow 04)</span>
+                </label>
+              </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10 shrink-0">
-              <button
-                type="button"
-                className="px-4 py-2 rounded-xl border border-white/10 hover:bg-[#040508] text-slate-300 text-xs font-mono font-semibold transition whitespace-nowrap shrink-0 cursor-pointer"
-                onClick={() => setOpen(false)}
-              >
-                Hủy bỏ
-              </button>
-              <button
-                className="px-5 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 text-xs font-bold transition shadow-lg shadow-[#39FF14]/20 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
-                disabled={action.busy}
-              >
-                {action.busy ? 'Đang lưu...' : 'Lưu Gói'}
-              </button>
+            {/* NHÓM 3: CẤU HÌNH ĐẶC QUYỀN THỰC THI (STRUCTURED BENEFITS) */}
+            <div className="p-3.5 rounded-xl bg-[#040508] border border-white/5 space-y-3">
+              <span className="text-[11px] font-bold text-[#e879f9] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5" /> 3. Đặc Quyền Thực Thi Trên Hệ Thống (Structured Benefits)
+              </span>
+
+              {/* Giảm giá đơn hàng */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-300 font-mono flex items-center gap-1">
+                    <Percent className="w-3 h-3 text-[#39FF14]" /> % Giảm giá đơn hàng in
+                  </label>
+                  <input
+                    className="w-full bg-[#0a0c12] border border-white/10 rounded-xl p-2 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={form.discountPercent}
+                    onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
+                    placeholder="VD: 10 (%)"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-300 font-mono">Giảm tối đa mỗi đơn (VNĐ)</label>
+                  <input
+                    className="w-full bg-[#0a0c12] border border-white/10 rounded-xl p-2 text-xs text-white outline-none focus:border-[#39FF14] font-mono transition"
+                    type="number"
+                    min={0}
+                    step={1000}
+                    value={form.maxDiscountAmount}
+                    onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })}
+                    placeholder="VD: 50000 (0 nếu không giới hạn)"
+                  />
+                </div>
+              </div>
+
+              {/* Miễn phí / Giảm ship */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-300 font-mono flex items-center gap-1">
+                    <Truck className="w-3 h-3 text-[#00e5ff]" /> Lượt miễn/giảm ship mỗi kỳ
+                  </label>
+                  <input
+                    className="w-full bg-[#0a0c12] border border-white/10 rounded-xl p-2 text-xs text-white outline-none focus:border-[#00e5ff] font-mono transition"
+                    type="number"
+                    min={0}
+                    value={form.freeShippingUses}
+                    onChange={(e) => setForm({ ...form, freeShippingUses: e.target.value })}
+                    placeholder="VD: 2 (lượt/kỳ)"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-300 font-mono">Mức giảm ship tối đa/lượt (VNĐ)</label>
+                  <input
+                    className="w-full bg-[#0a0c12] border border-white/10 rounded-xl p-2 text-xs text-white outline-none focus:border-[#00e5ff] font-mono transition"
+                    type="number"
+                    min={0}
+                    step={1000}
+                    value={form.maxShippingDiscount}
+                    onChange={(e) => setForm({ ...form, maxShippingDiscount: e.target.value })}
+                    placeholder="VD: 30000"
+                  />
+                </div>
+              </div>
+
+              {/* Ưu tiên in 3D */}
+              <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-white/5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.priorityEnabled}
+                    onChange={(e) => setForm({ ...form, priorityEnabled: e.target.checked })}
+                    className="accent-[#39FF14] w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    Ưu tiên xếp lịch in sản phẩm 3D (Priority Production Queue)
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* NHÓM 4: BẢN XEM TRƯỚC TRỰC QUAN (LIVE PREVIEW) */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-br from-[#0a0c12] to-[#040508] border border-[#39FF14]/30 space-y-2">
+              <span className="text-[10px] font-bold text-[#39FF14] font-mono uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> Bản xem trước thẻ gói khi công bố
+              </span>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-bold text-white text-sm">{form.name || 'Tên Gói Mới'}</span>
+                <span className="px-2 py-0.5 rounded-full bg-[#39FF14]/10 text-[#39FF14] font-mono font-bold text-[11px] border border-[#39FF14]/30">
+                  {form.durationDays || 30} ngày
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 text-[11px] font-mono">
+                {form.allowMoneyPurchase && (
+                  <span className="px-2 py-0.5 rounded bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/30">
+                    {Number(form.price) > 0 ? money(Number(form.price)) : '0đ'}
+                  </span>
+                )}
+                {form.allowPointRedemption && (
+                  <span className="px-2 py-0.5 rounded bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30">
+                    {form.requiredPoints || 0} xu
+                  </span>
+                )}
+                {form.allowAdminGift && (
+                  <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                    Tặng quà Admin
+                  </span>
+                )}
+                {Number(form.discountPercent) > 0 && (
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    Giảm {form.discountPercent}%
+                  </span>
+                )}
+                {Number(form.freeShippingUses) > 0 && (
+                  <span className="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/30">
+                    {form.freeShippingUses} lượt freeship
+                  </span>
+                )}
+                {form.priorityEnabled && (
+                  <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                    Ưu tiên in
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-white/10 shrink-0">
+              <span className="text-[11px] text-slate-500 font-mono">
+                {editing ? `Đang chỉnh sửa bản v${form.planVersion || 1}` : 'Gói mới v1'}
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-xl border border-white/10 hover:bg-[#040508] text-slate-300 text-xs font-mono font-semibold transition whitespace-nowrap shrink-0 cursor-pointer"
+                  onClick={() => setOpen(false)}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  className="px-5 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 text-xs font-bold transition shadow-lg shadow-[#39FF14]/20 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                  disabled={action.busy}
+                >
+                  {action.busy ? 'Đang lưu...' : editing ? 'Cập Nhật Gói' : 'Tạo Gói Mới'}
+                </button>
+              </div>
             </div>
           </form>
         </div>
       </Modal>
 
       {/* ========================================================================= */}
-      {/* DANH SÁCH CÁC GÓI SUBSCRIPTIONS (Plans Grid)                                */}
+      {/* DANH SÁCH CÁC GÓI SUBSCRIPTIONS (Plans Grid - Flow 09)                     */}
       {/* ========================================================================= */}
       {(admin || activeTab === 'plans') && (
         <>
@@ -688,9 +1030,11 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {remote.data?.map((p) => {
               const duration = p.durationDays || 30;
-              const hasCashPrice = p.price && p.price > 0;
-              const hasPointPrice = p.requiredPoints && p.requiredPoints > 0;
+              const hasCashPrice = p.allowMoneyPurchase !== false && p.price != null && p.price > 0;
+              const hasPointPrice = p.allowPointRedemption !== false && p.requiredPoints != null && p.requiredPoints > 0;
+              const isGiftOnly = !hasCashPrice && !hasPointPrice && p.allowAdminGift !== false;
               const hasEnoughPoints = availablePoints >= (p.requiredPoints || 0);
+              const structured = parseBenefits(p.structuredBenefits);
 
               return (
                 <div
@@ -705,6 +1049,11 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                     <div>
                       <h3 className="font-bold text-white text-base flex items-center gap-2 tracking-tight">
                         {p.name}
+                        {p.planVersion && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-slate-400">
+                            v{p.planVersion}
+                          </span>
+                        )}
                         {!p.isActive && (
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#040508] border border-white/10 text-slate-500 whitespace-nowrap shrink-0">
                             Ngừng áp dụng
@@ -712,14 +1061,17 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                         )}
                       </h3>
 
-                      {/* Thông tin quy đổi & thời hạn linh hoạt (Flow 07 & Flow 08) */}
+                      {/* Thông tin quy đổi & thời hạn linh hoạt (Flow 07, 08 & 09) */}
                       <div className="flex flex-wrap items-center gap-2 mt-1.5 font-mono text-xs">
                         {hasPointPrice && (
                           <span className="text-[#39FF14] font-bold">{p.requiredPoints} điểm xu</span>
                         )}
                         {hasPointPrice && hasCashPrice && <span className="text-slate-500">hoặc</span>}
                         {hasCashPrice && (
-                          <span className="text-[#00e5ff] font-bold">{money(p.price)}</span>
+                          <span className="text-[#00e5ff] font-bold">{money(p.price!)}</span>
+                        )}
+                        {isGiftOnly && (
+                          <span className="text-purple-400 font-bold">Gói quà tặng Admin</span>
                         )}
                         <span className="text-slate-400">· {duration} ngày sử dụng</span>
                       </div>
@@ -730,8 +1082,34 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                     </span>
                   </div>
 
+                  {/* Structured Benefits Badges (Flow 09) */}
+                  <div className="flex flex-wrap gap-2 pt-1 font-mono text-xs">
+                    {structured?.discount?.percent && structured.discount.percent > 0 ? (
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-semibold flex items-center gap-1.5">
+                        <Percent className="w-3.5 h-3.5" />
+                        Giảm {structured.discount.percent}%
+                        {structured.discount.maxDiscountAmount ? ` (max ${money(structured.discount.maxDiscountAmount)})` : ''}
+                      </span>
+                    ) : null}
+
+                    {structured?.shipping?.freeUsesPerTerm && structured.shipping.freeUsesPerTerm > 0 ? (
+                      <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/25 text-sky-400 font-semibold flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5" />
+                        {structured.shipping.freeUsesPerTerm} lượt freeship
+                        {structured.shipping.maxDiscountAmountPerUse ? ` (max ${money(structured.shipping.maxDiscountAmountPerUse)})` : ''}
+                      </span>
+                    ) : null}
+
+                    {structured?.production?.priorityEnabled && (
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-300 font-semibold flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5" />
+                        Ưu tiên in 3D
+                      </span>
+                    )}
+                  </div>
+
                   <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line bg-[#040508] p-3.5 rounded-xl border border-white/5">
-                    {p.benefits}
+                    {p.benefits || p.description}
                   </p>
 
                   {/* Actions Section */}
@@ -741,17 +1119,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                       <>
                         <button
                           className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#040508] hover:border-[#39FF14]/50 text-slate-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition whitespace-nowrap shrink-0 cursor-pointer"
-                          onClick={() => {
-                            setEditing(p.id);
-                            setForm({
-                              name: p.name,
-                              price: String(p.price || 0),
-                              benefits: p.benefits,
-                              requiredPoints: String(p.requiredPoints || 0),
-                              durationDays: String(p.durationDays || 30),
-                            });
-                            setOpen(true);
-                          }}
+                          onClick={() => handleEditClick(p)}
                         >
                           <Edit2 className="w-3.5 h-3.5 text-[#00e5ff]" /> Sửa
                         </button>
@@ -771,9 +1139,15 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                         {/* FLOW 04: NÚT TẶNG GÓI QUÀ */}
                         <button
                           className="px-4 py-1.5 rounded-xl bg-[#00e5ff] hover:bg-[#00c8e0] text-slate-950 text-xs font-bold flex items-center gap-1.5 transition shadow-sm whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
-                          disabled={action.busy || giftingPlanId === p.id || !p.isActive}
+                          disabled={action.busy || giftingPlanId === p.id || !p.isActive || p.allowAdminGift === false}
                           onClick={() => void handleGiftPlan(p)}
-                          title={!giftUser ? 'Vui lòng chọn người nhận ở khung trên trước' : undefined}
+                          title={
+                            p.allowAdminGift === false
+                              ? 'Gói này không hỗ trợ tặng quà'
+                              : !giftUser
+                              ? 'Vui lòng chọn người nhận ở khung trên trước'
+                              : undefined
+                          }
                         >
                           <Gift className="w-3.5 h-3.5" />
                           <span>{giftingPlanId === p.id ? 'Đang tặng...' : 'Tặng gói quà'}</span>
@@ -791,7 +1165,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                           >
                             <CreditCard className="w-3.5 h-3.5" />
                             <span>
-                              {purchasingPlanId === p.id ? 'Đang tạo PayOS...' : `Mua gói — ${money(p.price)}`}
+                              {purchasingPlanId === p.id ? 'Đang tạo PayOS...' : `Mua gói — ${money(p.price!)}`}
                             </span>
                           </button>
                         )}
@@ -804,7 +1178,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                             onClick={() => void handleRedeemPlan(p)}
                             title={
                               !hasEnoughPoints
-                                ? `Bạn còn thiếu ${p.requiredPoints - availablePoints} điểm xu`
+                                ? `Bạn còn thiếu ${(p.requiredPoints || 0) - availablePoints} điểm xu`
                                 : undefined
                             }
                           >
@@ -814,9 +1188,17 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                                 ? 'Đang đổi...'
                                 : hasEnoughPoints
                                 ? `Đổi gói (${p.requiredPoints} xu)`
-                                : `Thiếu ${p.requiredPoints - availablePoints} xu`}
+                                : `Thiếu ${(p.requiredPoints || 0) - availablePoints} xu`}
                             </span>
                           </button>
+                        )}
+
+                        {/* Thông báo nếu gói chỉ tặng */}
+                        {isGiftOnly && (
+                          <span className="text-xs font-mono text-purple-400 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                            <Gift className="w-3.5 h-3.5" />
+                            Gói quà tặng đặc quyền từ PrintHub Admin
+                          </span>
                         )}
                       </div>
                     )}
