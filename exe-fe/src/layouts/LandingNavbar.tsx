@@ -28,15 +28,11 @@ export default function LandingNavbar() {
         {/* BRAND LOGO (Matches Left Side of Reference Header) */}
         {/* ========================================================================= */}
         <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#39FF14] to-emerald-400 p-[1px] shadow-lg shadow-[#39FF14]/20 group-hover:scale-105 transition-transform">
-            <div className="w-full h-full rounded-2xl bg-[#040508] flex items-center justify-center text-[#39FF14]">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" viewBox="0 0 24 24">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" x2="12" y1="22.08" y2="12" />
-              </svg>
-            </div>
-          </div>
+          <img
+            src="/logo-printhub.svg"
+            alt="PrintHub 3D Logo"
+            className="w-10 h-10 rounded-2xl shadow-lg shadow-[#39FF14]/20 group-hover:scale-105 transition-transform object-contain"
+          />
           <div className="flex flex-col">
             <span className="text-base sm:text-lg font-black tracking-wider text-white leading-tight flex items-center gap-1 whitespace-nowrap">
               PRINTHUB <span className="text-[#39FF14]">3D</span>

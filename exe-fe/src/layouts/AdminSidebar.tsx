@@ -12,7 +12,6 @@ import {
   Settings,
   LogOut,
   X,
-  Layers,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -94,9 +93,11 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       {/* Brand Header */}
       <div className="p-4 flex items-center justify-between border-b border-border">
         <Link to="/admin/dashboard" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-[#39FF14] flex items-center justify-center text-slate-950 font-black shadow-md shadow-emerald-950/60 group-hover:scale-105 transition-transform">
-            <Layers className="w-4 h-4 text-slate-950" />
-          </div>
+          <img
+            src="/logo-printhub.svg"
+            alt="PrintHub 3D Logo"
+            className="w-8 h-8 rounded-xl shadow-md shadow-emerald-950/60 group-hover:scale-105 transition-transform object-contain"
+          />
           <div>
             <p className="font-bold text-sm text-white tracking-wide">
               PrintHub <span className="text-[#39FF14] font-extrabold drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]">3D</span>
