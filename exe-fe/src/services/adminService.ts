@@ -14,6 +14,9 @@ export interface AdminDashboardData {
   completedCount: number;
   paidAmount: number;
   customCount: number;
+  customRequestedCount?: number;
+  customQuotedCount?: number;
+  customInProductionCount?: number;
   totalRevenue: number;
   activePrintingOrders: number;
   pendingDisputesCount: number;

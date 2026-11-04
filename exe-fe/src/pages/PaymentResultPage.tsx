@@ -26,8 +26,12 @@ export default function PaymentResultPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const remote = useRemote<VerifyPaymentResponse>(
-    isAuthenticated && code && !isCancelled ? `/payments/verify/${encodeURIComponent(code)}` : null
+    isAuthenticated && code ? `/payments/verify/${encodeURIComponent(code)}` : null
   );
+
+  const isServerCancelled = remote.data?.status === 'CANCELLED';
+  const isVerifiedSuccess = remote.data?.status === 'PAID' || remote.data?.status === 'SUCCESS';
+  const showCancelled = isServerCancelled || (isCancelled && !isVerifiedSuccess && !remote.loading);
 
   // Poll if pending
   useEffect(() => {
@@ -70,7 +74,7 @@ export default function PaymentResultPage() {
               Vui lòng đợi giây lát trong khi hệ thống xác thực thanh toán với cổng VietQR PayOS.
             </p>
           </div>
-        ) : isCancelled ? (
+        ) : showCancelled ? (
           /* ========================================================================= */
           /* CASE 2: TRANSACTION CANCELLED (SPLIT 2 COLS LAYOUT)                       */
           /* ========================================================================= */

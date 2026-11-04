@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Sparkles, ExternalLink } from 'lucide-react';
+import { useStoreSettings } from '../services/storeSettingsService';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const settings = useStoreSettings();
 
   return (
     <footer className="w-full bg-[#0a0a0c] border-t border-border mt-auto text-slate-400 text-xs">
@@ -32,15 +34,15 @@ export default function Footer() {
             <div className="space-y-2 pt-1 text-slate-300">
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-[#39FF14] shrink-0" />
-                <span>Hotline: <strong className="text-white font-mono">0786954657</strong> (Hỗ trợ 8h - 22h)</span>
+                <span>Hotline: <strong className="text-white font-mono">{settings.supportPhone}</strong> ({settings.supportHours})</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-[#39FF14] shrink-0" />
-                <span>Email: <a href="mailto:support@inbound.printhub3d.vn" className="text-white hover:text-[#39FF14] transition">support@inbound.printhub3d.vn</a></span>
+                <span>Email: <a href={`mailto:${settings.supportEmail}`} className="text-white hover:text-[#39FF14] transition">{settings.supportEmail}</a></span>
               </div>
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
-                <span>Địa chỉ: Làng đại học, đại học Quốc Gia TP. Hồ Chí Minh.</span>
+                <span>Địa chỉ: {settings.storeAddress}</span>
               </div>
             </div>
 
@@ -148,28 +150,19 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <div className="flex items-center justify-between text-slate-400">
-                  <span>Về PrintHub 3D</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/70 border border-amber-600/50 text-amber-400">
-                    Sắp ra mắt
-                  </span>
-                </div>
+                <Link to="/help-center" className="text-slate-400 hover:text-[#39FF14] transition">
+                  Về PrintHub 3D
+                </Link>
               </li>
               <li>
-                <div className="flex items-center justify-between text-slate-400">
-                  <span>Chính sách bảo mật</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/70 border border-amber-600/50 text-amber-400">
-                    Sắp ra mắt
-                  </span>
-                </div>
+                <Link to="/privacy-policy" className="text-slate-400 hover:text-[#39FF14] transition">
+                  Chính sách bảo mật
+                </Link>
               </li>
               <li>
-                <div className="flex items-center justify-between text-slate-400">
-                  <span>Điều khoản dịch vụ</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/70 border border-amber-600/50 text-amber-400">
-                    Sắp ra mắt
-                  </span>
-                </div>
+                <Link to="/terms" className="text-slate-400 hover:text-[#39FF14] transition">
+                  Điều khoản dịch vụ
+                </Link>
               </li>
             </ul>
           </div>

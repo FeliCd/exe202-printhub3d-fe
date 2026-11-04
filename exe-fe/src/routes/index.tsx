@@ -18,7 +18,6 @@ const SignupPage = lazy(() => import('../pages/SignupPage'));
 
 // Buyer & Public Pages
 import LandingPage from '../pages/LandingPage';
-const CatalogPreviewPage = lazy(() => import('../pages/CatalogPreviewPage'));
 const CatalogPage = lazy(() => import('../pages/CatalogPage'));
 const CartPage = lazy(() => import('../pages/CartPage'));
 const BulkOrderPage = lazy(() => import('../pages/BulkOrderPage'));
@@ -28,6 +27,8 @@ const OrdersPage = lazy(() => import('../pages/OrdersPage'));
 const OrderHistoryPage = lazy(() => import('../pages/OrderHistoryPage'));
 const QuotationsPage = lazy(() => import('../pages/QuotationsPage'));
 const HelpCenterPage = lazy(() => import('../pages/HelpCenterPage'));
+const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
 const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const PaymentResultPage = lazy(() => import('../pages/PaymentResultPage'));
 const SubscriptionsPage = lazy(() => import('../pages/SubscriptionsPage'));
@@ -129,13 +130,7 @@ export default function AppRoutes({
 
         <Route
           path="/catalog-preview"
-          element={
-            <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <CatalogPreviewPage />
-              </PageTransition>
-            </AnimatePresence>
-          }
+          element={<Navigate to={{ pathname: '/catalog', search: location.search, hash: location.hash }} replace />}
         />
         <Route
           path="/catalog"
@@ -177,6 +172,7 @@ export default function AppRoutes({
             </AnimatePresence>
           }
         />
+        <Route path="/custom-order" element={<Navigate to="/custom" replace />} />
         <Route
           path="/custom/checkout"
           element={
@@ -230,7 +226,27 @@ export default function AppRoutes({
           }
         />
         <Route
-          path="/help-center"
+          path="/privacy-policy"
+          element={
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                <PrivacyPolicyPage />
+              </PageTransition>
+            </AnimatePresence>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                <TermsOfServicePage />
+              </PageTransition>
+            </AnimatePresence>
+          }
+        />
+        <Route
+          path="/help-center" 
           element={
             <AnimatePresence mode="wait">
               <PageTransition key={location.pathname}>

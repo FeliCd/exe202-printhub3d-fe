@@ -11,7 +11,6 @@ import {
   Scale,
   BarChart3,
   Cpu,
-  Eye,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -141,18 +140,6 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
           >
             <Box className="w-4 h-4 text-[#39FF14]" />
             <span>Sản phẩm &amp; BST Thước</span>
-          </Link>
-
-          <Link
-            to="/catalog-preview"
-            className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition ${
-              isActive('/catalog-preview')
-                ? 'bg-surface text-[#39FF14] border-l-4 border-[#39FF14] font-bold'
-                : 'text-slate-300 hover:bg-surface hover:text-white'
-            }`}
-          >
-            <Eye className="w-4 h-4 text-text-muted" />
-            <span>Xem trước Danh mục (Guest)</span>
           </Link>
 
           <Link

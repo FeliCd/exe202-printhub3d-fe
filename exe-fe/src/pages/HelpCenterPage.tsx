@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '../components/DataUI';
 import { Link } from 'react-router-dom';
+import { useStoreSettings } from '../services/storeSettingsService';
 
 interface FAQItem {
   question: string;
@@ -55,6 +56,7 @@ const faqs: FAQItem[] = [
 ];
 
 export default function HelpCenterPage() {
+  const settings = useStoreSettings();
   const [openIndex, setOpenIndex] = useState<string | null>(faqs[0].question);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -110,7 +112,7 @@ export default function HelpCenterPage() {
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-white text-xs truncate">Hotline Kỹ Thuật Xưởng</h3>
-            <p className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">0987.654.321 (Zalo Lab)</p>
+            <p className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">{settings.supportPhone} ({settings.supportHours})</p>
           </div>
         </div>
       </div>
@@ -219,7 +221,7 @@ export default function HelpCenterPage() {
 
         <div className="flex items-center gap-3 whitespace-nowrap shrink-0">
           <Link
-            to="/custom-order"
+            to="/custom"
             className="px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs transition shadow-[0_0_12px_rgba(57,255,20,0.3)] flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <Layers className="w-3.5 h-3.5 shrink-0" />

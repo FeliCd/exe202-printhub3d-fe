@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+import { invalidateStoreSettings } from '../../services/storeSettingsService';
 import { PageHeader, Notice } from '../../components/DataUI';
 
 export default function AdminSettingsPage() {
@@ -76,6 +77,7 @@ export default function AdminSettingsPage() {
 
     try {
       await adminService.updateStoreSettings(payload);
+      invalidateStoreSettings();
       setSaved(true);
       clearTimeout(successTimer.current);
       successTimer.current = setTimeout(() => setSaved(false), 3500);

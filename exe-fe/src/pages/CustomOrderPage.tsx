@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { lazy, Suspense, useState, useEffect } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { Product } from '../types';
 import type { useCart } from '../features/cart/hooks/useCart';
 import type { Design } from '../features/ruler-studio/model';
@@ -19,7 +19,25 @@ export default function CustomOrderPage({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [tab, setTab] = useState('design');
+  const [searchParams] = useSearchParams();
+
+  const tabParam = searchParams.get('tab');
+  const templateParam = searchParams.get('template') || undefined;
+  const productIdParam = searchParams.get('productId') || undefined;
+  const productNameParam = searchParams.get('productName') || undefined;
+  const lenParam = searchParams.get('len') ? Number(searchParams.get('len')) : undefined;
+  const matParam = (searchParams.get('mat') === 'PETG' ? 'PETG' : searchParams.get('mat') === 'PLA' ? 'PLA' : undefined) as 'PLA' | 'PETG' | undefined;
+
+  const [tab, setTab] = useState<'design' | 'upload' | 'requests'>(
+    tabParam === 'upload' ? 'upload' : tabParam === 'requests' ? 'requests' : 'design'
+  );
+
+  useEffect(() => {
+    if (tabParam === 'upload' || tabParam === 'requests' || tabParam === 'design') {
+      setTab(tabParam);
+    }
+  }, [tabParam]);
+
   const { isAuthenticated } = useAuth();
   const { language, setLanguage } = useCustomLanguage();
 
@@ -106,6 +124,10 @@ export default function CustomOrderPage({
               headerControls={headerControls}
               onAddToCart={onAddToCart}
               initialDesign={location.state?.rulerDesign}
+              requestedTemplate={templateParam}
+              requestedLength={lenParam}
+              requestedMaterial={matParam}
+              productId={productIdParam}
               editingCartItemId={editingCartItemId}
               editingRevision={editingRevision}
               editingQuantity={editingQuantity}
@@ -117,7 +139,11 @@ export default function CustomOrderPage({
       )}
       {tab === 'upload' && (
         <div className="p-6 bg-[#0a0c12]">
-          <CustomRequestForm translate={tr} onCreated={() => setTab('requests')} />
+          <CustomRequestForm
+            translate={tr}
+            initialRequirements={productNameParam ? `[Yêu cầu tùy biến cho sản phẩm: ${productNameParam}]\n` : ''}
+            onCreated={() => setTab('requests')}
+          />
         </div>
       )}
       {tab === 'requests' && (

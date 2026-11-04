@@ -1,3 +1,4 @@
+import Modal from '../../components/Modal';
 import { useState, useEffect, useRef } from 'react';
 import {
   Package,
@@ -9,8 +10,10 @@ import {
   RotateCcw,
   X,
   Image as ImageIcon,
-  AlertCircle,
   Upload,
+  Copy,
+  Check,
+  AlertCircle,
 } from 'lucide-react';
 import { get, send, uploadFormData } from '../../services/api';
 import { formatPrice } from '../../utils/format';
@@ -54,6 +57,7 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -228,7 +232,12 @@ export default function AdminProductsPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (e.target.value === '') {
+                setPage(0);
+              }
+            }}
             placeholder="Tìm theo tên sản phẩm, mã SKU hoặc phôi in..."
             className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] transition font-mono"
           />
@@ -335,7 +344,27 @@ export default function AdminProductsPage() {
                       {/* Product Title & ID */}
                       <td className="px-4 py-3.5">
                         <p className="font-bold text-white text-sm line-clamp-1">{p.title}</p>
-                        <p className="text-[11px] text-[#00e5ff] font-mono mt-0.5 tracking-wide">SKU: #{p.id.substring(0, 8)}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[11px] text-[#00e5ff] font-mono tracking-wide" title={`Mã UUID đầy đủ: ${p.id}`}>
+                            Mã SP: #{p.id.substring(0, 8)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(p.id);
+                              setCopiedId(p.id);
+                              setTimeout(() => setCopiedId(null), 2000);
+                            }}
+                            className="p-0.5 text-slate-500 hover:text-[#39FF14] transition cursor-pointer"
+                            title="Sao chép toàn bộ mã UUID sản phẩm"
+                          >
+                            {copiedId === p.id ? (
+                              <Check className="w-3 h-3 text-[#39FF14]" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
                       </td>
 
                       {/* Category */}
@@ -427,186 +456,224 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Modal Thêm & Chỉnh Sửa Sản Phẩm */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/50 rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto relative">
-            <div className="absolute top-0 right-0 w-36 h-36 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
-            <div className="flex items-center justify-between border-b border-[#1e2433] pb-3.5">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase tracking-wider">
-                <Package className="w-4 h-4 text-[#39FF14]" />
-                {editingId ? 'CHỈNH SỬA SẢN PHẨM IN 3D' : 'THÊM MỚI SẢN PHẨM THƯỚC IN 3D'}
-              </h3>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-[#11141e] transition cursor-pointer whitespace-nowrap shrink-0"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* Modal Thêm & Chỉnh Sửa Sản Phẩm (Dùng Modal component chuẩn accessibility & Escape) */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        label={editingId ? 'Chỉnh sửa sản phẩm in 3D' : 'Thêm mới sản phẩm thước in 3D'}
+        className="!w-full !max-w-2xl"
+      >
+        <div className="w-full bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/50 rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto relative">
+          <div className="absolute top-0 right-0 w-36 h-36 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
+          <div className="flex items-center justify-between border-b border-[#1e2433] pb-3.5">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase tracking-wider">
+              <Package className="w-4 h-4 text-[#39FF14]" />
+              {editingId ? 'CHỈNH SỬA SẢN PHẨM IN 3D' : 'THÊM MỚI SẢN PHẨM THƯỚC IN 3D'}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              aria-label="Đóng cửa sổ"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-[#11141e] transition cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Tên sản phẩm */}
-                <div className="sm:col-span-2 space-y-1.5">
-                  <label className="font-bold text-slate-300 font-mono">TÊN SẢN PHẨM THƯỚC / MÔ HÌNH 3D *</label>
-                  <input
-                    required
-                    maxLength={200}
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="VD: Thước Eke Parabol Khắc Tên Sinh Viên Bambu Lab..."
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition"
-                  />
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Tên sản phẩm */}
+              <div className="sm:col-span-2 space-y-1.5">
+                <label htmlFor="admin-product-title" className="font-bold text-slate-300 font-mono block">
+                  TÊN SẢN PHẨM THƯỚC / MÔ HÌNH 3D *
+                </label>
+                <input
+                  id="admin-product-title"
+                  name="title"
+                  required
+                  aria-required="true"
+                  maxLength={200}
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="VD: Thước Eke Parabol Khắc Tên Sinh Viên Bambu Lab..."
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition"
+                />
+              </div>
+
+              {/* Danh mục */}
+              <div className="space-y-1.5">
+                <label htmlFor="admin-product-category" className="font-bold text-slate-300 font-mono block">
+                  DANH MỤC SẢN PHẨM *
+                </label>
+                <select
+                  id="admin-product-category"
+                  name="categoryId"
+                  required
+                  aria-required="true"
+                  value={form.categoryId}
+                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition font-mono cursor-pointer"
+                >
+                  <option value="">Chọn danh mục</option>
+                  {categories.map((c) => (
+                    <option key={c.categoryId} value={c.categoryId} className="bg-[#0a0c12] text-white">
+                      {c.categoryName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Phân loại */}
+              <div className="space-y-1.5">
+                <label htmlFor="admin-product-type" className="font-bold text-slate-300 font-mono block">
+                  HÌNH THỨC SẢN PHẨM *
+                </label>
+                <select
+                  id="admin-product-type"
+                  name="type"
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition font-mono cursor-pointer"
+                >
+                  <option value="PHYSICAL" className="bg-[#0a0c12] text-white">Thước 3D Vật lý (In gia công thành phẩm)</option>
+                  <option value="DIGITAL" className="bg-[#0a0c12] text-white">File Mô hình 3D (.STL / .OBJ tải số)</option>
+                </select>
+              </div>
+
+              {/* Đơn giá */}
+              <div className="space-y-1.5">
+                <label htmlFor="admin-product-price" className="font-bold text-slate-300 font-mono block">
+                  GIÁ BÁN NIÊM YẾT (VNĐ) *
+                </label>
+                <input
+                  id="admin-product-price"
+                  name="price"
+                  required
+                  aria-required="true"
+                  type="number"
+                  min={1}
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  placeholder="VD: 45000"
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs font-mono transition"
+                />
+              </div>
+
+              {/* Số lượng tồn kho */}
+              <div className="space-y-1.5">
+                <label htmlFor="admin-product-stock" className="font-bold text-slate-300 font-mono block">
+                  SỐ LƯỢNG TỒN KHO (CÁI) *
+                </label>
+                <input
+                  id="admin-product-stock"
+                  name="stock"
+                  required
+                  aria-required="true"
+                  type="number"
+                  min={0}
+                  value={form.stock}
+                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                  placeholder="VD: 100"
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs font-mono transition"
+                />
+              </div>
+
+              {/* URL Ảnh đại diện & Tải ảnh từ máy tính lên Cloudinary */}
+              <div className="sm:col-span-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="admin-product-image-url" className="font-bold text-slate-300 font-mono block">
+                    HÌNH ẢNH ĐẠI DIỆN SẢN PHẨM
+                  </label>
+                  <span className="text-[11px] text-slate-400 font-mono">Tỷ lệ 1:1, dung lượng &lt; 50MB</span>
                 </div>
 
-                {/* Danh mục */}
-                <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300 font-mono">DANH MỤC SẢN PHẨM *</label>
-                  <select
-                    required
-                    value={form.categoryId}
-                    onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition font-mono cursor-pointer"
+                <input
+                  id="admin-product-file-hidden"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadImage}
+                  className="hidden"
+                />
+
+                <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+                  <input
+                    id="admin-product-image-url"
+                    name="imageUrl"
+                    type="url"
+                    value={form.imageUrl}
+                    onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                    placeholder="Dán URL ảnh hoặc bấm Tải ảnh từ máy..."
+                    className="flex-1 bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="px-3.5 py-2.5 rounded-xl border border-[#39FF14]/40 hover:border-[#39FF14] bg-[#39FF14]/10 hover:bg-[#39FF14]/20 text-[#39FF14] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shrink-0 cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   >
-                    <option value="">Chọn danh mục</option>
-                    {categories.map((c) => (
-                      <option key={c.categoryId} value={c.categoryId} className="bg-[#0a0c12] text-white">
-                        {c.categoryName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Phân loại */}
-                <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300 font-mono">HÌNH THỨC SẢN PHẨM *</label>
-                  <select
-                    value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition font-mono cursor-pointer"
-                  >
-                    <option value="PHYSICAL" className="bg-[#0a0c12] text-white">Thước 3D Vật lý (In gia công thành phẩm)</option>
-                    <option value="DIGITAL" className="bg-[#0a0c12] text-white">File Mô hình 3D (.STL / .OBJ tải số)</option>
-                  </select>
-                </div>
-
-                {/* Đơn giá */}
-                <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300 font-mono">GIÁ BÁN NIÊM YẾT (VNĐ) *</label>
-                  <input
-                    required
-                    type="number"
-                    min={1}
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    placeholder="VD: 45000"
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs font-mono transition"
-                  />
-                </div>
-
-                {/* Số lượng tồn kho */}
-                <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300 font-mono">SỐ LƯỢNG TỒN KHO (CÁI) *</label>
-                  <input
-                    required
-                    type="number"
-                    min={0}
-                    value={form.stock}
-                    onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                    placeholder="VD: 100"
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs font-mono transition"
-                  />
-                </div>
-
-                {/* URL Ảnh đại diện & Tải ảnh từ máy tính lên Cloudinary */}
-                <div className="sm:col-span-2 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="font-bold text-slate-300 font-mono">HÌNH ẢNH ĐẠI DIỆN SẢN PHẨM</label>
-                    <span className="text-[11px] text-slate-400 font-mono">Tỷ lệ 1:1, dung lượng &lt; 50MB</span>
-                  </div>
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUploadImage}
-                    className="hidden"
-                  />
-
-                  <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
-                    <input
-                      type="url"
-                      value={form.imageUrl}
-                      onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                      placeholder="Dán URL ảnh hoặc bấm Tải ảnh từ máy..."
-                      className="flex-1 bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] text-xs transition"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      className="px-3.5 py-2.5 rounded-xl border border-[#39FF14]/40 hover:border-[#39FF14] bg-[#39FF14]/10 hover:bg-[#39FF14]/20 text-[#39FF14] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shrink-0 cursor-pointer disabled:opacity-50 whitespace-nowrap"
-                    >
-                      {uploadingImage ? (
-                        <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#39FF14]" />
-                      ) : (
-                        <Upload className="w-3.5 h-3.5 text-[#39FF14]" />
-                      )}
-                      <span>{uploadingImage ? 'Đang tải lên...' : 'Tải ảnh từ máy'}</span>
-                    </button>
-
-                    {form.imageUrl && (
-                      <div className="w-11 h-11 rounded-xl bg-[#040508] border border-[#39FF14]/40 overflow-hidden shrink-0 shadow-sm">
-                        <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
-                      </div>
+                    {uploadingImage ? (
+                      <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#39FF14]" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5 text-[#39FF14]" />
                     )}
-                  </div>
+                    <span>{uploadingImage ? 'Đang tải lên...' : 'Tải ảnh từ máy'}</span>
+                  </button>
 
-                  {uploadError && (
-                    <p className="text-[11px] text-rose-400 font-mono font-medium flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      <span>{uploadError}</span>
-                    </p>
+                  {form.imageUrl && (
+                    <div className="w-11 h-11 rounded-xl bg-[#040508] border border-[#39FF14]/40 overflow-hidden shrink-0 shadow-sm">
+                      <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
+                    </div>
                   )}
                 </div>
 
-                {/* Mô tả chi tiết */}
-                <div className="sm:col-span-2 space-y-1.5">
-                  <label className="font-bold text-slate-300 font-mono">MÔ TẢ THÔNG SỐ KỸ THUẬT &amp; CÔNG NĂNG</label>
-                  <textarea
-                    rows={3}
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Vật liệu in PLA/PETG, độ dày 2mm, độ chính xác vạch đo 0.1mm..."
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] text-xs resize-none transition"
-                  />
-                </div>
+                {uploadError && (
+                  <p className="text-[11px] text-rose-400 font-mono font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>{uploadError}</span>
+                  </p>
+                )}
               </div>
 
-              {/* Actions Footer */}
-              <div className="flex items-center justify-end gap-2.5 pt-3.5 border-t border-[#1e2433]">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-[#11141e] border border-[#1e2433] text-slate-300 hover:text-white text-xs font-mono font-bold transition cursor-pointer whitespace-nowrap shrink-0"
-                >
-                  HỦY BỎ
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving || uploadingImage}
-                  className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] text-xs font-mono font-black uppercase tracking-wider transition shadow-[0_0_15px_rgba(57,255,20,0.35)] flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
-                >
-                  {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#040508]" />}
-                  <span>{editingId ? 'CẬP NHẬT SẢN PHẨM' : 'LƯU SẢN PHẨM MỚI'}</span>
-                </button>
+              {/* Mô tả chi tiết */}
+              <div className="sm:col-span-2 space-y-1.5">
+                <label htmlFor="admin-product-desc" className="font-bold text-slate-300 font-mono block">
+                  MÔ TẢ THÔNG SỐ KỸ THUẬT &amp; CÔNG NĂNG
+                </label>
+                <textarea
+                  id="admin-product-desc"
+                  name="description"
+                  rows={3}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Vật liệu in PLA/PETG, độ dày 2mm, độ chính xác vạch đo 0.1mm..."
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] text-xs resize-none transition"
+                />
               </div>
-            </form>
-          </div>
+            </div>
+
+            {/* Actions Footer */}
+            <div className="flex items-center justify-end gap-2.5 pt-3.5 border-t border-[#1e2433]">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl bg-[#11141e] border border-[#1e2433] text-slate-300 hover:text-white text-xs font-mono font-bold transition cursor-pointer whitespace-nowrap shrink-0"
+              >
+                HỦY BỎ
+              </button>
+              <button
+                type="submit"
+                disabled={saving || uploadingImage}
+                className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] text-xs font-mono font-black uppercase tracking-wider transition shadow-[0_0_15px_rgba(57,255,20,0.35)] flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+              >
+                {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#040508]" />}
+                <span>{editingId ? 'CẬP NHẬT SẢN PHẨM' : 'LƯU SẢN PHẨM MỚI'}</span>
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

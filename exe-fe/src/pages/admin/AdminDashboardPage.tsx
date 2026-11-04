@@ -58,6 +58,9 @@ export default function AdminDashboardPage() {
   const disputesCount = data?.pendingDisputesCount ?? 0;
   const usersCount = data?.totalUsersCount ?? 0;
   const customCount = data?.customCount ?? 0;
+  const customRequested = data?.customRequestedCount ?? 0;
+  const customQuoted = data?.customQuotedCount ?? 0;
+  const customInProduction = data?.customInProductionCount ?? 0;
   const recentJobs = data?.recentJobs ?? [];
 
   return (
@@ -283,18 +286,30 @@ export default function AdminDashboardPage() {
                 <p className="text-xs text-slate-400 mt-0.5">Yêu cầu mô hình 3D tải lên từ khách hàng</p>
               </div>
               <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-400 whitespace-nowrap shrink-0">
-                {customCount} chờ duyệt
+                {customRequested} chờ duyệt
               </span>
             </div>
 
             <div className="mt-4 p-4 rounded-xl border border-[#1e2433] bg-[#040508] space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">Trạng thái hàng đợi custom:</span>
-                <span className="font-bold text-white">
-                  {customCount > 0 ? `${customCount} yêu cầu đang chờ` : 'Đã phản hồi toàn bộ'}
+                <span className="text-slate-400">Yêu cầu chờ báo giá:</span>
+                <span className="font-bold text-white font-mono">
+                  {customRequested > 0 ? `${customRequested} yêu cầu đang chờ` : 'Đã phản hồi toàn bộ'}
                 </span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
+                <span className="text-slate-400">Đã gửi báo giá (chờ khách chốt):</span>
+                <span className="font-mono font-bold text-[#ff9100]">
+                  {customQuoted} đơn
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2">
+                <span className="text-slate-400">Đang chế tác &amp; in ấn:</span>
+                <span className="font-mono font-bold text-[#39FF14]">
+                  {customInProduction} đơn
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed pt-1">
                 Các tệp in custom STL/STEP kèm kích thước thước kẻ, độ dày lớp in và ghi chú vật liệu từ sinh viên được tổng hợp tại cổng báo giá.
               </p>
               <Link

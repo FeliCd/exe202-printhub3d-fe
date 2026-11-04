@@ -15,7 +15,8 @@ import { useAuth } from '../context/AuthContext';
 import { useRemote, useAction } from '../hooks/useRemote';
 import { send } from '../services/api';
 import { VIETNAM_DIVISIONS, type Province } from '../features/address/data/vietnamProvinces';
-import type { ShippingAddress } from '../features/address/data';
+import { notifyAddressChanged, type ShippingAddress } from '../features/address/data';
+import { validatePhoneMessage, normalizeVietnamesePhone } from '../utils/phoneValidator';
 import { PageHeader, Notice } from '../components/DataUI';
 
 export default function AddressBookPage() {
@@ -82,14 +83,21 @@ export default function AddressBookPage() {
       return;
     }
 
+    const phoneError = validatePhoneMessage(phone);
+    if (phoneError) {
+      setErrorMessage(phoneError);
+      return;
+    }
+
     setErrorMessage('');
+    const cleanPhone = normalizeVietnamesePhone(phone);
     const fullAddressLine = [streetDetail.trim(), selectedWardName, selectedDistrictName]
       .filter(Boolean)
       .join(', ');
 
     const payload = {
       recipientName: recipientName.trim(),
-      phone: phone.trim(),
+      phone: cleanPhone,
       addressLine: fullAddressLine,
       province: selectedProvinceName,
       isDefault,
@@ -98,6 +106,7 @@ export default function AddressBookPage() {
     const success = await action.run(() => send('/addresses', payload));
     if (success) {
       setSuccessMessage('Đã thêm địa chỉ giao nhận hàng mới thành công!');
+      notifyAddressChanged();
       setTimeout(() => setSuccessMessage(''), 3000);
       setStreetDetail('');
       setIsDefault(false);
@@ -109,6 +118,7 @@ export default function AddressBookPage() {
     const success = await action.run(() => send(`/addresses/${id}/default`, {}, 'put'));
     if (success) {
       setSuccessMessage('Đã đặt làm địa chỉ giao hàng mặc định.');
+      notifyAddressChanged();
       setTimeout(() => setSuccessMessage(''), 3000);
     }
   };
@@ -118,6 +128,7 @@ export default function AddressBookPage() {
     const success = await action.run(() => send(`/addresses/${id}`, undefined, 'delete'));
     if (success) {
       setSuccessMessage('Đã xóa địa chỉ thành công.');
+      notifyAddressChanged();
       setTimeout(() => setSuccessMessage(''), 3000);
     }
   };

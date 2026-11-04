@@ -31,7 +31,7 @@ export function productView(p: ProductDTO): Product {
     category: p.categoryName,
     categoryColor: 'emerald',
     material: '',
-    originalPrice: p.price,
+    originalPrice: (p as any).originalPrice && (p as any).originalPrice > p.price ? (p as any).originalPrice : undefined,
     price: p.price,
     description: p.description || '',
     badgeText: p.stock > 0 ? `Còn ${p.stock}` : 'Hết hàng',

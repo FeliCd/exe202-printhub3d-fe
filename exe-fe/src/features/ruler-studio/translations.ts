@@ -324,7 +324,20 @@ export const vietnamese: Record<string, string> = {
   "Awaiting review": "Chờ thẩm định",
   "In production": "Đang sản xuất",
   "Quoted": "Đã báo giá",
-  "Finished": "Đã hoàn thành"
+  "Solid model": "Mô hình khối đặc",
+  "Wireframe": "Khung lưới đa giác",
+  "Orthographic view": "Góc nhìn vuông góc (Trực giao)",
+  "Perspective view": "Góc nhìn phối cảnh 3D",
+  "Reset camera": "Đặt lại góc nhìn",
+  "Export OBJ": "Xuất file OBJ",
+  "Export STEP": "Xuất file STEP",
+  "Export PNG preview": "Xuất ảnh chụp xem trước PNG",
+  "Rotate": "Xoay",
+  "Zoom": "Phóng to / Thu nhỏ",
+  "Infill pattern": "Họa tiết infill",
+  "Wall thickness": "Độ dày thành in",
+  "Layer height": "Chiều cao lớp in",
+  "Layer resolution": "Độ phân giải lớp in"
 };
 const english = Object.fromEntries(Object.entries(vietnamese).map(([en, vi]) => [vi, en]));
 export const translateForLanguage = (text: string, language: 'vi' | 'en') =>

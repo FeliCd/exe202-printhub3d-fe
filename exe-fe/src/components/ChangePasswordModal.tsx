@@ -9,6 +9,7 @@ import {
   Loader2,
   ShieldCheck,
 } from 'lucide-react';
+import Modal from './Modal';
 import { authService } from '../services/authService';
 import { getApiErrorMessage } from '../utils/apiError';
 
@@ -175,11 +176,14 @@ export default function ChangePasswordModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      label="Đổi Mật Khẩu Tài Khoản"
+      className="!w-full !max-w-lg"
+    >
       <div
-        className="w-full max-w-lg rounded-2xl bg-[#0f0f12] border border-border/90 shadow-2xl overflow-hidden space-y-0 max-h-[calc(100dvh-2rem)] flex flex-col"
-        role="dialog"
-        aria-modal="true"
+        className="w-full rounded-2xl bg-[#0f0f12] border border-border/90 shadow-2xl overflow-hidden space-y-0 max-h-[calc(100dvh-2rem)] flex flex-col"
       >
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between bg-surface shrink-0">
@@ -374,6 +378,6 @@ export default function ChangePasswordModal({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

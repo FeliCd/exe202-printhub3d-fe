@@ -56,8 +56,6 @@ const navGroups: NavGroup[] = [
         path: '/admin/custom-orders',
         label: 'Báo Giá Đơn In Custom',
         icon: FileEdit,
-        badge: '1 chờ',
-        badgeColor: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
       },
       { path: '/admin/orders', label: 'Quản Lý Đơn Hàng', icon: PackageCheck },
       { path: '/admin/subscriptions', label: 'Cấu Hình Subscriptions', icon: Sparkles },

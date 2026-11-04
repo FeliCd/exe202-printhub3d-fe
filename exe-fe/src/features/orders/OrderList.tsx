@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Package,
   RotateCcw,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
+import { payOrder } from '../../services/paymentService';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
 import ReviewModal from '../reviews/ReviewModal';
 import { RemoteState, Notice, Status } from '../../components/DataUI';
@@ -47,6 +49,7 @@ function OrderStepper({ status }: { status: string }) {
       case 'COMPLETED':
         return 4;
       case 'CANCELLED':
+      case 'EXPIRED':
         return -1;
       default:
         return 0;
@@ -59,6 +62,20 @@ function OrderStepper({ status }: { status: string }) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-red-800/60 bg-red-950/40 p-3 text-red-300 text-xs font-semibold">
         <span>Đơn hàng này đã bị hủy bỏ.</span>
+      </div>
+    );
+  }
+
+  if (status === 'EXPIRED') {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-800/60 bg-amber-950/40 p-3 text-amber-300 text-xs font-semibold">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>Đơn hàng đã hết hạn thanh toán PayOS. Phiên giữ hàng đã kết thúc.</span>
+        </div>
+        <Link to="/catalog" className="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold whitespace-nowrap transition cursor-pointer">
+          Đặt lại đơn &rarr;
+        </Link>
       </div>
     );
   }
@@ -128,11 +145,11 @@ interface CustomOrderAdminItem {
 
 export default function OrderList({ admin = false, history = false }: { admin?: boolean; history?: boolean }) {
   const remote = useRemote<OrderDTO[]>(admin ? '/admin/orders' : '/orders/me');
-  const customRemote = useRemote<CustomOrderAdminItem[]>(admin ? '/admin/custom-orders' : null);
+  const customRemote = useRemote<CustomOrderAdminItem[]>(admin ? '/admin/custom-orders' : '/custom-orders');
 
   const handleReload = () => {
     remote.reload();
-    if (admin) customRemote.reload();
+    customRemote.reload();
   };
 
   const action = useAction(handleReload);
@@ -142,18 +159,24 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [reviewTarget, setReviewTarget] = useState<{ orderId: string; item: OrderItemDTO } | null>(null);
 
-  // Filter tabs for Buyer History
-  const [historyTab, setHistoryTab] = useState<'ALL' | 'COMPLETED' | 'CANCELLED'>('ALL');
+  // Filter tabs for Buyer History (bổ sung EXPIRED)
+  const [historyTab, setHistoryTab] = useState<'ALL' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED'>('ALL');
   // Filter tabs for Buyer Active Orders
   const [activeOrderTab, setActiveOrderTab] = useState<'ALL' | 'PENDING' | 'PRINTING' | 'SHIPPING'>('ALL');
 
-  // Đơn Marketplace
-  const rawMarketplaceOrders = remote.data?.filter(o => !history || ['COMPLETED', 'CANCELLED'].includes(o.status)) || [];
+  // Đơn Marketplace: Phân tách rõ ràng giữa Đang xử lý vs Lịch sử kết thúc (EXPIRED không bao giờ ở Đang xử lý)
+  const rawMarketplaceOrders = (remote.data || []).filter(o =>
+    history
+      ? ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(o.status)
+      : !['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(o.status)
+  );
+
   const marketplaceOrders = rawMarketplaceOrders.filter(o => {
-    if (admin) return true;
+    if (activeTab === 'CUSTOM') return false;
     if (history) {
       if (historyTab === 'COMPLETED') return o.status === 'COMPLETED';
       if (historyTab === 'CANCELLED') return o.status === 'CANCELLED';
+      if (historyTab === 'EXPIRED') return o.status === 'EXPIRED';
       return true;
     }
     if (activeOrderTab === 'PENDING') return ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status);
@@ -162,10 +185,27 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     return true;
   });
 
-  // Đơn Custom đã chốt báo giá (ACCEPTED, PAID, PREPARING, PRINTING, SHIPPING, COMPLETED)
-  const acceptedCustomOrders = (customRemote.data || []).filter(c =>
-    ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED', 'CANCELLED'].includes(c.status)
+  // Đơn Custom: Tách theo active vs history
+  const allCustomOrders = customRemote.data || [];
+  const currentCustomOrders = allCustomOrders.filter(c =>
+    history
+      ? ['COMPLETED', 'CANCELLED'].includes(c.status)
+      : ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(c.status)
   );
+
+  const displayedCustomOrders = currentCustomOrders.filter(c => {
+    if (activeTab === 'MARKETPLACE') return false;
+    if (history) {
+      if (historyTab === 'COMPLETED') return c.status === 'COMPLETED';
+      if (historyTab === 'CANCELLED') return c.status === 'CANCELLED';
+      if (historyTab === 'EXPIRED') return false;
+      return true;
+    }
+    if (activeOrderTab === 'PENDING') return ['ACCEPTED', 'PAID', 'PREPARING'].includes(c.status);
+    if (activeOrderTab === 'PRINTING') return c.status === 'PRINTING';
+    if (activeOrderTab === 'SHIPPING') return c.status === 'SHIPPING';
+    return true;
+  });
 
   const actionToStatus = (act: string): string => {
     switch (act) {
@@ -270,45 +310,43 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         </button>
       </div>
 
-      {/* Admin Tab Filters: Phân biệt rõ Đơn Marketplace vs Đơn Custom */}
-      {admin && (
-        <div className="flex items-center gap-2 p-1.5 bg-[#0a0c12] rounded-2xl border border-white/10 overflow-x-auto text-xs font-bold scrollbar-none font-mono">
-          <button
-            onClick={() => setActiveTab('ALL')}
-            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
-              activeTab === 'ALL'
-                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Tất Cả Đơn Hàng ({marketplaceOrders.length + acceptedCustomOrders.length})
-          </button>
+      {/* Tab Filters: Phân biệt rõ Đơn Marketplace vs Đơn Custom */}
+      <div className="flex items-center gap-2 p-1.5 bg-[#0a0c12] rounded-2xl border border-white/10 overflow-x-auto text-xs font-bold scrollbar-none font-mono">
+        <button
+          onClick={() => setActiveTab('ALL')}
+          className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
+            activeTab === 'ALL'
+              ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          Tất Cả Đơn Hàng ({rawMarketplaceOrders.length + currentCustomOrders.length})
+        </button>
 
-          <button
-            onClick={() => setActiveTab('MARKETPLACE')}
-            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'MARKETPLACE'
-                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            Đơn Mua Marketplace ({marketplaceOrders.length})
-          </button>
+        <button
+          onClick={() => setActiveTab('MARKETPLACE')}
+          className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
+            activeTab === 'MARKETPLACE'
+              ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <ShoppingBag className="w-3.5 h-3.5" />
+          Đơn Mua Marketplace ({rawMarketplaceOrders.length})
+        </button>
 
-          <button
-            onClick={() => setActiveTab('CUSTOM')}
-            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'CUSTOM'
-                ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Đơn In Custom Theo Yêu Cầu ({acceptedCustomOrders.length})
-          </button>
-        </div>
-      )}
+        <button
+          onClick={() => setActiveTab('CUSTOM')}
+          className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
+            activeTab === 'CUSTOM'
+              ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Đơn In Custom Theo Yêu Cầu ({currentCustomOrders.length})
+        </button>
+      </div>
 
       {/* Buyer History Filter Tabs */}
       {!admin && history && (
@@ -321,7 +359,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Tất Cả Lịch Sử ({rawMarketplaceOrders.length})
+            Tất Cả Lịch Sử ({rawMarketplaceOrders.length + currentCustomOrders.length})
           </button>
           <button
             onClick={() => setHistoryTab('COMPLETED')}
@@ -332,7 +370,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             }`}
           >
             <Check className="w-3.5 h-3.5" />
-            Đã Hoàn Thành ({rawMarketplaceOrders.filter(o => o.status === 'COMPLETED').length})
+            Đã Hoàn Thành ({rawMarketplaceOrders.filter(o => o.status === 'COMPLETED').length + currentCustomOrders.filter(c => c.status === 'COMPLETED').length})
           </button>
           <button
             onClick={() => setHistoryTab('CANCELLED')}
@@ -342,7 +380,18 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đã Hủy ({rawMarketplaceOrders.filter(o => o.status === 'CANCELLED').length})
+            Đã Hủy ({rawMarketplaceOrders.filter(o => o.status === 'CANCELLED').length + currentCustomOrders.filter(c => c.status === 'CANCELLED').length})
+          </button>
+          <button
+            onClick={() => setHistoryTab('EXPIRED')}
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
+              historyTab === 'EXPIRED'
+                ? 'bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)] font-black'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            Hết Hạn Thanh Toán ({rawMarketplaceOrders.filter(o => o.status === 'EXPIRED').length})
           </button>
         </div>
       )}
@@ -358,7 +407,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Tất Cả Đang Xử Lý ({rawMarketplaceOrders.length})
+            Tất Cả Đang Xử Lý ({rawMarketplaceOrders.length + currentCustomOrders.length})
           </button>
           <button
             onClick={() => setActiveOrderTab('PENDING')}
@@ -368,7 +417,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Chờ Xử Lý ({rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length})
+            Chờ Xử Lý ({rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCustomOrders.filter(c => ['ACCEPTED', 'PAID', 'PREPARING'].includes(c.status)).length})
           </button>
           <button
             onClick={() => setActiveOrderTab('PRINTING')}
@@ -378,7 +427,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đang In 3D ({rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length})
+            Đang In 3D ({rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCustomOrders.filter(c => c.status === 'PRINTING').length})
           </button>
           <button
             onClick={() => setActiveOrderTab('SHIPPING')}
@@ -388,13 +437,13 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đang Giao Hàng ({rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length})
+            Đang Giao Hàng ({rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCustomOrders.filter(c => c.status === 'SHIPPING').length})
           </button>
         </div>
       )}
 
       <Notice error={action.error} />
-      <RemoteState {...remote} empty={!marketplaceOrders.length && !acceptedCustomOrders.length} retry={handleReload} />
+      <RemoteState {...remote} empty={!marketplaceOrders.length && !displayedCustomOrders.length} retry={handleReload} />
 
       <div className="space-y-5">
         {/* ========================================================================= */}
@@ -563,6 +612,15 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2.5">
+                    {!admin && (o.status === 'EXPIRED' || o.status === 'CANCELLED') && (
+                      <Link
+                        to="/catalog"
+                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Đặt lại sản phẩm khác</span>
+                      </Link>
+                    )}
                     {admin && next && (
                       <button
                         className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(57,255,20,0.3)] transition cursor-pointer"
@@ -585,10 +643,10 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           })}
 
         {/* ========================================================================= */}
-        {/* 2. HIỂN THỊ ĐƠN HÀNG IN CUSTOM (ĐÃ CHỐT BÁO GIÁ) TRONG ADMIN */}
+        {/* 2. HIỂN THỊ ĐƠN HÀNG IN CUSTOM (ĐÃ CHỐT BÁO GIÁ) */}
         {/* ========================================================================= */}
-        {admin && (activeTab === 'ALL' || activeTab === 'CUSTOM') &&
-          acceptedCustomOrders.map(c => {
+        {(activeTab === 'ALL' || activeTab === 'CUSTOM') &&
+          displayedCustomOrders.map(c => {
             const next = nextStateCustom(c);
             return (
               <div
@@ -626,7 +684,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                     </div>
                     <p className="text-xs text-slate-400 font-mono">
                       Thời gian yêu cầu: <span className="text-slate-300 font-sans">{new Date(c.createdAt).toLocaleString('vi-VN')}</span> ·{' '}
-                      Sinh viên / Khách: <span className="text-white font-bold font-sans">{c.buyerName}</span>
+                      Sinh viên / Khách: <span className="text-white font-bold font-sans">{admin ? c.buyerName : 'Bạn'}</span>
                     </p>
                   </div>
 
@@ -736,7 +794,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2.5">
-                    {next && (
+                    {admin && next && (
                       <button
                         className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#ff9100] hover:bg-[#ff9e1a] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(255,145,0,0.3)] transition cursor-pointer"
                         disabled={action.busy}
@@ -745,11 +803,22 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         Chuyển sang <Status value={next} className="ml-1" />
                       </button>
                     )}
-                    {!next && c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && c.paymentStatus !== 'SUCCESS' && (
+                    {admin && !next && c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && c.paymentStatus !== 'SUCCESS' && (
                       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-300 text-xs font-semibold">
                         <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400 shrink-0" />
                         <span>Chờ khách quét mã PayOS</span>
                       </div>
+                    )}
+                    {!admin && c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && c.paymentStatus !== 'SUCCESS' && (
+                      <button
+                        type="button"
+                        disabled={action.busy}
+                        onClick={() => void action.run(() => payOrder(c.id, 'CUSTOM_ORDER'))}
+                        className="px-5 py-2 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-[#39FF14]/25 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        <span>Thanh toán ngay PayOS</span>
+                      </button>
                     )}
                   </div>
                 </div>

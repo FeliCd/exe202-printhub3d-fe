@@ -33,3 +33,5 @@ node_modules
 # Artifacts & audit
 artifacts/
 .audit/
+
+output/

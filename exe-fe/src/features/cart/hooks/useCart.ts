@@ -285,6 +285,8 @@ export function useCart() {
   };
 
   const subtotal = items.reduce((n, i) => n + i.product.price * i.quantity, 0);
+  const shippingFee = items.length > 0 ? 30000 : 0;
+  const total = subtotal + shippingFee;
 
   return {
     items,
@@ -294,8 +296,8 @@ export function useCart() {
     totalItems: items.reduce((n, i) => n + i.quantity, 0),
     subtotal,
     discount: 0,
-    shippingFee: 0,
-    total: subtotal,
+    shippingFee,
+    total,
     couponCode: '',
     couponApplied: false,
     addToCart,

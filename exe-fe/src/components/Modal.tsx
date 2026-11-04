@@ -7,10 +7,11 @@ interface ModalProps {
   label: string;
   children: ReactNode;
   drawer?: boolean;
+  className?: string;
 }
 
 /** Native modal semantics, focus containment and restoration; portals escape page transforms. */
-export default function Modal({ open, onClose, label, children, drawer = false }: ModalProps) {
+export default function Modal({ open, onClose, label, children, drawer = false, className = '' }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function Modal({ open, onClose, label, children, drawer = false }
     <dialog
       ref={ref}
       aria-label={label}
-      className={`app-dialog ${drawer ? 'app-dialog-drawer' : ''}`}
+      className={`app-dialog ${drawer ? 'app-dialog-drawer' : ''} ${className}`.trim()}
       onCancel={(event) => { event.preventDefault(); onClose?.(); }}
     >
       {(drawer || open) && children}

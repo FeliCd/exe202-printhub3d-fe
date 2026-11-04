@@ -192,12 +192,20 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       const customItemIds = selectedCustomItems.map(i => i.clientLineId || i.id);
 
       for (const item of selectedCustomItems) {
+        const hasReal3DModel = item.product.imageUrl && (
+          item.product.imageUrl.toLowerCase().includes('.stl') ||
+          item.product.imageUrl.toLowerCase().includes('.step') ||
+          item.product.imageUrl.toLowerCase().includes('/raw/upload/')
+        );
         await send('/custom-orders', {
           quantity: item.quantity,
           shippingAddress: fullAddress,
           requirements: item.product.rulerDesign ? JSON.stringify(item.product.rulerDesign) : item.product.name,
           rulerModel: item.product.name,
-          attachmentUrl: item.product.imageUrl || item.product.thumbnail,
+          attachmentUrl: hasReal3DModel
+            ? item.product.imageUrl
+            : (item.product.imageUrl?.startsWith('http') ? item.product.imageUrl : (item.product.thumbnail?.startsWith('http') ? item.product.thumbnail : '')),
+          previewImageUrl: !hasReal3DModel ? (item.product.imageUrl || item.product.thumbnail) : '',
           paymentMethod: 'PAYOS',
         });
       }

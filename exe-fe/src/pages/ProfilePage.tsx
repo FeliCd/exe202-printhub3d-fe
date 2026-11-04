@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import { errorText, send } from '../services/api';
 import { useRemote } from '../hooks/useRemote';
 import type { ShippingAddress } from '../features/address/data';
+import { validatePhoneMessage, normalizeVietnamesePhone } from '../utils/phoneValidator';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import { PageHeader, Notice } from '../components/DataUI';
 
@@ -37,7 +38,7 @@ function ProfilePageContent() {
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [studentId, setStudentId] = useState(user?.studentId || '');
-  const [university, setUniversity] = useState(user?.university || 'Đại Học Quốc Gia TP.HCM');
+  const [university, setUniversity] = useState(user?.university || '');
 
   const [profileError, setProfileError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -62,7 +63,7 @@ function ProfilePageContent() {
     setName(user?.name || '');
     setPhone(user?.phone || '');
     setStudentId(user?.studentId || '');
-    setUniversity(user?.university || 'Đại Học Quốc Gia TP.HCM');
+    setUniversity(user?.university || '');
     setIsEditing(false);
     setProfileError('');
   };
@@ -72,10 +73,20 @@ function ProfilePageContent() {
     setSaving(true);
     setProfileError('');
     setSavedSuccess(false);
+
+    if (phone.trim()) {
+      const phoneErr = validatePhoneMessage(phone);
+      if (phoneErr) {
+        setProfileError(phoneErr);
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       await updateProfile({
         name: name.trim(),
-        phone: phone.trim(),
+        phone: phone.trim() ? normalizeVietnamesePhone(phone) : '',
         studentId: studentId.trim(),
         university: university.trim(),
       });
@@ -194,7 +205,7 @@ function ProfilePageContent() {
               </div>
               <div className="space-y-1 pt-1 text-xs">
                 <p className="text-slate-400">MSSV: <strong className="text-white font-mono">{studentId || 'Chưa có'}</strong></p>
-                <p className="text-slate-400">Trường: <strong className="text-white">{university}</strong></p>
+                <p className="text-slate-400">Trường: <strong className="text-white">{university || 'Chưa cập nhật'}</strong></p>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
                 Sinh viên thuộc hệ thống ĐHQG TP.HCM được hỗ trợ giao nhận trực tiếp tại KTX Khu A &amp; Khu B trong ngày.

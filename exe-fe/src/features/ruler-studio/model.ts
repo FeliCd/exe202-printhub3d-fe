@@ -86,16 +86,20 @@ export interface Design {
 export const uid = () => crypto.randomUUID();
 export const clamp = (n: number, min = 0, max = 1) =>
   Math.min(max, Math.max(min, Number.isFinite(n) ? n : min));
-export const freshDesign = (): Design => ({
+export const freshDesign = (
+  rulerId = defaultRulerId,
+  length = 20,
+  material: "PLA" | "PETG" = "PLA",
+): Design => ({
   version: 2,
   id: uid(),
   name: "My ruler",
-  rulerId: defaultRulerId,
+  rulerId,
   measurementSystem: "metric",
   scaleId: "1:1",
   angle: 45,
-  length: 20,
-  material: "PLA",
+  length,
+  material,
   infill: 30,
   color: "#d5e5dc",
   tag: {

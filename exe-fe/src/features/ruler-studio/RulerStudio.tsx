@@ -1,9 +1,8 @@
 import { translateCustom as tr, useCustomLanguage } from './language';
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, useEffect, type ReactNode } from "react";
 import type { Product } from "../../types";
 import { formatPrice } from "../../utils/format";
 import {
-  normalizeDesign,
   quote,
   uid,
   tabs,
@@ -12,8 +11,9 @@ import {
   type Design,
   changeRuler,
   designSurfaces,
+  freshDesign,
 } from "./model";
-import { useDesign } from "./useDesign";
+import { useDesign, DRAFT_KEY } from "./useDesign";
 import Scene, { type SceneHandle } from "./Scene";
 import { downloadBlob } from "./download";
 import { buildSTLFromDesign, buildFullPackage, sanitizeFileName } from "./export/buildExport";
@@ -28,6 +28,9 @@ import { getRuler } from "./library/registry";
 import { getProfile } from "./geometry/profiles";
 import QuoteRequestModal from "./QuoteRequestModal";
 import { uploadFormData } from "../../services/api";
+import { parseDesignFile } from "./design/parseDesignFile";
+import { AlertCircle } from "lucide-react";
+
 export default function RulerStudio({
   onAddToCart,
   initialDesign,
@@ -35,6 +38,10 @@ export default function RulerStudio({
   editingCartItemId,
   onSaveCartItem,
   onConvertToQuotation,
+  requestedTemplate,
+  requestedLength,
+  requestedMaterial,
+  productId,
 }: {
   onAddToCart: (product: Product) => void;
   initialDesign?: Design;
@@ -44,6 +51,10 @@ export default function RulerStudio({
   editingQuantity?: number;
   onSaveCartItem?: (product: Product) => Promise<void> | void;
   onConvertToQuotation?: (design: Design, editingCartItemId?: string) => Promise<void> | void;
+  requestedTemplate?: string;
+  requestedLength?: number;
+  requestedMaterial?: "PLA" | "PETG";
+  productId?: string;
 }) {
   const { language } = useCustomLanguage();
   const {
@@ -60,6 +71,40 @@ export default function RulerStudio({
     canUndo,
     canRedo,
   } = useDesign(initialDesign);
+
+  const [draftConflict, setDraftConflict] = useState<{
+    draftRulerName: string;
+    requestedTemplate: string;
+    requestedLength?: number;
+    requestedMaterial?: "PLA" | "PETG";
+  } | null>(null);
+
+  useEffect(() => {
+    if (!initialDesign && requestedTemplate) {
+      try {
+        const rawDraft = localStorage.getItem(DRAFT_KEY);
+        if (rawDraft) {
+          const parsed = JSON.parse(rawDraft);
+          if (parsed && parsed.rulerId && parsed.rulerId !== requestedTemplate) {
+            const draftDef = getRuler(parsed.rulerId);
+            setDraftConflict({
+              draftRulerName: draftDef?.vietnameseName || draftDef?.name || parsed.rulerId,
+              requestedTemplate,
+              requestedLength,
+              requestedMaterial,
+            });
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      if (design.rulerId !== requestedTemplate) {
+        change(freshDesign(requestedTemplate, requestedLength || 20, requestedMaterial || "PLA"));
+      }
+    }
+  }, [requestedTemplate, requestedLength, requestedMaterial, initialDesign]);
+
   const sceneRef = useRef<SceneHandle>(null);
   const [modalPreviewMode, setModalPreviewMode] = useState<"3d" | "2d">("3d");
   const [isExporting, setIsExporting] = useState(false);
@@ -107,11 +152,13 @@ export default function RulerStudio({
   const price = quote(design);
   const buildProduct = async (): Promise<Product> => {
     let thumbnail = "custom-model";
+    let stlModelUrl = "";
     try {
       if (tab === "Draw" && mobileWorkspace === "edit") {
         setMobileWorkspace("view");
         await new Promise((r) => setTimeout(r, 120));
       }
+      // 1. Chụp ảnh render preview PNG
       const screenshot = await sceneRef.current?.getScreenshotBlob();
       if (screenshot) {
         try {
@@ -126,11 +173,30 @@ export default function RulerStudio({
           thumbnail = "custom-model";
         }
       }
+
+      // 2. Tự động xuất Mesh 3D thành file STL và tải lên CDN để xưởng in trực tiếp
+      try {
+        const stlBlob = await sceneRef.current?.getSTLBlob();
+        if (stlBlob && stlBlob.size > 0) {
+          const cleanName = (design.name || ruler.name || 'ruler').replace(/[^a-zA-Z0-9_-]/g, '_');
+          const filename = `${cleanName}_${design.length}cm.stl`;
+          const stlFormData = new FormData();
+          stlFormData.append('file', stlBlob, filename);
+          stlFormData.append('folder', 'printhub3d/custom_prints');
+          const stlRes = await uploadFormData<string | { result?: string; url?: string }>('/upload/raw', stlFormData);
+          const uploadedStl = typeof stlRes === 'string' ? stlRes : (stlRes?.result || (stlRes as any)?.url || '');
+          if (uploadedStl && uploadedStl.startsWith('http')) {
+            stlModelUrl = uploadedStl;
+          }
+        }
+      } catch (stlErr) {
+        console.warn('Auto export STL in background encountered error, will rely on requirements json', stlErr);
+      }
     } catch {
       // fallback
     }
     return {
-      id: editingCartItemId || `ruler-design-${uid()}`,
+      id: editingCartItemId || (productId ? `${productId}-custom-${uid().slice(0, 8)}` : `ruler-design-${uid()}`),
       name: `${language === 'vi' ? ruler.vietnameseName : ruler.name} · ${design.length} cm · ${design.name}`,
       category: "Custom ruler",
       categoryColor: "emerald",
@@ -142,7 +208,7 @@ export default function RulerStudio({
       badgeColor: "emerald",
       materialBadge: design.material,
       thumbnail: "custom-model",
-      imageUrl: thumbnail,
+      imageUrl: stlModelUrl || thumbnail,
       dimensions: {
         x: profile.width * 10,
         y: profile.height * 10,
@@ -377,6 +443,37 @@ export default function RulerStudio({
           > {tr("3D View")} </button>
         </div>
       )}
+      {draftConflict && (
+        <div className="p-3 bg-amber-500/15 border-b border-amber-500/30 flex flex-wrap items-center justify-between gap-3 text-xs text-amber-300 z-20">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+            <span>
+              {language === 'vi'
+                ? `Bạn đang có bản nháp chưa lưu của mẫu "${draftConflict.draftRulerName}". Bạn muốn giữ bản nháp hay mở mẫu theo sản phẩm đã chọn?`
+                : `You have an unsaved draft of "${draftConflict.draftRulerName}". Keep draft or switch to product template?`}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDraftConflict(null)}
+              className="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold transition cursor-pointer"
+            >
+              {language === 'vi' ? 'Tiếp tục bản nháp' : 'Keep draft'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                change(freshDesign(draftConflict.requestedTemplate, draftConflict.requestedLength || 20, draftConflict.requestedMaterial || "PLA"));
+                setDraftConflict(null);
+              }}
+              className="px-3 py-1 rounded-lg bg-[#39FF14] text-slate-950 font-bold hover:brightness-110 transition cursor-pointer"
+            >
+              {language === 'vi' ? 'Mở mẫu sản phẩm' : 'Use product template'}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="studio-layout" ref={workspace}>
         <div className="studio-workspace">
           <div className="studio-mode-toggle-bar">
@@ -587,26 +684,27 @@ export default function RulerStudio({
               const file = e.target.files?.[0];
               if (!file) return;
               try {
-                if (file.size > 2000000) throw new Error();
-                const raw: unknown = JSON.parse(await file.text());
-                if (
-                  !raw ||
-                  typeof raw !== "object" ||
-                  !("version" in raw) ||
-                  raw.version !== 1
-                )
-                  throw new Error();
-                change(normalizeDesign(raw));
+                const text = await file.text();
+                const result = parseDesignFile(text, file.size);
+                if (!result.success) {
+                  setMessage(language === "vi" ? result.message : `Cannot import: ${result.message}`);
+                  return;
+                }
+                change(result.design);
                 select("");
-                setMessage(
-                  "Design imported. Undo restores your previous design.",
-                );
+                const successMsg = language === "vi"
+                  ? `Đã nhập thiết kế "${result.name}" (v${result.version}). Bấm Hoàn tác (Undo) nếu muốn quay lại.`
+                  : `Design "${result.name}" (v${result.version}) imported. Undo restores your previous design.`;
+                setMessage(successMsg);
               } catch {
                 setMessage(
-                  "Cannot import this file. Choose a PrintHub version 1 design JSON smaller than 2 MB.",
+                  language === "vi"
+                    ? "Không thể đọc file này. Vui lòng chọn file JSON thiết kế hợp lệ dưới 2 MB."
+                    : "Cannot read this file. Choose a valid design JSON smaller than 2 MB."
                 );
+              } finally {
+                e.target.value = "";
               }
-              e.target.value = "";
             }}
           />
         </label>

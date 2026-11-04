@@ -21,12 +21,15 @@ export interface Product {
   stock?: number;
   status?: string;
   rulerDesign?: import('../features/ruler-studio/model').Design;
+  customizable?: boolean;
+  rulerTemplateId?: string;
+  defaultLength?: number;
   id: string;
   name: string;
   category: string;
   categoryColor: string;
   material: string;
-  originalPrice: number;
+  originalPrice?: number;
   price: number;
   description: string;
   badgeText: string;

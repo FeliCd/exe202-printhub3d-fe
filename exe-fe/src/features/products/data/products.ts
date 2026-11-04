@@ -14,6 +14,9 @@ export const products: Product[] = [
     badgeColor: 'emerald',
     materialBadge: 'PLA PRO+',
     thumbnail: 'ruler-20cm',
+    customizable: true,
+    rulerTemplateId: 'straight-ruler',
+    defaultLength: 20,
   },
   {
     id: 'ruler-petg-30cm',
@@ -28,6 +31,9 @@ export const products: Product[] = [
     badgeColor: 'amber',
     materialBadge: 'PETG CHỐNG GÃY',
     thumbnail: 'ruler-30cm',
+    customizable: true,
+    rulerTemplateId: 'straight-ruler',
+    defaultLength: 30,
   },
   {
     id: 'ruler-t-square',
@@ -42,6 +48,9 @@ export const products: Product[] = [
     badgeColor: 'purple',
     materialBadge: 'THƯỚC CHỮ T',
     thumbnail: 'ruler-t',
+    customizable: true,
+    rulerTemplateId: 't-square',
+    defaultLength: 20,
   },
   {
     id: 'stencil-multi',
@@ -56,6 +65,7 @@ export const products: Product[] = [
     badgeColor: 'emerald',
     materialBadge: 'BÁCH KHOA EDITION',
     thumbnail: 'stencil',
+    customizable: false,
   },
   {
     id: 'caliper-mini',
@@ -70,6 +80,7 @@ export const products: Product[] = [
     badgeColor: 'blue',
     materialBadge: 'VERNIER CALIPER',
     thumbnail: 'caliper',
+    customizable: false,
   },
   {
     id: 'combo-eke-protractor',
@@ -84,5 +95,8 @@ export const products: Product[] = [
     badgeColor: 'pink',
     materialBadge: 'PASTEL EDITION',
     thumbnail: 'combo',
+    customizable: true,
+    rulerTemplateId: 'set-square-45',
+    defaultLength: 15,
   },
 ];

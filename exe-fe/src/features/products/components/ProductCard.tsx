@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { Star, Ruler } from 'lucide-react';
 import type { Product } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import ProductReviewsModal from '../../reviews/ProductReviewsModal';
@@ -78,6 +78,7 @@ function ProductThumbnail({ type }: { type: Product['thumbnail'] }) {
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const badge = getBadgeClasses(product.badgeColor);
 
   return (
@@ -91,14 +92,22 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <span className="absolute top-3 right-3 bg-[#040508]/80 backdrop-blur text-slate-300 text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 whitespace-nowrap shrink-0">
             {product.materialBadge}
           </span>
-          {product.imageUrl ? (
+          {product.imageUrl && !imageError ? (
             <img
               src={product.imageUrl}
               alt={product.name}
+              onError={() => setImageError(true)}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-          ) : (
+          ) : product.thumbnail && product.thumbnail !== 'custom-model' ? (
             <ProductThumbnail type={product.thumbnail} />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-500 bg-[#040508]/80">
+              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
+                <Ruler className="w-6 h-6 text-[#39FF14]/70" />
+              </div>
+              <span className="text-[11px] font-mono text-slate-400">Chưa có ảnh</span>
+            </div>
           )}
         </div>
 
@@ -134,16 +143,39 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           </div>
           <div className="pt-2 border-t border-white/10 flex flex-wrap gap-3 items-center justify-between">
             <div>
-              <span className="text-xs text-slate-500 line-through mr-1.5 font-mono">{formatPrice(product.originalPrice)}đ</span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span className="text-xs text-slate-500 line-through mr-1.5 font-mono">
+                  {formatPrice(product.originalPrice)}đ
+                </span>
+              )}
               <span className="text-lg font-black font-mono text-[#39FF14]">
                 {formatPrice(product.price)}
                 <span className="text-xs font-normal text-slate-400 ml-0.5">đ</span>
               </span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span className="ml-1.5 text-[10px] font-bold text-amber-400 bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.5 rounded font-mono">
+                  -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1.5">
-              <Link to="/custom" className="whitespace-nowrap shrink-0 inline-flex items-center min-h-9 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1c2233] text-xs font-semibold text-slate-200 border border-white/10 hover:border-[#39FF14]/40 transition">
-                Tùy biến
-              </Link>
+              {product.customizable !== false ? (
+                <Link
+                  to={`/custom?template=${product.rulerTemplateId || 'straight-ruler'}&productId=${product.id}${product.defaultLength ? `&len=${product.defaultLength}` : ''}${product.material ? `&mat=${encodeURIComponent(product.material)}` : ''}`}
+                  className="whitespace-nowrap shrink-0 inline-flex items-center min-h-9 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1c2233] text-xs font-semibold text-slate-200 border border-white/10 hover:border-[#39FF14]/40 transition"
+                  title="Mở 3D Studio tùy biến theo mẫu này"
+                >
+                  Tùy biến
+                </Link>
+              ) : (
+                <Link
+                  to={`/custom?tab=upload&productId=${product.id}&productName=${encodeURIComponent(product.name)}`}
+                  className="whitespace-nowrap shrink-0 inline-flex items-center min-h-9 px-2.5 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1c2233] text-xs font-semibold text-amber-300 border border-amber-500/30 hover:border-amber-400 transition"
+                  title="Sản phẩm này cần gửi tệp/yêu cầu riêng để kỹ thuật viên thẩm định"
+                >
+                  Yêu cầu tùy biến
+                </Link>
+              )}
               <button
                 className="whitespace-nowrap shrink-0 p-2 rounded-lg bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold shadow-[0_0_15px_rgba(57,255,20,0.3)] transition active:scale-95"
                 onClick={() => onAddToCart(product)}

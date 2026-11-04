@@ -75,7 +75,7 @@ File Markdown không tự bảo đảm mọi công cụ sẽ tự nạp nó; hã
 | `/` | LandingPage, LandingNavbar | Marketing/public |
 | `/login` | LoginPage, AuthContext | API login/forgot OTP; login có fallback local |
 | `/signup` | SignupPage | API register/OTP; network/5xx có fallback local |
-| `/catalog-preview` | CatalogPreviewPage | Preview public |
+| `/catalog-preview` | Redirect → `/catalog` | URL cũ; trang prototype đã bỏ theo yêu cầu, giữ query/hash khi chuyển hướng |
 | `/catalog` | CatalogPage → MainContent → products data | Local, tìm kiếm `q`, lọc/sắp xếp phía FE |
 | `/cart` | CartPage, useCart | Local; nút đặt hàng chỉ bật trạng thái thành công |
 | `/custom` | CustomOrderPage → RulerConfigurator | Thiết kế/STL thật ở browser; upload/list yêu cầu local; payment chưa khớp BE |

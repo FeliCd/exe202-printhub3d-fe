@@ -17,7 +17,8 @@ import { useAuth } from '../../../context/AuthContext';
 import { useRemote, useAction } from '../../../hooks/useRemote';
 import { send } from '../../../services/api';
 import { VIETNAM_DIVISIONS, type Province } from '../data/vietnamProvinces';
-import type { ShippingAddress } from '../data';
+import { notifyAddressChanged, saveSelectedAddress, type ShippingAddress } from '../data';
+import { validatePhoneMessage, normalizeVietnamesePhone } from '../../../utils/phoneValidator';
 
 interface Props {
   isOpen: boolean;
@@ -92,14 +93,21 @@ function AddressBookModalContent({ onClose, onSelectAddress }: Props) {
       return;
     }
 
+    const phoneError = validatePhoneMessage(phone);
+    if (phoneError) {
+      setErrorMsg(phoneError);
+      return;
+    }
+
     setErrorMsg('');
+    const cleanPhone = normalizeVietnamesePhone(phone);
     const fullAddressLine = [streetDetail.trim(), selectedWardName, selectedDistrictName]
       .filter(Boolean)
       .join(', ');
 
     const payload = {
       recipientName: recipientName.trim(),
-      phone: phone.trim(),
+      phone: cleanPhone,
       addressLine: fullAddressLine,
       province: selectedProvinceName,
       isDefault,
@@ -107,8 +115,12 @@ function AddressBookModalContent({ onClose, onSelectAddress }: Props) {
 
     const success = await action.run(async () => {
       const created = await send<ShippingAddress>('/addresses', payload);
-      if (created && onSelectAddress) {
-        onSelectAddress(created);
+      if (created) {
+        notifyAddressChanged();
+        saveSelectedAddress(created, payload.isDefault ? 'AUTO_DEFAULT' : 'MANUAL');
+        if (onSelectAddress) {
+          onSelectAddress(created);
+        }
       }
     });
     if (success) {
@@ -228,6 +240,7 @@ function AddressBookModalContent({ onClose, onSelectAddress }: Props) {
                       <button
                         type="button"
                         onClick={() => {
+                          saveSelectedAddress(a, 'MANUAL');
                           onSelectAddress?.(a);
                           onClose();
                         }}

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
-import { send, uploadFormData } from '../../services/api';
+import api, { send, uploadFormData } from '../../services/api';
 import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
 import type { CustomDTO } from '../../services/quotationService';
@@ -16,7 +16,9 @@ import {
   Phone,
   MapPin,
   Download,
+  Eye,
   Trash2,
+  X,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -296,18 +298,53 @@ export function CustomRequestForm({
   bulk = false,
   onCreated,
   translate: tr = text => text,
+  initialRequirements = '',
 }: {
   bulk?: boolean;
   onCreated?: () => void;
   translate?: (text: string) => string;
+  initialRequirements?: string;
 }) {
   const { isAuthenticated } = useAuth();
   const action = useAction(onCreated);
   const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [requirements, setRequirements] = useState('');
+  const [requirements, setRequirements] = useState(initialRequirements);
   const [address, setAddress] = useState('');
   const [success, setSuccess] = useState('');
+
+  const validateAndAddFiles = (incomingFiles: File[]) => {
+    setFileError('');
+    if (!incomingFiles.length) return;
+    const MAX_SIZE = 20 * 1024 * 1024; // 20MB
+    const ALLOWED = ['.stl', '.obj', '.step', '.stp'];
+    const valid: File[] = [];
+
+    for (const f of incomingFiles) {
+      if (f.size === 0) {
+        setFileError(`Tệp "${f.name}" bị rỗng (0 bytes). Vui lòng chọn tệp hợp lệ.`);
+        return;
+      }
+      if (f.size > MAX_SIZE) {
+        setFileError(`Tệp "${f.name}" (${(f.size / (1024 * 1024)).toFixed(1)}MB) vượt quá giới hạn 20MB cho phép.`);
+        return;
+      }
+      const dotIndex = f.name.lastIndexOf('.');
+      const ext = dotIndex !== -1 ? f.name.substring(dotIndex).toLowerCase() : '';
+      if (!ALLOWED.includes(ext)) {
+        setFileError(`Tệp "${f.name}" không hợp lệ. Chỉ chấp nhận định dạng: .stl, .obj, .step, .stp.`);
+        return;
+      }
+      valid.push(f);
+    }
+
+    if (bulk) {
+      setFiles(prev => [...prev, ...valid]);
+    } else {
+      setFiles(valid.slice(0, 1));
+    }
+  };
 
   if (!isAuthenticated) {
     return (
@@ -343,6 +380,12 @@ export function CustomRequestForm({
       </div>
 
       <Notice error={action.error} />
+      {fileError && (
+        <div className="my-4 p-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 text-rose-400 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{fileError}</span>
+        </div>
+      )}
       {success && (
         <div className="my-4 p-4 rounded-2xl border border-primary/40 bg-primary/2 text-primary text-sm flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
@@ -355,6 +398,7 @@ export function CustomRequestForm({
         onSubmit={async e => {
           e.preventDefault();
           setSuccess('');
+          setFileError('');
           let completed = 0;
           const ok = await action.run(async () => {
             if (!files.length) throw new Error('Vui lòng chọn ít nhất một tệp thiết kế 3D.');
@@ -393,7 +437,11 @@ export function CustomRequestForm({
               accept=".stl,.obj,.step,.stp"
               multiple={bulk}
               required={!files.length}
-              onChange={e => setFiles(Array.from(e.target.files || []))}
+              onChange={e => {
+                const selected = Array.from(e.target.files || []);
+                validateAndAddFiles(selected);
+                e.target.value = '';
+              }}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
             <div className="space-y-2 pointer-events-none">
@@ -405,14 +453,22 @@ export function CustomRequestForm({
           </div>
           {files.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-2">
-              {files.map(f => (
+              {files.map((f, idx) => (
                 <span
-                  key={f.name}
+                  key={`${f.name}-${idx}`}
                   className="px-3 py-1 rounded-xl bg-surface-inset border border-border text-xs text-slate-300 flex items-center gap-2"
                 >
                   <FileCode className="w-3.5 h-3.5 text-primary" />
                   <span className="font-mono">{f.name}</span>
                   <span className="text-[10px] text-slate-500">({(f.size / 1024 / 1024).toFixed(2)} {tr("MB)")}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
+                    className="p-0.5 hover:text-rose-400 text-slate-400 transition cursor-pointer"
+                    title="Xóa tệp này"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </span>
               ))}
             </div>
@@ -533,9 +589,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       ALL: allOrders.length,
       REQUESTED: allOrders.filter(o => ['REQUESTED', 'PENDING'].includes(o.status)).length,
       QUOTED: allOrders.filter(o => o.status === 'QUOTED').length,
-      PROCESSING: allOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING'].includes(o.status)).length,
-      COMPLETED: allOrders.filter(o => ['SHIPPING', 'COMPLETED'].includes(o.status)).length,
-      CANCELLED: allOrders.filter(o => ['CANCELLED', 'REJECTED'].includes(o.status)).length,
+      PROCESSING: allOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(o.status)).length,
+      COMPLETED: allOrders.filter(o => o.status === 'COMPLETED').length,
+      CANCELLED: allOrders.filter(o => ['CANCELLED', 'REJECTED', 'EXPIRED'].includes(o.status)).length,
     };
   }, [allOrders]);
 
@@ -543,9 +599,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
     if (activeFilter === 'ALL') return allOrders;
     if (activeFilter === 'REQUESTED') return allOrders.filter(o => ['REQUESTED', 'PENDING'].includes(o.status));
     if (activeFilter === 'QUOTED') return allOrders.filter(o => o.status === 'QUOTED');
-    if (activeFilter === 'PROCESSING') return allOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING'].includes(o.status));
-    if (activeFilter === 'COMPLETED') return allOrders.filter(o => ['SHIPPING', 'COMPLETED'].includes(o.status));
-    if (activeFilter === 'CANCELLED') return allOrders.filter(o => ['CANCELLED', 'REJECTED'].includes(o.status));
+    if (activeFilter === 'PROCESSING') return allOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(o.status));
+    if (activeFilter === 'COMPLETED') return allOrders.filter(o => o.status === 'COMPLETED');
+    if (activeFilter === 'CANCELLED') return allOrders.filter(o => ['CANCELLED', 'REJECTED', 'EXPIRED'].includes(o.status));
     return allOrders;
   }, [allOrders, activeFilter]);
 
@@ -784,23 +840,74 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                       </div>
                     </div>
 
-                    {/* Download 3D File Button */}
-                    <div className="pt-2">
-                      <button
-                        type="button"
-                        disabled={action.busy}
-                        onClick={() => {
-                          if (c.attachmentUrl?.startsWith('http')) {
+                    {/* Action: Download 3D File vs View Preview Image */}
+                    <div className="pt-2 space-y-1.5">
+                      {c.attachmentUrl && (c.attachmentUrl.toLowerCase().includes('.stl') || c.attachmentUrl.toLowerCase().includes('.step') || c.attachmentUrl.toLowerCase().includes('.stp') || c.attachmentUrl.toLowerCase().includes('.obj') || c.attachmentUrl.toLowerCase().includes('/raw/upload/')) ? (
+                        <button
+                          type="button"
+                          disabled={action.busy}
+                          onClick={async () => {
+                            try {
+                              const res = await api.get(`/custom-orders/${c.id}/file`, { responseType: 'blob' });
+                              const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+                              const a = document.createElement('a');
+                              a.href = blobUrl;
+                              let filename = `PrintHub3D-design-${c.id.slice(0, 8)}.stl`;
+                              const disp = res.headers['content-disposition'];
+                              if (disp && disp.includes('filename=')) {
+                                const parts = disp.split('filename=');
+                                if (parts[1]) filename = parts[1].split(';')[0].replace(/['"]/g, '').trim();
+                              }
+                              a.setAttribute('download', filename);
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                              window.URL.revokeObjectURL(blobUrl);
+                            } catch {
+                              if (c.attachmentUrl?.startsWith('http')) {
+                                window.open(c.attachmentUrl, '_blank');
+                              } else if (c.attachmentUrl) {
+                                void action.run(() => downloadFile(c.attachmentUrl, `design-${c.id}.stl`));
+                              }
+                            }
+                          }}
+                          className="w-full py-2 px-3 rounded-xl border border-[#00e5ff]/40 bg-[#00e5ff]/10 hover:bg-[#00e5ff]/20 text-[#00e5ff] transition flex items-center justify-center gap-2 text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>{tr("Tải file 3D (.STL)")}</span>
+                        </button>
+                      ) : c.attachmentUrl && (c.attachmentUrl.toLowerCase().includes('.png') || c.attachmentUrl.toLowerCase().includes('.jpg') || c.attachmentUrl.toLowerCase().includes('.jpeg') || c.attachmentUrl.toLowerCase().includes('.webp') || c.attachmentUrl.toLowerCase().includes('/image/upload/') || c.attachmentUrl.startsWith('data:image/')) ? (
+                        <div className="space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              window.open(c.attachmentUrl, '_blank');
+                            }}
+                            className="w-full py-2 px-3 rounded-xl border border-amber-400/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition flex items-center justify-center gap-2 text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>{tr("Xem ảnh thiết kế (PNG)")}</span>
+                          </button>
+                          <p className="text-[10px] text-amber-400/80 text-center italic">
+                            {tr("Chưa có file 3D (.stl) — chỉ có ảnh minh họa")}
+                          </p>
+                        </div>
+                      ) : c.attachmentUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => {
                             window.open(c.attachmentUrl, '_blank');
-                          } else if (c.attachmentUrl) {
-                            void action.run(() => downloadFile(c.attachmentUrl, `design-${c.id}.stl`));
-                          }
-                        }}
-                        className="w-full py-2 px-3 rounded-xl border border-[#00e5ff]/40 bg-[#00e5ff]/10 hover:bg-[#00e5ff]/20 text-[#00e5ff] transition flex items-center justify-center gap-2 text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>{tr("Tải file 3D (.STL)")}</span>
-                      </button>
+                          }}
+                          className="w-full py-2 px-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white transition flex items-center justify-center gap-2 text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>{tr("Tải tệp đính kèm")}</span>
+                        </button>
+                      ) : (
+                        <div className="w-full py-2 px-3 rounded-xl border border-white/10 bg-[#0a0c12] text-slate-500 text-center text-xs italic">
+                          {tr("Chưa đính kèm tệp")}
+                        </div>
+                      )}
                     </div>
                   </div>
 
