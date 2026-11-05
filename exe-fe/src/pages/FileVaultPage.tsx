@@ -1,4 +1,7 @@
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import ConfirmDialog from '../components/ConfirmDialog';
+
 import { useRemote, useAction } from '../hooks/useRemote';
 import { send } from '../services/api';
 import { uploadFile, downloadFile, type FileDTO } from '../services/fileVaultService';
@@ -18,6 +21,7 @@ export default function FileVaultPage() {
   const remote = useRemote<FileDTO[]>('/vault/files');
   const action = useAction(remote.reload);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteFileTarget, setDeleteFileTarget] = useState<FileDTO | null>(null);
 
   const handleUpload = async () => {
     const selected = fileInputRef.current?.files?.[0];
@@ -135,29 +139,17 @@ export default function FileVaultPage() {
                 <span>Tải về</span>
               </button>
 
-              <button
-                disabled={action.busy}
-                onClick={() =>
-                  void action.run(async () => {
-                    const requirements = prompt('Yêu cầu vật liệu, màu, số lượng và thông số in:');
-                    if (!requirements) return;
-                    const shippingAddress = prompt('Người nhận, điện thoại, địa chỉ giao:');
-                    if (!shippingAddress) return;
-                    await send('/custom-orders', { fileId: f.id, requirements, shippingAddress, quantity: 1 });
-                    alert('Đã gửi yêu cầu. Xem tại Báo giá.');
-                  })
-                }
-                className="flex-1 py-2 px-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+              <Link
+                to="/custom"
+                className="flex-1 py-2 px-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>In lại</span>
-              </button>
+              </Link>
 
               <button
                 disabled={action.busy}
-                onClick={() => {
-                  if (confirm('Xóa tệp này khỏi kho?')) void action.run(() => send(`/vault/files/${f.id}`, undefined, 'delete'));
-                }}
+                onClick={() => setDeleteFileTarget(f)}
                 className="p-2 rounded-xl border border-white/10 hover:border-rose-500/50 bg-[#040508] text-slate-400 hover:text-rose-400 transition whitespace-nowrap shrink-0 cursor-pointer"
                 title="Xóa tệp"
               >
@@ -167,6 +159,29 @@ export default function FileVaultPage() {
           </div>
         ))}
       </div>
+
+      {/* Impeccable P4: Delete Vault File ConfirmDialog */}
+      <ConfirmDialog
+        open={!!deleteFileTarget}
+        onClose={() => setDeleteFileTarget(null)}
+        onConfirm={async () => {
+          if (!deleteFileTarget) return;
+          const f = deleteFileTarget;
+          setDeleteFileTarget(null);
+          await action.run(() => send(`/vault/files/${f.id}`, undefined, 'delete'));
+        }}
+        title="Xóa tệp khỏi kho"
+        description={
+          deleteFileTarget ? (
+            <span>
+              Bạn có chắc chắn muốn xóa tệp <strong className="text-rose-400">"{deleteFileTarget.fileName}"</strong> khỏi kho lưu trữ?
+            </span>
+          ) : ''
+        }
+        confirmText="Xóa tệp"
+        variant="danger"
+        busy={action.busy}
+      />
     </div>
   );
 }

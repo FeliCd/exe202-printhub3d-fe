@@ -20,10 +20,8 @@ import {
   Clock,
   XCircle,
 } from 'lucide-react';
-import {
-  PageHeader,
-  CopyButton,
-} from '../../components/DataUI';
+import { PageHeader, CopyButton } from '../../components/DataUI';
+import DisputeResolutionModal, { type DisputeResolutionTarget } from './DisputeResolutionModal';
 
 interface Dispute {
   id: string;
@@ -177,6 +175,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [resolutionTarget, setResolutionTarget] = useState<DisputeResolutionTarget | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const orderSelectId = useId();
@@ -229,38 +228,32 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
     }
   };
 
-  const handleAdminResolve = async (dispute: Dispute, status: 'RESOLVED' | 'REJECTED') => {
-    const resolutionNote = window.prompt(
-      status === 'RESOLVED' ? 'Nhập kết luận giải quyết tranh chấp:' : 'Lý do từ chối tranh chấp:'
-    );
-    if (!resolutionNote) return;
+  const handleAdminResolve = (dispute: Dispute, status: 'RESOLVED' | 'REJECTED') => {
+    setResolutionTarget({
+      disputeId: dispute.id,
+      orderId: dispute.orderId,
+      buyerName: dispute.buyerName,
+      maxAmount: dispute.amount || 0,
+      status,
+    });
+  };
 
-    let refundAmount = 0;
-    if (status === 'RESOLVED') {
-      const refundInput = window.prompt(
-        `Nhập số tiền hoàn lại (Tối đa ${dispute.amount?.toLocaleString()} VNĐ, nhập 0 nếu không hoàn tiền):`,
-        '0'
-      );
-      if (refundInput === null) return;
-      refundAmount = Number(refundInput);
-      if (!Number.isFinite(refundAmount) || refundAmount < 0 || refundAmount > dispute.amount) {
-        alert('Số tiền hoàn trả không hợp lệ.');
-        return;
-      }
-    }
-
+  const handleResolutionSubmit = async (payload: {
+    status: 'RESOLVED' | 'REJECTED';
+    resolutionNote: string;
+    refundAmount: number;
+    refundType: 'FULL' | 'PARTIAL';
+  }) => {
+    if (!resolutionTarget) return;
+    const disputeId = resolutionTarget.disputeId;
     await action.run(() =>
       send(
-        `/admin/disputes/${dispute.id}/resolution`,
-        {
-          status,
-          resolutionNote,
-          refundAmount,
-          refundType: refundAmount === dispute.amount ? 'FULL' : 'PARTIAL',
-        },
+        `/admin/disputes/${disputeId}/resolution`,
+        payload,
         'put'
       )
     );
+    setResolutionTarget(null);
   };
 
   const completedOrders = orders.data || [];
@@ -578,7 +571,14 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
           </div>
         </div>
       </div>
+
+      {/* Impeccable P4: Dispute Resolution Modal */}
+      <DisputeResolutionModal
+        target={resolutionTarget}
+        onClose={() => setResolutionTarget(null)}
+        onSubmit={handleResolutionSubmit}
+        busy={action.busy}
+      />
     </div>
   );
 }
-

@@ -164,6 +164,9 @@ export default function Sidebar({ isOpen, onOpenAddressModal }: SidebarProps) {
           >
             <Layers className="w-4 h-4 text-text-muted" />
             <span>Đặt Hàng Hàng Loạt</span>
+            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0 ml-auto">
+              Sắp ra mắt
+            </span>
           </Link>
 
           <Link

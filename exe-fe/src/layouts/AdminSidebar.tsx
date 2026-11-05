@@ -9,6 +9,7 @@ import {
   PackageCheck,
   Sparkles,
   Scale,
+  ShieldCheck,
   Settings,
   LogOut,
   X,
@@ -65,6 +66,7 @@ const navGroups: NavGroup[] = [
     title: 'KIỂM SOÁT & CẤU HÌNH',
     items: [
       { path: '/admin/disputes', label: 'Xử Lý Tranh Chấp', icon: Scale },
+      { path: '/admin/warranty', label: 'Quản Lý Bảo Hành', icon: ShieldCheck },
       { path: '/admin/settings', label: 'Cấu Hình Nền Tảng', icon: Settings },
     ],
   },

@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { get, send, uploadFormData } from '../../services/api';
 import { formatPrice } from '../../utils/format';
-import { PageHeader } from '../../components/DataUI';
+import { PageHeader, Notice } from '../../components/DataUI';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface Category {
   categoryId: number;
@@ -64,6 +65,9 @@ export default function AdminProductsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [toggleTarget, setToggleTarget] = useState<ProductItem | null>(null);
 
   // File Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -119,6 +123,7 @@ export default function AdminProductsPage() {
   };
 
   const openCreate = () => {
+    setModalError(null);
     setEditingId(null);
     setForm(emptyForm);
     setUploadError(null);
@@ -126,6 +131,7 @@ export default function AdminProductsPage() {
   };
 
   const openEdit = (p: ProductItem) => {
+    setModalError(null);
     setEditingId(p.id);
     setUploadError(null);
     setForm({
@@ -189,25 +195,29 @@ export default function AdminProductsPage() {
       fetchProducts();
     } catch (err) {
       console.error('Lỗi lưu sản phẩm:', err);
-      alert('Không thể lưu sản phẩm. Vui lòng kiểm tra lại thông tin.');
+      setModalError('Không thể lưu sản phẩm. Vui lòng kiểm tra lại thông tin.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleToggleActive = async (p: ProductItem) => {
-    if (!confirm(`Bạn có chắc muốn đổi trạng thái kinh doanh của sản phẩm "${p.title}"?`)) return;
+  const confirmToggleActive = async () => {
+    if (!toggleTarget) return;
+    const p = toggleTarget;
+    setToggleTarget(null);
+    setActionError(null);
     try {
       await send(`/marketplace/product/${p.id}`, undefined, 'delete');
       fetchProducts();
     } catch (err) {
       console.error('Lỗi thao tác sản phẩm:', err);
-      alert('Thao tác thất bại.');
+      setActionError('Thao tác đổi trạng thái sản phẩm thất bại.');
     }
   };
 
   return (
     <div className="space-y-6 w-full">
+      <Notice error={actionError || undefined} />
       <PageHeader
         title="Quản Lý Sản Phẩm Sàn"
         description="Quản trị thông tin chi tiết từng sản phẩm thước in 3D, mô hình kỹ thuật, giá bán và số lượng tồn kho."
@@ -419,7 +429,7 @@ export default function AdminProductsPage() {
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleToggleActive(p)}
+                          onClick={() => setToggleTarget(p)}
                           className="p-2 rounded-xl bg-[#11141e] border border-[#1e2433] hover:border-rose-500 text-slate-400 hover:text-rose-400 transition cursor-pointer whitespace-nowrap shrink-0"
                           title="Ngừng bán / Ẩn sản phẩm"
                         >
@@ -481,6 +491,11 @@ export default function AdminProductsPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {modalError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 font-medium">
+                {modalError}
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Tên sản phẩm */}
               <div className="sm:col-span-2 space-y-1.5">
@@ -674,6 +689,24 @@ export default function AdminProductsPage() {
           </form>
         </div>
       </Modal>
+
+      {/* Impeccable P4: Toggle Product ConfirmDialog */}
+      <ConfirmDialog
+        open={!!toggleTarget}
+        onClose={() => setToggleTarget(null)}
+        onConfirm={confirmToggleActive}
+        title="Đổi trạng thái sản phẩm"
+        description={
+          toggleTarget ? (
+            <span>
+              Bạn có chắc muốn đổi trạng thái kinh doanh của sản phẩm <strong className="text-white">"{toggleTarget.title}"</strong>?
+            </span>
+          ) : ''
+        }
+        confirmText="Xác nhận đổi"
+        variant="warning"
+        busy={saving}
+      />
     </div>
   );
 }

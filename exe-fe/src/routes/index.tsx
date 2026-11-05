@@ -41,6 +41,7 @@ const AddressBookPage = lazy(() => import('../pages/AddressBookPage'));
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'));
 const AdminSubscriptionsPage = lazy(() => import('../pages/admin/AdminSubscriptionsPage'));
 const AdminDisputesPage = lazy(() => import('../pages/admin/AdminDisputesPage'));
+const AdminWarrantyPage = lazy(() => import('../pages/admin/AdminWarrantyPage'));
 const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'));
 const AdminProductsPage = lazy(() => import('../pages/admin/AdminProductsPage'));
 const AdminCategoriesPage = lazy(() => import('../pages/admin/AdminCategoriesPage'));
@@ -439,6 +440,16 @@ export default function AppRoutes({
             <AnimatePresence mode="wait">
               <PageTransition key={location.pathname}>
                 <AdminDisputesPage />
+              </PageTransition>
+            </AnimatePresence>
+          }
+        />
+        <Route
+          path="/admin/warranty"
+          element={
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                <AdminWarrantyPage />
               </PageTransition>
             </AnimatePresence>
           }

@@ -321,7 +321,7 @@ export default function LandingPage() {
                   <Layers className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-white group-hover:text-purple-400 transition">
-                  Đặt In Đơn Hàng Lớn
+                  Đặt In Đơn Hàng Lớn <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">Sắp ra mắt</span>
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
                   Hỗ trợ câu lạc bộ, khoa viện đặt thước in hàng loạt với chiết khấu lên đến 35% và ưu tiên tiến độ dàn máy in.
@@ -331,7 +331,7 @@ export default function LandingPage() {
                 to="/bulk-order"
                 className="text-xs font-bold text-purple-400 inline-flex items-center gap-1.5 hover:underline pt-2"
               >
-                <span>Đặt hàng số lượng lớn</span>
+                <span>Xem chính sách đặt sỉ (Sắp ra mắt)</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>

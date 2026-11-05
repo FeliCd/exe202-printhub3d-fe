@@ -177,12 +177,17 @@ export default function DashboardPage() {
           <div className="w-10 h-10 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-[#00e5ff]">
             <Layers className="w-5 h-5" />
           </div>
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 self-start">
+            Sắp ra mắt
+          </span>
+          <div className="hidden">
+          </div>
           <h2 className="text-base font-bold text-white">Sản Xuất Đợt Lớn (Batch FDM)</h2>
           <p className="text-xs text-slate-400 leading-relaxed">
             Hỗ trợ chiết khấu lên tới 35% cho các đơn hàng theo lớp học, lab nghiên cứu hoặc đồ án tốt nghiệp kỹ thuật chuyên sâu.
           </p>
           <Link to="/bulk-order" className="text-xs font-bold font-mono text-[#00e5ff] inline-flex items-center gap-1 hover:underline pt-1 whitespace-nowrap shrink-0">
-            Đặt in số lượng lớn <ArrowRight className="w-3.5 h-3.5" />
+            Đặt in số lượng lớn (Sắp ra mắt) <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 

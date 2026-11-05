@@ -18,6 +18,7 @@ import { VIETNAM_DIVISIONS, type Province } from '../features/address/data/vietn
 import { notifyAddressChanged, type ShippingAddress } from '../features/address/data';
 import { validatePhoneMessage, normalizeVietnamesePhone } from '../utils/phoneValidator';
 import { PageHeader, Notice } from '../components/DataUI';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function AddressBookPage() {
   const { user } = useAuth();
@@ -123,8 +124,12 @@ export default function AddressBookPage() {
     }
   };
 
-  const handleDeleteAddress = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa địa chỉ này khỏi danh bạ?')) return;
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  const confirmDeleteAddress = async () => {
+    if (!deleteTargetId) return;
+    const id = deleteTargetId;
+    setDeleteTargetId(null);
     const success = await action.run(() => send(`/addresses/${id}`, undefined, 'delete'));
     if (success) {
       setSuccessMessage('Đã xóa địa chỉ thành công.');
@@ -413,7 +418,7 @@ export default function AddressBookPage() {
                 <button
                   type="button"
                   disabled={action.busy}
-                  onClick={() => handleDeleteAddress(addr.id)}
+                  onClick={() => setDeleteTargetId(addr.id)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer whitespace-nowrap shrink-0"
                   title="Xóa địa chỉ"
                 >
@@ -424,6 +429,18 @@ export default function AddressBookPage() {
           ))}
         </div>
       </div>
+
+      {/* Impeccable P4: Delete Address ConfirmDialog */}
+      <ConfirmDialog
+        open={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={confirmDeleteAddress}
+        title="Xác nhận xóa địa chỉ"
+        description="Bạn có chắc chắn muốn xóa địa chỉ nhận hàng này khỏi sổ địa chỉ?"
+        confirmText="Xóa địa chỉ"
+        variant="danger"
+        busy={action.busy}
+      />
     </div>
   );
 }

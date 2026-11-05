@@ -21,7 +21,9 @@ import { payOrder } from '../../services/paymentService';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
 import ReviewModal from '../reviews/ReviewModal';
 import { RemoteState, Notice, Status } from '../../components/DataUI';
-import { money } from '../../utils/format';
+import { money, formatDateTime } from '../../utils/format';
+import RulerSpecsViewer from '../../components/RulerSpecsViewer';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 // Stepper 5 bước chuẩn hóa
 const STEPS = [
@@ -157,6 +159,12 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   // Filter Tabs: ALL, MARKETPLACE, CUSTOM
   const [activeTab, setActiveTab] = useState<'ALL' | 'MARKETPLACE' | 'CUSTOM'>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [codConfirmTarget, setCodConfirmTarget] = useState<{
+    orderId: string;
+    nextStatus: string;
+    isCustom: boolean;
+    totalAmount?: number;
+  } | null>(null);
   const [reviewTarget, setReviewTarget] = useState<{ orderId: string; item: OrderItemDTO } | null>(null);
 
   // Filter tabs for Buyer History (bổ sung EXPIRED)
@@ -260,6 +268,14 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const executeNextStatus = async (orderId: string, nextStatus: string, isCustom: boolean) => {
+    if (isCustom) {
+      await action.run(() => send(`/custom-orders/${orderId}/status`, { status: nextStatus }, 'put'));
+    } else {
+      await action.run(() => send(`/orders/${orderId}/status`, { status: nextStatus }, 'put'));
+    }
+  };
+
   const handleNextStatus = async (
     orderId: string,
     nextStatus: string,
@@ -268,16 +284,10 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     paymentMethod?: string
   ) => {
     if (nextStatus === 'COMPLETED' && paymentMethod === 'COD') {
-      const confirmed = window.confirm(
-        `Xác nhận hoàn thành giao hàng và đã thu đủ ${money(totalAmount || 0)} tiền mặt COD từ khách hàng?`
-      );
-      if (!confirmed) return;
+      setCodConfirmTarget({ orderId, nextStatus, isCustom, totalAmount });
+      return;
     }
-    if (isCustom) {
-      await action.run(() => send(`/custom-orders/${orderId}/status`, { status: nextStatus }, 'put'));
-    } else {
-      await action.run(() => send(`/orders/${orderId}/status`, { status: nextStatus }, 'put'));
-    }
+    await executeNextStatus(orderId, nextStatus, isCustom);
   };
 
   const pageTitle = admin
@@ -491,7 +501,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                       </button>
                     </div>
                     <p className="text-xs text-slate-400 font-mono">
-                      Thời gian đặt: <span className="text-slate-300 font-sans">{new Date(o.createdAt).toLocaleString('vi-VN')}</span> ·{' '}
+                      Thời gian đặt: <span className="text-slate-300 font-sans">{formatDateTime(o.createdAt)}</span> ·{' '}
                       Khách hàng: <span className="text-white font-bold font-sans">{admin ? o.buyerName : 'Bạn'}</span>
                     </p>
                   </div>
@@ -683,7 +693,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                       </button>
                     </div>
                     <p className="text-xs text-slate-400 font-mono">
-                      Thời gian yêu cầu: <span className="text-slate-300 font-sans">{new Date(c.createdAt).toLocaleString('vi-VN')}</span> ·{' '}
+                      Thời gian yêu cầu: <span className="text-slate-300 font-sans">{formatDateTime(c.createdAt)}</span> ·{' '}
                       Sinh viên / Khách: <span className="text-white font-bold font-sans">{admin ? c.buyerName : 'Bạn'}</span>
                     </p>
                   </div>
@@ -745,8 +755,8 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   </div>
 
                   {c.requirements && (
-                    <div className="pt-2 text-xs text-slate-300 border-t border-white/10 font-mono">
-                      <span className="text-slate-400 font-sans">Ghi chú riêng:</span> {c.requirements}
+                    <div className="pt-2 border-t border-white/10">
+                      <RulerSpecsViewer requirements={c.requirements} />
                     </div>
                   )}
                 </div>
@@ -837,6 +847,30 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           onSuccess={handleReload}
         />
       )}
+
+      {/* Impeccable P4: COD Completion ConfirmDialog */}
+      <ConfirmDialog
+        open={!!codConfirmTarget}
+        onClose={() => setCodConfirmTarget(null)}
+        onConfirm={async () => {
+          if (!codConfirmTarget) return;
+          const { orderId, nextStatus, isCustom } = codConfirmTarget;
+          setCodConfirmTarget(null);
+          await executeNextStatus(orderId, nextStatus, isCustom);
+        }}
+        title="Xác nhận thu tiền COD & Hoàn thành đơn"
+        description={
+          codConfirmTarget ? (
+            <span>
+              Xác nhận đã giao đơn hàng thành công và thu đủ{' '}
+              <strong className="text-[#39FF14]">{money(codConfirmTarget.totalAmount || 0)}</strong> tiền mặt COD từ khách hàng?
+            </span>
+          ) : ''
+        }
+        confirmText="Xác nhận đã thu tiền"
+        variant="primary"
+        busy={action.busy}
+      />
     </div>
   );
 }

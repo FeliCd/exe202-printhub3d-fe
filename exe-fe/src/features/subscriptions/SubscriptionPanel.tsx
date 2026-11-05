@@ -24,6 +24,8 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import { send, errorText } from '../../services/api';
 import { PageHeader, RemoteState, Notice } from '../../components/DataUI';
 import Modal from '../../components/Modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import SubscriptionPurchaseModal from './SubscriptionPurchaseModal';
 import { money } from '../../utils/format';
 import { paySubscription } from '../../services/paymentService';
 import pointService, {
@@ -188,6 +190,10 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null);
   const [redeemingPlanId, setRedeemingPlanId] = useState<string | null>(null);
   const [giftingPlanId, setGiftingPlanId] = useState<string | null>(null);
+  const [purchaseModalPlan, setPurchaseModalPlan] = useState<Plan | null>(null);
+  const [redeemModalPlan, setRedeemModalPlan] = useState<Plan | null>(null);
+  const [giftModalPlan, setGiftModalPlan] = useState<Plan | null>(null);
+  const [deactivateModalPlan, setDeactivateModalPlan] = useState<Plan | null>(null);
 
   // Flow 06: Ledger & Wallet Audit states
   const [activeTab, setActiveTab] = useState<'plans' | 'ledger'>('plans');
@@ -335,7 +341,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   // =========================================================================
   // FLOW 04: ADMIN TẶNG GÓI CHO NGƯỜI DÙNG (Admin Gift Subscription)
   // =========================================================================
-  const handleGiftPlan = async (plan: Plan) => {
+  const handleGiftPlan = (plan: Plan) => {
     setSuccessFeedback(null);
     setCustomError(null);
 
@@ -343,17 +349,18 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       setCustomError('Vui lòng chọn tài khoản sinh viên/khách hàng nhận gói ở khung phía trên trước khi tặng!');
       return;
     }
+    setGiftModalPlan(plan);
+  };
 
+  const confirmGiftPlan = async () => {
+    if (!giftModalPlan || !giftUser) return;
+    const plan = giftModalPlan;
     const targetUser = customerUsers.find((u) => u.id === giftUser);
     const capturedUserId = giftUser;
     const capturedPlanId = plan.id;
     const capturedPlanName = plan.name;
     const capturedUserName = targetUser ? `${targetUser.name} (${targetUser.email})` : 'người dùng đã chọn';
     const duration = plan.durationDays || 30;
-
-    if (!confirm(`Xác nhận tặng gói "${capturedPlanName}" (${duration} ngày) cho ${capturedUserName}?`)) {
-      return;
-    }
 
     const requestId = generateUUID();
     setGiftingPlanId(plan.id);
@@ -370,9 +377,11 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       setSuccessFeedback(
         `Đã tặng thành công gói "${res?.planName || capturedPlanName}" cho ${capturedUserName}! Hạn dùng đến: ${endDateStr}.`
       );
+      setGiftModalPlan(null);
       remote.reload();
     } catch (err: unknown) {
       setCustomError(errorText(err) || 'Không thể tặng gói quà cho người dùng.');
+      setGiftModalPlan(null);
     } finally {
       setGiftingPlanId(null);
     }
@@ -381,7 +390,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   // =========================================================================
   // FLOW 07: USER ĐỔI GÓI HỘI VIÊN BẰNG ĐIỂM THƯỞNG (Point Redemption)
   // =========================================================================
-  const handleRedeemPlan = async (plan: Plan) => {
+  const handleRedeemPlan = (plan: Plan) => {
     setSuccessFeedback(null);
     setCustomError(null);
 
@@ -391,16 +400,13 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       );
       return;
     }
+    setRedeemModalPlan(plan);
+  };
 
+  const confirmRedeemPlan = async () => {
+    if (!redeemModalPlan) return;
+    const plan = redeemModalPlan;
     const duration = plan.durationDays || 30;
-    if (
-      !confirm(
-        `Xác nhận dùng ${plan.requiredPoints} điểm PrintHub để đổi lấy gói hội viên "${plan.name}" (${duration} ngày sử dụng)?`
-      )
-    ) {
-      return;
-    }
-
     const idempotencyKey = generateUUID();
     setRedeemingPlanId(plan.id);
 
@@ -413,11 +419,13 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       setSuccessFeedback(
         `Chúc mừng! Bạn đã đổi thành công gói hội viên "${res?.planName || plan.name}". Hạn sử dụng đến: ${endDateStr}.`
       );
+      setRedeemModalPlan(null);
       remote.reload();
       membership.reload();
       void fetchWalletAndLedger();
     } catch (err: unknown) {
       setCustomError(errorText(err) || 'Không thể đổi gói hội viên bằng điểm thưởng.');
+      setRedeemModalPlan(null);
     } finally {
       setRedeemingPlanId(null);
     }
@@ -426,21 +434,15 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   // =========================================================================
   // FLOW 08: USER MUA GÓI HỘI VIÊN BẰNG TIỀN MẶT QUA PAYOS (Cash Purchase)
   // =========================================================================
-  const handleCashPurchase = async (plan: Plan) => {
+  const handleCashPurchase = (plan: Plan) => {
     setSuccessFeedback(null);
     setCustomError(null);
+    setPurchaseModalPlan(plan);
+  };
 
-    const duration = plan.durationDays || 30;
-    if (
-      !confirm(
-        `Xác nhận thanh toán gói "${plan.name}" (${duration} ngày) qua cổng VietQR PayOS với số tiền ${money(
-          plan.price || 0
-        )}?`
-      )
-    ) {
-      return;
-    }
-
+  const confirmCashPurchase = async () => {
+    if (!purchaseModalPlan) return;
+    const plan = purchaseModalPlan;
     const idempotencyKey = generateUUID();
     setPurchasingPlanId(plan.id);
 
@@ -454,11 +456,26 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
         throw new Error('Máy chủ không trả về mã đơn mua gói hội viên.');
       }
 
+      setPurchaseModalPlan(null);
       // Kích hoạt thanh toán PayOS qua VietQR
       await paySubscription(purchase.purchaseId);
     } catch (err: unknown) {
       setCustomError(errorText(err) || 'Không thể khởi tạo giao dịch thanh toán mua gói hội viên.');
+      setPurchaseModalPlan(null);
+    } finally {
       setPurchasingPlanId(null);
+    }
+  };
+
+  const confirmDeactivatePlan = async () => {
+    if (!deactivateModalPlan) return;
+    const plan = deactivateModalPlan;
+    try {
+      await action.run(() => send(`/admin/subscriptions/customer/${plan.id}`, undefined, 'delete'));
+      setDeactivateModalPlan(null);
+    } catch (err) {
+      setCustomError(errorText(err) || 'Không thể ngừng áp dụng gói.');
+      setDeactivateModalPlan(null);
     }
   };
 
@@ -1127,11 +1144,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                         <button
                           className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#040508] text-slate-400 hover:text-rose-400 hover:border-rose-500/40 text-xs font-mono font-bold flex items-center gap-1.5 transition whitespace-nowrap shrink-0 cursor-pointer"
                           disabled={action.busy || !p.isActive}
-                          onClick={() => {
-                            if (confirm(`Ngừng áp dụng gói "${p.name}"?`)) {
-                              void action.run(() => send(`/admin/subscriptions/customer/${p.id}`, undefined, 'delete'));
-                            }
-                          }}
+                          onClick={() => setDeactivateModalPlan(p)}
                         >
                           <Ban className="w-3.5 h-3.5" /> Ngừng áp dụng
                         </button>
@@ -1209,6 +1222,75 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
           </div>
         </>
       )}
+
+      {/* P1: Subscription Purchase Modal */}
+      <SubscriptionPurchaseModal
+        open={!!purchaseModalPlan}
+        plan={purchaseModalPlan ? {
+          id: purchaseModalPlan.id,
+          name: purchaseModalPlan.name,
+          price: purchaseModalPlan.price || 0,
+          durationDays: purchaseModalPlan.durationDays || 30,
+          discountPercent: parseBenefits(purchaseModalPlan.structuredBenefits)?.discount?.percent,
+        } : null}
+        onClose={() => setPurchaseModalPlan(null)}
+        onConfirm={confirmCashPurchase}
+        busy={!!purchasingPlanId}
+      />
+
+      {/* P1 / P4: Redeem Points ConfirmDialog */}
+      <ConfirmDialog
+        open={!!redeemModalPlan}
+        onClose={() => setRedeemModalPlan(null)}
+        onConfirm={confirmRedeemPlan}
+        title="Xác nhận đổi gói hội viên"
+        description={
+          redeemModalPlan ? (
+            <span>
+              Bạn có chắc muốn dùng <strong className="text-[#39FF14]">{redeemModalPlan.requiredPoints} xu</strong> tích lũy để kích hoạt gói hội viên <strong className="text-white">"{redeemModalPlan.name}"</strong> ({redeemModalPlan.durationDays || 30} ngày sử dụng)?
+            </span>
+          ) : ''
+        }
+        confirmText="Đổi ngay"
+        variant="primary"
+        busy={!!redeemingPlanId}
+      />
+
+      {/* P1 / P4: Admin Gift ConfirmDialog */}
+      <ConfirmDialog
+        open={!!giftModalPlan}
+        onClose={() => setGiftModalPlan(null)}
+        onConfirm={confirmGiftPlan}
+        title="Xác nhận tặng gói hội viên"
+        description={
+          giftModalPlan ? (
+            <span>
+              Xác nhận tặng gói <strong className="text-[#00e5ff]">"{giftModalPlan.name}"</strong> ({giftModalPlan.durationDays || 30} ngày) cho tài khoản <strong className="text-white">{customerUsers.find((u) => u.id === giftUser)?.name || 'người dùng đã chọn'}</strong>?
+            </span>
+          ) : ''
+        }
+        confirmText="Tặng gói"
+        variant="primary"
+        busy={!!giftingPlanId}
+      />
+
+      {/* P1 / P4: Admin Deactivate ConfirmDialog */}
+      <ConfirmDialog
+        open={!!deactivateModalPlan}
+        onClose={() => setDeactivateModalPlan(null)}
+        onConfirm={confirmDeactivatePlan}
+        title="Ngừng áp dụng gói hội viên"
+        description={
+          deactivateModalPlan ? (
+            <span>
+              Bạn có chắc chắn muốn ngừng áp dụng gói <strong className="text-rose-400">"{deactivateModalPlan.name}"</strong>? Người dùng sẽ không thể tiếp tục đăng ký gói này.
+            </span>
+          ) : ''
+        }
+        confirmText="Ngừng áp dụng"
+        variant="danger"
+        busy={action.busy}
+      />
     </div>
   );
 }

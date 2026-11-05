@@ -5,6 +5,7 @@ import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
 import type { CustomDTO } from '../../services/quotationService';
 import { Notice } from '../../components/DataUI';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { money } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -548,6 +549,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
   const [method, setMethod] = useState<Record<string, string>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
+  const [cancelModalOrderId, setCancelModalOrderId] = useState<string | null>(null);
+  const [codModalOrder, setCodModalOrder] = useState<{ id: string; nextStatus: string } | null>(null);
+  const [quoteError, setQuoteError] = useState<Record<string, string>>({});
 
   const copyToClipboard = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -1055,13 +1059,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                       <button
                         type="button"
                         disabled={action.busy}
-                        onClick={() => {
-                          if (confirm('Bạn có chắc chắn muốn hủy yêu cầu đặt in này?')) {
-                            void action.run(() =>
-                              send(`/custom-orders/${c.id}/status`, { status: 'CANCELLED' }, 'put')
-                            );
-                          }
-                        }}
+                        onClick={() => setCancelModalOrderId(c.id)}
                         className="px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-950/20 hover:bg-rose-900/40 text-rose-300 transition text-xs font-bold flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> {tr("Hủy yêu cầu")} </button>
@@ -1120,13 +1118,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         <button
                           type="button"
                           disabled={action.busy}
-                          onClick={() => {
-                            if (confirm('Bạn có chắc chắn muốn hủy yêu cầu này?')) {
-                              void action.run(() =>
-                                send(`/custom-orders/${c.id}/status`, { status: 'CANCELLED' }, 'put')
-                              );
-                            }
-                          }}
+                          onClick={() => setCancelModalOrderId(c.id)}
                           className="px-3.5 py-3 rounded-xl border border-white/10 hover:border-rose-500/60 bg-[#040508] text-slate-400 hover:text-rose-300 transition text-xs whitespace-nowrap shrink-0 cursor-pointer"
                           title={tr("Hủy yêu cầu")}
                         >
@@ -1220,9 +1212,10 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           e.preventDefault();
                           const p = Number(prices[c.id]);
                           if (!p || p <= 0) {
-                            alert('Vui lòng nhập giá hợp lệ.');
+                            setQuoteError(prev => ({ ...prev, [c.id]: 'Vui lòng nhập giá hợp lệ (> 0 VNĐ).' }));
                             return;
                           }
+                          setQuoteError(prev => ({ ...prev, [c.id]: '' }));
                           void action.run(() =>
                             send(`/admin/custom-orders/${c.id}/quote`, { price: p }, 'put')
                           );
@@ -1243,6 +1236,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           disabled={action.busy}
                           className="px-4 py-1.5 rounded-xl bg-[#39FF14] text-slate-950 text-xs font-bold hover:brightness-110 transition whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                         > {tr("Gửi báo giá")} </button>
+                        {quoteError[c.id] && (
+                          <span className="text-[11px] text-rose-400 font-semibold block w-full">{quoteError[c.id]}</span>
+                        )}
                       </form>
                     )}
 
@@ -1251,15 +1247,14 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         type="button"
                         disabled={action.busy}
                         onClick={() => {
-                          if (
-                            c.paymentMethod === 'COD' &&
-                            next(c) === 'COMPLETED' &&
-                            !confirm('Bạn đã giao sản phẩm và thu đủ tiền COD từ khách hàng chưa?')
-                          ) {
+                          const n = next(c);
+                          if (!n) return;
+                          if (c.paymentMethod === 'COD' && n === 'COMPLETED') {
+                            setCodModalOrder({ id: c.id, nextStatus: n });
                             return;
                           }
                           void action.run(() =>
-                            send(`/custom-orders/${c.id}/status`, { status: next(c) }, 'put')
+                            send(`/custom-orders/${c.id}/status`, { status: n }, 'put')
                           );
                         }}
                         className="px-4 py-1.5 rounded-xl border border-[#39FF14]/50 bg-[#39FF14]/15 text-[#39FF14] text-xs font-bold hover:bg-[#39FF14]/25 transition flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
@@ -1281,8 +1276,40 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
           );
         })}
       </div>
+
+      {/* Impeccable P4: Cancel Custom Order ConfirmDialog */}
+      <ConfirmDialog
+        open={!!cancelModalOrderId}
+        onClose={() => setCancelModalOrderId(null)}
+        onConfirm={async () => {
+          if (!cancelModalOrderId) return;
+          const id = cancelModalOrderId;
+          setCancelModalOrderId(null);
+          await action.run(() => send(`/custom-orders/${id}/status`, { status: 'CANCELLED' }, 'put'));
+        }}
+        title="Xác nhận hủy yêu cầu đặt in"
+        description="Bạn có chắc chắn muốn hủy yêu cầu đặt in này? Thao tác này không thể hoàn tác."
+        confirmText="Hủy yêu cầu"
+        variant="danger"
+        busy={action.busy}
+      />
+
+      {/* Impeccable P4: COD Completion ConfirmDialog */}
+      <ConfirmDialog
+        open={!!codModalOrder}
+        onClose={() => setCodModalOrder(null)}
+        onConfirm={async () => {
+          if (!codModalOrder) return;
+          const { id, nextStatus } = codModalOrder;
+          setCodModalOrder(null);
+          await action.run(() => send(`/custom-orders/${id}/status`, { status: nextStatus }, 'put'));
+        }}
+        title="Xác nhận giao hàng & Thu tiền COD"
+        description="Xác nhận bạn đã giao thành công sản phẩm in 3D và đã thu đủ tiền mặt COD từ khách hàng?"
+        confirmText="Xác nhận hoàn thành"
+        variant="primary"
+        busy={action.busy}
+      />
     </div>
   );
 }
-
-export default CustomRequests;

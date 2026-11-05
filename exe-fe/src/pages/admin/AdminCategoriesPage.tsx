@@ -3,6 +3,8 @@ import { Tag, Plus, Edit2, Trash2, RotateCcw, X, Layers } from 'lucide-react';
 import { get, send } from '../../services/api';
 import { PageHeader } from '../../components/DataUI';
 import Modal from '../../components/Modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { Notice } from '../../components/DataUI';
 
 interface Category {
   categoryId: number;
@@ -21,6 +23,9 @@ export default function AdminCategoriesPage() {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [saving, setSaving] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -47,6 +52,7 @@ export default function AdminCategoriesPage() {
     setEditingId(null);
     setName('');
     setDesc('');
+    setModalError(null);
     setModalOpen(true);
   };
 
@@ -54,6 +60,7 @@ export default function AdminCategoriesPage() {
     setEditingId(c.categoryId);
     setName(c.categoryName);
     setDesc(c.description || '');
+    setModalError(null);
     setModalOpen(true);
   };
 
@@ -72,25 +79,29 @@ export default function AdminCategoriesPage() {
       await fetchCategories();
     } catch (err) {
       console.error('Lỗi lưu danh mục:', err);
-      alert('Không thể lưu danh mục. Vui lòng thử lại.');
+      setModalError('Không thể lưu danh mục. Vui lòng thử lại.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: number, catName: string) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa danh mục "${catName}"?`)) return;
+  const confirmDeleteCategory = async () => {
+    if (!deleteTarget) return;
+    const { id } = deleteTarget;
+    setDeleteTarget(null);
+    setActionError(null);
     try {
       await send(`/categories/${id}`, undefined, 'delete');
       await fetchCategories();
     } catch (err) {
       console.error('Lỗi xóa danh mục:', err);
-      alert('Không thể xóa danh mục này (có thể đang có sản phẩm thuộc danh mục).');
+      setActionError('Không thể xóa danh mục này (có thể đang có sản phẩm thuộc danh mục).');
     }
   };
 
   return (
     <div className="space-y-6 w-full max-w-5xl mx-auto pb-12">
+      <Notice error={actionError || undefined} />
       <PageHeader
         title="QUẢN LÝ DANH MỤC SẢN PHẨM &amp; VẬT LIỆU IN"
         description="Quản trị các nhóm danh mục thước in 3D, mô hình kỹ thuật CAD, vật liệu polyme và tệp in chuyên dụng."
@@ -180,7 +191,7 @@ export default function AdminCategoriesPage() {
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDelete(c.categoryId, c.categoryName)}
+                        onClick={() => setDeleteTarget({ id: c.categoryId, name: c.categoryName })}
                         className="p-2 rounded-xl bg-[#11141e] border border-[#1e2433] hover:border-rose-500 text-slate-400 hover:text-rose-400 transition cursor-pointer whitespace-nowrap shrink-0"
                         title="Xóa danh mục"
                       >
@@ -215,6 +226,11 @@ export default function AdminCategoriesPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {modalError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 font-medium">
+                {modalError}
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="font-bold text-slate-300 font-mono">TÊN DANH MỤC *</label>
               <input
@@ -258,6 +274,25 @@ export default function AdminCategoriesPage() {
           </form>
         </div>
       </Modal>
+
+      {/* Impeccable P4: Delete Category ConfirmDialog */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteCategory}
+        title="Xác nhận xóa danh mục"
+        description={
+          deleteTarget ? (
+            <span>
+              Bạn có chắc chắn muốn xóa danh mục <strong className="text-rose-400">"{deleteTarget.name}"</strong>?
+              Thao tác này chỉ thành công khi danh mục không còn chứa sản phẩm nào.
+            </span>
+          ) : ''
+        }
+        confirmText="Xóa danh mục"
+        variant="danger"
+        busy={loading}
+      />
     </div>
   );
 }

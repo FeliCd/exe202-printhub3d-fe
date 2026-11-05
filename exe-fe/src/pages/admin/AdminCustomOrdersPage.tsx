@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { FileEdit, Search, Download, Eye, Send, CheckCircle, Clock, RotateCcw, X, Sparkles } from 'lucide-react';
 import api, { send, unwrap } from '../../services/api';
-import { formatPrice } from '../../utils/format';
-import { PageHeader } from '../../components/DataUI';
+import { formatPrice, formatDateTime } from '../../utils/format';
+import { PageHeader, Notice } from '../../components/DataUI';
 import Modal from '../../components/Modal';
 
 interface CustomOrderItem {
@@ -276,6 +276,8 @@ export default function AdminCustomOrdersPage() {
   // Preview & Download File State
   const [previewOrder, setPreviewOrder] = useState<CustomOrderItem | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [quoteModalError, setQuoteModalError] = useState<string | null>(null);
 
   const handleDownloadCustomFile = async (order: CustomOrderItem) => {
     setDownloadingId(order.id);
@@ -299,7 +301,7 @@ export default function AdminCustomOrdersPage() {
       if (order.attachmentUrl && order.attachmentUrl.startsWith('http')) {
         window.open(order.attachmentUrl, '_blank');
       } else {
-        alert('Không tìm thấy tệp 3D đính kèm trên hệ thống.');
+        setActionError('Không tìm thấy tệp 3D đính kèm trên hệ thống hoặc tệp chưa được tải lên.');
       }
     } finally {
       setDownloadingId(null);
@@ -336,6 +338,7 @@ export default function AdminCustomOrdersPage() {
   }, []);
 
   const openQuoteModal = (order: CustomOrderItem) => {
+    setQuoteModalError(null);
     setSelectedOrder(order);
     setPriceInput(order.quotedPrice ? String(order.quotedPrice) : '');
     setQuoteModalOpen(true);
@@ -352,7 +355,7 @@ export default function AdminCustomOrdersPage() {
       void fetchCustomOrders();
     } catch (err) {
       console.error('Lỗi gửi báo giá:', err);
-      alert('Không thể gửi báo giá. Vui lòng thử lại.');
+      setQuoteModalError('Không thể gửi báo giá. Vui lòng kiểm tra lại thông tin và thử lại.');
     } finally {
       setSubmitting(false);
     }
@@ -378,6 +381,7 @@ export default function AdminCustomOrdersPage() {
 
   return (
     <div className="min-w-0 space-y-6 w-full max-w-6xl mx-auto pb-12">
+      <Notice error={actionError || undefined} />
       <PageHeader
         title="Báo giá đơn in theo yêu cầu &amp; gia công CAD"
         description="Tiếp nhận yêu cầu in thước 3D cá nhân hóa, thẩm định độ phân giải lớp in STL/CAD và gửi báo giá cho sinh viên."
@@ -482,7 +486,7 @@ export default function AdminCustomOrdersPage() {
                       #CUS-{o.id.substring(0, 8)}
                     </h2>
                     <span className="text-slate-400 font-mono">• Khách hàng: <strong className="text-white">{o.buyerName}</strong></span>
-                    <span className="text-slate-400 font-mono text-xs">• Thời gian: {new Date(o.createdAt).toLocaleDateString('vi-VN')}</span>
+                    <span className="text-slate-400 font-mono text-xs">• Thời gian: {formatDateTime(o.createdAt)}</span>
                   </div>
 
                   {/* Status Badge */}
@@ -655,6 +659,11 @@ export default function AdminCustomOrdersPage() {
             </div>
 
             <form onSubmit={handleSendQuote} className="space-y-4 text-sm">
+              {quoteModalError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium">
+                  {quoteModalError}
+                </div>
+              )}
               <div className="space-y-1.5">
                 <label htmlFor="custom-quote-price" className="font-semibold text-slate-300">Giá báo cho khách (VNĐ) *</label>
                 <input

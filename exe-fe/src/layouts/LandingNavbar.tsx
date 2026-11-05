@@ -147,7 +147,7 @@ export default function LandingNavbar() {
             <Link
               to="/catalog"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
+              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
             >
               Danh Mục Thước
             </Link>
@@ -162,21 +162,24 @@ export default function LandingNavbar() {
             <Link
               to="/bulk-order"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
+              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
             >
-              Đặt Sỉ CLB (-35%)
+              <span>Đặt Sỉ CLB (-35%)</span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                Sắp ra mắt
+              </span>
             </Link>
             <Link
               to="/warranty"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
+              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
             >
               Chính Sách Bảo Hành
             </Link>
             <Link
               to="/help-center"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
+              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
             >
               Hỗ Trợ &amp; FAQ
             </Link>
