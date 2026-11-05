@@ -80,7 +80,7 @@ export default function PaymentResultPage() {
           /* ========================================================================= */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
             {/* Left Column: Status & Navigation */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="lg:col-span-7 min-w-0 space-y-6">
               <div className="space-y-4">
                 {/* Status Badge & Icon */}
                 <div className="flex items-center gap-3">
@@ -104,10 +104,10 @@ export default function PaymentResultPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link
                   to={isSubscriptionPurchase ? "/subscriptions" : "/cart"}
-                  className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm"
+                  className="bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>{isSubscriptionPurchase ? "Xem các gói hội viên" : "Quay lại giỏ hàng"}</span>
@@ -115,7 +115,7 @@ export default function PaymentResultPage() {
 
                 <Link
                   to={isSubscriptionPurchase ? "/profile" : "/orders"}
-                  className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm font-semibold"
+                  className="bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm font-semibold"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>{isSubscriptionPurchase ? "Trang cá nhân" : "Xem đơn hàng của tôi"}</span>
@@ -132,7 +132,7 @@ export default function PaymentResultPage() {
             </div>
 
             {/* Right Column: Cancelled Receipt */}
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-5 min-w-0">
               <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-lg p-6 relative overflow-hidden space-y-5">
                 <div className="flex justify-between items-center pb-3 border-b border-white/10">
                   <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">
@@ -226,9 +226,9 @@ export default function PaymentResultPage() {
           /* ========================================================================= */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
             {/* --------------------------------------------------------------------- */}
-            {/* CỘT TRÁI: Trạng thái & Điều hướng hành động (lg:col-span-6)            */}
+            {/* CỘT TRÁI: Trạng thái & Điều hướng hành động (lg:col-span-7)            */}
             {/* --------------------------------------------------------------------- */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="lg:col-span-7 min-w-0 space-y-6">
               <div className="space-y-4">
                 {/* Badge trạng thái & Icon thành công */}
                 <div className="flex items-center gap-3.5">
@@ -255,19 +255,19 @@ export default function PaymentResultPage() {
               </div>
 
               {/* Nhóm nút bấm hành động (Call To Action) */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 {isSubscriptionPurchase ? (
                   <>
                     <Link
                       to="/subscriptions"
-                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm text-center"
+                      className="bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm text-center"
                     >
                       <span>Xem quyền lợi hội viên</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link
                       to="/profile"
-                      className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
+                      className="bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
                     >
                       <Sparkles className="w-4 h-4 text-[#39FF14]" />
                       <span>Trang cá nhân &amp; Ví điểm</span>
@@ -277,14 +277,14 @@ export default function PaymentResultPage() {
                   <>
                     <Link
                       to="/orders"
-                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm text-center"
+                      className="bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm text-center"
                     >
                       <span>Xem &amp; Theo dõi đơn hàng</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link
                       to="/custom"
-                      className="whitespace-nowrap shrink-0 bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
+                      className="bg-[#11141e] border border-white/10 hover:border-[#39FF14]/40 text-slate-200 py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm text-center font-semibold"
                     >
                       <PlusCircle className="w-4 h-4 text-[#39FF14]" />
                       <span>Gửi yêu cầu in mới</span>
@@ -304,9 +304,9 @@ export default function PaymentResultPage() {
             </div>
 
             {/* --------------------------------------------------------------------- */}
-            {/* CỘT PHẢI: Hóa đơn điện tử & Trạng thái tiến độ (lg:col-span-6)         */}
+            {/* CỘT PHẢI: Hóa đơn điện tử & Trạng thái tiến độ (lg:col-span-5)         */}
             {/* --------------------------------------------------------------------- */}
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-5 min-w-0">
               <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-lg p-6 relative overflow-hidden space-y-4">
                 {/* Header của Card */}
                 <div className="flex justify-between items-center pb-2">
@@ -385,4 +385,3 @@ export default function PaymentResultPage() {
     </div>
   );
 }
-
