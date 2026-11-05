@@ -91,12 +91,12 @@ export default function AdminProductionPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1e2433] pb-3.5">
               <div>
                 <span className="font-mono text-[#00e5ff] font-bold text-xs tracking-wider">UNIT: #{p.id} ({p.type})</span>
-                <h3 className="font-bold text-white text-base font-mono">{p.name}</h3>
+                <h2 className="font-bold text-white text-base font-mono">{p.name}</h2>
               </div>
               <span
                 className={`px-3 py-1 rounded-full font-mono font-bold uppercase text-[11px] whitespace-nowrap shrink-0 ${
                   p.status === 'PRINTING'
-                    ? 'bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/40 animate-pulse shadow-[0_0_10px_rgba(57,255,20,0.15)]'
+                    ? 'bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/40 animate-pulse shadow-md shadow-emerald-950/50'
                     : p.status === 'IDLE'
                     ? 'bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/40'
                     : 'bg-[#ff9100]/15 text-[#ff9100] border border-[#ff9100]/40'
@@ -113,7 +113,7 @@ export default function AdminProductionPage() {
                   <span className="text-[#39FF14] font-mono font-black text-sm">{p.progressPercent}%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-[#11141e] overflow-hidden border border-[#1e2433]">
-                  <div className="h-full bg-gradient-to-r from-[#39FF14] to-[#00e5ff] rounded-full shadow-[0_0_8px_rgba(57,255,20,0.5)] transition-all duration-500" style={{ width: `${p.progressPercent}%` }} />
+                  <div className="h-full bg-gradient-to-r from-[#39FF14] to-[#00e5ff] rounded-full ring-2 ring-[#39FF14]/40 transition-all duration-500" style={{ width: `${p.progressPercent}%` }} />
                 </div>
               </div>
             )}
@@ -141,7 +141,7 @@ export default function AdminProductionPage() {
                 className={`flex-1 py-2.5 rounded-xl text-xs font-mono font-bold border transition flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap shrink-0 ${
                   p.status === 'PRINTING'
                     ? 'bg-[#ff9100]/15 hover:bg-[#ff9100]/25 text-[#ff9100] border-[#ff9100]/40'
-                    : 'bg-[#39FF14]/15 hover:bg-[#39FF14]/25 text-[#39FF14] border-[#39FF14]/40 shadow-[0_0_10px_rgba(57,255,20,0.15)]'
+                    : 'bg-[#39FF14]/15 hover:bg-[#39FF14]/25 text-[#39FF14] border-[#39FF14]/40 shadow-md shadow-emerald-950/50'
                 }`}
               >
                 {p.status === 'PRINTING' ? <Pause className="w-4 h-4 text-[#ff9100]" /> : <Play className="w-4 h-4 text-[#39FF14]" />}

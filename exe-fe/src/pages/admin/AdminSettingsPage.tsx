@@ -120,7 +120,7 @@ export default function AdminSettingsPage() {
         <div className="p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all shadow-xl space-y-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
           <div className="flex items-center gap-3 pb-4 border-b border-[#1e2433]">
-            <div className="w-9 h-9 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
+            <div className="w-9 h-9 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] shrink-0 shadow-md shadow-emerald-950/50">
               <Store className="w-4 h-4" />
             </div>
             <div>
@@ -185,7 +185,7 @@ export default function AdminSettingsPage() {
         <div className="p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all shadow-xl space-y-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#00e5ff]/5 blur-3xl pointer-events-none rounded-full" />
           <div className="flex items-center gap-3 pb-4 border-b border-[#1e2433]">
-            <div className="w-9 h-9 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-[#00e5ff] shrink-0 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
+            <div className="w-9 h-9 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-[#00e5ff] shrink-0 shadow-md shadow-cyan-950/50">
               <Truck className="w-4 h-4" />
             </div>
             <div>
@@ -282,7 +282,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={saving || loading}
-            className="px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-black font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition active:scale-95 shadow-[0_0_20px_rgba(57,255,20,0.25)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
+            className="px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-black font-mono text-xs uppercase tracking-wider flex items-center gap-2 transition active:scale-95 shadow-md shadow-emerald-950/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
           >
             {saving ? (
               <RefreshCw className="w-4 h-4 animate-spin text-[#040508]" />

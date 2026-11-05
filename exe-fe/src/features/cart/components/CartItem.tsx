@@ -41,7 +41,7 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
   const lineId = item.clientLineId || item.id;
 
   return (
-    <div className={`p-3.5 rounded-xl bg-[#0a0c12] border transition-all flex items-start gap-3 relative group ${selected ? 'border-[#39FF14]/60 bg-[#39FF14]/5 shadow-[0_0_20px_rgba(57,255,20,0.08)]' : 'border-white/10 hover:border-white/20'}`}>
+    <div className={`p-3.5 rounded-xl bg-[#0a0c12] border transition-all flex items-start gap-3 relative group ${selected ? 'border-[#39FF14]/60 bg-[#39FF14]/5 shadow-md shadow-emerald-950/50' : 'border-white/10 hover:border-white/20'}`}>
       {onToggleSelect && (
         <label className="flex items-center cursor-pointer pt-3 select-none">
           <input

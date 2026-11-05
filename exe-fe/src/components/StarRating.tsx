@@ -60,7 +60,7 @@ export default function StarRating({
               <Star
                 className={`${sizeClasses} transition-colors ${
                   isFilled
-                    ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]'
+                    ? 'text-amber-400 fill-amber-400 '
                     : 'text-slate-600 stroke-[1.5]'
                 }`}
               />

@@ -46,7 +46,7 @@ export default function LandingNavbar() {
         {/* ========================================================================= */}
         {/* CENTER PILL NAVBAR (Full Tiếng Việt - No Line Break) */}
         {/* ========================================================================= */}
-        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-[#0a0c12]/90 backdrop-blur-md px-2.5 xl:px-4 py-1.5 xl:py-2 rounded-full border border-white/10 shadow-2xl shadow-black/60 text-[11px] xl:text-xs font-semibold text-slate-300 shrink-0">
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-[#0a0c12]/90 backdrop-blur-md px-2.5 xl:px-4 py-1.5 xl:py-2 rounded-full border border-white/10 shadow-xl shadow-black/60 shadow-black/60 text-[11px] xl:text-xs font-semibold text-slate-300 shrink-0">
           <button
             onClick={() => handleNavClick('services')}
             className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition cursor-pointer whitespace-nowrap shrink-0"

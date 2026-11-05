@@ -53,7 +53,7 @@ function ProductThumbnail({ type }: { type: Product['thumbnail'] }) {
       );
     case 'stencil':
       return (
-        <div className="w-40 h-24 rounded-lg bg-[#040508]/80 border border-[#39FF14]/40 flex items-center justify-around p-3 group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(57,255,20,0.1)]">
+        <div className="w-40 h-24 rounded-lg bg-[#040508]/80 border border-[#39FF14]/40 flex items-center justify-around p-3 group-hover:scale-105 transition-transform shadow-md shadow-emerald-950/50">
           <div className="w-7 h-7 rounded-full border border-[#39FF14]" />
           <div className="w-6 h-6 border border-[#39FF14] rotate-45" />
           <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[20px] border-b-[#39FF14]" />
@@ -83,7 +83,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
   return (
     <>
-      <article className="bg-[#0a0c12]/90 border border-white/10 rounded-2xl overflow-hidden hover:border-[#39FF14]/50 hover:shadow-[0_0_25px_rgba(57,255,20,0.15)] transition-all duration-300 flex flex-col group relative backdrop-blur-md">
+      <article className="bg-[#0a0c12]/90 border border-white/10 rounded-2xl overflow-hidden hover:border-[#39FF14]/50 hover:shadow-md shadow-emerald-950/50 transition-all duration-300 flex flex-col group relative backdrop-blur-md">
         {/* Thumbnail */}
         <div className="relative h-48 bg-gradient-to-br from-[#040508] to-[#11141e] p-4 flex items-center justify-center overflow-hidden border-b border-white/10">
           <span className={`absolute top-3 left-3 ${badge.bg} ${badge.text} text-[10px] font-black uppercase px-2.5 py-1 rounded-md border ${badge.border} tracking-wider font-mono whitespace-nowrap shrink-0`}>
@@ -177,7 +177,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                 </Link>
               )}
               <button
-                className="whitespace-nowrap shrink-0 p-2 rounded-lg bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold shadow-[0_0_15px_rgba(57,255,20,0.3)] transition active:scale-95"
+                className="whitespace-nowrap shrink-0 p-2 rounded-lg bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold shadow-md shadow-emerald-950/50 transition active:scale-95"
                 onClick={() => onAddToCart(product)}
                 title="Thêm vào giỏ"
                 aria-label={`Thêm ${product.name} vào giỏ`}

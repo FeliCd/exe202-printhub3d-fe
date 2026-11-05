@@ -85,7 +85,7 @@ function OrderStepper({ status }: { status: string }) {
       <div className="flex items-center justify-between relative">
         <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-white/10 -z-0" />
         <div
-          className="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-[#39FF14] shadow-[0_0_10px_rgba(57,255,20,0.5)] transition-all duration-500 -z-0"
+          className="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-[#39FF14] shadow-md shadow-emerald-950/50 transition-all duration-500 -z-0"
           style={{ width: `${Math.max(0, Math.min(100, (currentIdx / (STEPS.length - 1)) * 100))}%` }}
         />
 
@@ -99,9 +99,9 @@ function OrderStepper({ status }: { status: string }) {
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
                   isDone
-                    ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+                    ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 font-black'
                     : isCurrent
-                    ? 'bg-[#040508] border-2 border-[#39FF14] text-[#39FF14] shadow-[0_0_20px_rgba(57,255,20,0.4)] ring-4 ring-[#39FF14]/20 scale-110'
+                    ? 'bg-[#040508] border-2 border-[#39FF14] text-[#39FF14] shadow-md shadow-emerald-950/50 ring-4 ring-[#39FF14]/20 scale-110'
                     : 'bg-[#040508] border border-white/15 text-slate-500'
                 }`}
               >
@@ -297,7 +297,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] shadow-[0_0_15px_rgba(57,255,20,0.2)]">
+            <span className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] shadow-md shadow-emerald-950/50">
               {history ? <Package className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
             </span>
             <h1 className="text-2xl font-black text-white tracking-tight">{pageTitle}</h1>
@@ -316,7 +316,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           onClick={() => setActiveTab('ALL')}
           className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
             activeTab === 'ALL'
-              ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+              ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 font-black'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -327,7 +327,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           onClick={() => setActiveTab('MARKETPLACE')}
           className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === 'MARKETPLACE'
-              ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+              ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 font-black'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -339,7 +339,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           onClick={() => setActiveTab('CUSTOM')}
           className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === 'CUSTOM'
-              ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
+              ? 'bg-[#ff9100] text-[#040508] shadow-md shadow-amber-950/50 font-black'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -355,7 +355,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setHistoryTab('ALL')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
               historyTab === 'ALL'
-                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+                ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -365,7 +365,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setHistoryTab('COMPLETED')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               historyTab === 'COMPLETED'
-                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+                ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -376,7 +376,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setHistoryTab('CANCELLED')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               historyTab === 'CANCELLED'
-                ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
+                ? 'bg-[#ff9100] text-[#040508] shadow-md shadow-amber-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -386,7 +386,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setHistoryTab('EXPIRED')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               historyTab === 'EXPIRED'
-                ? 'bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)] font-black'
+                ? 'bg-rose-500 text-white shadow-md shadow-rose-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -403,7 +403,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setActiveOrderTab('ALL')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition cursor-pointer ${
               activeOrderTab === 'ALL'
-                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+                ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -413,7 +413,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setActiveOrderTab('PENDING')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeOrderTab === 'PENDING'
-                ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_15px_rgba(255,145,0,0.3)] font-black'
+                ? 'bg-[#ff9100] text-[#040508] shadow-md shadow-amber-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -423,7 +423,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setActiveOrderTab('PRINTING')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeOrderTab === 'PRINTING'
-                ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_15px_rgba(57,255,20,0.3)] font-black'
+                ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -433,7 +433,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             onClick={() => setActiveOrderTab('SHIPPING')}
             className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer ${
               activeOrderTab === 'SHIPPING'
-                ? 'bg-[#00e5ff] text-[#040508] shadow-[0_0_15px_rgba(0,229,255,0.3)] font-black'
+                ? 'bg-[#00e5ff] text-[#040508] shadow-md shadow-cyan-950/50 font-black'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -623,7 +623,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                     )}
                     {admin && next && (
                       <button
-                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(57,255,20,0.3)] transition cursor-pointer"
+                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs shadow-md shadow-emerald-950/50 transition cursor-pointer"
                         disabled={action.busy}
                         onClick={() => handleNextStatus(o.id, next, false, o.totalAmount, o.paymentMethod)}
                       >
@@ -796,7 +796,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   <div className="flex flex-wrap items-center gap-2.5">
                     {admin && next && (
                       <button
-                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#ff9100] hover:bg-[#ff9e1a] text-[#040508] font-black text-xs shadow-[0_0_15px_rgba(255,145,0,0.3)] transition cursor-pointer"
+                        className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#ff9100] hover:bg-[#ff9e1a] text-[#040508] font-black text-xs shadow-md shadow-amber-950/50 transition cursor-pointer"
                         disabled={action.busy}
                         onClick={() => handleNextStatus(c.id, next, true, c.quotedPrice, c.paymentMethod)}
                       >

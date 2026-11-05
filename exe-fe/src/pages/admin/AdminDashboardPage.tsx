@@ -69,13 +69,13 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
         <div className="min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)] shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse ring-2 ring-[#39FF14]/40 shrink-0" />
             <p className="text-xs sm:text-sm font-semibold text-slate-400 break-words font-mono">
               ADDITIVE FARM TELEMETRY &bull; 24/7 FLEET MONITOR
             </p>
           </div>
           <h1 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight break-words">
-            Trung Tâm Điều Khiển <span className="text-[#39FF14] drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]">PrintHub 3D</span>
+            Trung Tâm Điều Khiển <span className="text-[#39FF14] ">PrintHub 3D</span>
           </h1>
         </div>
 
@@ -94,7 +94,7 @@ export default function AdminDashboardPage() {
       {/* 2. Unified Bento StatStrip (4 KPI metrics with #39FF14 accents) */}
       <section
         aria-label="Chỉ số chính"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-2xl border border-[#1e2433] bg-[#0a0c12] shadow-2xl divide-y divide-[#1e2433] sm:divide-y-0 sm:[&>*:nth-child(odd)]:border-r max-lg:sm:[&>*:nth-child(-n+2)]:border-b lg:[&>*:not(:first-child)]:border-l [&>*]:border-[#1e2433] w-full min-w-0"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden rounded-2xl border border-[#1e2433] bg-[#0a0c12] shadow-lg divide-y divide-[#1e2433] sm:divide-y-0 sm:[&>*:nth-child(odd)]:border-r max-lg:sm:[&>*:nth-child(-n+2)]:border-b lg:[&>*:not(:first-child)]:border-l [&>*]:border-[#1e2433] w-full min-w-0"
       >
         {/* Metric 1: Doanh thu thực tế */}
         <div className="p-4 sm:p-5 lg:p-6 transition-all hover:bg-[#11141e]/50 hover:border-[#39FF14]/30 min-w-0">
@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
               ĐANG GIA CÔNG IN
             </p>
             <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#39FF14]">
-              <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
+              <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse ring-2 ring-[#39FF14]/40" />
               LIVE
             </span>
           </div>
@@ -153,7 +153,7 @@ export default function AdminDashboardPage() {
           <div className="mt-3 flex items-center gap-2 min-w-0">
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#040508] border border-[#1e2433] min-w-0">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#00e5ff] to-[#39FF14] shadow-[0_0_8px_rgba(57,255,20,0.5)] transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#00e5ff] to-[#39FF14] ring-2 ring-[#39FF14]/40 transition-all duration-500"
                 style={{ width: `${Math.max(deliveryPct, totalOrders > 0 ? 5 : 0)}%` }}
               />
             </div>
@@ -314,7 +314,7 @@ export default function AdminDashboardPage() {
               </p>
               <Link
                 to="/admin/custom-orders"
-                className="w-full py-2.5 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition shadow-[0_0_12px_rgba(57,255,20,0.3)] cursor-pointer whitespace-nowrap shrink-0"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition shadow-md shadow-emerald-950/50 cursor-pointer whitespace-nowrap shrink-0"
               >
                 <span>Mở Cổng Duyệt Báo Giá</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-950 shrink-0" />
@@ -330,7 +330,7 @@ export default function AdminDashboardPage() {
                 <h3 className="font-bold text-sm text-white">Trạng thái hạ tầng</h3>
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#39FF14] whitespace-nowrap shrink-0">
-                <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
+                <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse ring-2 ring-[#39FF14]/40" />
                 100% Online
               </span>
             </div>
@@ -365,7 +365,7 @@ export default function AdminDashboardPage() {
         <section className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-[#0a0c12] to-emerald-950/20 border border-[#39FF14]/30 p-5 sm:p-6 shadow-xl">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-[#39FF14]">
-              <Layers className="w-5 h-5 drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" />
+              <Layers className="w-5 h-5 " />
               <h3 className="font-black text-base text-white tracking-wide uppercase">
                 Tiêu Chuẩn Sản Xuất Thước Kỹ Thuật &amp; In 3D
               </h3>
@@ -407,7 +407,7 @@ export default function AdminDashboardPage() {
                   <span
                     className={`absolute -left-[17px] top-1.5 w-2.5 h-2.5 rounded-full ring-4 ${
                       item.tone === 'brand'
-                        ? 'bg-[#39FF14] ring-[#39FF14]/20 shadow-[0_0_6px_rgba(57,255,20,0.8)]'
+                        ? 'bg-[#39FF14] ring-[#39FF14]/20 ring-2 ring-[#39FF14]/40'
                         : item.tone === 'accent'
                         ? 'bg-amber-400 ring-amber-500/20'
                         : 'bg-slate-600 ring-slate-700/20'

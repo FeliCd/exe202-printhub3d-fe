@@ -352,7 +352,7 @@ export function CustomRequestForm({
         <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary mx-auto">
           <User className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-bold text-white">{tr("Yêu cầu đăng nhập")}</h3>
+        <h2 className="text-lg font-bold text-white">{tr("Yêu cầu đăng nhập")}</h2>
         <p className="text-sm text-slate-400"> {tr("Vui lòng đăng nhập để gửi tệp thiết kế 3D và nhận báo giá từ xưởng PrintHub.")} </p>
         <Link
           to={`/login?redirect=${bulk ? '/bulk-order' : '/custom'}`}
@@ -364,7 +364,7 @@ export function CustomRequestForm({
   }
 
   return (
-    <div className="rounded-3xl border border-border bg-surface p-6 sm:p-8 max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
+    <div className="rounded-3xl border border-border bg-surface p-6 sm:p-8 max-w-3xl mx-auto shadow-lg relative overflow-hidden">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
 
       <div className="flex items-center gap-3.5 pb-6 border-b border-border/80">
@@ -707,7 +707,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
             <Ruler className="w-8 h-8 opacity-40" />
           </div>
           <div className="space-y-1 min-w-0">
-            <h3 className="text-lg font-bold text-white break-words">{tr("Chưa có yêu cầu nào trong mục này")}</h3>
+            <h2 className="text-lg font-bold text-white break-words">{tr("Chưa có yêu cầu nào trong mục này")}</h2>
             <p className="text-xs text-slate-400 break-words">
               {activeFilter === 'ALL'
                 ? tr("Bạn chưa gửi yêu cầu gia công thước in 3D nào. Hãy bắt đầu tạo thước ngay!")
@@ -1046,7 +1046,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         <Clock className="w-5 h-5 animate-pulse" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-[#ff9100]"> {tr("Xưởng PrintHub 3D đang phân tích file STL & thẩm định báo giá")} </h4>
+                        <h3 className="text-sm font-bold text-[#ff9100]"> {tr("Xưởng PrintHub 3D đang phân tích file STL & thẩm định báo giá")} </h3>
                         <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed"> {tr("Kỹ thuật viên đang kiểm tra thông số cắt lớp (slicing), độ mịn lớp in 0.16mm và khối lượng nhựa PLA. Báo giá chính xác kèm thời gian bàn giao sẽ xuất hiện tại đây!")} </p>
                       </div>
                     </div>
@@ -1078,7 +1078,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         <span className="text-xs text-slate-400 font-mono">{tr("Cho")} {c.quantity || 1} {tr("sản phẩm hoàn thiện")}</span>
                       </div>
                       <div className="flex items-baseline gap-2 pt-1">
-                        <span className="text-3xl sm:text-4xl font-black text-[#39FF14] font-mono tracking-tight drop-shadow-[0_0_15px_rgba(57,255,20,0.3)]">
+                        <span className="text-3xl sm:text-4xl font-black text-[#39FF14] font-mono tracking-tight ">
                           {money(c.quotedPrice || 0)}
                         </span>
                       </div>
@@ -1145,7 +1145,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         <QrCode className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-white"> {tr("Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS")} </h4>
+                        <h3 className="text-sm font-bold text-white"> {tr("Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS")} </h3>
                         <p className="text-xs text-slate-300 mt-0.5"> {tr("Số tiền:")} <strong className="text-[#39FF14] font-mono">{money(c.quotedPrice || 0)}</strong>{tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")} </p>
                       </div>
                     </div>

@@ -38,7 +38,7 @@ export default function LandingPage() {
         {/* ========================================================================= */}
         <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
           {/* Main Hero Card */}
-          <div className="relative rounded-3xl bg-gradient-to-b from-[#0a0d16] via-[#070910] to-[#040508] border border-white/10 p-6 sm:p-10 lg:p-14 overflow-hidden shadow-2xl">
+          <div className="relative rounded-3xl bg-gradient-to-b from-[#0a0d16] via-[#070910] to-[#040508] border border-white/10 p-6 sm:p-10 lg:p-14 overflow-hidden shadow-lg">
             {/* Ambient Background Glows */}
             <div className="absolute -top-32 right-10 w-[550px] h-[550px] bg-[#39FF14]/10 rounded-full blur-[140px] pointer-events-none" />
             <div className="absolute top-1/2 -left-20 w-[450px] h-[450px] bg-[#39FF14]/5 rounded-full blur-[130px] pointer-events-none" />
@@ -68,7 +68,7 @@ export default function LandingPage() {
                 <div className="space-y-3">
                   <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.06] uppercase">
                     Precision At Scale <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#39FF14] via-emerald-200 to-white">
+                    <span className="text-emerald-400 font-black">
                       Industrial 3D Printing
                     </span>
                   </h1>
@@ -102,7 +102,7 @@ export default function LandingPage() {
 
               {/* Right Column: Hero High-Precision Slicer Visualizer */}
               <div className="lg:col-span-5 relative flex justify-center">
-                <div className="relative w-full max-w-lg rounded-2xl overflow-hidden border border-white/15 shadow-2xl shadow-emerald-950/40 bg-[#07090e] group">
+                <div className="relative w-full max-w-lg rounded-2xl overflow-hidden border border-white/15 shadow-lg shadow-emerald-950/40 bg-[#07090e] group">
                   {/* Slicer Chrome Bar */}
                   <div className="h-9 w-full bg-gradient-to-b from-[#131724] to-[#0a0d16] border-b border-white/10 px-4 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
@@ -130,7 +130,7 @@ export default function LandingPage() {
 
                     {/* Centered Wireframe Part Simulation */}
                     <div className="relative z-10 my-auto flex justify-center">
-                      <div className="w-36 h-36 border border-[#39FF14]/40 rounded-2xl flex items-center justify-center relative shadow-[0_0_30px_rgba(57,255,20,0.15)] bg-[#040508]/60 backdrop-blur-sm">
+                      <div className="w-36 h-36 border border-[#39FF14]/40 rounded-2xl flex items-center justify-center relative shadow-md shadow-emerald-950/50 bg-[#040508]/60 backdrop-blur-sm">
                         <svg className="w-20 h-20 text-[#39FF14]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
                           <polygon points="50,15 85,35 85,75 50,95 15,75 15,35" fill="rgba(57,255,20,0.06)" />
                           <line x1="50" y1="15" x2="50" y2="55" />
@@ -139,7 +139,7 @@ export default function LandingPage() {
                           <circle cx="50" cy="55" r="8" fill="#39FF14" />
                         </svg>
                         {/* Laser Scan Line */}
-                        <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-[#39FF14] to-transparent shadow-[0_0_8px_#39FF14] animate-pulse" style={{ top: '65%' }} />
+                        <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-[#39FF14] to-transparent ring-2 ring-[#39FF14]/40 animate-pulse" style={{ top: '65%' }} />
                       </div>
                     </div>
 
@@ -178,9 +178,9 @@ export default function LandingPage() {
             <div className="mt-12 pt-8 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Feature 1 */}
               <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0a0c12]/80 border border-white/[0.06] hover:border-[#39FF14]/40 transition">
-                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.6)]" />
+                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-md shadow-emerald-950/50" />
                 <div>
-                  <h3 className="text-sm font-extrabold text-white">Tung Ra Chuẩn Xác 0.05mm</h3>
+                  <h2 className="text-sm font-extrabold text-white">Tung Ra Chuẩn Xác 0.05mm</h2>
                   <p className="text-xs text-slate-400 mt-0.5 leading-snug">
                     May đo kỹ thuật chuẩn cơ khí, vạch khắc dập chìm chống phai suốt quá trình học.
                   </p>
@@ -189,9 +189,9 @@ export default function LandingPage() {
 
               {/* Feature 2 */}
               <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0a0c12]/80 border border-white/[0.06] hover:border-[#39FF14]/40 transition">
-                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.6)]" />
+                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-md shadow-emerald-950/50" />
                 <div>
-                  <h3 className="text-sm font-extrabold text-white">Tùy Chọn Không Giới Hạn</h3>
+                  <h2 className="text-sm font-extrabold text-white">Tùy Chọn Không Giới Hạn</h2>
                   <p className="text-xs text-slate-400 mt-0.5 leading-snug">
                     Đa dạng vật liệu PLA+, PETG, Resin 8K, khắc laser họ tên &amp; MSSV miễn phí.
                   </p>
@@ -200,9 +200,9 @@ export default function LandingPage() {
 
               {/* Feature 3 */}
               <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0a0c12]/80 border border-white/[0.06] hover:border-[#39FF14]/40 transition">
-                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.6)]" />
+                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-md shadow-emerald-950/50" />
                 <div>
-                  <h3 className="text-sm font-extrabold text-white">Giao Hàng Toàn Quốc</h3>
+                  <h2 className="text-sm font-extrabold text-white">Giao Hàng Toàn Quốc</h2>
                   <p className="text-xs text-slate-400 mt-0.5 leading-snug">
                     Giao tận tay sinh viên và kỹ sư tại hơn 20+ trường đại học và khu công nghiệp.
                   </p>
@@ -211,9 +211,9 @@ export default function LandingPage() {
 
               {/* Feature 4 */}
               <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0a0c12]/80 border border-white/[0.06] hover:border-[#39FF14]/40 transition">
-                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.6)]" />
+                <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-md shadow-emerald-950/50" />
                 <div>
-                  <h3 className="text-sm font-extrabold text-white">Kỹ Sư Thẩm Định File</h3>
+                  <h2 className="text-sm font-extrabold text-white">Kỹ Sư Thẩm Định File</h2>
                   <p className="text-xs text-slate-400 mt-0.5 leading-snug">
                     Tự động phân tích lỗi mesh tệp CAD/STL và tư vấn tối ưu hướng in tiết kiệm nhất.
                   </p>
@@ -235,7 +235,7 @@ export default function LandingPage() {
           </div>
 
           {/* Statement Hero Card with Delta Printer Background (Ref Image 2) */}
-          <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-[#0d0e14] shadow-2xl p-8 sm:p-12 lg:p-16 min-h-[460px] flex flex-col justify-center">
+          <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-[#0d0e14] shadow-lg p-8 sm:p-12 lg:p-16 min-h-[460px] flex flex-col justify-center">
             {/* Background Image of 3D Delta Printer */}
             <div className="absolute inset-0 z-0">
               <img
@@ -372,7 +372,7 @@ export default function LandingPage() {
           </div>
 
           {/* 2-Column Split Section */}
-          <div className="rounded-3xl bg-gradient-to-br from-[#0e121d] via-[#090b12] to-[#040508] border border-white/10 p-6 sm:p-10 lg:p-14 shadow-2xl overflow-hidden">
+          <div className="rounded-3xl bg-gradient-to-br from-[#0e121d] via-[#090b12] to-[#040508] border border-white/10 p-6 sm:p-10 lg:p-14 shadow-lg overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Left Column: 4 Feature Pillars (Full Tiếng Việt) */}
               <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -431,7 +431,7 @@ export default function LandingPage() {
 
               {/* Right Column: 3D Robot Figure Print Render */}
               <div className="lg:col-span-5 flex justify-center">
-                <div className="relative w-full max-w-md rounded-3xl overflow-hidden border border-white/15 bg-[#090b12] shadow-2xl group">
+                <div className="relative w-full max-w-md rounded-3xl overflow-hidden border border-white/15 bg-[#090b12] shadow-lg group">
                   <img
                     src="/images/printer_robot_toy.jpg"
                     alt="3D Extruder Nozzle Printing Model"
@@ -459,15 +459,15 @@ export default function LandingPage() {
         {/* SECTION 4: GUARANTEE & QUALITY COMMITMENT */}
         {/* ========================================================================= */}
         <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#39FF14]/10 via-[#0a0d16] to-[#040508] border border-[#39FF14]/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#39FF14]/10 via-[#0a0d16] to-[#040508] border border-[#39FF14]/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
             <div className="flex items-center gap-5">
               <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] shrink-0 shadow-lg shadow-[#39FF14]/20">
                 <ShieldCheck className="w-9 h-9" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-lg sm:text-xl font-black text-white">
+                <h2 className="text-lg sm:text-xl font-black text-white">
                   Cam Kết Chất Lượng &amp; Bảo Hành 1-Đổi-1 Suốt 1 Học Kỳ
-                </h4>
+                </h2>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl font-normal">
                   Tất cả sản phẩm thước in 3D và mô hình kỹ thuật đều được áp dụng chính sách bảo hành 1-đổi-1 nếu gãy nứt hoặc phai mờ vạch số.
                 </p>

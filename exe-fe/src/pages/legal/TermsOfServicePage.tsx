@@ -94,7 +94,7 @@ export default function TermsOfServicePage() {
             </div>
             <Link
               to="/help-center"
-              className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold text-xs uppercase tracking-wider font-mono transition shadow-[0_0_15px_rgba(57,255,20,0.2)] shrink-0"
+              className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold text-xs uppercase tracking-wider font-mono transition shadow-md shadow-emerald-950/50 shrink-0"
             >
               Liên hệ chúng tôi
             </Link>

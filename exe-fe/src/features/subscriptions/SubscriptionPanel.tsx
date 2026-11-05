@@ -519,7 +519,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               <div className="space-y-2">
                 <p className="text-xs sm:text-sm text-slate-400 font-mono">
                   Số dư ví điểm thưởng:{' '}
-                  <strong className="text-[#39FF14] text-xl font-mono font-black drop-shadow-[0_0_10px_rgba(57,255,20,0.4)]">
+                  <strong className="text-[#39FF14] text-xl font-mono font-black ">
                     {availablePoints.toLocaleString()}
                   </strong>{' '}
                   PrintHub Xu
@@ -724,7 +724,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       {/* MODAL THÊM / CHỈNH SỬA GÓI (Admin - Flow 09)                               */}
       {/* ========================================================================= */}
       <Modal open={open} onClose={() => setOpen(false)} label={editing ? 'Chỉnh Sửa Gói Hội Viên' : 'Tạo Gói Hội Viên Mới'}>
-        <div className="w-full max-w-xl bg-[#0a0c12] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
+        <div className="w-full max-w-xl bg-[#0a0c12] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-lg space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <div className="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2 font-mono">

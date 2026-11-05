@@ -727,8 +727,8 @@ export default function RulerStudio({
       />
 
       {exportDialogOpen && (
-        <div className="export-modal-backdrop" onClick={() => setExportDialogOpen(false)}>
-          <div className="export-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="export-modal-backdrop" role="presentation" onClick={() => setExportDialogOpen(false)}>
+          <div className="export-modal-content" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="export-modal-header">
               <h3>📦 {language === "vi" ? "Xuất Bản Thiết Kế & Mô Hình 3D" : "Export Design & 3D Models"}</h3>
               <button className="close-btn" onClick={() => setExportDialogOpen(false)}>✕</button>

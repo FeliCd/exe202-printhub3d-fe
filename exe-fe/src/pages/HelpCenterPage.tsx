@@ -145,7 +145,7 @@ export default function HelpCenterPage() {
               onClick={() => setActiveCategory(cat.key)}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition ${
                 activeCategory === cat.key
-                  ? 'bg-[#39FF14] text-slate-950 shadow-[0_0_12px_rgba(57,255,20,0.4)]'
+                  ? 'bg-[#39FF14] text-slate-950 shadow-md shadow-emerald-950/50'
                   : 'bg-[#0a0c12] text-slate-400 hover:text-white border border-[#1e2433]'
               }`}
             >
@@ -171,7 +171,7 @@ export default function HelpCenterPage() {
                 key={faq.question}
                 className={`rounded-2xl border transition overflow-hidden ${
                   isOpen
-                    ? 'bg-[#0a0c12] border-[#39FF14]/50 shadow-[0_0_20px_rgba(57,255,20,0.06)]'
+                    ? 'bg-[#0a0c12] border-[#39FF14]/50 shadow-md shadow-emerald-950/50'
                     : 'bg-[#0a0c12] border-[#1e2433] hover:border-[#39FF14]/30'
                 }`}
               >
@@ -222,7 +222,7 @@ export default function HelpCenterPage() {
         <div className="flex items-center gap-3 whitespace-nowrap shrink-0">
           <Link
             to="/custom"
-            className="px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs transition shadow-[0_0_12px_rgba(57,255,20,0.3)] flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-slate-950 font-black text-xs transition shadow-md shadow-emerald-950/50 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <Layers className="w-3.5 h-3.5 shrink-0" />
             <span>Mở 3D Slicer Studio</span>

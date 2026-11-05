@@ -70,7 +70,7 @@ export default function AdminFinancePage() {
         <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-2 relative overflow-hidden shadow-xl">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#39FF14]/10 blur-2xl pointer-events-none rounded-full" />
           <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">CHIẾT KHẤU SÀN (5%)</p>
-          <p className="text-2xl font-black text-[#39FF14] font-mono drop-shadow-[0_0_12px_rgba(57,255,20,0.3)]">
+          <p className="text-2xl font-black text-[#39FF14] font-mono ">
             {formatPrice(data?.platformCommission ?? 0)}đ
           </p>
           <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
@@ -102,11 +102,11 @@ export default function AdminFinancePage() {
       </div>
 
       {/* Transaction Logs Table */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-4 text-xs shadow-2xl relative overflow-hidden">
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-4 text-xs shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
         <div className="flex items-center justify-between border-b border-[#1e2433] pb-3.5">
           <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#39FF14] shadow-[0_0_8px_#39FF14]" />
+            <span className="w-2 h-2 rounded-full bg-[#39FF14] ring-2 ring-[#39FF14]/40" />
             NHẬT KÝ GIAO DỊCH THANH TOÁN (PAYOS &amp; COD AUDIT)
           </h3>
           <span className="text-[11px] text-slate-400 font-mono">

@@ -109,7 +109,7 @@ export default function AdminCategoriesPage() {
 
             <button
               onClick={openCreate}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-black text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(57,255,20,0.3)] cursor-pointer whitespace-nowrap shrink-0"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-black text-xs uppercase tracking-wider transition shadow-md shadow-emerald-950/50 cursor-pointer whitespace-nowrap shrink-0"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>THÊM DANH MỤC</span>
@@ -125,7 +125,7 @@ export default function AdminCategoriesPage() {
       )}
 
       {/* Categories Table Card */}
-      <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-4 shadow-2xl relative overflow-hidden">
+      <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-4 shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#00e5ff]/5 blur-3xl pointer-events-none rounded-full" />
         <div className="flex items-center justify-between border-b border-[#1e2433] pb-3">
           <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
@@ -197,7 +197,7 @@ export default function AdminCategoriesPage() {
 
       {/* Modal Thêm / Chỉnh Sửa Danh Mục */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} label={editingId ? 'Chỉnh Sửa Danh Mục' : 'Thêm Danh Mục Mới'}>
-        <div className="w-full max-w-md bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 rounded-2xl p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto relative">
+        <div className="w-full max-w-md bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 rounded-2xl p-6 shadow-lg space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
           <div className="flex items-center justify-between border-b border-[#1e2433] pb-3 shrink-0">
             <h3 className="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase tracking-wider">
@@ -249,7 +249,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 min-h-[38px] rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] text-xs font-mono font-black uppercase tracking-wider transition shadow-[0_0_15px_rgba(57,255,20,0.3)] flex items-center gap-1.5 justify-center whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 min-h-[38px] rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] text-xs font-mono font-black uppercase tracking-wider transition shadow-md shadow-emerald-950/50 flex items-center gap-1.5 justify-center whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
               >
                 {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#040508]" />}
                 <span>{editingId ? 'CẬP NHẬT' : 'TẠO DANH MỤC'}</span>

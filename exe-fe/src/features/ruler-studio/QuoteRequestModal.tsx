@@ -150,7 +150,7 @@ function QuoteRequestFormContent({
   };
 
   return (
-    <div className="w-full max-w-lg rounded-2xl border border-primary/40 bg-surface p-6 shadow-2xl space-y-5 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    <div className="w-full max-w-lg rounded-2xl border border-primary/40 bg-surface p-6 shadow-xl shadow-black/60 space-y-5 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
       {!isSubmitting && (
         <button
           type="button"

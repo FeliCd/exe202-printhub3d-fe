@@ -98,7 +98,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           />
           <div>
             <p className="font-bold text-sm text-white tracking-wide">
-              PrintHub <span className="text-[#39FF14] font-extrabold drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]">3D</span>
+              PrintHub <span className="text-[#39FF14] font-extrabold ">3D</span>
             </p>
             <p className="text-xs text-slate-400 font-semibold">
               Quản Trị Hệ Thống
@@ -135,14 +135,14 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     onClick={onClose}
                     className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       active
-                        ? 'bg-[#39FF14]/10 text-[#39FF14] font-extrabold shadow-[0_0_12px_rgba(57,255,20,0.12)] border-l-2 border-[#39FF14] pl-2.5'
+                        ? 'bg-[#39FF14]/10 text-[#39FF14] font-extrabold shadow-md shadow-emerald-950/50 border-l-2 border-[#39FF14] pl-2.5'
                         : 'text-slate-400 hover:text-slate-100 hover:bg-surface/70'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <Icon
                         className={`w-4 h-4 shrink-0 transition-colors ${
-                          active ? 'text-[#39FF14] drop-shadow-[0_0_6px_rgba(57,255,20,0.5)]' : 'text-slate-400'
+                          active ? 'text-[#39FF14] ' : 'text-slate-400'
                         }`}
                       />
                       <span className="truncate">{item.label}</span>
@@ -168,7 +168,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       <div className="p-3 border-t border-border bg-surface/40 space-y-2">
         <div className="flex items-center justify-between px-2 py-1">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.8)] shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse ring-2 ring-[#39FF14]/40 shrink-0" />
             <span className="text-xs text-slate-400 truncate">
               {user?.email || 'admin@printhub3d.com'}
             </span>

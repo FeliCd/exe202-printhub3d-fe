@@ -156,7 +156,7 @@ export default function AdminUsersPage() {
       {filteredUsers.length > 0 && (
         <>
           {/* DESKTOP TABLE VIEW */}
-          <div className="hidden md:block rounded-2xl border border-[#1e2433] bg-[#0a0c12] overflow-hidden shadow-2xl">
+          <div className="hidden md:block rounded-2xl border border-[#1e2433] bg-[#0a0c12] overflow-hidden shadow-lg">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-300">
                 <thead className="bg-[#040508] text-slate-400 uppercase tracking-wider border-b border-[#1e2433] text-[11px] font-mono">
@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
                       {/* Name & Avatar */}
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] font-black font-mono text-xs uppercase shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
+                          <div className="w-9 h-9 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] font-black font-mono text-xs uppercase shrink-0 shadow-md shadow-emerald-950/50">
                             {u.name ? u.name.substring(0, 2) : 'US'}
                           </div>
                           <div>
@@ -221,7 +221,7 @@ export default function AdminUsersPage() {
                             ĐÃ KHÓA
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-[#39FF14]/10 border border-[#39FF14]/40 text-[#39FF14] whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-[#39FF14]/10 border border-[#39FF14]/40 text-[#39FF14] whitespace-nowrap shrink-0 shadow-md shadow-emerald-950/50">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] animate-pulse" />
                             HOẠT ĐỘNG
                           </span>
@@ -239,7 +239,7 @@ export default function AdminUsersPage() {
                           onClick={() => toggleLock(u.id)}
                           className={`px-3 py-1.5 rounded-xl font-mono font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0 ${
                             u.isLocked
-                              ? 'bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/40 hover:bg-[#39FF14]/25 shadow-[0_0_10px_rgba(57,255,20,0.15)]'
+                              ? 'bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/40 hover:bg-[#39FF14]/25 shadow-md shadow-emerald-950/50'
                               : 'bg-rose-950/80 text-rose-300 border border-rose-800 hover:bg-rose-900'
                           }`}
                         >

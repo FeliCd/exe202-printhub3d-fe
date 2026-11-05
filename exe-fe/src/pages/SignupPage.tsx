@@ -259,9 +259,9 @@ export default function SignupPage() {
                 <div
                   className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold transition-all whitespace-nowrap shrink-0 ${
                     isDone
-                      ? 'bg-[#39FF14] text-slate-950 shadow-[0_0_10px_rgba(57,255,20,0.4)]'
+                      ? 'bg-[#39FF14] text-slate-950 shadow-md shadow-emerald-950/50'
                       : isActive
-                      ? 'bg-[#11141e] text-[#39FF14] border border-[#39FF14] shadow-[0_0_10px_rgba(57,255,20,0.25)]'
+                      ? 'bg-[#11141e] text-[#39FF14] border border-[#39FF14] shadow-md shadow-emerald-950/50'
                       : 'bg-[#0a0c12] text-slate-500 border border-[#1e2433]'
                   }`}
                 >
@@ -363,7 +363,7 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer mt-4 whitespace-nowrap shrink-0"
+            className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-md shadow-emerald-950/50 hover:shadow-md shadow-emerald-950/50 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer mt-4 whitespace-nowrap shrink-0"
           >
             <span>Tiếp Tục Bước 2</span>
             <ArrowRight className="w-4 h-4 shrink-0" />
@@ -496,7 +496,7 @@ export default function SignupPage() {
                     className={`h-full rounded-full transition-all ${
                       bar <= strengthScore
                         ? strengthScore === 4
-                          ? 'bg-[#39FF14] shadow-[0_0_6px_rgba(57,255,20,0.8)]'
+                          ? 'bg-[#39FF14] ring-2 ring-[#39FF14]/40'
                           : strengthScore >= 2
                           ? 'bg-amber-400'
                           : 'bg-red-500'
@@ -541,7 +541,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 whitespace-nowrap shrink-0"
+              className="flex-1 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-md shadow-emerald-950/50 hover:shadow-md shadow-emerald-950/50 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 whitespace-nowrap shrink-0"
             >
               {isLoading ? (
                 <>
@@ -563,7 +563,7 @@ export default function SignupPage() {
       {currentStep === 3 && (
         <form onSubmit={handleVerifyOtp} className="space-y-4 pt-1">
           {otpSuccess ? (
-            <div className="p-6 rounded-2xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-bold text-center space-y-2 animate-in fade-in shadow-[0_0_20px_rgba(57,255,20,0.2)]">
+            <div className="p-6 rounded-2xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-bold text-center space-y-2 animate-in fade-in shadow-md shadow-emerald-950/50">
               <CheckCircle2 className="w-10 h-10 text-[#39FF14] mx-auto" />
               <p className="text-base text-white">Tài khoản đã được kích hoạt thành công!</p>
               <p className="text-slate-400 font-normal text-xs">
@@ -599,7 +599,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={isVerifyingOtp}
-                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 whitespace-nowrap shrink-0"
+                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-md shadow-emerald-950/50 hover:shadow-md shadow-emerald-950/50 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 whitespace-nowrap shrink-0"
               >
                 {isVerifyingOtp ? (
                   <>

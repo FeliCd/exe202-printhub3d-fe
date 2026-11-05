@@ -66,7 +66,7 @@ export default function PaymentResultPage() {
         {/* ========================================================================= */}
         {isLoading || (remote.loading && !remote.data) ? (
           <div className="py-20 text-center space-y-4 max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(57,255,20,0.2)]">
+            <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] flex items-center justify-center mx-auto shadow-md shadow-emerald-950/50">
               <RefreshCw className="w-8 h-8 animate-spin" />
             </div>
             <h2 className="text-xl font-bold text-white">Đang kiểm tra kết quả giao dịch...</h2>
@@ -84,7 +84,7 @@ export default function PaymentResultPage() {
               <div className="space-y-4">
                 {/* Status Badge & Icon */}
                 <div className="flex items-center gap-3">
-                  <div className="w-16 h-16 rounded-2xl bg-[#ff9100]/15 border border-[#ff9100]/40 text-[#ff9100] flex items-center justify-center shadow-[0_0_25px_rgba(255,145,0,0.2)]">
+                  <div className="w-16 h-16 rounded-2xl bg-[#ff9100]/15 border border-[#ff9100]/40 text-[#ff9100] flex items-center justify-center shadow-md shadow-amber-950/50">
                     <AlertTriangle className="w-8 h-8" />
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#ff9100]/20 border border-[#ff9100]/40 text-[#ff9100]">
@@ -107,7 +107,7 @@ export default function PaymentResultPage() {
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
                   to={isSubscriptionPurchase ? "/subscriptions" : "/cart"}
-                  className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm"
+                  className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>{isSubscriptionPurchase ? "Xem các gói hội viên" : "Quay lại giỏ hàng"}</span>
@@ -133,7 +133,7 @@ export default function PaymentResultPage() {
 
             {/* Right Column: Cancelled Receipt */}
             <div className="lg:col-span-6">
-              <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-2xl p-6 relative overflow-hidden space-y-5">
+              <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-lg p-6 relative overflow-hidden space-y-5">
                 <div className="flex justify-between items-center pb-3 border-b border-white/10">
                   <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">
                     CHI TIẾT GIAO DỊCH
@@ -178,8 +178,8 @@ export default function PaymentResultPage() {
           /* ========================================================================= */
           /* CASE 3: UNAUTHENTICATED SESSION                                           */
           /* ========================================================================= */
-          <div className="max-w-md mx-auto py-16 text-center space-y-5 rounded-3xl bg-[#0a0c12] border border-white/10 p-8 shadow-2xl">
-            <div className="w-14 h-14 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(57,255,20,0.2)]">
+          <div className="max-w-md mx-auto py-16 text-center space-y-5 rounded-3xl bg-[#0a0c12] border border-white/10 p-8 shadow-lg">
+            <div className="w-14 h-14 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] flex items-center justify-center mx-auto shadow-md shadow-emerald-950/50">
               <ShieldCheck className="w-7 h-7" />
             </div>
             <h2 className="text-2xl font-bold text-white">Xác minh tài khoản</h2>
@@ -188,7 +188,7 @@ export default function PaymentResultPage() {
             </p>
             <Link
               to={`/login?redirect=${encodeURIComponent('/payment-result?' + params.toString())}`}
-              className="whitespace-nowrap shrink-0 w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold transition flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
+              className="whitespace-nowrap shrink-0 w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold transition flex items-center justify-center gap-2 text-sm shadow-md shadow-emerald-950/50"
             >
               Đăng nhập ngay <ArrowRight className="w-4 h-4" />
             </Link>
@@ -197,8 +197,8 @@ export default function PaymentResultPage() {
           /* ========================================================================= */
           /* CASE 3.5: NO TRANSACTION CODE (MISSING ORDER CODE)                        */
           /* ========================================================================= */
-          <div className="max-w-md mx-auto py-16 text-center space-y-5 rounded-3xl bg-[#0a0c12] border border-white/10 p-8 shadow-2xl">
-            <div className="w-14 h-14 rounded-2xl bg-[#ff9100]/15 border border-[#ff9100]/40 text-[#ff9100] flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(255,145,0,0.2)]">
+          <div className="max-w-md mx-auto py-16 text-center space-y-5 rounded-3xl bg-[#0a0c12] border border-white/10 p-8 shadow-lg">
+            <div className="w-14 h-14 rounded-2xl bg-[#ff9100]/15 border border-[#ff9100]/40 text-[#ff9100] flex items-center justify-center mx-auto shadow-md shadow-amber-950/50">
               <AlertTriangle className="w-7 h-7" />
             </div>
             <h2 className="text-xl font-bold text-white">Không tìm thấy mã giao dịch</h2>
@@ -232,7 +232,7 @@ export default function PaymentResultPage() {
               <div className="space-y-4">
                 {/* Badge trạng thái & Icon thành công */}
                 <div className="flex items-center gap-3.5">
-                  <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] flex items-center justify-center shadow-[0_0_30px_rgba(57,255,20,0.3)] shrink-0">
+                  <div className="w-16 h-16 rounded-2xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] flex items-center justify-center shadow-md shadow-emerald-950/50 shrink-0">
                     <Check className="w-8 h-8 stroke-[2.5]" />
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14]">
@@ -260,7 +260,7 @@ export default function PaymentResultPage() {
                   <>
                     <Link
                       to="/subscriptions"
-                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm text-center"
+                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm text-center"
                     >
                       <span>Xem quyền lợi hội viên</span>
                       <ArrowRight className="w-4 h-4" />
@@ -277,7 +277,7 @@ export default function PaymentResultPage() {
                   <>
                     <Link
                       to="/orders"
-                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-[0_0_20px_rgba(57,255,20,0.3)] flex items-center justify-center gap-2 text-sm text-center"
+                      className="whitespace-nowrap shrink-0 bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black py-3.5 px-6 rounded-xl transition shadow-md shadow-emerald-950/50 flex items-center justify-center gap-2 text-sm text-center"
                     >
                       <span>Xem &amp; Theo dõi đơn hàng</span>
                       <ArrowRight className="w-4 h-4" />
@@ -307,7 +307,7 @@ export default function PaymentResultPage() {
             {/* CỘT PHẢI: Hóa đơn điện tử & Trạng thái tiến độ (lg:col-span-6)         */}
             {/* --------------------------------------------------------------------- */}
             <div className="lg:col-span-6">
-              <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-2xl p-6 relative overflow-hidden space-y-4">
+              <div className="rounded-2xl bg-[#0a0c12] border border-white/10 shadow-lg p-6 relative overflow-hidden space-y-4">
                 {/* Header của Card */}
                 <div className="flex justify-between items-center pb-2">
                   <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">

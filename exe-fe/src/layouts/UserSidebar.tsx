@@ -206,7 +206,7 @@ export default function UserSidebar({ isOpen, cartCount }: UserSidebarProps) {
                     <span>Giỏ hàng của bạn</span>
                   </div>
                   {cartCount !== undefined && cartCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#39FF14] text-[#040508] shadow-[0_0_8px_rgba(57,255,20,0.5)]">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#39FF14] text-[#040508] ring-2 ring-[#39FF14]/40">
                       {cartCount}
                     </span>
                   )}

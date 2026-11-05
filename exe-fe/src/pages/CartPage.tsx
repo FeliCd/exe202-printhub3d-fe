@@ -235,7 +235,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       {/* POPUP XÁC NHẬN THANH TOÁN PAYOS */}
       <Modal open={!!confirmOrder} onClose={() => setConfirmOrder(null)} label="Thanh toán đơn hàng qua PayOS">
         {confirmOrder && (
-          <div className="w-full max-w-lg rounded-2xl border border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-6 shadow-[0_0_35px_rgba(57,255,20,0.15)] space-y-4 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <div className="w-full max-w-lg rounded-2xl border border-[#39FF14]/40 bg-[#0a0c12] p-5 sm:p-6 shadow-md shadow-emerald-950/50 space-y-4 relative max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <button
               type="button"
               onClick={() => setConfirmOrder(null)}
@@ -271,7 +271,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 href={confirmOrder.checkoutUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 whitespace-nowrap shrink-0 flex items-center justify-center gap-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] py-3 px-4 text-sm font-black text-[#040508] transition-all shadow-[0_0_20px_rgba(57,255,20,0.3)] min-h-[44px]"
+                className="flex-1 whitespace-nowrap shrink-0 flex items-center justify-center gap-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] py-3 px-4 text-sm font-black text-[#040508] transition-all shadow-md shadow-emerald-950/50 min-h-[44px]"
                 onClick={() => setConfirmOrder(null)}
               >
                 <CreditCard className="h-4 w-4" />
@@ -291,7 +291,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       {/* KẾT QUẢ TẠO ĐƠN THÀNH CÔNG */}
       {createdCheckoutOrder ? (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-[#39FF14]/40 bg-[#0a0c12] p-5 flex items-start gap-4 shadow-[0_0_25px_rgba(57,255,20,0.1)]">
+          <div className="rounded-2xl border border-[#39FF14]/40 bg-[#0a0c12] p-5 flex items-start gap-4 shadow-md shadow-emerald-950/50">
             <CheckCircle2 className="h-7 w-7 text-[#39FF14] shrink-0 mt-0.5" />
             <div className="space-y-1">
               <h2 className="text-base font-bold text-white">
@@ -350,7 +350,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
             {createdCheckoutOrder.paymentLinkUrl && (
               <button
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] py-3.5 px-6 text-sm font-black text-[#040508] transition-all shadow-[0_0_20px_rgba(57,255,20,0.3)] whitespace-nowrap shrink-0"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] py-3.5 px-6 text-sm font-black text-[#040508] transition-all shadow-md shadow-emerald-950/50 whitespace-nowrap shrink-0"
                 onClick={() => {
                   if (createdCheckoutOrder.paymentLinkUrl) {
                     window.open(createdCheckoutOrder.paymentLinkUrl, '_blank');
@@ -364,7 +364,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
           </div>
 
           <div className="flex flex-wrap gap-3 pt-2">
-            <Link className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(57,255,20,0.3)] transition" to="/orders">
+            <Link className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-950/50 transition" to="/orders">
               <ShoppingBag className="h-4 w-4" /> Quản lý danh sách đơn hàng
             </Link>
             <Link className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs flex items-center gap-1.5 transition" to="/quotations">
@@ -389,7 +389,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
               <ShoppingBag className="w-12 h-12 text-[#39FF14]/60 mx-auto" />
               <p className="text-slate-200 font-medium">Giỏ hàng của bạn đang trống.</p>
               <div className="flex justify-center gap-3 pt-2">
-                <Link className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold text-xs shadow-[0_0_15px_rgba(57,255,20,0.3)] transition" to="/catalog">
+                <Link className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold text-xs shadow-md shadow-emerald-950/50 transition" to="/catalog">
                   Khám phá Cửa hàng
                 </Link>
                 <Link className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs transition" to="/custom">
@@ -408,7 +408,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                   onClick={() => setActiveTab('MARKETPLACE')}
                   className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition cursor-pointer whitespace-nowrap ${
                     activeTab === 'MARKETPLACE'
-                      ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_20px_rgba(57,255,20,0.3)] ring-2 ring-[#39FF14]/20'
+                      ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 ring-2 ring-[#39FF14]/20'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -426,7 +426,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                   onClick={() => setActiveTab('CUSTOM')}
                   className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition cursor-pointer whitespace-nowrap ${
                     activeTab === 'CUSTOM'
-                      ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_20px_rgba(57,255,20,0.3)] ring-2 ring-[#39FF14]/20'
+                      ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50 ring-2 ring-[#39FF14]/20'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -501,9 +501,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                             {/* ĐỊA CHỈ NHẬN HÀNG */}
                             <div>
                               <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-white text-xs flex items-center gap-2">
+                                <h3 className="font-bold text-white text-xs flex items-center gap-2">
                                   <MapPin className="h-4 w-4 text-[#39FF14]" /> Địa chỉ giao hàng
-                                </h4>
+                                </h3>
                                 <button className="whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs transition cursor-pointer" disabled={action.busy} onClick={onOpenAddressModal}>
                                   {a.id ? 'Thay đổi' : '+ Chọn địa chỉ'}
                                 </button>
@@ -517,9 +517,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
                             {/* PHƯƠNG THỨC THANH TOÁN */}
                             <div className="pt-3 border-t border-white/10">
-                              <h4 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-2">
+                              <h3 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-2">
                                 <CreditCard className="w-4 h-4 text-[#39FF14]" /> Hình thức thanh toán
-                              </h4>
+                              </h3>
                               <div className="flex flex-wrap gap-4">
                                 <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-200">
                                   <input
@@ -568,7 +568,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
                             {/* NÚT BẤM ĐẶT HÀNG */}
                             <button
-                              className="whitespace-nowrap shrink-0 w-full py-3.5 text-base font-black bg-[#39FF14] hover:bg-[#32e012] text-[#040508] rounded-xl shadow-[0_0_25px_rgba(57,255,20,0.35)] transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-2 cursor-pointer"
+                              className="whitespace-nowrap shrink-0 w-full py-3.5 text-base font-black bg-[#39FF14] hover:bg-[#32e012] text-[#040508] rounded-xl shadow-md shadow-emerald-950/50 transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-2 cursor-pointer"
                               disabled={action.busy || cart.loading || cart.saving || !a.id || selectedMarketplaceItems.length === 0}
                               onClick={() => void handleMarketplaceCheckout()}
                             >
@@ -657,9 +657,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                                 <Send className="w-4 h-4" />
                               </div>
                               <div>
-                                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                                   Gửi yêu cầu báo giá đến xưởng
-                                </h4>
+                                </h3>
                                 <p className="text-[11px] text-slate-400">Kỹ thuật viên sẽ phản hồi trong 24h</p>
                               </div>
                             </div>
@@ -667,9 +667,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                             {/* ĐỊA CHỈ GIAO HÀNG (ĐỂ TÍNH PHÍ VẬN CHUYỂN KHI BÁO GIÁ) */}
                             <div>
                               <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-white text-xs flex items-center gap-2">
+                                <h3 className="font-bold text-white text-xs flex items-center gap-2">
                                   <MapPin className="h-4 w-4 text-[#39FF14]" /> Địa chỉ giao nhận dự kiến
-                                </h4>
+                                </h3>
                                 <button className="whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs transition" disabled={action.busy} onClick={onOpenAddressModal}>
                                   {a.id ? 'Thay đổi' : '+ Chọn địa chỉ'}
                                 </button>
@@ -703,7 +703,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
                             {/* NÚT GỬI YÊU CẦU BÁO GIÁ */}
                             <button
-                              className="whitespace-nowrap shrink-0 w-full py-3.5 text-sm font-black bg-[#39FF14] hover:bg-[#32e012] text-[#040508] rounded-xl shadow-[0_0_25px_rgba(57,255,20,0.35)] transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 cursor-pointer"
+                              className="whitespace-nowrap shrink-0 w-full py-3.5 text-sm font-black bg-[#39FF14] hover:bg-[#32e012] text-[#040508] rounded-xl shadow-md shadow-emerald-950/50 transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 cursor-pointer"
                               disabled={action.busy || !a.id || selectedCustomItems.length === 0}
                               onClick={() => void handleCustomQuoteSubmit()}
                             >

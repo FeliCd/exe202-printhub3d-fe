@@ -126,7 +126,7 @@ function DisputeChat({ disputeId }: { disputeId: string }) {
         <button
           type="submit"
           disabled={action.busy || !content.trim()}
-          className="px-4 py-2.5 rounded-xl bg-[#00e5ff] hover:bg-[#38eeff] text-[#040508] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(0,229,255,0.25)] disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-[#00e5ff] hover:bg-[#38eeff] text-[#040508] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition shadow-md shadow-cyan-950/50 disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
         >
           {action.busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           <span>GUI</span>
@@ -140,13 +140,13 @@ function DisputeStatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'RESOLVED':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 whitespace-nowrap shrink-0 shadow-md shadow-emerald-950/50">
           <CheckCircle2 className="w-3 h-3" /> DA GIAI QUYET
         </span>
       );
     case 'UNDER_REVIEW':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/30 whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/30 whitespace-nowrap shrink-0 shadow-md shadow-cyan-950/50">
           <Clock className="w-3 h-3 animate-spin" /> DANG DOI SOAT
         </span>
       );
@@ -159,7 +159,7 @@ function DisputeStatusBadge({ status }: { status: string }) {
     case 'OPEN':
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#ff9100]/10 text-[#ff9100] border border-[#ff9100]/30 whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(255,145,0,0.15)]">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#ff9100]/10 text-[#ff9100] border border-[#ff9100]/30 whitespace-nowrap shrink-0 shadow-md shadow-amber-950/50">
           <Clock className="w-3 h-3" /> MO KHIẾU NẠI
         </span>
       );
@@ -287,12 +287,12 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* CỘT TRÁI: FORM TẠO KHIẾU NẠI (Dành cho Buyer) */}
         {!admin && (
-          <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-5 shadow-2xl relative overflow-hidden">
+          <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-5 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
             <div className="border-b border-[#1e2433] pb-3.5 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-[#39FF14] shadow-[0_0_8px_#39FF14]" />
+                  <span className="w-2 h-2 rounded-full bg-[#39FF14] ring-2 ring-[#39FF14]/40" />
                   TẠO KHIẾU NẠI MỚI
                 </h2>
                 <p className="text-[11px] text-slate-400 font-mono mt-0.5">CHỌN ĐƠN CẦN ĐỐI SOÁT CHẤT LƯỢNG</p>
@@ -429,7 +429,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
               <button
                 type="submit"
                 disabled={action.busy || uploading || !orderId}
-                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-[0_0_20px_rgba(57,255,20,0.25)] disabled:opacity-50 cursor-pointer mt-2 whitespace-nowrap shrink-0"
+                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md shadow-emerald-950/50 disabled:opacity-50 cursor-pointer mt-2 whitespace-nowrap shrink-0"
               >
                 {action.busy ? (
                   <>
@@ -451,7 +451,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
         <div className={admin ? 'lg:col-span-12 space-y-4' : 'lg:col-span-7 space-y-4'}>
           <div className="flex items-center justify-between bg-[#0a0c12] border border-[#1e2433] px-4 py-3 rounded-xl">
             <h2 className="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-              <span className="w-2 h-2 rounded-full bg-[#00e5ff] shadow-[0_0_8px_#00e5ff]" />
+              <span className="w-2 h-2 rounded-full bg-[#00e5ff] ring-2 ring-[#00e5ff]/40" />
               DANH SÁCH HỒ SƠ TRANH CHẤP ({remote.data?.length || 0})
             </h2>
             <button
@@ -555,7 +555,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                         type="button"
                         disabled={action.busy}
                         onClick={() => handleAdminResolve(d, 'RESOLVED')}
-                        className="px-3.5 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(57,255,20,0.2)] disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
+                        className="px-3.5 py-2 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-bold text-xs uppercase tracking-wider transition shadow-md shadow-emerald-950/50 disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
                       >
                         GIẢI QUYẾT KHIẾU NẠI
                       </button>

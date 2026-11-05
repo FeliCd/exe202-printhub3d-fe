@@ -30,7 +30,7 @@ export default function MainContent({ onAddToCart }: { onAddToCart: (p: Product)
   return (
     <div className="space-y-6 w-full pb-10">
       {/* Page Header with Telemetry Badge */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[#0a0c12] border border-white/10 shadow-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[#0a0c12] border border-white/10 shadow-lg">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-[#040508] border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] shadow-md shadow-[#39FF14]/15 shrink-0">
             <ShoppingBag className="w-6 h-6" />

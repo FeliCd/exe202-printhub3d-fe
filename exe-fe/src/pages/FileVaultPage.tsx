@@ -58,7 +58,7 @@ export default function FileVaultPage() {
       <Notice error={action.error} />
 
       {/* Upload Box */}
-      <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 shadow-2xl relative overflow-hidden group">
+      <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 shadow-lg relative overflow-hidden group">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#00e5ff] to-[#39FF14]" />
         
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -67,9 +67,9 @@ export default function FileVaultPage() {
               <UploadCloud className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
                 TẢI TỆP THIẾT KẾ MỚI VÀO KHO
-              </h3>
+              </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 Định dạng hỗ trợ: .STL, .OBJ, .STEP, .STP (Tối đa 50MB)
               </p>
@@ -115,9 +115,9 @@ export default function FileVaultPage() {
                 </span>
               </div>
 
-              <h3 className="font-bold text-white text-sm tracking-tight truncate font-mono" title={f.fileName}>
+              <h2 className="font-bold text-white text-sm tracking-tight truncate font-mono" title={f.fileName}>
                 {f.fileName}
-              </h3>
+              </h2>
 
               <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
                 <Calendar className="w-3.5 h-3.5 text-slate-500" />

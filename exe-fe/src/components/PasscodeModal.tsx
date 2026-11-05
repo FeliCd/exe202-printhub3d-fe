@@ -68,7 +68,7 @@ function PasscodeSession({
 
   return (
     <Modal open={isOpen} onClose={onClose} label="Xác thực mã PIN">
-      <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden p-6 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-xl shadow-black/60 overflow-hidden p-6 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center text-slate-400">
           <div className="w-10 h-10 rounded-full bg-primary/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14]">
             <ShieldCheck className="w-5 h-5" />

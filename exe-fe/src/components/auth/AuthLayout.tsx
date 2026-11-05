@@ -29,7 +29,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-[#040508] to-[#040508]" />
 
       {/* Main Container Card */}
-      <div className="relative w-full max-w-5xl rounded-2xl bg-[#0a0c12] border border-slate-800 shadow-2xl shadow-black/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 z-10 transition">
+      <div className="relative w-full max-w-5xl rounded-2xl bg-[#0a0c12] border border-slate-800 shadow-xl shadow-black/60 shadow-black/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 z-10 transition">
         
         {/* LEFT COLUMN: 3D PRINTER VISUALS & STUDIO ATTRIBUTES */}
         <div className="lg:col-span-5 p-5 sm:p-6 lg:p-8 bg-gradient-to-b from-[#07090e] to-[#040508] border-b lg:border-b-0 lg:border-r border-[#1e2433] flex flex-col justify-between gap-6">

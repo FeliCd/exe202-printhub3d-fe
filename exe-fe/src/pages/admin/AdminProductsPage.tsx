@@ -289,7 +289,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Product Table */}
-      <div className="bg-[#0a0c12] border border-[#1e2433] rounded-2xl overflow-hidden shadow-2xl p-1">
+      <div className="bg-[#0a0c12] border border-[#1e2433] rounded-2xl overflow-hidden shadow-lg p-1">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#040508] text-slate-400 uppercase border-b border-[#1e2433] font-mono text-[11px] tracking-wider">
@@ -404,7 +404,7 @@ export default function AdminProductsPage() {
 
                       {/* Status */}
                       <td className="px-4 py-3.5 whitespace-nowrap shrink-0">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 whitespace-nowrap shrink-0 shadow-md shadow-emerald-950/50">
                           <CheckCircle2 className="w-3 h-3" /> ĐANG BÁN
                         </span>
                       </td>
@@ -463,7 +463,7 @@ export default function AdminProductsPage() {
         label={editingId ? 'Chỉnh sửa sản phẩm in 3D' : 'Thêm mới sản phẩm thước in 3D'}
         className="!w-full !max-w-2xl"
       >
-        <div className="w-full bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/50 rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto relative">
+        <div className="w-full bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/50 rounded-2xl p-6 shadow-lg space-y-5 max-h-[90vh] overflow-y-auto relative">
           <div className="absolute top-0 right-0 w-36 h-36 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
           <div className="flex items-center justify-between border-b border-[#1e2433] pb-3.5">
             <h3 className="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase tracking-wider">
@@ -665,7 +665,7 @@ export default function AdminProductsPage() {
               <button
                 type="submit"
                 disabled={saving || uploadingImage}
-                className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] text-xs font-mono font-black uppercase tracking-wider transition shadow-[0_0_15px_rgba(57,255,20,0.35)] flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] text-xs font-mono font-black uppercase tracking-wider transition shadow-md shadow-emerald-950/50 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
               >
                 {saving && <RotateCcw className="w-3.5 h-3.5 animate-spin text-[#040508]" />}
                 <span>{editingId ? 'CẬP NHẬT SẢN PHẨM' : 'LƯU SẢN PHẨM MỚI'}</span>

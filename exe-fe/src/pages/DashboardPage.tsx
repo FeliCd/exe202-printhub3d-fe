@@ -29,7 +29,7 @@ export default function DashboardPage() {
       {/* ========================================================================= */}
       {/* 1. WELCOME BANNER (DARK INDUSTRIAL PRECISION)                              */}
       {/* ========================================================================= */}
-      <div className="relative rounded-3xl bg-[#0a0c12] border border-white/10 p-6 sm:p-8 overflow-hidden shadow-2xl group">
+      <div className="relative rounded-3xl bg-[#0a0c12] border border-white/10 p-6 sm:p-8 overflow-hidden shadow-lg group">
         {/* Neon top accent line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] via-[#00e5ff] to-[#ff9100]" />
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#39FF14]/5 rounded-full blur-3xl pointer-events-none" />
@@ -164,7 +164,7 @@ export default function DashboardPage() {
           <div className="w-10 h-10 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14]">
             <Sparkles className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-bold text-white">Khắc Laser Kỹ Thuật Số</h3>
+          <h2 className="text-base font-bold text-white">Khắc Laser Kỹ Thuật Số</h2>
           <p className="text-xs text-slate-400 leading-relaxed">
             Khắc tên, MSSV, logo CLB kỹ thuật lên bề mặt thước bằng tia Laser CNC độ nét cao dung sai &lt;0.05mm hoàn toàn miễn phí.
           </p>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
           <div className="w-10 h-10 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center text-[#00e5ff]">
             <Layers className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-bold text-white">Sản Xuất Đợt Lớn (Batch FDM)</h3>
+          <h2 className="text-base font-bold text-white">Sản Xuất Đợt Lớn (Batch FDM)</h2>
           <p className="text-xs text-slate-400 leading-relaxed">
             Hỗ trợ chiết khấu lên tới 35% cho các đơn hàng theo lớp học, lab nghiên cứu hoặc đồ án tốt nghiệp kỹ thuật chuyên sâu.
           </p>
@@ -190,7 +190,7 @@ export default function DashboardPage() {
           <div className="w-10 h-10 rounded-xl bg-[#ff9100]/10 border border-[#ff9100]/30 flex items-center justify-center text-[#ff9100]">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <h3 className="text-base font-bold text-white">Chính Sách Bảo Hành &amp; Đổi Trả</h3>
+          <h2 className="text-base font-bold text-white">Chính Sách Bảo Hành &amp; Đổi Trả</h2>
           <p className="text-xs text-slate-400 leading-relaxed">
             Nếu mô hình thước bị cong vênh hoặc sai lệch độ dày trong quá trình vận chuyển, gửi ảnh để nhận phôi in mới trong 24h.
           </p>

@@ -299,7 +299,7 @@ export default function CustomOrderCheckoutPage({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] shadow-[0_0_15px_rgba(57,255,20,0.2)]">
+              <span className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] shadow-md shadow-emerald-950/50">
                 <Ruler className="w-6 h-6" />
               </span>
               Xác Nhận Đặt In Thước 3D
@@ -349,7 +349,7 @@ export default function CustomOrderCheckoutPage({
                   <div
                     className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm transition-all shadow-md ${
                       isCurrent
-                        ? 'bg-[#39FF14] text-[#040508] ring-4 ring-[#39FF14]/20 scale-105 shadow-[0_0_15px_rgba(57,255,20,0.3)]'
+                        ? 'bg-[#39FF14] text-[#040508] ring-4 ring-[#39FF14]/20 scale-105 shadow-md shadow-emerald-950/50'
                         : isPassed
                         ? 'bg-[#39FF14]/15 border border-[#39FF14]/60 text-[#39FF14]'
                         : 'bg-[#040508] border border-white/10 text-slate-500'
@@ -466,7 +466,7 @@ export default function CustomOrderCheckoutPage({
               <button
                 type="button"
                 onClick={handleNextFromStep1}
-                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
+                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-md shadow-emerald-950/50"
               >
                 <span>Tiếp tục: Kiểm tra thiết kế 3D</span>
                 <ArrowRight className="w-4 h-4" />
@@ -612,7 +612,7 @@ export default function CustomOrderCheckoutPage({
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
+                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-md shadow-emerald-950/50"
               >
                 <span>Tiếp tục: Số lượng &amp; Yêu cầu in</span>
                 <ArrowRight className="w-4 h-4" />
@@ -686,7 +686,7 @@ export default function CustomOrderCheckoutPage({
                     onClick={() => setInfillDensity(opt.value)}
                     className={`p-3.5 rounded-xl border text-left space-y-1 transition ${
                       infillDensity === opt.value
-                        ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-[0_0_15px_rgba(57,255,20,0.15)]'
+                        ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-md shadow-emerald-950/50'
                         : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
                     }`}
                   >
@@ -728,7 +728,7 @@ export default function CustomOrderCheckoutPage({
               <button
                 type="button"
                 onClick={() => setCurrentStep(4)}
-                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(57,255,20,0.3)]"
+                className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-md shadow-emerald-950/50"
               >
                 <span>Tiếp tục: Xác nhận &amp; Gửi báo giá</span>
                 <ArrowRight className="w-4 h-4" />
@@ -766,7 +766,7 @@ export default function CustomOrderCheckoutPage({
                   onClick={() => setPaymentMethod('PAYOS')}
                   className={`p-4 rounded-xl border text-left space-y-2 transition relative ${
                     paymentMethod === 'PAYOS'
-                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-[0_0_20px_rgba(57,255,20,0.15)]'
+                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-md shadow-emerald-950/50'
                       : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
                   }`}
                 >
@@ -791,7 +791,7 @@ export default function CustomOrderCheckoutPage({
                   onClick={() => setPaymentMethod('COD')}
                   className={`p-4 rounded-xl border text-left space-y-2 transition ${
                     paymentMethod === 'COD'
-                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-[0_0_20px_rgba(57,255,20,0.15)]'
+                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-md shadow-emerald-950/50'
                       : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
                   }`}
                 >
@@ -891,7 +891,7 @@ export default function CustomOrderCheckoutPage({
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleFinalSubmit}
-                className="whitespace-nowrap shrink-0 px-8 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-[0_0_25px_rgba(57,255,20,0.35)] uppercase tracking-tight cursor-pointer disabled:opacity-50"
+                className="whitespace-nowrap shrink-0 px-8 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-md shadow-emerald-950/50 uppercase tracking-tight cursor-pointer disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
                 <span>

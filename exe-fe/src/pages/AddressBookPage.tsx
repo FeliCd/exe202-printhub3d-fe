@@ -157,7 +157,7 @@ export default function AddressBookPage() {
 
       {/* Form thêm địa chỉ mới */}
       {isAdding && (
-        <div className="p-6 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/40 shadow-2xl space-y-5 animate-in fade-in duration-200 relative overflow-hidden">
+        <div className="p-6 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/40 shadow-lg space-y-5 animate-in fade-in duration-200 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2 text-white font-bold text-sm font-mono">

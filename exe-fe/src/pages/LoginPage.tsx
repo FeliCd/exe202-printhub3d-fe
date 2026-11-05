@@ -245,7 +245,7 @@ export default function LoginPage() {
       {/* Forgot Password Modal with OTP Flow */}
       {showForgotModal && (
         <Modal open={showForgotModal} onClose={() => setShowForgotModal(false)} label="Quên mật khẩu">
-          <div className="bg-[#0a0c12] border border-[#1e2433] rounded-3xl p-6 sm:p-7 max-w-md w-full text-xs space-y-4 shadow-2xl relative text-[#F1F5F9]">
+          <div className="bg-[#0a0c12] border border-[#1e2433] rounded-3xl p-6 sm:p-7 max-w-md w-full text-xs space-y-4 shadow-lg relative text-[#F1F5F9]">
             <button
               aria-label="Đóng"
               onClick={() => setShowForgotModal(false)}

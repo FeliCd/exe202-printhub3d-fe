@@ -173,7 +173,7 @@ function ProfilePageContent() {
                 </span>
               </div>
               <div className="flex items-baseline gap-2 pt-1">
-                <span className="text-3xl font-black text-white font-mono drop-shadow-[0_0_12px_rgba(57,255,20,0.3)]">
+                <span className="text-3xl font-black text-white font-mono ">
                   {(user?.rewardPoints ?? 0).toLocaleString()}
                 </span>
                 <span className="text-xs font-bold text-[#39FF14] font-mono">PrintHub Xu</span>
@@ -221,7 +221,7 @@ function ProfilePageContent() {
       </div>
 
       {/* Thông Tin Cá Nhân: VIEW MODE / EDIT MODE */}
-      <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-5 shadow-2xl relative overflow-hidden">
+      <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-5 shadow-lg relative overflow-hidden">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
@@ -342,7 +342,7 @@ function ProfilePageContent() {
       </div>
 
       {/* Địa Chỉ Nhận Hàng Mặc Định & Chuyển Đổi Địa Chỉ Đã Lưu */}
-      <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-4 shadow-2xl relative overflow-hidden">
+      <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-4 shadow-lg relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">

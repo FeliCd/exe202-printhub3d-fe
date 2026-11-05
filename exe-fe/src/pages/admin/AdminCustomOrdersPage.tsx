@@ -404,7 +404,7 @@ export default function AdminCustomOrdersPage() {
             onClick={() => setFilter('ALL')}
             aria-pressed={filter === 'ALL'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 cursor-pointer ${
-              filter === 'ALL' ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_12px_rgba(57,255,20,0.3)]' : 'text-slate-400 hover:text-white'
+              filter === 'ALL' ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50' : 'text-slate-400 hover:text-white'
             }`}
           >
             Tất cả ({orders.length})
@@ -413,7 +413,7 @@ export default function AdminCustomOrdersPage() {
             onClick={() => setFilter('REQUESTED')}
             aria-pressed={filter === 'REQUESTED'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
-              filter === 'REQUESTED' ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_12px_rgba(255,145,0,0.3)]' : 'text-slate-400 hover:text-white'
+              filter === 'REQUESTED' ? 'bg-[#ff9100] text-[#040508] shadow-md shadow-amber-950/50' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -423,7 +423,7 @@ export default function AdminCustomOrdersPage() {
             onClick={() => setFilter('QUOTED')}
             aria-pressed={filter === 'QUOTED'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
-              filter === 'QUOTED' ? 'bg-[#00e5ff] text-[#040508] shadow-[0_0_12px_rgba(0,229,255,0.3)]' : 'text-slate-400 hover:text-white'
+              filter === 'QUOTED' ? 'bg-[#00e5ff] text-[#040508] shadow-md shadow-cyan-950/50' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Send className="w-3.5 h-3.5" />
@@ -433,7 +433,7 @@ export default function AdminCustomOrdersPage() {
             onClick={() => setFilter('ACCEPTED')}
             aria-pressed={filter === 'ACCEPTED'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
-              filter === 'ACCEPTED' ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_12px_rgba(57,255,20,0.3)]' : 'text-slate-400 hover:text-white'
+              filter === 'ACCEPTED' ? 'bg-[#39FF14] text-[#040508] shadow-md shadow-emerald-950/50' : 'text-slate-400 hover:text-white'
             }`}
           >
             <CheckCircle className="w-3.5 h-3.5" />
@@ -474,7 +474,7 @@ export default function AdminCustomOrdersPage() {
             const isAccepted = ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED'].includes(o.status);
 
             return (
-              <article key={o.id} aria-labelledby={`custom-order-${o.id}`} className="min-w-0 p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all space-y-4 text-sm shadow-2xl relative overflow-hidden">
+              <article key={o.id} aria-labelledby={`custom-order-${o.id}`} className="min-w-0 p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all space-y-4 text-sm shadow-lg relative overflow-hidden">
                 {/* Header row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1e2433] pb-3.5">
                   <div className="flex flex-wrap items-center gap-3">
@@ -488,17 +488,17 @@ export default function AdminCustomOrdersPage() {
                   {/* Status Badge */}
                   <div>
                     {isPendingQuote && (
-                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#ff9100]/15 text-[#ff9100] border border-[#ff9100]/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(255,145,0,0.15)]">
+                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#ff9100]/15 text-[#ff9100] border border-[#ff9100]/30 inline-flex items-center gap-1.5 shadow-md shadow-amber-950/50">
                         <Clock className="w-3.5 h-3.5" /> CHỜ THẨM ĐỊNH BÁO GIÁ
                       </span>
                     )}
                     {isQuoted && (
-                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
+                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 inline-flex items-center gap-1.5 shadow-md shadow-cyan-950/50">
                         <Send className="w-3.5 h-3.5" /> ĐÃ GỬI BÁO GIÁ ({formatPrice(o.quotedPrice || 0)}đ)
                       </span>
                     )}
                     {isAccepted && (
-                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
+                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/30 inline-flex items-center gap-1.5 shadow-md shadow-emerald-950/50">
                         <CheckCircle className="w-3.5 h-3.5" /> KHÁCH ĐÃ CHỐT ĐƠN ({o.status})
                       </span>
                     )}
@@ -614,7 +614,7 @@ export default function AdminCustomOrdersPage() {
                       className={`px-4 py-2.5 rounded-xl font-mono font-bold text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0 ${
                         isAccepted
                           ? 'bg-[#11141e] border border-[#1e2433] text-slate-300 hover:text-white'
-                          : 'bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black shadow-[0_0_15px_rgba(57,255,20,0.3)]'
+                          : 'bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black shadow-md shadow-emerald-950/50'
                       }`}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
@@ -631,7 +631,7 @@ export default function AdminCustomOrdersPage() {
       {/* Quote Modal */}
       <Modal open={quoteModalOpen && !!selectedOrder} onClose={() => setQuoteModalOpen(false)} label="Báo Giá Yêu Cầu In 3D">
         {selectedOrder && (
-          <div className="w-full max-w-md bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 rounded-2xl p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto relative">
+          <div className="w-full max-w-md bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 rounded-2xl p-6 shadow-lg space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
             <div className="flex items-center justify-between border-b border-[#1e2433] pb-3.5 shrink-0">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
@@ -706,7 +706,7 @@ export default function AdminCustomOrdersPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 min-h-[38px] rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(57,255,20,0.3)] flex items-center gap-1.5 justify-center transition cursor-pointer whitespace-nowrap shrink-0"
+                  className="px-5 py-2.5 min-h-[38px] rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-950/50 flex items-center gap-1.5 justify-center transition cursor-pointer whitespace-nowrap shrink-0"
                 >
                   {submitting && <RotateCcw className="w-3.5 h-3.5 animate-spin" />}
                   <span>XÁC NHẬN BÁO GIÁ</span>

@@ -235,7 +235,7 @@ export default function AdminCommandPalette({ open, onClose }: AdminCommandPalet
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
             transition={{ duration: 0.16, ease: 'easeOut' }}
-            className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-slate-700/60 bg-surface-raised shadow-2xl z-10 text-slate-100 flex flex-col max-h-[70vh]"
+            className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-slate-700/60 bg-surface-raised shadow-xl shadow-black/60 z-10 text-slate-100 flex flex-col max-h-[70vh]"
           >
             {/* Search Header */}
             <div className="flex items-center gap-3 border-b border-border px-4 py-3.5 bg-surface">

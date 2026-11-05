@@ -183,7 +183,7 @@ export default function ChangePasswordModal({
       className="!w-full !max-w-lg"
     >
       <div
-        className="w-full rounded-2xl bg-[#0f0f12] border border-border/90 shadow-2xl overflow-hidden space-y-0 max-h-[calc(100dvh-2rem)] flex flex-col"
+        className="w-full rounded-2xl bg-[#0f0f12] border border-border/90 shadow-xl shadow-black/60 overflow-hidden space-y-0 max-h-[calc(100dvh-2rem)] flex flex-col"
       >
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between bg-surface shrink-0">

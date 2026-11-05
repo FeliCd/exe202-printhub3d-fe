@@ -23,11 +23,11 @@ export default function BulkOrderPage() {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/50 flex items-center gap-3 shadow-[0_0_25px_rgba(57,255,20,0.15)] group relative overflow-hidden">
+        <div className="p-4 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/50 flex items-center gap-3 shadow-md shadow-emerald-950/50 group relative overflow-hidden">
           <div className="absolute top-0 right-0 px-2 py-0.5 bg-[#39FF14]/20 border-b border-l border-[#39FF14]/40 text-[9px] font-bold text-[#39FF14] uppercase">
             POPULAR
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#39FF14]/20 border border-[#39FF14]/60 flex items-center justify-center text-[#39FF14] font-black shrink-0 shadow-[0_0_15px_rgba(57,255,20,0.3)]">
+          <div className="w-10 h-10 rounded-xl bg-[#39FF14]/20 border border-[#39FF14]/60 flex items-center justify-center text-[#39FF14] font-black shrink-0 shadow-md shadow-emerald-950/50">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
@@ -36,7 +36,7 @@ export default function BulkOrderPage() {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#0a0c12] border border-[#ff9100]/40 flex items-center gap-3 shadow-[0_0_20px_rgba(255,145,0,0.1)] group">
+        <div className="p-4 rounded-2xl bg-[#0a0c12] border border-[#ff9100]/40 flex items-center gap-3 shadow-md shadow-amber-950/50 group">
           <div className="w-10 h-10 rounded-xl bg-[#ff9100]/15 border border-[#ff9100]/40 flex items-center justify-center text-[#ff9100] font-black shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>

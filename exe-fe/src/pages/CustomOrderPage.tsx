@@ -114,7 +114,7 @@ export default function CustomOrderPage({
     <section
       lang={language}
       aria-labelledby="custom-print-title"
-      className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#040508] shadow-2xl [&>.ruler-studio]:border-0 [&>.ruler-studio]:rounded-none"
+      className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#040508] shadow-lg [&>.ruler-studio]:border-0 [&>.ruler-studio]:rounded-none"
     >
       {tab !== 'design' && headerControls}
       {tab === 'design' && (

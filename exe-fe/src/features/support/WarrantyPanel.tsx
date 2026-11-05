@@ -115,7 +115,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* CỘT TRÁI: FORM GỬI YÊU CẦU BẢO HÀNH (Chỉ cho Buyer) */}
         {!admin && (
-          <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-5 shadow-2xl relative overflow-hidden">
+          <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-5 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
             <div className="border-b border-white/10 pb-3">
               <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">

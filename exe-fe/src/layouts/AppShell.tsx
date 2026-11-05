@@ -47,7 +47,7 @@ export default function AppShell({ cartCount, onOpenCart, sidebar, children }: A
           <button type="button" onClick={() => setMobileOpen(false)} className="flex items-center justify-end gap-2 p-3 border-b border-border text-slate-200">
             Đóng menu <X size={20} />
           </button>
-          <div className="min-h-0 flex-1 mobile-sidebar" onClick={(event) => {
+          <div className="min-h-0 flex-1 mobile-sidebar" role="presentation" onClick={(event) => {
             if (event.target instanceof Element && event.target.closest('a[href]')) setMobileOpen(false);
           }}>{sidebar}</div>
         </div>
