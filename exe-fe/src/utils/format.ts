@@ -1,3 +1,5 @@
+import stickerIconsData from '../features/ruler-studio/sticker-icons.json' with { type: 'json' };
+
 /**
  * Format a number as Vietnamese currency string.
  * @example formatPrice(45000) => "45.000"
@@ -152,18 +154,77 @@ export function formatRulerType(id?: string) {
   }
 }
 
-export function formatStickerLabel(text: string) {
+const basicSymbolsMap: Record<string, string> = {
+  '⚙': '⚙️ Bánh răng kỹ thuật',
+  '⌘': '⌘ Phím Command kỹ thuật',
+  '✎': '✎ Bút chì sinh viên',
+  '★': '⭐ Ngôi sao',
+  '♥': '❤️ Trái tim',
+  '✿': '🌸 Bông hoa',
+  '⚡': '⚡ Tia chớp',
+  '☺': '😊 Mặt cười',
+};
+
+const emojiMap: Record<string, string> = {
+  Heart: '❤️',
+  Star: '⭐',
+  Sun: '☀️',
+  Moon: '🌙',
+  Cloud: '☁️',
+  Zap: '⚡',
+  Flame: '🔥',
+  Snowflake: '❄️',
+  Flower2: '🌸',
+  Leaf: '🍃',
+  Trees: '🌲',
+  Mountain: '⛰️',
+  Cat: '🐱',
+  Dog: '🐶',
+  Bird: '🐦',
+  Fish: '🐟',
+  Smile: '😊',
+  Shield: '🛡️',
+  Sparkles: '✨',
+  Compass: '🧭',
+  Cpu: '💻',
+  Wrench: '🔧',
+  Hammer: '🔨',
+  Cog: '⚙️',
+  Rocket: '🚀',
+  Plane: '✈️',
+  Car: '🚗',
+  Bike: '🚲',
+  Anchor: '⚓',
+  Music: '🎵',
+  Camera: '📷',
+  Book: '📖',
+  GraduationCap: '🎓',
+  Trophy: '🏆',
+  Crown: '👑',
+  Gem: '💎',
+  Bell: '🔔',
+  Clock: '⏰',
+  CompassIcon: '🧭',
+  Target: '🎯',
+  Flag: '🚩',
+  Gift: '🎁',
+  Coffee: '☕',
+};
+
+export function formatStickerLabel(text: string): string {
+  if (!text) return 'Biểu tượng';
+  if (basicSymbolsMap[text]) return basicSymbolsMap[text];
+
   const clean = text.replace(/^lucide:/, '');
-  const map: Record<string, string> = {
-    Star: '⭐ Ngôi sao',
-    Heart: '❤️ Trái tim',
-    Sun: '☀️ Mặt trời',
-    Moon: '🌙 Mặt trăng',
-    Smile: '😊 Mặt cười',
-    Shield: '🛡️ Khiên bảo hộ',
-    Flame: '🔥 Ngọn lửa',
-    Zap: '⚡ Tia sét',
-    Sparkles: '✨ Lấp lánh',
-  };
-  return map[clean] || `Biểu tượng (${clean})`;
+  const emoji = emojiMap[clean] ? `${emojiMap[clean]} ` : '';
+
+  const matched = (stickerIconsData as Array<{ id: string; name: string; vi: string }>).find(
+    (item) => item.id === text || item.id === `lucide:${clean}` || item.name.toLowerCase() === clean.toLowerCase()
+  );
+
+  if (matched) {
+    return `${emoji}${matched.vi}`;
+  }
+
+  return `${emoji}${clean}`;
 }
