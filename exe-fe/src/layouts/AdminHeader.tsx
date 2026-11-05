@@ -43,7 +43,7 @@ export default function AdminHeader({
             <Search className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
             <span className="truncate">Tìm trang, đơn hàng, tác vụ nhanh...</span>
           </div>
-          <kbd className="hidden md:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-surface-inset border border-border text-[10px] font-mono font-semibold text-slate-400">
+          <kbd className="hidden md:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-surface-inset border border-border text-xs font-mono font-semibold text-slate-400">
             Ctrl K
           </kbd>
         </button>
@@ -79,7 +79,7 @@ export default function AdminHeader({
             <p className="text-xs font-bold text-white truncate max-w-[130px]">
               {user?.name || 'Quản trị viên'}
             </p>
-            <p className="text-[10px] text-emerald-400 font-semibold">Toàn quyền</p>
+            <p className="text-xs text-emerald-400 font-semibold">Toàn quyền</p>
           </div>
         </div>
       </div>

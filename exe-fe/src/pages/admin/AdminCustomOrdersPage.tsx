@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FileEdit, Search, Download, Eye, Send, CheckCircle, Clock, RotateCcw, X, Sparkles } from 'lucide-react';
-import api, { get, send } from '../../services/api';
+import api, { send, unwrap } from '../../services/api';
 import { formatPrice } from '../../utils/format';
 import { PageHeader } from '../../components/DataUI';
 import Modal from '../../components/Modal';
@@ -21,6 +21,11 @@ interface CustomOrderItem {
   paymentMethod?: string;
   shippingAddress?: string;
   createdAt: string;
+}
+
+async function loadCustomOrders(signal?: AbortSignal) {
+  const res = await api.get<CustomOrderItem[] | { result: CustomOrderItem[] }>('/admin/custom-orders', { signal });
+  return unwrap<CustomOrderItem[]>(res.data);
 }
 
 function formatRulerType(id?: string) {
@@ -105,76 +110,77 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
   // Fallback if not JSON or plain text note
   if (!parsed || typeof parsed !== 'object') {
     return (
-      <div className="p-3.5 rounded-xl bg-[#040508] text-slate-300 text-xs space-y-1 border border-[#1e2433]">
-        <span className="font-bold text-[#39FF14] font-mono text-[11px] uppercase tracking-wide">
-          YÊU CẦU GIA CÔNG TỪ SINH VIÊN:
-        </span>
-        <p className="leading-relaxed font-sans">{requirements}</p>
+      <div className="p-4 rounded-xl bg-[#040508] text-slate-300 text-sm space-y-2 border border-[#1e2433]">
+        <h3 className="font-bold text-[#39FF14] text-sm">
+          Yêu cầu gia công từ sinh viên
+        </h3>
+        <p className="max-w-[70ch] whitespace-pre-wrap break-words leading-relaxed">{requirements}</p>
       </div>
     );
   }
 
   return (
-    <div className="p-4 rounded-xl bg-[#040508] border border-[#1e2433] space-y-3.5 text-xs font-mono">
+    <div className="min-w-0 p-4 rounded-xl bg-[#040508] border border-[#1e2433] space-y-4 text-sm">
       {/* Title bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1e2433] pb-2.5">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse" />
-          <span className="font-bold text-white uppercase tracking-wide">
-            CẤU HÌNH THƯỚC ĐẶT IN: <span className="text-[#39FF14]">{parsed.name || formatRulerType(parsed.rulerId)}</span>
-          </span>
+        <div className="flex min-w-0 items-center gap-2">
+          <span aria-hidden="true" className="w-2 h-2 shrink-0 rounded-full bg-[#39FF14]" />
+          <h3 className="font-bold text-white break-words">
+            Cấu hình thước đặt in: <span className="text-[#39FF14]">{parsed.name || formatRulerType(parsed.rulerId)}</span>
+          </h3>
         </div>
         <button
           type="button"
           onClick={() => setShowRaw(!showRaw)}
-          className="text-[11px] text-slate-400 hover:text-[#00e5ff] flex items-center gap-1 transition cursor-pointer"
+          aria-expanded={showRaw}
+          className="text-xs text-slate-300 hover:text-[#00e5ff] flex items-center gap-1 transition cursor-pointer"
         >
           {showRaw ? 'Ẩn mã JSON' : 'Xem mã JSON thô'}
         </button>
       </div>
 
       {/* Grid Specs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      <dl className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         {/* Loại thước */}
         <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block">Kiểu Thước:</span>
-          <span className="font-bold text-white text-xs truncate block">{formatRulerType(parsed.rulerId)}</span>
+          <dt className="text-xs text-slate-400">Kiểu thước</dt>
+          <dd className="font-semibold text-white break-words">{formatRulerType(parsed.rulerId)}</dd>
         </div>
 
         {/* Kích thước */}
         <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block">Chiều Dài / Đo:</span>
-          <span className="font-bold text-[#00e5ff] text-xs">
+          <dt className="text-xs text-slate-400">Chiều dài / đo</dt>
+          <dd className="font-semibold text-[#00e5ff]">
             {parsed.length ? `${parsed.length} cm` : 'Tiêu chuẩn'} {parsed.angle ? `• ${parsed.angle}°` : ''}
-          </span>
+          </dd>
         </div>
 
         {/* Vật liệu & Infill */}
         <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block">Vật Liệu &amp; Infill:</span>
-          <span className="font-bold text-[#ff9100] text-xs">
+          <dt className="text-xs text-slate-400">Vật liệu &amp; infill</dt>
+          <dd className="font-semibold text-[#ff9100]">
             {parsed.material || 'PLA'} • {parsed.infill ?? 30}% Infill
-          </span>
+          </dd>
         </div>
 
         {/* Màu phôi thước */}
         <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase block">Màu Phôi Thước:</span>
-          <div className="flex items-center gap-1.5 font-bold text-white text-xs">
+          <dt className="text-xs text-slate-400">Màu phôi thước</dt>
+          <dd className="flex items-center gap-1.5 font-semibold text-white">
             {parsed.color && (
               <span
                 className="w-3.5 h-3.5 rounded border border-white/20 shrink-0 inline-block"
                 style={{ backgroundColor: parsed.color }}
               />
             )}
-            <span className="truncate">{parsed.color || 'Mặc định'}</span>
-          </div>
+            <span className="break-words">{parsed.color || 'Mặc định'}</span>
+          </dd>
         </div>
-      </div>
+      </dl>
 
       {/* Thông số khắc vạch & Tag phụ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-        <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] flex items-center justify-between text-[11px]">
+        <div className="p-3 rounded-lg bg-[#0a0c12] border border-[#1e2433] flex flex-wrap items-center justify-between gap-2">
           <span className="text-slate-400">Kiểu khắc vạch chia:</span>
           <span className="font-bold text-white bg-[#11141e] px-2 py-0.5 rounded border border-[#1e2433]">
             {parsed.markingsMode === 'engraved' ? 'Khắc Chìm (Engraved)' : 'Khắc Nổi (Raised)'}
@@ -182,7 +188,7 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
           </span>
         </div>
 
-        <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] flex items-center justify-between text-[11px]">
+        <div className="p-3 rounded-lg bg-[#0a0c12] border border-[#1e2433] flex flex-wrap items-center justify-between gap-2">
           <span className="text-slate-400">Hệ đo lường &amp; Tỉ lệ:</span>
           <span className="font-bold text-[#39FF14] bg-[#11141e] px-2 py-0.5 rounded border border-[#1e2433]">
             {parsed.measurementSystem === 'metric' ? 'Hệ Mét (mm/cm)' : 'Hệ Inch'} • Tỉ lệ {parsed.scaleId || '1:1'}
@@ -193,11 +199,11 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
       {/* Thẻ phụ / Huy hiệu (Tag) nếu có */}
       {parsed.tag?.enabled && (
         <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] space-y-1.5">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-slate-400 uppercase font-bold text-[10px]">Thẻ Khắc Tên Phụ (Sub-Badge):</span>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-slate-300 font-semibold text-sm">Thẻ khắc tên phụ (Sub-Badge)</span>
             <span className="text-[#00e5ff] font-bold">Hình dáng: {parsed.tag.shape || 'Badge'}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="text-white">
               Nội dung: <strong className="text-[#39FF14]">"{parsed.tag.text}"</strong>
             </span>
@@ -218,14 +224,14 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
       {/* Lớp trang trí (Layers: Text / Stickers) */}
       {parsed.layers && parsed.layers.length > 0 && (
         <div className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] space-y-2">
-          <span className="text-[10px] text-slate-400 uppercase font-bold block">
-            Chi Tiết Chữ &amp; Biểu Tượng Khắc ({parsed.layers.length} phần tử):
+          <span className="text-sm text-slate-300 font-semibold block">
+            Chi tiết chữ &amp; biểu tượng khắc ({parsed.layers.length} phần tử)
           </span>
           <div className="flex flex-wrap gap-2">
             {parsed.layers.map((layer, idx) => (
               <span
                 key={layer.id || idx}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#11141e] border border-[#1e2433] text-[11px] text-slate-200"
+                className="inline-flex max-w-full flex-wrap items-center gap-1.5 px-3 py-2 rounded-md bg-[#11141e] border border-[#1e2433] text-sm text-slate-200 break-words"
               >
                 {layer.kind === 'sticker' ? (
                   <span className="text-amber-400 font-bold">{formatStickerLabel(layer.text || '')}</span>
@@ -233,10 +239,10 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
                   <>
                     <span className="text-slate-400">Chữ:</span>
                     <strong className="text-[#39FF14]">"{layer.text}"</strong>
-                    <span className="text-[10px] text-slate-500">({layer.font})</span>
+                    <span className="text-xs text-slate-400">({layer.font})</span>
                   </>
                 )}
-                <span className="text-[10px] text-[#00e5ff]">
+                <span className="text-xs text-[#00e5ff]">
                   {layer.mode === 'raised' ? 'Nổi' : 'Chìm'} {layer.depth}mm
                 </span>
               </span>
@@ -247,9 +253,9 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
 
       {/* Raw JSON collapse */}
       {showRaw && (
-        <div className="p-3 rounded-lg bg-[#020305] border border-[#1e2433] text-[10px] text-slate-400 overflow-x-auto whitespace-pre font-mono">
+        <pre aria-label="Cấu hình thiết kế dạng JSON" className="max-w-full p-3 rounded-lg bg-[#020305] border border-[#1e2433] text-xs text-slate-300 overflow-x-auto font-mono">
           {JSON.stringify(parsed, null, 2)}
-        </div>
+        </pre>
       )}
     </div>
   );
@@ -303,8 +309,7 @@ export default function AdminCustomOrdersPage() {
   const fetchCustomOrders = async () => {
     setLoading(true);
     try {
-      const res = await get('/admin/custom-orders');
-      const data = (res.data as any)?.result || res.data;
+      const data = await loadCustomOrders();
       if (Array.isArray(data)) {
         setOrders(data);
       }
@@ -316,7 +321,18 @@ export default function AdminCustomOrdersPage() {
   };
 
   useEffect(() => {
-    fetchCustomOrders();
+    const controller = new AbortController();
+    loadCustomOrders(controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted && Array.isArray(data)) setOrders(data);
+      })
+      .catch((err: unknown) => {
+        if (!controller.signal.aborted) console.error('Lỗi tải danh sách đơn custom:', err);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
   }, []);
 
   const openQuoteModal = (order: CustomOrderItem) => {
@@ -333,7 +349,7 @@ export default function AdminCustomOrdersPage() {
     try {
       await send(`/admin/custom-orders/${selectedOrder.id}/quote`, { price: Number(priceInput) }, 'put');
       setQuoteModalOpen(false);
-      fetchCustomOrders();
+      void fetchCustomOrders();
     } catch (err) {
       console.error('Lỗi gửi báo giá:', err);
       alert('Không thể gửi báo giá. Vui lòng thử lại.');
@@ -361,75 +377,81 @@ export default function AdminCustomOrdersPage() {
   });
 
   return (
-    <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
+    <div className="min-w-0 space-y-6 w-full max-w-6xl mx-auto pb-12">
       <PageHeader
-        title="BÁO GIÁ ĐƠN IN THEO YÊU CẦU &amp; GIA CÔNG CAD (ADMIN)"
+        title="Báo giá đơn in theo yêu cầu &amp; gia công CAD"
         description="Tiếp nhận yêu cầu in thước 3D cá nhân hóa, thẩm định độ phân giải lớp in STL/CAD và gửi báo giá cho sinh viên."
+        className="[&_p]:max-w-[70ch] [&_p]:text-sm"
         badge={`${orders.length} yêu cầu`}
         icon={FileEdit}
         actions={
           <button
-            onClick={fetchCustomOrders}
+            onClick={() => { void fetchCustomOrders(); }}
             disabled={loading}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14] text-slate-300 hover:text-[#39FF14] text-xs font-mono font-bold transition shadow-sm cursor-pointer whitespace-nowrap shrink-0"
           >
             <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#39FF14]' : ''}`} />
-            <span>LÀM MỚI DANH SÁCH</span>
+            <span>Làm mới danh sách</span>
           </button>
         }
       />
 
       {/* Filter Tabs & Search */}
-      <div className="p-4 rounded-2xl bg-[#0a0c12] border border-[#1e2433] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 text-xs shadow-xl relative overflow-hidden">
+      <div className="min-w-0 p-4 rounded-2xl bg-[#0a0c12] border border-[#1e2433] flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 text-xs shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
-        <div className="flex items-center gap-1.5 p-1 bg-[#040508] rounded-xl border border-[#1e2433] overflow-x-auto">
+        <div role="group" aria-label="Lọc đơn in theo trạng thái" className="flex min-w-0 items-center gap-1.5 p-1 bg-[#040508] rounded-xl border border-[#1e2433] overflow-x-auto">
           <button
             onClick={() => setFilter('ALL')}
+            aria-pressed={filter === 'ALL'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 cursor-pointer ${
               filter === 'ALL' ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_12px_rgba(57,255,20,0.3)]' : 'text-slate-400 hover:text-white'
             }`}
           >
-            TẤT CẢ ({orders.length})
+            Tất cả ({orders.length})
           </button>
           <button
             onClick={() => setFilter('REQUESTED')}
+            aria-pressed={filter === 'REQUESTED'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
               filter === 'REQUESTED' ? 'bg-[#ff9100] text-[#040508] shadow-[0_0_12px_rgba(255,145,0,0.3)]' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            CHỜ BÁO GIÁ ({orders.filter((o) => o.status === 'REQUESTED').length})
+            Chờ báo giá ({orders.filter((o) => o.status === 'REQUESTED').length})
           </button>
           <button
             onClick={() => setFilter('QUOTED')}
+            aria-pressed={filter === 'QUOTED'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
               filter === 'QUOTED' ? 'bg-[#00e5ff] text-[#040508] shadow-[0_0_12px_rgba(0,229,255,0.3)]' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Send className="w-3.5 h-3.5" />
-            ĐÃ BÁO GIÁ ({orders.filter((o) => o.status === 'QUOTED').length})
+            Đã báo giá ({orders.filter((o) => o.status === 'QUOTED').length})
           </button>
           <button
             onClick={() => setFilter('ACCEPTED')}
+            aria-pressed={filter === 'ACCEPTED'}
             className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
               filter === 'ACCEPTED' ? 'bg-[#39FF14] text-[#040508] shadow-[0_0_12px_rgba(57,255,20,0.3)]' : 'text-slate-400 hover:text-white'
             }`}
           >
             <CheckCircle className="w-3.5 h-3.5" />
-            ĐANG SẢN XUẤT (
+            Đang sản xuất (
             {orders.filter((o) => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED'].includes(o.status)).length}
             )
           </button>
         </div>
 
-        <div className="relative flex-1 max-w-xs">
+        <div className="relative w-full xl:flex-1 xl:max-w-xs">
           <Search className="w-4 h-4 absolute left-3.5 top-2.5 text-slate-500" />
           <input
             type="text"
+            aria-label="Tìm đơn in theo tên khách hàng, mã số sinh viên hoặc mã đơn"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm theo tên khách, MSSV, mã đơn..."
-            className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] font-mono"
+            className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-9 pr-3.5 py-2 text-sm text-white placeholder-slate-400 outline-none focus:border-[#39FF14]"
           />
         </div>
       </div>
@@ -452,31 +474,31 @@ export default function AdminCustomOrdersPage() {
             const isAccepted = ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED'].includes(o.status);
 
             return (
-              <div key={o.id} className="p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all space-y-4 text-xs shadow-2xl relative overflow-hidden">
+              <article key={o.id} aria-labelledby={`custom-order-${o.id}`} className="min-w-0 p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all space-y-4 text-sm shadow-2xl relative overflow-hidden">
                 {/* Header row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1e2433] pb-3.5">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-mono text-[#39FF14] font-bold text-sm bg-[#39FF14]/10 px-2.5 py-0.5 rounded-lg border border-[#39FF14]/30">
+                    <h2 id={`custom-order-${o.id}`} className="font-mono text-[#39FF14] font-bold text-sm bg-[#39FF14]/10 px-2.5 py-0.5 rounded-lg border border-[#39FF14]/30">
                       #CUS-{o.id.substring(0, 8)}
-                    </span>
+                    </h2>
                     <span className="text-slate-400 font-mono">• Khách hàng: <strong className="text-white">{o.buyerName}</strong></span>
-                    <span className="text-slate-500 font-mono">• Thời gian: {new Date(o.createdAt).toLocaleDateString('vi-VN')}</span>
+                    <span className="text-slate-400 font-mono text-xs">• Thời gian: {new Date(o.createdAt).toLocaleDateString('vi-VN')}</span>
                   </div>
 
                   {/* Status Badge */}
                   <div>
                     {isPendingQuote && (
-                      <span className="px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#ff9100]/15 text-[#ff9100] border border-[#ff9100]/30 flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(255,145,0,0.15)]">
+                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#ff9100]/15 text-[#ff9100] border border-[#ff9100]/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(255,145,0,0.15)]">
                         <Clock className="w-3.5 h-3.5" /> CHỜ THẨM ĐỊNH BÁO GIÁ
                       </span>
                     )}
                     {isQuoted && (
-                      <span className="px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
+                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
                         <Send className="w-3.5 h-3.5" /> ĐÃ GỬI BÁO GIÁ ({formatPrice(o.quotedPrice || 0)}đ)
                       </span>
                     )}
                     {isAccepted && (
-                      <span className="px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/30 flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
+                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/30 inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(57,255,20,0.15)]">
                         <CheckCircle className="w-3.5 h-3.5" /> KHÁCH ĐÃ CHỐT ĐƠN ({o.status})
                       </span>
                     )}
@@ -484,28 +506,28 @@ export default function AdminCustomOrdersPage() {
                 </div>
 
                 {/* Details Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-xl bg-[#040508] border border-[#1e2433] font-mono">
+                <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-4 rounded-xl bg-[#040508] border border-[#1e2433]">
                   <div>
-                    <span className="text-slate-400 block text-xs">MẪU THƯỚC 3D:</span>
-                    <span className="font-bold text-white text-xs">{o.rulerModel || 'Thước Kỹ Thuật Tùy Chỉnh'}</span>
+                    <span className="text-slate-400 block text-xs">Mẫu thước 3D</span>
+                    <span className="font-semibold text-white break-words">{o.rulerModel || 'Thước Kỹ Thuật Tùy Chỉnh'}</span>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-xs">KHẮC TÊN &amp; MSSV:</span>
-                    <span className="font-bold text-[#39FF14] text-xs">
+                    <span className="text-slate-400 block text-xs">Khắc tên &amp; MSSV</span>
+                    <span className="font-semibold text-[#39FF14] break-words">
                       {o.customName || 'Không khắc'} {o.customStudentId ? `(${o.customStudentId})` : ''}
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-xs">VẬT LIỆU &amp; SỐ LƯỢNG:</span>
-                    <span className="font-semibold text-slate-200 text-xs">
+                    <span className="text-slate-400 block text-xs">Vật liệu &amp; số lượng</span>
+                    <span className="font-semibold text-slate-200">
                       Màu {o.color || 'Mặc định'} • Số lượng: <strong className="text-white">{o.quantity || 1}</strong>
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-xs">FILE THIẾT KẾ 3D / MINH HỌA:</span>
+                    <span className="text-slate-400 block text-xs">File thiết kế 3D / minh họa</span>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
                       {o.attachmentUrl && (o.attachmentUrl.toLowerCase().includes('.stl') || o.attachmentUrl.toLowerCase().includes('.step') || o.attachmentUrl.toLowerCase().includes('.stp') || o.attachmentUrl.toLowerCase().includes('.obj') || o.attachmentUrl.toLowerCase().includes('/raw/upload/')) ? (
                         <>
@@ -520,14 +542,14 @@ export default function AdminCustomOrdersPage() {
                           <button
                             type="button"
                             onClick={() => setPreviewOrder(o)}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
                           >
                             <Eye className="w-3 h-3 text-[#39FF14]" /> Xem chi tiết 3D
                           </button>
                         </>
                       ) : o.attachmentUrl && (o.attachmentUrl.toLowerCase().includes('.png') || o.attachmentUrl.toLowerCase().includes('.jpg') || o.attachmentUrl.toLowerCase().includes('.jpeg') || o.attachmentUrl.toLowerCase().includes('.webp') || o.attachmentUrl.toLowerCase().includes('/image/upload/') || o.attachmentUrl.startsWith('data:image/')) ? (
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <a
                               href={o.attachmentUrl}
                               target="_blank"
@@ -539,20 +561,20 @@ export default function AdminCustomOrdersPage() {
                             <button
                               type="button"
                               onClick={() => setPreviewOrder(o)}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
                             >
                               <Sparkles className="w-3 h-3 text-[#39FF14]" /> Thông số thiết kế
                             </button>
                           </div>
-                          <span className="block text-[10px] text-amber-400/80 italic">Đơn từ Studio: Xem thông số để duyệt & xuất file in</span>
+                          <span className="block text-xs text-amber-300 leading-relaxed">Đơn từ Studio: Xem thông số để duyệt &amp; xuất file in</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-500 italic text-xs">Mẫu thước kỹ thuật</span>
+                          <span className="text-slate-400 text-xs">Mẫu thước kỹ thuật</span>
                           <button
                             type="button"
                             onClick={() => setPreviewOrder(o)}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
                           >
                             <Eye className="w-3 h-3 text-[#39FF14]" /> Xem thông số
                           </button>
@@ -568,14 +590,14 @@ export default function AdminCustomOrdersPage() {
 
                 {/* Footer Action */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-[#1e2433]/70">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     {isAccepted ? (
-                      <p className="text-xs text-[#39FF14] font-semibold flex items-center gap-1.5 font-mono">
+                      <p className="max-w-[65ch] text-sm text-[#39FF14] font-semibold flex items-center gap-1.5 leading-relaxed">
                         <CheckCircle className="w-3.5 h-3.5 shrink-0" />
                         Đơn đã được khách xác nhận và tự động liên kết với hàng đợi máy in.
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-400 font-mono">
+                      <p className="max-w-[65ch] text-sm text-slate-400 leading-relaxed">
                         Sau khi khách hàng chấp nhận báo giá, lệnh in sẽ tự động chuyển vào hàng đợi xưởng.
                       </p>
                     )}
@@ -600,7 +622,7 @@ export default function AdminCustomOrdersPage() {
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })
         )}
@@ -612,10 +634,10 @@ export default function AdminCustomOrdersPage() {
           <div className="w-full max-w-md bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 rounded-2xl p-6 shadow-2xl space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
             <div className="flex items-center justify-between border-b border-[#1e2433] pb-3.5 shrink-0">
-              <h3 className="text-sm font-black text-white flex items-center gap-2 uppercase tracking-wide font-mono">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#39FF14]" />
-                BÁO GIÁ GIA CÔNG IN 3D
-              </h3>
+                Báo giá gia công in 3D
+              </h2>
               <button
                 type="button"
                 onClick={() => setQuoteModalOpen(false)}
@@ -626,16 +648,18 @@ export default function AdminCustomOrdersPage() {
               </button>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#040508] text-xs space-y-1.5 border border-[#1e2433] font-mono">
+            <div className="p-3.5 rounded-xl bg-[#040508] text-sm space-y-1.5 border border-[#1e2433]">
               <p className="text-white font-bold">{selectedOrder.rulerModel || 'Thước 3D Custom'}</p>
               <p className="text-slate-400">Khách hàng: <span className="text-white font-bold">{selectedOrder.buyerName}</span></p>
               <p className="text-slate-400">Khắc tên: <span className="text-[#39FF14] font-bold">{selectedOrder.customName || 'Không'}</span> • Số lượng: <strong className="text-white">{selectedOrder.quantity || 1}</strong></p>
             </div>
 
-            <form onSubmit={handleSendQuote} className="space-y-4 text-xs font-mono">
+            <form onSubmit={handleSendQuote} className="space-y-4 text-sm">
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-300">NHẬP GIÁ BÁO CHO KHÁCH (VNĐ) *</label>
+                <label htmlFor="custom-quote-price" className="font-semibold text-slate-300">Giá báo cho khách (VNĐ) *</label>
                 <input
+                  id="custom-quote-price"
+                  aria-describedby="custom-quote-price-help"
                   required
                   type="number"
                   min={1000}
@@ -645,15 +669,15 @@ export default function AdminCustomOrdersPage() {
                   placeholder="VD: 55000"
                   className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] font-mono text-sm"
                 />
-                <span className="text-[11px] text-slate-500 block">
+                <span id="custom-quote-price-help" className="text-xs text-slate-400 leading-relaxed block">
                   Giá này bao gồm vật liệu PLA Pro+, công in FDM độ mịn 0.16mm và khắc laser tên/MSSV.
                 </span>
               </div>
 
               {/* Fast presets */}
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 font-mono">GỢI Ý NHANH PHÂN KHÚC:</span>
-                <div className="grid grid-cols-3 gap-1.5">
+                <span className="text-xs text-slate-300">Gợi ý nhanh phân khúc</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     { label: 'Cơ bản', val: 35000 },
                     { label: 'Tiêu chuẩn', val: 55000 },
@@ -663,7 +687,7 @@ export default function AdminCustomOrdersPage() {
                       key={p.val}
                       type="button"
                       onClick={() => setPriceInput(String(p.val))}
-                      className="p-2 rounded-xl bg-[#11141e] hover:bg-[#1e2433] border border-[#1e2433] text-[10px] text-slate-300 hover:text-[#39FF14] transition font-bold cursor-pointer whitespace-nowrap shrink-0"
+                      className="p-2 rounded-xl bg-[#11141e] hover:bg-[#1e2433] border border-[#1e2433] text-xs text-slate-300 hover:text-[#39FF14] transition font-semibold cursor-pointer"
                     >
                       {p.label}: {p.val.toLocaleString()}đ
                     </button>
@@ -705,18 +729,19 @@ export default function AdminCustomOrdersPage() {
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#39FF14]" />
-                <h3 className="font-bold text-white text-base">Hồ Sơ Thiết Kế Kỹ Thuật 3D</h3>
+                <h2 className="font-bold text-white text-base">Hồ sơ thiết kế kỹ thuật 3D</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setPreviewOrder(null)}
+                aria-label="Đóng chi tiết thiết kế"
                 className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
                 <span className="text-slate-400 block font-mono">LOẠI MẪU:</span>
                 <span className="font-bold text-white">{previewOrder.rulerModel || 'Mẫu tùy chỉnh'}</span>
@@ -738,7 +763,7 @@ export default function AdminCustomOrdersPage() {
             {/* Preview image if available */}
             {previewOrder.attachmentUrl && (previewOrder.attachmentUrl.includes('.png') || previewOrder.attachmentUrl.includes('.jpg') || previewOrder.attachmentUrl.includes('/image/upload/')) && (
               <div className="p-3 rounded-xl bg-[#040508] border border-white/10 text-center space-y-2">
-                <span className="text-[11px] font-mono text-slate-400 block">ẢNH XEM TRƯỚC RENDER TỪ STUDIO:</span>
+                <span className="text-xs text-slate-400 block">Ảnh xem trước từ Studio</span>
                 <img
                   src={previewOrder.attachmentUrl}
                   alt="3D Preview"

@@ -55,7 +55,7 @@ export default function CartDrawer({
           <svg className="w-5 h-5 text-[#39FF14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
           </svg>
-          <h3 className="font-bold text-white text-base">Giỏ Hàng Của Bạn</h3>
+          <h2 className="font-bold text-white text-base">Giỏ Hàng Của Bạn</h2>
           <span className="text-xs bg-primary/20 text-[#39FF14] px-2 py-0.5 rounded-full font-bold">{totalItems} món</span>
         </div>
         <button aria-label="Đóng giỏ hàng" className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-[#272930] transition" onClick={onClose}>

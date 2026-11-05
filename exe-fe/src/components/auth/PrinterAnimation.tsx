@@ -8,15 +8,11 @@ interface PrinterAnimationProps {
 export const PrinterAnimation: React.FC<PrinterAnimationProps> = ({
   className = '',
 }) => {
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   // Tự động nhận diện chế độ giảm chuyển động của hệ điều hành
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) {
-      setIsPaused(true);
-    }
-
     const handler = (e: MediaQueryListEvent) => {
       setIsPaused(e.matches);
     };
@@ -28,21 +24,14 @@ export const PrinterAnimation: React.FC<PrinterAnimationProps> = ({
   return (
     <div
       className={`relative rounded-2xl bg-[#0D1116] border border-[#232B35] overflow-hidden flex flex-col justify-between select-none ${className}`}
-      role="img"
+      role="group"
       aria-label="Mô phỏng máy in 3D vận hành tại xưởng PrintHub 3D"
     >
       {/* Thanh Header mô phỏng máy in */}
       <div className="flex items-center justify-between px-4 py-3 bg-[#13181F]/90 border-b border-[#232B35] z-10">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-[#39FF14] opacity-75 ${
-                isPaused ? 'hidden' : ''
-              }`}
-            />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#39FF14]" />
-          </span>
-          <span className="text-[11px] font-mono tracking-wider font-bold text-slate-300 uppercase">
+          <span className="inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+          <span className="text-xs font-mono tracking-wide font-bold text-slate-300 uppercase">
             PRINTHUB CORE-XY // ONLINE
           </span>
         </div>
@@ -51,9 +40,10 @@ export const PrinterAnimation: React.FC<PrinterAnimationProps> = ({
         <button
           type="button"
           onClick={() => setIsPaused((prev) => !prev)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1B222C] hover:bg-[#252E3A] border border-[#2E3845] text-slate-400 hover:text-white text-[11px] font-medium transition cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1B222C] hover:bg-[#252E3A] border border-[#2E3845] text-slate-400 hover:text-white text-xs font-medium transition cursor-pointer"
           title={isPaused ? 'Tiếp tục chuyển động' : 'Tạm dừng chuyển động'}
           aria-label={isPaused ? 'Tiếp tục chuyển động' : 'Tạm dừng chuyển động'}
+          aria-pressed={isPaused}
         >
           {isPaused ? (
             <>
@@ -76,7 +66,7 @@ export const PrinterAnimation: React.FC<PrinterAnimationProps> = ({
           className="absolute inset-0 opacity-15"
           style={{
             backgroundImage:
-              'linear-gradient(to right, #39FF14 1px, transparent 1px), linear-gradient(to bottom, #39FF14 1px, transparent 1px)',
+              'linear-gradient(to right, rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.08) 1px, transparent 1px)',
             backgroundSize: '24px 24px',
           }}
         />
@@ -87,6 +77,8 @@ export const PrinterAnimation: React.FC<PrinterAnimationProps> = ({
         {/* Khung máy in 3D */}
         <div className="relative w-full max-w-[360px] h-[220px] sm:h-[250px] flex items-center justify-center">
           <svg
+            aria-hidden="true"
+            focusable="false"
             viewBox="0 0 400 280"
             className="w-full h-full drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]"
             fill="none"

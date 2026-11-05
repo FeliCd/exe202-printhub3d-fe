@@ -136,7 +136,7 @@ export default function LoginPage() {
     <AuthLayout
       title="Đăng Nhập Tài Khoản"
       subtitle="Đăng nhập để đặt in 3D, tùy biến thước đo kỹ thuật và theo dõi tiến độ đơn hàng."
-      badgeText="XƯỞNG CHẾ TÁC 3D // TRUY CẬP HỆ THỐNG"
+      badgeText="Xưởng chế tác 3D // Truy cập hệ thống"
       footerLink={{
         prompt: 'Chưa có tài khoản PrintHub?',
         actionText: 'Tạo tài khoản mới ngay',
@@ -145,7 +145,7 @@ export default function LoginPage() {
     >
       {/* Notice nếu có redirect từ đơn hàng */}
       {redirectPath && (
-        <div className="p-3 rounded-xl bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs font-medium flex items-center gap-2">
+        <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-2">
           <KeyRound className="w-4 h-4 shrink-0" />
           <span>Vui lòng đăng nhập để tiếp tục thao tác đơn hàng của bạn.</span>
         </div>
@@ -153,16 +153,16 @@ export default function LoginPage() {
 
       {/* Thông báo lỗi đăng nhập */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2 animate-in fade-in">
+        <div id="login-error" role="alert" className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-sm flex items-center gap-2 animate-in fade-in">
           <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+      <form onSubmit={handleSubmit} aria-busy={isLoading} aria-describedby={errorMsg ? 'login-error' : undefined} className="space-y-4 pt-1">
         {/* Trường 1: Email hoặc Tên đăng nhập */}
         <div className="space-y-1.5">
-          <label htmlFor="login-username" className="text-xs font-bold text-slate-300 block">
+          <label htmlFor="login-username" className="text-sm font-semibold text-slate-300 block">
             Email hoặc Tên đăng nhập
           </label>
           <div className="relative">
@@ -177,7 +177,7 @@ export default function LoginPage() {
               value={userNameOrEmail}
               onChange={(e) => setUserNameOrEmail(e.target.value)}
               placeholder="tennguoidung hoặc email@domain.com"
-              className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
+              className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-4 py-3 text-base text-white placeholder-slate-400 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition"
             />
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function LoginPage() {
         {/* Trường 2: Mật khẩu & Hiện/Ẩn mật khẩu */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label htmlFor="login-password" className="text-xs font-bold text-slate-300">
+            <label htmlFor="login-password" className="text-sm font-semibold text-slate-300">
               Mật khẩu
             </label>
             <button
@@ -206,14 +206,16 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Nhập mật khẩu của bạn"
-              className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
+              className="w-full bg-[#040508] border border-[#1e2433] rounded-xl pl-10 pr-12 py-3 text-base text-white placeholder-slate-400 outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-3 text-slate-400 hover:text-white p-0.5 transition cursor-pointer"
+              className="absolute right-1 top-1/2 -translate-y-1/2 min-w-10 min-h-10 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer"
               title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              aria-controls="login-password"
+              aria-pressed={showPassword}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -224,7 +226,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_15px_rgba(57,255,20,0.35)] hover:shadow-[0_0_25px_rgba(57,255,20,0.5)] active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed mt-2 whitespace-nowrap shrink-0"
+          className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs tracking-wider uppercase shadow-md shadow-emerald-950/40 hover:shadow-lg active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed mt-2 whitespace-nowrap shrink-0"
         >
           {isLoading ? (
             <>
@@ -253,11 +255,11 @@ export default function LoginPage() {
             </button>
 
             <div className="text-center space-y-1.5">
-              <div className="w-12 h-12 rounded-2xl bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 flex items-center justify-center mx-auto mb-2 shadow-[0_0_12px_rgba(57,255,20,0.2)]">
+              <div className="w-12 h-12 rounded-2xl bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 flex items-center justify-center mx-auto mb-2 shadow-sm">
                 <KeyRound className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-black text-white">Khôi Phục Mật Khẩu</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h2 className="text-lg font-black text-white">Khôi Phục Mật Khẩu</h2>
+              <p className="text-sm text-slate-400 leading-relaxed">
                 {forgotStep === 'email' && 'Nhập email đã đăng ký để nhận mã xác thực OTP (6 chữ số).'}
                 {forgotStep === 'otp' && `Nhập mã OTP đã gửi đến ${forgotEmail} và thiết lập mật khẩu mới.`}
                 {forgotStep === 'success' && 'Mật khẩu của bạn đã được cập nhật thành công!'}
@@ -265,29 +267,31 @@ export default function LoginPage() {
             </div>
 
             {forgotError && (
-              <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2">
+              <div id="forgot-password-error" role="alert" className="p-3 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-sm flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{forgotError}</span>
               </div>
             )}
 
             {forgotStep === 'email' && (
-              <form onSubmit={handleSendForgotOtp} className="space-y-4 pt-1">
+              <form onSubmit={handleSendForgotOtp} aria-busy={forgotLoading} aria-describedby={forgotError ? 'forgot-password-error' : undefined} className="space-y-4 pt-1 text-sm">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300">Địa chỉ Email tài khoản:</label>
+                  <label htmlFor="forgot-email" className="font-semibold text-slate-300">Địa chỉ email tài khoản</label>
                   <input
+                    id="forgot-email"
+                    autoComplete="email"
                     type="email"
                     required
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="email@example.com"
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition font-mono"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-base text-white outline-none focus:border-[#39FF14] focus:ring-1 focus:ring-[#39FF14]/40 transition"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 shadow-[0_0_12px_rgba(57,255,20,0.3)] whitespace-nowrap shrink-0"
+                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 shadow-sm whitespace-nowrap shrink-0"
                 >
                   {forgotLoading ? (
                     <>
@@ -303,42 +307,50 @@ export default function LoginPage() {
             )}
 
             {forgotStep === 'otp' && (
-              <form onSubmit={handleResetPasswordSubmit} className="space-y-3 pt-1">
+              <form onSubmit={handleResetPasswordSubmit} aria-busy={forgotLoading} aria-describedby={forgotError ? 'forgot-password-error' : undefined} className="space-y-3 pt-1 text-sm">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300">Mã OTP 6 số (đã gửi đến mail):</label>
+                  <label htmlFor="forgot-otp" className="font-semibold text-slate-300">Mã OTP 6 số đã gửi đến email</label>
                   <input
+                    id="forgot-otp"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
                     type="text"
                     required
                     maxLength={6}
                     value={forgotOtp}
                     onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ''))}
                     placeholder="123456"
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-[#00e5ff] font-mono text-center text-lg tracking-[0.4em] outline-none focus:border-[#39FF14] transition"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-emerald-400 font-mono text-center text-lg tracking-[0.4em] outline-none focus:border-[#39FF14] transition"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300">Mật khẩu mới (tối thiểu 8 ký tự):</label>
+                  <label htmlFor="forgot-new-password" className="font-semibold text-slate-300">Mật khẩu mới (tối thiểu 8 ký tự)</label>
                   <input
+                    id="forgot-new-password"
+                    autoComplete="new-password"
                     type="password"
                     required
                     minLength={8}
                     value={forgotNewPassword}
                     onChange={(e) => setForgotNewPassword(e.target.value)}
                     placeholder="Mật khẩu mới gồm hoa, thường, số..."
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition font-mono"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-base text-white outline-none focus:border-[#39FF14] transition"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-300">Xác nhận lại mật khẩu mới:</label>
+                  <label htmlFor="forgot-confirm-password" className="font-semibold text-slate-300">Xác nhận mật khẩu mới</label>
                   <input
+                    id="forgot-confirm-password"
+                    autoComplete="new-password"
                     type="password"
                     required
                     value={forgotConfirmPassword}
                     onChange={(e) => setForgotConfirmPassword(e.target.value)}
                     placeholder="Nhập lại mật khẩu mới"
-                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition font-mono"
+                    className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-base text-white outline-none focus:border-[#39FF14] transition"
                   />
                 </div>
 
@@ -363,7 +375,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2 shadow-[0_0_12px_rgba(57,255,20,0.3)] whitespace-nowrap shrink-0"
+                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2 shadow-sm whitespace-nowrap shrink-0"
                 >
                   {forgotLoading ? (
                     <>
@@ -378,7 +390,7 @@ export default function LoginPage() {
 
             {forgotStep === 'success' && (
               <div className="text-center space-y-4 py-2">
-                <div className="w-12 h-12 rounded-full bg-[#39FF14]/15 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] mx-auto shadow-[0_0_15px_rgba(57,255,20,0.3)]">
+                <div className="w-12 h-12 rounded-full bg-[#39FF14]/15 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14] mx-auto shadow-sm">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <p className="text-sm text-slate-300">
@@ -391,7 +403,7 @@ export default function LoginPage() {
                     setUserNameOrEmail(forgotEmail);
                     setShowForgotModal(false);
                   }}
-                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition cursor-pointer shadow-[0_0_12px_rgba(57,255,20,0.3)] whitespace-nowrap shrink-0"
+                  className="w-full py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs transition cursor-pointer shadow-sm whitespace-nowrap shrink-0"
                 >
                   Đăng Nhập Ngay Với Mật Khẩu Mới
                 </button>

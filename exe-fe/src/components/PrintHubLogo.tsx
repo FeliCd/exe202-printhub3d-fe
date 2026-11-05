@@ -190,15 +190,15 @@ export const PrintHubLogo: React.FC<PrintHubLogoProps> = ({
           <span className="text-white font-black tracking-wider text-base sm:text-lg">
             PRINTHUB
           </span>
-          <span className="text-[#39FF14] font-black text-base sm:text-lg drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]">
+          <span className="text-[#39FF14] font-black text-base sm:text-lg">
             3D
           </span>
-          <span className="hidden sm:inline-block px-1.5 py-0.5 ml-1 text-[9px] font-bold tracking-widest text-[#22D3EE] bg-[#0E1726] border border-[#22D3EE]/30 rounded">
+          <span className="hidden sm:inline-block px-1.5 py-0.5 ml-1 text-xs font-bold tracking-wide text-slate-300 bg-slate-800/80 border border-slate-700/80 rounded">
             ±0.1mm
           </span>
         </div>
 
-        <span className="text-[10px] sm:text-[11px] font-medium tracking-wide text-slate-400 mt-0.5 truncate max-w-[240px] sm:max-w-none">
+        <span className="text-xs font-medium tracking-wide text-slate-400 mt-0.5 truncate max-w-[240px] sm:max-w-none">
           {subtext}
         </span>
       </div>

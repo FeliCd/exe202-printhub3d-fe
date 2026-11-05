@@ -100,7 +100,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             <p className="font-bold text-sm text-white tracking-wide">
               PrintHub <span className="text-[#39FF14] font-extrabold drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]">3D</span>
             </p>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+            <p className="text-xs text-slate-400 font-semibold">
               Quản Trị Hệ Thống
             </p>
           </div>
@@ -120,7 +120,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       <div className="flex-1 overflow-y-auto p-3 space-y-5">
         {navGroups.map((group) => (
           <div key={group.title}>
-            <p className="px-3 pb-1.5 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+            <p className="px-3 pb-1.5 text-xs font-bold tracking-wide text-slate-400">
               {group.title}
             </p>
             <nav className="space-y-0.5">
@@ -131,6 +131,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                   <Link
                     key={item.path}
                     to={item.path}
+                    aria-current={active ? 'page' : undefined}
                     onClick={onClose}
                     className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       active
@@ -148,7 +149,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     </div>
                     {item.badge && (
                       <span
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                        className={`text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
                           item.badgeColor || 'bg-[#39FF14]/15 text-[#39FF14] border border-[#39FF14]/30'
                         }`}
                       >

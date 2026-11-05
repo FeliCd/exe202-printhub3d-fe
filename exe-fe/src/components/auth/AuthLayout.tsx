@@ -19,28 +19,17 @@ interface AuthLayoutProps {
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
   title,
   subtitle,
-  badgeText = 'XƯỞNG CHẾ TÁC 3D // FDM & RESIN',
+  badgeText = 'Xưởng chế tác 3D // FDM & Resin',
   children,
   footerLink,
 }) => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-3 sm:p-6 lg:p-8 bg-[#040508] text-[#F1F5F9] relative overflow-x-hidden selection:bg-[#39FF14] selection:text-black">
-      {/* Background Ambient Cyber Grid */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-10"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, rgba(57,255,20,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(57,255,20,0.1) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
-
-      {/* Subtle Glow Points */}
-      <div className="fixed top-1/4 -left-48 w-96 h-96 bg-[#39FF14]/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed bottom-1/4 -right-48 w-96 h-96 bg-[#00e5ff]/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Ambient Depth */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-[#040508] to-[#040508]" />
 
       {/* Main Container Card */}
-      <div className="relative w-full max-w-5xl rounded-3xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/30 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] overflow-hidden grid grid-cols-1 lg:grid-cols-12 z-10 transition">
+      <div className="relative w-full max-w-5xl rounded-2xl bg-[#0a0c12] border border-slate-800 shadow-2xl shadow-black/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 z-10 transition">
         
         {/* LEFT COLUMN: 3D PRINTER VISUALS & STUDIO ATTRIBUTES */}
         <div className="lg:col-span-5 p-5 sm:p-6 lg:p-8 bg-gradient-to-b from-[#07090e] to-[#040508] border-b lg:border-b-0 lg:border-r border-[#1e2433] flex flex-col justify-between gap-6">
@@ -50,9 +39,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
               <PrintHubLogo variant="horizontal" size="md" />
             </Link>
 
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#11141e] border border-[#1e2433] text-[10px] font-mono tracking-wider text-[#39FF14] uppercase whitespace-nowrap shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] animate-pulse" />
-              {badgeText}
+            <div className="inline-flex max-w-full items-center gap-2 px-3 py-1.5 rounded-md bg-slate-900/90 border border-slate-800 text-xs font-mono leading-relaxed text-emerald-400">
+              <span aria-hidden="true" className="w-2 h-2 shrink-0 rounded-full bg-emerald-400" />
+              <span>{badgeText}</span>
             </div>
           </div>
 
@@ -62,17 +51,17 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           </div>
 
           {/* Studio Key Attributes */}
-          <div className="space-y-2.5 pt-2 border-t border-[#1e2433] text-[11px] text-slate-300">
-            <div className="flex items-center gap-2">
-              <Ruler className="w-3.5 h-3.5 text-[#39FF14] shrink-0" />
+          <div className="space-y-3 pt-3 border-t border-slate-800 text-sm leading-relaxed text-slate-300">
+            <div className="flex items-center gap-2.5">
+              <Ruler className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Thước kỹ thuật &amp; mô hình in 3D độ chính xác 0.12mm</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Cpu className="w-3.5 h-3.5 text-[#00e5ff] shrink-0" />
+            <div className="flex items-center gap-2.5">
+              <Cpu className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Chế tác FDM/Resin công nghiệp trực tiếp tại PrintHub Lab</span>
             </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#39FF14] shrink-0" />
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Bảo mật dữ liệu tài khoản &amp; mã hóa OTP xác thực</span>
             </div>
           </div>
@@ -86,7 +75,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                 {title}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              <p className="max-w-[65ch] text-sm text-slate-400 leading-relaxed">
                 {subtitle}
               </p>
             </div>
