@@ -1,35 +1,5 @@
 import { useState } from 'react';
-
-export function formatRulerType(id?: string) {
-  switch (id) {
-    case 'straight-ruler':
-      return 'Thước Thẳng Kỹ Thuật';
-    case 'triangular-scale':
-      return 'Thước Tam Giác Tỉ Lệ (Kiến Trúc)';
-    case 'protractor':
-      return 'Thước Đo Góc Chuyên Dụng';
-    case 'vernier-caliper':
-      return 'Thước Kẹp Vernier Du Xích';
-    default:
-      return id || 'Thước Kỹ Thuật In 3D';
-  }
-}
-
-export function formatStickerLabel(text: string) {
-  const clean = text.replace(/^lucide:/, '');
-  const map: Record<string, string> = {
-    Star: '⭐ Ngôi sao',
-    Heart: '❤️ Trái tim',
-    Sun: '☀️ Mặt trời',
-    Moon: '🌙 Mặt trăng',
-    Smile: '😊 Mặt cười',
-    Shield: '🛡️ Khiên bảo hộ',
-    Flame: '🔥 Ngọn lửa',
-    Zap: '⚡ Tia sét',
-    Sparkles: '✨ Lấp lánh',
-  };
-  return map[clean] || `Biểu tượng (${clean})`;
-}
+import { formatRulerType, formatStickerLabel } from '../utils/format';
 
 export interface ParsedSpecs {
   version?: number;

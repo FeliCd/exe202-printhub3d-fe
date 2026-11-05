@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FileEdit, Search, Download, Eye, Send, CheckCircle, Clock, RotateCcw, X, Sparkles } from 'lucide-react';
 import api, { send, unwrap } from '../../services/api';
-import { formatPrice, formatDateTime } from '../../utils/format';
+import { formatPrice, formatDateTime, formatRulerType, formatStickerLabel } from '../../utils/format';
 import { PageHeader, Notice } from '../../components/DataUI';
 import Modal from '../../components/Modal';
 
@@ -28,36 +28,7 @@ async function loadCustomOrders(signal?: AbortSignal) {
   return unwrap<CustomOrderItem[]>(res.data);
 }
 
-function formatRulerType(id?: string) {
-  switch (id) {
-    case 'straight-ruler':
-      return 'Thước Thẳng Kỹ Thuật';
-    case 'triangular-scale':
-      return 'Thước Tam Giác Tỉ Lệ (Kiến Trúc)';
-    case 'protractor':
-      return 'Thước Đo Góc Chuyên Dụng';
-    case 'vernier-caliper':
-      return 'Thước Kẹp Vernier Du Xích';
-    default:
-      return id || 'Thước Kỹ Thuật In 3D';
-  }
-}
 
-function formatStickerLabel(text: string) {
-  const clean = text.replace(/^lucide:/, '');
-  const map: Record<string, string> = {
-    Star: '⭐ Ngôi sao',
-    Heart: '❤️ Trái tim',
-    Sun: '☀️ Mặt trời',
-    Moon: '🌙 Mặt trăng',
-    Smile: '😊 Mặt cười',
-    Shield: '🛡️ Khiên bảo hộ',
-    Flame: '🔥 Ngọn lửa',
-    Zap: '⚡ Tia sét',
-    Sparkles: '✨ Lấp lánh',
-  };
-  return map[clean] || `Biểu tượng (${clean})`;
-}
 
 interface ParsedSpecs {
   name?: string;
