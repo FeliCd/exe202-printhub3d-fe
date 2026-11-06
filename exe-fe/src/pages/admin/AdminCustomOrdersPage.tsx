@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileEdit, Search, Download, Eye, Send, CheckCircle, Clock, RotateCcw, X, Sparkles } from 'lucide-react';
+import { FileEdit, Search, Download, Eye, Send, CheckCircle, Clock, RotateCcw, X, Sparkles, XCircle } from 'lucide-react';
 import api, { send, unwrap } from '../../services/api';
 import { formatPrice, formatDateTime, formatRulerType, formatStickerLabel } from '../../utils/format';
 import { PageHeader, Notice } from '../../components/DataUI';
@@ -232,10 +232,22 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
   );
 }
 
+function extractGlbUrl(requirements?: string): string | null {
+  if (!requirements) return null;
+  try {
+    const trimmed = requirements.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      const p = JSON.parse(trimmed);
+      return p?.glbUrl || null;
+    }
+  } catch {}
+  return null;
+}
+
 export default function AdminCustomOrdersPage() {
   const [orders, setOrders] = useState<CustomOrderItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | 'REQUESTED' | 'QUOTED' | 'ACCEPTED'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'REQUESTED' | 'QUOTED' | 'ACCEPTED' | 'CANCELLED'>('ALL');
   const [search, setSearch] = useState('');
 
   // Quote Modal State
@@ -309,6 +321,7 @@ export default function AdminCustomOrdersPage() {
   }, []);
 
   const openQuoteModal = (order: CustomOrderItem) => {
+    if (order.status === 'CANCELLED') return;
     setQuoteModalError(null);
     setSelectedOrder(order);
     setPriceInput(order.quotedPrice ? String(order.quotedPrice) : '');
@@ -317,7 +330,7 @@ export default function AdminCustomOrdersPage() {
 
   const handleSendQuote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedOrder || !priceInput) return;
+    if (!selectedOrder || !priceInput || selectedOrder.status === 'CANCELLED') return;
 
     setSubmitting(true);
     try {
@@ -336,6 +349,7 @@ export default function AdminCustomOrdersPage() {
     if (filter === 'REQUESTED' && o.status !== 'REQUESTED') return false;
     if (filter === 'QUOTED' && o.status !== 'QUOTED') return false;
     if (filter === 'ACCEPTED' && !['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED'].includes(o.status)) return false;
+    if (filter === 'CANCELLED' && o.status !== 'CANCELLED') return false;
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -416,6 +430,16 @@ export default function AdminCustomOrdersPage() {
             {orders.filter((o) => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED'].includes(o.status)).length}
             )
           </button>
+          <button
+            onClick={() => setFilter('CANCELLED')}
+            aria-pressed={filter === 'CANCELLED'}
+            className={`px-3.5 py-1.5 rounded-lg font-mono font-bold transition whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer ${
+              filter === 'CANCELLED' ? 'bg-rose-500 text-white shadow-md shadow-rose-950/50' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <XCircle className="w-3.5 h-3.5" />
+            Đã hủy ({orders.filter((o) => o.status === 'CANCELLED').length})
+          </button>
         </div>
 
         <div className="relative w-full xl:flex-1 xl:max-w-xs">
@@ -447,6 +471,8 @@ export default function AdminCustomOrdersPage() {
             const isPendingQuote = o.status === 'REQUESTED';
             const isQuoted = o.status === 'QUOTED';
             const isAccepted = ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED'].includes(o.status);
+            const isCancelled = o.status === 'CANCELLED';
+            const glbDownloadUrl = extractGlbUrl(o.requirements);
 
             return (
               <article key={o.id} aria-labelledby={`custom-order-${o.id}`} className="min-w-0 p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all space-y-4 text-sm shadow-lg relative overflow-hidden">
@@ -462,6 +488,11 @@ export default function AdminCustomOrdersPage() {
 
                   {/* Status Badge */}
                   <div>
+                    {isCancelled && (
+                      <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-rose-500/15 text-rose-400 border border-rose-500/30 inline-flex items-center gap-1.5 shadow-md shadow-rose-950/50">
+                        <XCircle className="w-3.5 h-3.5" /> ĐƠN ĐÃ HỦY BỎ
+                      </span>
+                    )}
                     {isPendingQuote && (
                       <span className="max-w-full px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#ff9100]/15 text-[#ff9100] border border-[#ff9100]/30 inline-flex items-center gap-1.5 shadow-md shadow-amber-950/50">
                         <Clock className="w-3.5 h-3.5" /> CHỜ THẨM ĐỊNH BÁO GIÁ
@@ -504,13 +535,24 @@ export default function AdminCustomOrdersPage() {
                   <div>
                     <span className="text-slate-400 block text-xs">File thiết kế 3D / minh họa</span>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
+                      {glbDownloadUrl && (
+                        <a
+                          href={glbDownloadUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 font-bold text-[#00e5ff] hover:underline text-xs whitespace-nowrap cursor-pointer"
+                          title="Tải tệp 3D đa chiều đầy đủ màu sắc (.GLB)"
+                        >
+                          <Download className="w-3.5 h-3.5" /> TẢI FILE GLB (3D MÀU)
+                        </a>
+                      )}
                       {o.attachmentUrl && (o.attachmentUrl.toLowerCase().includes('.stl') || o.attachmentUrl.toLowerCase().includes('.step') || o.attachmentUrl.toLowerCase().includes('.stp') || o.attachmentUrl.toLowerCase().includes('.obj') || o.attachmentUrl.toLowerCase().includes('/raw/upload/')) ? (
                         <>
                           <button
                             type="button"
                             onClick={() => handleDownloadCustomFile(o)}
                             disabled={downloadingId === o.id}
-                            className="inline-flex items-center gap-1.5 font-bold text-[#00e5ff] hover:underline text-xs whitespace-nowrap cursor-pointer disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 font-bold text-[#39FF14] hover:underline text-xs whitespace-nowrap cursor-pointer disabled:opacity-50"
                           >
                             <Download className="w-3.5 h-3.5" /> {downloadingId === o.id ? 'Đang tải file...' : 'TẢI FILE STL / CAD'}
                           </button>
@@ -566,7 +608,12 @@ export default function AdminCustomOrdersPage() {
                 {/* Footer Action */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-[#1e2433]/70">
                   <div className="min-w-0 flex-1">
-                    {isAccepted ? (
+                    {isCancelled ? (
+                      <p className="max-w-[65ch] text-sm text-rose-400 font-semibold flex items-center gap-1.5 leading-relaxed">
+                        <XCircle className="w-3.5 h-3.5 shrink-0" />
+                        Khách hàng đã hủy yêu cầu báo giá này.
+                      </p>
+                    ) : isAccepted ? (
                       <p className="max-w-[65ch] text-sm text-[#39FF14] font-semibold flex items-center gap-1.5 leading-relaxed">
                         <CheckCircle className="w-3.5 h-3.5 shrink-0" />
                         Đơn đã được khách xác nhận và tự động liên kết với hàng đợi máy in.
@@ -584,17 +631,24 @@ export default function AdminCustomOrdersPage() {
                         {formatPrice(o.quotedPrice)}đ
                       </span>
                     )}
-                    <button
-                      onClick={() => openQuoteModal(o)}
-                      className={`px-4 py-2.5 rounded-xl font-mono font-bold text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0 ${
-                        isAccepted
-                          ? 'bg-[#11141e] border border-[#1e2433] text-slate-300 hover:text-white'
-                          : 'bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black shadow-md shadow-emerald-950/50'
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{o.quotedPrice ? 'SỬA BÁO GIÁ' : 'GỬI BÁO GIÁ NGAY'}</span>
-                    </button>
+                    {isCancelled ? (
+                      <span className="px-4 py-2.5 rounded-xl font-mono font-bold text-xs bg-rose-500/10 text-rose-400 border border-rose-500/30 flex items-center gap-1.5 select-none">
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span>ĐÃ HỦY BỎ</span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => openQuoteModal(o)}
+                        className={`px-4 py-2.5 rounded-xl font-mono font-bold text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0 ${
+                          isAccepted
+                            ? 'bg-[#11141e] border border-[#1e2433] text-slate-300 hover:text-white'
+                            : 'bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black shadow-md shadow-emerald-950/50'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>{o.quotedPrice ? 'SỬA BÁO GIÁ' : 'GỬI BÁO GIÁ NGAY'}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>
@@ -757,7 +811,19 @@ export default function AdminCustomOrdersPage() {
               <RulerSpecsViewer requirements={previewOrder.requirements} />
             )}
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-white/10">
+              {extractGlbUrl(previewOrder.requirements) && (
+                <a
+                  href={extractGlbUrl(previewOrder.requirements)!}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="py-2 px-4 rounded-xl bg-[#00e5ff]/15 hover:bg-[#00e5ff]/25 border border-[#00e5ff]/40 text-[#00e5ff] text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  title="Tải tệp 3D đa chiều đầy đủ màu sắc (.GLB)"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Tải File GLB (3D Màu)</span>
+                </a>
+              )}
               {previewOrder.attachmentUrl && (
                 <button
                   type="button"
