@@ -10,7 +10,6 @@ import {
   Layers,
   Sparkles,
   CreditCard,
-  Truck,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
@@ -126,8 +125,8 @@ export default function CustomOrderCheckoutPage({
   const [infillDensity, setInfillDensity] = useState<number>(orderConfig?.infillDensity || 30);
   const [notes, setNotes] = useState<string>('');
 
-  // Step 4: Payment
-  const [paymentMethod, setPaymentMethod] = useState<'PAYOS' | 'COD'>('PAYOS');
+  // Step 4: Payment (Đơn custom cố định PayOS)
+  const [paymentMethod] = useState<'PAYOS'>('PAYOS');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -759,53 +758,25 @@ export default function CustomOrderCheckoutPage({
               <label className="text-xs font-bold text-slate-300 block">
                 Phương thức thanh toán dự kiến: <span className="font-normal text-slate-400">(Áp dụng khi bạn duyệt báo giá chính thức)</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {/* PayOS Option */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('PAYOS')}
-                  className={`p-4 rounded-xl border text-left space-y-2 transition relative ${
-                    paymentMethod === 'PAYOS'
-                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-md shadow-emerald-950/50'
-                      : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
-                  }`}
+                <div
+                  className="p-4 rounded-xl border border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-md shadow-emerald-950/50 relative text-left space-y-2"
                 >
                   <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[#39FF14]/20 border border-[#39FF14]/40 text-[10px] font-mono font-bold text-[#39FF14]">
-                    Khuyên dùng
+                    Phương thức duy nhất
                   </span>
                   <div className="flex items-center gap-2.5">
                     <CreditCard className="w-5 h-5 text-[#39FF14]" />
                     <div>
                       <p className="font-bold text-sm">Cổng PayOS (VietQR)</p>
-                      <p className="text-[11px] text-slate-400">Quét mã VietQR chuyển khoản tự động</p>
+                      <p className="text-[11px] text-slate-300">Quét mã VietQR chuyển khoản tự động tức thì</p>
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-400 pt-1">
-                    ⚡ Thanh toán trực tuyến sau khi kỹ thuật viên gửi báo giá chính thức.
+                  <p className="text-[11px] text-slate-300 pt-1">
+                    ⚡ Đơn in 3D theo yêu cầu riêng (khắc tên/MSSV) chỉ áp dụng thanh toán PayOS sau khi xưởng phát hành báo giá chính thức.
                   </p>
-                </button>
-
-                {/* COD Option */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('COD')}
-                  className={`p-4 rounded-xl border text-left space-y-2 transition ${
-                    paymentMethod === 'COD'
-                      ? 'border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-md shadow-emerald-950/50'
-                      : 'border-white/10 bg-[#040508] text-slate-300 hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Truck className="w-5 h-5 text-[#39FF14]" />
-                    <div>
-                      <p className="font-bold text-sm">Thanh toán khi nhận hàng (COD)</p>
-                      <p className="text-[11px] text-slate-400">Nhận thước, kiểm tra rồi thanh toán tiền mặt</p>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-400 pt-1">
-                    📦 Bưu tá thu tiền mặt trực tiếp khi bàn giao sản phẩm hoàn thiện.
-                  </p>
-                </button>
+                </div>
               </div>
             </div>
 

@@ -41,7 +41,7 @@ export const quotationService = {
     send(`/custom-orders/${id}/status`, { status, paymentMethod }, 'put'),
   cancelCustomOrder: (id: string) =>
     send(`/custom-orders/${id}/status`, { status: 'CANCELLED' }, 'put'),
-  acceptQuotation: (id: string, paymentMethod: string = 'COD') =>
+  acceptQuotation: (id: string, paymentMethod: string = 'PAYOS') =>
     send(`/custom-orders/${id}/status`, { status: 'ACCEPTED', paymentMethod }, 'put'),
 
   // Admin endpoints

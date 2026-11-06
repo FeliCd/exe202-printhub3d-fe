@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { freshDesign, normalizeDesign, type Design } from "./model";
+import { useAuth } from "../../context/AuthContext";
 
-const KEY = "printhub-ruler-design-v1";
-export const DRAFT_KEY = "printhub-ruler-draft";
+export const getDraftKey = (uid?: string) => uid ? `printhub-ruler-draft_${uid}` : "printhub-ruler-draft_guest";
+export const getSaveKey = (uid?: string) => uid ? `printhub-ruler-design_${uid}` : "printhub-ruler-design_guest";
+export const DRAFT_KEY = "printhub-ruler-draft_guest";
 
 export function useDesign(initial?: Design) {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   const gesture = useRef(false),
     recorded = useRef(false);
   const [history, setHistory] = useState<{
@@ -16,7 +21,9 @@ export function useDesign(initial?: Design) {
       return { past: [], present: normalizeDesign(initial), future: [] };
     }
     try {
-      const draft = localStorage.getItem(DRAFT_KEY) || localStorage.getItem(KEY);
+      const draftKey = getDraftKey(userId);
+      const saveKey = getSaveKey(userId);
+      const draft = localStorage.getItem(draftKey) || localStorage.getItem(saveKey);
       if (draft && draft.length <= 2000000) {
         return { past: [], present: normalizeDesign(JSON.parse(draft)), future: [] };
       }
@@ -26,6 +33,24 @@ export function useDesign(initial?: Design) {
     return { past: [], present: freshDesign(), future: [] };
   });
   const [saved, setSaved] = useState("");
+
+  // Tải bản nháp riêng theo từng tài khoản khi đổi user hoặc đăng nhập / đăng xuất
+  useEffect(() => {
+    if (initial) return;
+    const draftKey = getDraftKey(userId);
+    const saveKey = getSaveKey(userId);
+    try {
+      const draft = localStorage.getItem(draftKey) || localStorage.getItem(saveKey);
+      if (draft && draft.length <= 2000000) {
+        const parsed = normalizeDesign(JSON.parse(draft));
+        setHistory({ past: [], present: parsed, future: [] });
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    setHistory({ past: [], present: freshDesign(), future: [] });
+  }, [userId, initial]);
 
   // Sync when initial prop changes (e.g. user clicked edit from cart)
   useEffect(() => {
@@ -41,17 +66,17 @@ export function useDesign(initial?: Design) {
     }
   }, [initial]);
 
-  // Debounced auto-save draft to localStorage (500ms)
+  // Debounced auto-save draft to localStorage (500ms) riêng biệt theo userId
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(history.present));
+        localStorage.setItem(getDraftKey(userId), JSON.stringify(history.present));
       } catch {
         // storage quota exceeded or disabled
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [history.present]);
+  }, [history.present, userId]);
 
   const change = useCallback((next: Design) => {
     const merge = gesture.current && recorded.current;
@@ -116,8 +141,10 @@ export function useDesign(initial?: Design) {
   }, [undo, redo]);
   const save = () => {
     try {
-      localStorage.setItem(KEY, JSON.stringify(history.present));
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(history.present));
+      const saveKey = getSaveKey(userId);
+      const draftKey = getDraftKey(userId);
+      localStorage.setItem(saveKey, JSON.stringify(history.present));
+      localStorage.setItem(draftKey, JSON.stringify(history.present));
       setSaved(JSON.stringify(history.present));
       return true;
     } catch {
@@ -126,7 +153,9 @@ export function useDesign(initial?: Design) {
   };
   const load = () => {
     try {
-      const raw = localStorage.getItem(KEY) || localStorage.getItem(DRAFT_KEY);
+      const saveKey = getSaveKey(userId);
+      const draftKey = getDraftKey(userId);
+      const raw = localStorage.getItem(saveKey) || localStorage.getItem(draftKey);
       if (!raw || raw.length > 2000000) return false;
       const d = normalizeDesign(JSON.parse(raw));
       change(d);
@@ -138,13 +167,13 @@ export function useDesign(initial?: Design) {
   };
   const resetDraft = useCallback(() => {
     try {
-      localStorage.removeItem(DRAFT_KEY);
+      localStorage.removeItem(getDraftKey(userId));
     } catch {
       // ignore
     }
     const fresh = freshDesign();
     setHistory({ past: [], present: fresh, future: [] });
-  }, []);
+  }, [userId]);
 
   return {
     design: history.present,

@@ -716,16 +716,38 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                       <FileCheck className="h-3.5 w-3.5" />
                       <span>Thông số chế tác thước cá nhân hóa</span>
                     </div>
-                    {c.attachmentUrl && (
-                      <a
-                        href={c.attachmentUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[#39FF14] hover:underline normal-case font-bold font-mono"
-                      >
-                        <Download className="w-3.5 h-3.5" /> Tải Tệp 3D
-                      </a>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {(() => {
+                        try {
+                          if (c.requirements?.startsWith('{')) {
+                            const p = JSON.parse(c.requirements);
+                            if (p?.glbUrl) {
+                              return (
+                                <a
+                                  href={p.glbUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-[#00e5ff] hover:underline normal-case font-bold font-mono"
+                                >
+                                  <Download className="w-3.5 h-3.5" /> File 3D Màu (.GLB)
+                                </a>
+                              );
+                            }
+                          }
+                        } catch {}
+                        return null;
+                      })()}
+                      {c.attachmentUrl && (
+                        <a
+                          href={c.attachmentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[#39FF14] hover:underline normal-case font-bold font-mono"
+                        >
+                          <Download className="w-3.5 h-3.5" /> File In (.STL)
+                        </a>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">

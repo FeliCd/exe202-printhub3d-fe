@@ -1,7 +1,6 @@
 import { translateCustom as tr, useCustomLanguage } from './language';
 import { useMemo, useRef, useState, useEffect, type ReactNode } from "react";
 import type { Product } from "../../types";
-import { formatPrice } from "../../utils/format";
 import {
   quote,
   uid,
@@ -219,14 +218,12 @@ export default function RulerStudio({
   };
 
   const add = async () => {
-    if (price.requiresQuote) return;
     const prod = await buildProduct();
     onAddToCart(prod);
     setMessage(tr("Design added to your cart. Your editable artwork is included."));
   };
 
   const handleSaveToCart = async () => {
-    if (price.requiresQuote) return;
     const prod = await buildProduct();
     if (onSaveCartItem) {
       await onSaveCartItem(prod);
@@ -237,7 +234,6 @@ export default function RulerStudio({
   };
 
   const handleSaveAsNew = async () => {
-    if (price.requiresQuote) return;
     const prod = await buildProduct();
     prod.id = `ruler-design-${uid()}`;
     onAddToCart(prod);
@@ -583,23 +579,6 @@ export default function RulerStudio({
             select={select}
           />
           <footer className="studio-price">
-            <details>
-              <summary>
-                {price.requiresQuote ? tr("Production pricing") : tr("Estimated price")}{" "}
-                <strong>
-                  {price.requiresQuote
-                    ? tr("Quote required")
-                    : `${formatPrice(price.total)}đ`}
-                </strong>
-              </summary>
-              {!price.requiresQuote &&
-                price.lines.map(([label, value]) => (
-                  <div className="studio-row" key={label}>
-                    <span>{tr(label)}</span>
-                    <span>{formatPrice(value)}đ</span>
-                  </div>
-                ))}
-            </details>
             {tab === "Draw" && (
               <button
                 onClick={() =>
@@ -612,64 +591,48 @@ export default function RulerStudio({
               </button>
             )}
             {editingCartItemId ? (
-              !price.requiresQuote ? (
-                <div className="flex flex-col gap-2 w-full mt-2">
-                  <button
-                    className="studio-primary !bg-emerald-600 hover:!bg-emerald-500 font-bold"
-                    onClick={handleSaveToCart}
-                  >
-                    💾 {language === 'vi' ? 'Lưu thay đổi vào giỏ' : 'Save changes to cart'}
-                  </button>
-                  <button
-                    className="px-4 py-2 rounded-lg border border-border text-xs text-slate-300 hover:text-white hover:bg-surface-raised font-medium"
-                    onClick={handleSaveAsNew}
-                  >
-                    ➕ {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2 w-full mt-2">
-                  <button
-                    className="studio-primary !bg-amber-600 hover:!bg-amber-500 text-white font-bold"
-                    onClick={handleConvertToQuotation}
-                  >
-                    📋 {language === 'vi' ? 'Chuyển sang yêu cầu báo giá' : 'Switch to quotation request'}
-                  </button>
-                  <p className="text-xs text-amber-400">
-                    {language === 'vi'
-                      ? '⚠️ Mẫu này cần xưởng thẩm định và báo giá. Cây thước cũ trong giỏ sẽ được chuyển thành yêu cầu báo giá.'
-                      : '⚠️ This ruler requires factory review and manual quotation.'}
-                  </p>
-                </div>
-              )
-            ) : (
-              !price.requiresQuote ? (
+              <div className="flex flex-col gap-2 w-full mt-2">
                 <button
-                  className="studio-primary"
+                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-bold"
+                  onClick={handleSaveToCart}
+                >
+                  💾 {language === 'vi' ? 'Lưu thay đổi vào giỏ' : 'Save changes to cart'}
+                </button>
+                <button
+                  className="px-4 py-2.5 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-300 hover:text-white font-medium transition"
+                  onClick={handleSaveAsNew}
+                >
+                  ➕ {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
+                </button>
+                <button
+                  className="px-4 py-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-xs text-amber-300 hover:bg-amber-500/20 font-bold transition flex items-center justify-center gap-1.5"
+                  onClick={handleConvertToQuotation}
+                >
+                  📋 {language === 'vi' ? 'Gửi yêu cầu báo giá chính thức' : 'Request official quote'}
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 w-full mt-2">
+                <button
+                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-black shadow-lg shadow-[#39FF14]/20 flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={handleConvertToQuotation}
+                >
+                  <span>📋</span>
+                  <span>{language === 'vi' ? 'Yêu cầu báo giá in 3D' : 'Request 3D Print Quote'}</span>
+                </button>
+                <button
+                  className="w-full py-2.5 px-4 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-200 hover:text-white font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
                   onClick={add}
                 >
-                  {tr("Add design to cart")} <span>↗</span>
+                  <span>🛒</span>
+                  <span>{language === 'vi' ? 'Lưu vào giỏ thiết kế' : 'Save to Cart'}</span>
                 </button>
-              ) : (
-                <div className="flex flex-col gap-1 w-full mt-2">
-                  <button
-                    className="studio-primary !bg-amber-600 hover:!bg-amber-500 text-white font-bold"
-                    onClick={handleConvertToQuotation}
-                  >
-                    📋 {language === 'vi' ? 'Yêu cầu báo giá thiết kế này' : 'Request production quote'}
-                  </button>
-                  <p className="text-xs text-amber-400">
-                    {language === 'vi'
-                      ? 'Mẫu này cần xưởng thẩm định và gửi báo giá trước khi đặt in.'
-                      : 'This ruler requires factory assessment and quotation.'}
-                  </p>
-                </div>
-              )
+              </div>
             )}
-            <p>
-              {price.requiresQuote
-                ? tr("Save or export this design for a production quote. This ruler has no confirmed price yet.")
-                : tr("Artwork pricing requires production confirmation. Save your design before leaving.")}
+            <p className="text-xs text-slate-400 mt-2 text-center leading-relaxed">
+              {language === 'vi'
+                ? 'Thiết kế in 3D cá nhân hóa sẽ được kỹ thuật viên xưởng thẩm định độ dày, thông số cắt lớp và gửi báo giá chính xác.'
+                : 'Custom 3D designs are reviewed by technicians for precise slicing parameters and official quotation.'}
             </p>
           </footer>
         </aside>
@@ -877,6 +840,7 @@ export default function RulerStudio({
         open={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
         design={design}
+        getGLB={() => sceneRef.current?.getGLBBlob() || Promise.resolve(null)}
         onSuccess={() => {
           if (editingCartItemId && onConvertToQuotation) {
             onConvertToQuotation(design, editingCartItemId);

@@ -546,7 +546,6 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
   const remote = useRemote<CustomDTO[]>(admin ? '/admin/custom-orders' : '/custom-orders');
   const action = useAction(remote.reload);
   const [prices, setPrices] = useState<Record<string, string>>({});
-  const [method, setMethod] = useState<Record<string, string>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
   const [cancelModalOrderId, setCancelModalOrderId] = useState<string | null>(null);
@@ -735,7 +734,6 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
         {filteredOrders.map(c => {
           const req = parseOrderRequirements(c.requirements, c);
           const ship = parseShippingAddress(c.shippingAddress, c.buyerName);
-          const orderMethod = method[c.id] || c.paymentMethod || 'PAYOS';
 
           return (
             <div
@@ -845,7 +843,27 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                     </div>
 
                     {/* Action: Download 3D File vs View Preview Image */}
-                    <div className="pt-2 space-y-1.5">
+                    {(() => {
+                      let glbUrl: string | null = null;
+                      try {
+                        if (c.requirements?.startsWith('{')) {
+                          const p = JSON.parse(c.requirements);
+                          if (p?.glbUrl) glbUrl = p.glbUrl;
+                        }
+                      } catch {}
+                      return (
+                        <div className="pt-2 space-y-1.5">
+                          {glbUrl && (
+                            <a
+                              href={glbUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="w-full py-2 px-3 rounded-xl border border-[#39FF14]/40 bg-[#39FF14]/10 hover:bg-[#39FF14]/20 text-[#39FF14] transition flex items-center justify-center gap-2 text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>{tr("Mô hình 3D màu (.GLB)")}</span>
+                            </a>
+                          )}
                       {c.attachmentUrl && (c.attachmentUrl.toLowerCase().includes('.stl') || c.attachmentUrl.toLowerCase().includes('.step') || c.attachmentUrl.toLowerCase().includes('.stp') || c.attachmentUrl.toLowerCase().includes('.obj') || c.attachmentUrl.toLowerCase().includes('/raw/upload/')) ? (
                         <button
                           type="button"
@@ -913,6 +931,8 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         </div>
                       )}
                     </div>
+                  );
+                })()}
                   </div>
 
                   {/* MODULE 2: BẢNG PHỐI MÀU 3 LỚP & KHẮC LASER */}
@@ -1085,16 +1105,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                     {!admin && (
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                        <div className="flex items-center gap-2 bg-[#040508] border border-white/10 px-3 py-2 rounded-xl">
+                        <div className="flex items-center gap-2 bg-[#040508] border border-[#39FF14]/30 px-3.5 py-2.5 rounded-xl text-xs font-bold text-[#39FF14]">
                           <CreditCard className="w-4 h-4 text-[#39FF14] shrink-0" />
-                          <select
-                            className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
-                            value={orderMethod}
-                            onChange={e => setMethod({ ...method, [c.id]: e.target.value })}
-                          >
-                            <option value="PAYOS" className="bg-[#0a0c12] text-white"> {tr("Thanh toán PayOS (VietQR)")} </option>
-                            <option value="COD" className="bg-[#0a0c12] text-white"> {tr("Thanh toán khi nhận (COD)")} </option>
-                          </select>
+                          <span>{tr("Thanh toán PayOS (VietQR)")}</span>
                         </div>
 
                         <button
@@ -1104,7 +1117,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                             void action.run(() =>
                               send(
                                 `/custom-orders/${c.id}/status`,
-                                { status: 'ACCEPTED', paymentMethod: orderMethod },
+                                { status: 'ACCEPTED', paymentMethod: 'PAYOS' },
                                 'put'
                               )
                             )
@@ -1112,7 +1125,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           className="px-6 py-3 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-xl shadow-[#39FF14]/25 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
                         >
                           <CheckCircle2 className="w-4 h-4" />
-                          <span>{tr("Chấp Nhận & Đặt In")}</span>
+                          <span>{tr("Chấp Nhận & Thanh Toán PayOS")}</span>
                         </button>
 
                         <button

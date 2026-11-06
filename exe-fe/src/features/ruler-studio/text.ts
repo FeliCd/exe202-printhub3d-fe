@@ -1,4 +1,4 @@
-export const TEXT_LIMIT = 100;
+export const TEXT_LIMIT = 30;
 const segmenter = new Intl.Segmenter('vi', { granularity: 'grapheme' });
 export const characters = (text: string) => [...segmenter.segment(text)].map(({ segment }) => segment);
 export const limitText = (text: string) => characters(text).slice(0, TEXT_LIMIT).join('');

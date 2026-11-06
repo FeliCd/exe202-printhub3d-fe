@@ -33,7 +33,7 @@ function LimitedTextInput({ value, onChange }: {
       }}
     />
     {overLimit && <p id={warningId} role="alert" className="text-xs text-amber-300">
-      {tr('Maximum 100 characters. Only the first 100 characters were kept.')}
+      {tr('Maximum 30 characters. Only the first 30 characters were kept.')}
     </p>}
   </>;
 }
@@ -250,13 +250,13 @@ export default function Panels({
               checked={d.tag.enabled}
               onChange={(e) => tag({ enabled: e.target.checked })}
             />{" "} {tr("Show name tag")} </label>
-          <Field label={tr("Name (100 characters)")}>
+          <Field label={tr("Name (30 characters)")}>
             <LimitedTextInput
               value={d.tag.text}
               onChange={(text) => tag({ text })}
             />
           </Field>
-          <p className="studio-hint">{characters(d.tag.text).length}{tr("/100 · Text updates live on the 3D name tag.")}</p>
+          <p className="studio-hint">{characters(d.tag.text).length}{tr("/30 · Text updates live on the 3D name tag.")}</p>
           <Field label={tr("Tag shape")}>
             <select
               value={d.tag.shape}
@@ -400,7 +400,7 @@ export default function Panels({
                       onChange={(text) => update({ text })}
                     />
                   </Field>
-                  <p className="studio-hint">{characters(layer.text).length}{tr("/100 · Text updates live on the selected surface.")}</p>
+                  <p className="studio-hint">{characters(layer.text).length}{tr("/30 · Text updates live on the selected surface.")}</p>
                   <Field label={tr("Layer font")}>
                     <select
                       value={layer.font}

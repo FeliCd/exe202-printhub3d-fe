@@ -90,6 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('printhub_cached_user');
+      localStorage.removeItem('printhub-ruler-draft_guest');
+      localStorage.removeItem('printhub-ruler-design_guest');
+      localStorage.removeItem('printhub-ruler-draft');
+      localStorage.removeItem('printhub-ruler-design-v1');
       setUser(null);
     }
   };

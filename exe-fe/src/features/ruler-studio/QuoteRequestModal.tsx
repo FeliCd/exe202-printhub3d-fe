@@ -24,6 +24,7 @@ interface QuoteRequestModalProps {
   open: boolean;
   onClose: () => void;
   design: Design;
+  getGLB?: () => Promise<Blob | null>;
   editingCartItemId?: string;
   onSuccess?: () => void;
 }
@@ -36,10 +37,12 @@ interface CustomOrderApiResult {
 
 function QuoteRequestFormContent({
   design,
+  getGLB,
   onClose,
   onSuccess,
 }: {
   design: Design;
+  getGLB?: () => Promise<Blob | null>;
   onClose: () => void;
   onSuccess?: () => void;
 }) {
@@ -89,8 +92,18 @@ function QuoteRequestFormContent({
       setLoadingStep('Đang dựng mô hình 3D thực tế (.STL)...');
       const stlResult = await buildSTLFromDesign(design);
 
-      // 2. Upload STL to CDN Cloudinary
-      setLoadingStep('Đang tải tệp STL lên hệ thống xưởng...');
+      // 1.1 Trích xuất mô hình 3D màu sắc (.GLB)
+      let glbBlob: Blob | null = null;
+      if (getGLB) {
+        try {
+          glbBlob = await getGLB();
+        } catch (e) {
+          console.warn('Could not extract GLB blob', e);
+        }
+      }
+
+      // 2. Upload STL & GLB lên CDN Cloudinary
+      setLoadingStep('Đang tải tệp mô hình in 3D (.STL & .GLB) lên hệ thống xưởng...');
       const formData = new FormData();
       formData.append('file', stlResult.blob, stlResult.fileName);
       formData.append('folder', 'printhub3d/custom_prints');
@@ -102,7 +115,21 @@ function QuoteRequestFormContent({
         throw new Error('Không thể tải tệp 3D lên máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
       }
 
-      // 3. Prepare technical requirements description
+      let glbUrl = '';
+      if (glbBlob && glbBlob.size > 0) {
+        try {
+          const glbFormData = new FormData();
+          const cleanName = (design.name || rulerDef?.name || 'ruler').replace(/[^a-zA-Z0-9_-]/g, '_');
+          glbFormData.append('file', glbBlob, `${cleanName}_${design.length}cm_3D_Color.glb`);
+          glbFormData.append('folder', 'printhub3d/custom_prints');
+          const glbRes = await uploadFormData<string | { result?: string; url?: string }>('/upload/raw', glbFormData);
+          glbUrl = typeof glbRes === 'string' ? glbRes : (glbRes?.result || glbRes?.url || '');
+        } catch (e) {
+          console.warn('Could not upload GLB', e);
+        }
+      }
+
+      // 3. Prepare technical requirements description & structured JSON specs
       const rulerModelName = `${rulerDef?.vietnameseName || rulerDef?.name || 'Thước 3D'} · ${design.length} cm`;
       const technicalRequirements = [
         `Mẫu thước: ${rulerModelName}`,
@@ -119,13 +146,21 @@ function QuoteRequestFormContent({
 
       const fullShippingAddress = `${recipientName.trim()} · ${cleanPhone} · ${address.trim()}`;
 
+      const requirementsPayload = JSON.stringify({
+        ...design,
+        glbUrl: glbUrl || undefined,
+        stlUrl: attachmentUrl || undefined,
+        notes: notes.trim() || undefined,
+        technicalSummary: technicalRequirements,
+      });
+
       // 4. Send Custom Order Request
       setLoadingStep('Đang gửi thông tin yêu cầu báo giá đến Admin...');
       const res = await send<CustomOrderApiResult>('/custom-orders', {
         attachmentUrl,
         quantity,
         shippingAddress: fullShippingAddress,
-        requirements: technicalRequirements,
+        requirements: requirementsPayload,
         rulerModel: rulerModelName,
         customName: design.tag.text || '',
         customStudentId: '',
@@ -396,6 +431,7 @@ export default function QuoteRequestModal({
   open,
   onClose,
   design,
+  getGLB,
   onSuccess,
 }: QuoteRequestModalProps) {
   if (!open) return null;
@@ -405,6 +441,7 @@ export default function QuoteRequestModal({
       <QuoteRequestFormContent
         key={`${design.rulerId}-${design.length}`}
         design={design}
+        getGLB={getGLB}
         onClose={onClose}
         onSuccess={onSuccess}
       />
