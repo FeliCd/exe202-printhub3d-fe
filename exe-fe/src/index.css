@@ -1,14 +1,30 @@
 @import "tailwindcss";
+@import "./app-theme.css" layer(app-colors);
+
+@custom-variant app-light (&:where([data-theme="light"], [data-theme="light"] *));
+
+@theme inline {
+  --color-theme-canvas: var(--theme-canvas, #040508);
+  --color-theme-ink: var(--theme-ink, #fff);
+  --color-theme-copy: var(--theme-copy, var(--color-slate-300));
+  --color-theme-muted: var(--theme-muted, var(--color-slate-400));
+  --color-theme-accent: var(--theme-accent, #39ff14);
+  --color-theme-action: var(--theme-action, #39ff14);
+  --color-theme-action-hover: var(--theme-action-hover, #32e012);
+  --color-theme-marker: var(--theme-marker, #39ff14);
+  --color-theme-line: #d9e3db;
+  --color-theme-soft: #e8f3e9;
+  --color-brand-surface: var(--theme-surface, #0a0c12);
+  --color-surface: var(--theme-surface, #0a0c12);
+  --color-surface-inset: var(--theme-canvas, #040508);
+  --color-surface-raised: var(--theme-raised, #11141e);
+  --color-primary: var(--theme-action, #39ff14);
+  --color-primary-hover: var(--theme-action-hover, #32e012);
+  --color-border: var(--theme-border, rgba(255, 255, 255, 0.08));
+  --color-text-muted: var(--theme-muted, #8e95a5);
+}
 
 @theme {
-  --color-brand-surface: #0a0c12;
-  --color-surface: #0a0c12;
-  --color-surface-inset: #040508;
-  --color-surface-raised: #11141e;
-  --color-primary: #39FF14;
-  --color-primary-hover: #32e012;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-text-muted: #8e95a5;
   --color-success: #39FF14;
   --color-warning: #ff9100;
   --color-error: #f87171;
@@ -55,6 +71,61 @@ html.dark, html {
   color-scheme: dark;
 }
 
+:root[data-theme="light"] {
+  --theme-canvas: #f3f5f3;
+  --theme-surface: #fff;
+  --theme-raised: #edf2ee;
+  --theme-border: #d9e3db;
+  --theme-ink: #19271f;
+  --theme-copy: #384c40;
+  --theme-muted: #526459;
+  --theme-accent: #24623b;
+  --theme-action: #cfe8d3;
+  --theme-action-hover: #bedfc5;
+  --theme-marker: #6c9d76;
+  --theme-grid: rgba(108, 157, 118, 0.3);
+  --theme-info: #155c70;
+  --theme-info-fill: #d8edf0;
+  --theme-warning: #854710;
+  --theme-warning-fill: #f8e6cd;
+  --theme-danger: #982c45;
+  --theme-danger-fill: #fae5e9;
+  --theme-purple: #633a91;
+  --theme-purple-fill: #ede6f7;
+  --bg-stage: var(--theme-canvas);
+  --text-main: var(--theme-ink);
+  --color-brand-neon: var(--theme-accent);
+  --neon-core: var(--theme-accent);
+  color-scheme: light;
+  scrollbar-color: var(--theme-marker) var(--theme-canvas);
+}
+
+[data-theme="light"] .btn-precision {
+  color: var(--theme-ink);
+  background: var(--theme-action);
+  box-shadow: none;
+}
+
+[data-theme="light"] .btn-precision:hover {
+  background: var(--theme-action-hover);
+}
+
+[data-theme="light"] .btn-precision::before,
+[data-theme="light"] .btn-precision::after {
+  display: none;
+}
+
+[data-theme="light"] .badge-telemetry {
+  background: var(--color-theme-soft);
+  border-color: var(--color-theme-line);
+}
+
+[data-theme="light"] .badge-telemetry .tile {
+  background: #fff;
+  border-color: var(--color-theme-line);
+  box-shadow: none;
+}
+
 body {
   font-family: 'Poppins', 'Montserrat', system-ui, -apple-system, sans-serif;
   background: var(--bg-stage);
@@ -93,15 +164,15 @@ body {
 .sidebar-scroll {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: #39FF14 var(--color-surface-inset, #101113);
+  scrollbar-color: var(--theme-marker, #39FF14) var(--theme-canvas, #040508);
 }
 .sidebar-scroll::-webkit-scrollbar { width: 6px; }
-.sidebar-scroll::-webkit-scrollbar-track { background: var(--color-surface-inset, #101113); }
+.sidebar-scroll::-webkit-scrollbar-track { background: var(--theme-canvas, #040508); }
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  background: #39FF14;
+  background: var(--theme-marker, #39FF14);
   border-radius: 999px;
 }
-.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #39ff14; }
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: var(--theme-marker, #39ff14); }
 
 .desktop-sidebar {
   width: 0;
@@ -172,6 +243,7 @@ body {
   }
 }
 .app-dialog::backdrop { background: rgb(0 0 0 / .8); backdrop-filter: blur(4px); }
+:root[data-theme="light"] .app-dialog::backdrop { background: rgb(25 39 31 / .5); }
 .app-dialog > div { margin-inline: auto; }
 .app-dialog-drawer {
   margin: 0 0 0 auto;
@@ -220,13 +292,13 @@ body {
 }
 
 .neon-text {
-  color: #39FF14;
+  color: var(--theme-accent, #39FF14);
   text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
 }
 
 .cyber-card {
-  background-color: #0a0c12;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--theme-surface, #0a0c12);
+  border: 1px solid var(--theme-border, rgba(255, 255, 255, 0.08));
 }
 
 /* =====================================================================

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRight, Menu, X } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function LandingNavbar() {
   const { user, isAuthenticated } = useAuth();
@@ -22,8 +23,8 @@ export default function LandingNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#0a0b0e]/85 backdrop-blur-xl border-b border-white/[0.08] transition-all">
-      <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3 xl:gap-4">
+    <header className="sticky top-0 z-50 w-full bg-[#0a0b0e]/85 app-light:bg-white/95 backdrop-blur-xl border-b border-white/[0.08] app-light:border-theme-line transition-all">
+      <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2 xl:gap-4">
         {/* ========================================================================= */}
         {/* BRAND LOGO (Matches Left Side of Reference Header) */}
         {/* ========================================================================= */}
@@ -31,13 +32,13 @@ export default function LandingNavbar() {
           <img
             src="/logo-printhub.svg"
             alt="PrintHub 3D Logo"
-            className="w-10 h-10 rounded-2xl shadow-lg shadow-[#39FF14]/20 group-hover:scale-105 transition-transform object-contain"
+            className="size-9 sm:size-10 rounded-2xl shadow-lg shadow-[#39FF14]/20 group-hover:scale-105 transition-transform object-contain app-light:shadow-none"
           />
           <div className="flex flex-col">
-            <span className="text-base sm:text-lg font-black tracking-wider text-white leading-tight flex items-center gap-1 whitespace-nowrap">
-              PRINTHUB <span className="text-[#39FF14]">3D</span>
+            <span className="text-sm sm:text-lg font-black tracking-wider text-theme-ink leading-tight flex items-center gap-1 whitespace-nowrap">
+              PRINTHUB <span className="text-theme-accent">3D</span>
             </span>
-            <span className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase whitespace-nowrap">
+            <span className="hidden min-[360px]:inline text-[10px] font-semibold tracking-widest text-theme-muted uppercase whitespace-nowrap">
               Precision Additive Farm
             </span>
           </div>
@@ -46,41 +47,41 @@ export default function LandingNavbar() {
         {/* ========================================================================= */}
         {/* CENTER PILL NAVBAR (Full Tiếng Việt - No Line Break) */}
         {/* ========================================================================= */}
-        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-[#0a0c12]/90 backdrop-blur-md px-2.5 xl:px-4 py-1.5 xl:py-2 rounded-full border border-white/10 shadow-xl shadow-black/60 shadow-black/60 text-[11px] xl:text-xs font-semibold text-slate-300 shrink-0">
+        <nav className="hidden xl:flex items-center gap-0.5 xl:gap-1 bg-[#0a0c12]/90 app-light:bg-white backdrop-blur-md px-2.5 xl:px-4 py-1.5 xl:py-2 rounded-full border border-white/10 app-light:border-theme-line shadow-xl shadow-black/60 text-[11px] xl:text-xs font-semibold text-theme-copy shrink-0 app-light:shadow-none">
           <button
             onClick={() => handleNavClick('services')}
-            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition cursor-pointer whitespace-nowrap shrink-0"
+            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-theme-ink hover:bg-white/5 app-light:hover:bg-theme-soft transition cursor-pointer whitespace-nowrap shrink-0"
           >
             Dịch Vụ
           </button>
           <button
             onClick={() => handleNavClick('why-choose')}
-            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition cursor-pointer whitespace-nowrap shrink-0"
+            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-theme-ink hover:bg-white/5 app-light:hover:bg-theme-soft transition cursor-pointer whitespace-nowrap shrink-0"
           >
             Về PrintHub
           </button>
           <Link
             to="/catalog"
-            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition whitespace-nowrap shrink-0"
+            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-theme-ink hover:bg-white/5 app-light:hover:bg-theme-soft transition whitespace-nowrap shrink-0"
           >
             Danh Mục Thước
           </Link>
           <Link
             to="/custom"
-            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition flex items-center gap-1.5 text-[#39FF14] whitespace-nowrap shrink-0"
+            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-theme-ink hover:bg-white/5 app-light:hover:bg-theme-soft transition flex items-center gap-1.5 text-theme-accent whitespace-nowrap shrink-0"
           >
             <span>In Theo Yêu Cầu</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] animate-pulse shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-theme-marker animate-pulse shrink-0" />
           </Link>
           <Link
             to="/warranty"
-            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition whitespace-nowrap shrink-0"
+            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-theme-ink hover:bg-white/5 app-light:hover:bg-theme-soft transition whitespace-nowrap shrink-0"
           >
             Bảo Hành
           </Link>
           <Link
             to="/help-center"
-            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition whitespace-nowrap shrink-0"
+            className="px-2.5 xl:px-3.5 py-1.5 rounded-full hover:text-theme-ink hover:bg-white/5 app-light:hover:bg-theme-soft transition whitespace-nowrap shrink-0"
           >
             Hỗ Trợ
           </Link>
@@ -89,39 +90,40 @@ export default function LandingNavbar() {
         {/* ========================================================================= */}
         {/* RIGHT ACTION: AUTH BUTTONS */}
         {/* ========================================================================= */}
-        <div className="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0">
-          {isAuthenticated && user ? (
-            <Link
-              to="/dashboard"
-              className="btn-precision px-4 xl:px-5 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap shrink-0"
-            >
-              <span className="whitespace-nowrap">Vào Bảng Điều Khiển</span>
-              <ArrowRight className="w-3.5 h-3.5 relative z-10 shrink-0" />
-            </Link>
-          ) : (
-            <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
+        <div className="flex items-center gap-2 xl:gap-3 shrink-0">
+          <div className="hidden sm:flex items-center">
+            {isAuthenticated && user ? (
               <Link
-                to="/login"
-                className="px-3 xl:px-4 py-2 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition whitespace-nowrap shrink-0"
+                to="/dashboard"
+                className="btn-precision px-4 xl:px-5 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap shrink-0"
               >
-                Đăng nhập
+                <span className="whitespace-nowrap">Vào Bảng Điều Khiển</span>
+                <ArrowRight className="w-3.5 h-3.5 relative z-10 shrink-0" />
               </Link>
-              <Link
-                to="/signup"
-                className="btn-precision px-4 xl:px-5 py-2 rounded-xl text-xs whitespace-nowrap shrink-0 inline-flex items-center justify-center"
-              >
-                <span className="whitespace-nowrap">Bắt đầu ngay</span>
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="flex lg:hidden items-center gap-2 shrink-0">
+            ) : (
+              <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
+                <Link
+                  to="/login"
+                  className="px-3 xl:px-4 py-2 rounded-full text-xs font-semibold text-theme-copy hover:text-theme-ink hover:bg-white/5 app-light:hover:bg-theme-soft transition whitespace-nowrap shrink-0"
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  to="/signup"
+                  className="btn-precision px-4 xl:px-5 py-2 rounded-xl text-xs whitespace-nowrap shrink-0 inline-flex items-center justify-center"
+                >
+                  <span className="whitespace-nowrap">Bắt đầu ngay</span>
+                </Link>
+              </div>
+            )}
+          </div>
+          <ThemeToggle />
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white transition"
-            aria-label="Toggle navigation menu"
+            type="button"
+            onClick={() => setMobileMenuOpen(open => !open)}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-white/5 app-light:bg-theme-soft border border-white/10 app-light:border-theme-line text-theme-copy hover:text-theme-ink transition xl:hidden"
+            aria-expanded={mobileMenuOpen}
+            aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -130,67 +132,67 @@ export default function LandingNavbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0d0e14]/95 border-b border-white/10 px-4 pt-3 pb-6 space-y-4 backdrop-blur-2xl animate-in slide-in-from-top duration-200">
-          <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-300">
+        <div className="xl:hidden bg-[#0d0e14]/95 app-light:bg-white/95 border-b border-white/10 app-light:border-theme-line px-4 pt-3 pb-6 space-y-4 backdrop-blur-2xl animate-in slide-in-from-top duration-200">
+          <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-theme-copy">
             <button
               onClick={() => handleNavClick('services')}
-              className="text-left px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
+              className="text-left px-3 py-2.5 rounded-xl bg-white/5 app-light:bg-theme-soft hover:bg-white/10 app-light:hover:bg-theme-action transition"
             >
               Dịch Vụ
             </button>
             <button
               onClick={() => handleNavClick('why-choose')}
-              className="text-left px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition"
+              className="text-left px-3 py-2.5 rounded-xl bg-white/5 app-light:bg-theme-soft hover:bg-white/10 app-light:hover:bg-theme-action transition"
             >
               Về PrintHub
             </button>
             <Link
               to="/catalog"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
+              className="px-3 py-2.5 rounded-xl bg-white/5 app-light:bg-theme-soft hover:bg-white/10 app-light:hover:bg-theme-action transition flex items-center justify-between"
             >
               Danh Mục Thước
             </Link>
             <Link
               to="/custom"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition text-[#39FF14] flex items-center justify-between"
+              className="px-3 py-2.5 rounded-xl bg-white/5 app-light:bg-theme-soft hover:bg-white/10 app-light:hover:bg-theme-action transition text-theme-accent flex items-center justify-between"
             >
               <span>In Theo Yêu Cầu</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-theme-marker animate-pulse" />
             </Link>
             <Link
               to="/bulk-order"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
+              className="px-3 py-2.5 rounded-xl bg-white/5 app-light:bg-theme-soft hover:bg-white/10 app-light:hover:bg-theme-action transition flex items-center justify-between"
             >
               <span>Đặt Sỉ CLB (-35%)</span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 app-light:text-amber-800 border border-amber-500/30">
                 Sắp ra mắt
               </span>
             </Link>
             <Link
               to="/warranty"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
+              className="px-3 py-2.5 rounded-xl bg-white/5 app-light:bg-theme-soft hover:bg-white/10 app-light:hover:bg-theme-action transition flex items-center justify-between"
             >
               Chính Sách Bảo Hành
             </Link>
             <Link
               to="/help-center"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition flex items-center justify-between"
+              className="px-3 py-2.5 rounded-xl bg-white/5 app-light:bg-theme-soft hover:bg-white/10 app-light:hover:bg-theme-action transition flex items-center justify-between"
             >
               Hỗ Trợ &amp; FAQ
             </Link>
           </div>
 
-          <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+          <div className="pt-2 border-t border-white/10 app-light:border-theme-line flex flex-col gap-2">
             {isAuthenticated && user ? (
               <Link
                 to="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-2.5 text-center rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs shadow-md shadow-[#39FF14]/20"
+                className="w-full py-2.5 text-center rounded-xl bg-theme-action hover:bg-theme-action-hover text-slate-950 font-black text-xs shadow-md shadow-[#39FF14]/20 app-light:shadow-none"
               >
                 Vào Bảng Điều Khiển
               </Link>
@@ -199,14 +201,14 @@ export default function LandingNavbar() {
                 <Link
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex-1 py-2 text-center rounded-xl border border-white/15 text-xs font-semibold text-white"
+                  className="flex-1 py-2 text-center rounded-xl border border-white/15 app-light:border-theme-line text-xs font-semibold text-theme-ink"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   to="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex-1 py-2 text-center rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-xs font-black text-slate-950 shadow-md shadow-[#39FF14]/20"
+                  className="flex-1 py-2 text-center rounded-xl bg-theme-action hover:bg-theme-action-hover text-xs font-black text-slate-950 shadow-md shadow-[#39FF14]/20 app-light:shadow-none"
                 >
                   Đăng ký
                 </Link>

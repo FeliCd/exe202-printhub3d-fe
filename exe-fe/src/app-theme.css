@@ -1,0 +1,233 @@
+/* Apply the light palette to older utilities while those screens share the app tokens.
+   The landing page already uses its own light variants. */
+:where(:root[data-theme="light"]) :where(:not(.landing-page, .landing-page *)) {
+  &:is(
+    [class~="bg-[#040508]"], [class~="bg-[#040508]/40"], [class~="bg-[#040508]/50"],
+    [class~="bg-[#040508]/60"], [class~="bg-[#040508]/80"],
+    [class~="bg-[#0A0A0A]"], [class~="bg-[#020305]"], [class~="bg-[#0D1116]"],
+    .bg-slate-900, [class~="bg-slate-900/90"]
+  ) {
+    background-color: var(--theme-canvas);
+  }
+
+  &:is([class~="bg-[#0a0c12]"], [class~="bg-[#0a0c12]/90"], [class~="bg-[#0f0f12]"], [class~="bg-[#13181F]/90"]) {
+    background-color: var(--theme-surface);
+  }
+
+  &:is(
+    [class~="bg-[#11141e]"], [class~="bg-[#1e2433]"], [class~="bg-[#1B222C]"],
+    .bg-slate-800, [class~="bg-slate-800/40"], [class~="bg-slate-800/80"],
+    .bg-slate-950, [class~="bg-white/5"], [class~="bg-white/10"], [class~="bg-white/[0.02]"]
+  ) {
+    background-color: var(--theme-raised);
+  }
+
+  &:is([class~="bg-[#39FF14]"], .bg-emerald-400) {
+    background-color: var(--theme-action);
+  }
+
+  &:is(
+    [class~="bg-[#39FF14]/5"], [class~="bg-[#39FF14]/10"],
+    [class~="bg-[#39FF14]/15"], [class~="bg-[#39FF14]/20"],
+    [class~="bg-primary/2"], [class~="bg-primary/4"], [class~="bg-primary/5"],
+    [class~="bg-primary/10"], [class~="bg-primary/12"], [class~="bg-primary/20"]
+  ) {
+    background-color: var(--color-theme-soft);
+  }
+
+  &:is([class~="bg-[#00e5ff]"], [class~="bg-[#00e5ff]/5"], [class~="bg-[#00e5ff]/10"], [class~="bg-[#00e5ff]/15"], [class~="bg-cyan-950/30"]) {
+    background-color: var(--theme-info-fill);
+  }
+
+  &:is(
+    [class~="bg-[#ff9100]"], [class~="bg-[#ff9100]/10"], [class~="bg-[#ff9100]/15"], [class~="bg-[#ff9100]/20"],
+    [class~="bg-amber-950/30"], [class~="bg-amber-950/40"], [class~="bg-amber-950/60"]
+  ) {
+    background-color: var(--theme-warning-fill);
+  }
+
+  &:is(
+    [class~="bg-red-950/20"], [class~="bg-red-950/30"], [class~="bg-red-950/40"],
+    .bg-rose-950, [class~="bg-rose-950/20"], [class~="bg-rose-950/40"],
+    [class~="bg-rose-950/60"], [class~="bg-rose-950/80"]
+  ) {
+    background-color: var(--theme-danger-fill);
+  }
+
+  &:is([class~="bg-purple-950/40"], [class~="bg-purple-950/60"]) {
+    background-color: var(--theme-purple-fill);
+  }
+
+  &:is(.bg-red-500, .bg-rose-500, .bg-rose-600) {
+    background-color: var(--theme-danger);
+  }
+
+  &:is(.text-white, .text-slate-100, [class~="text-[#F1F5F9]"]):not(
+    :where(.bg-red-500, .bg-rose-500, .bg-rose-600, [class~="bg-black/70"])
+  ) {
+    color: var(--theme-ink);
+  }
+
+  &:is(.text-slate-200, .text-slate-300):not([class~="bg-slate-950/80"]) {
+    color: var(--theme-copy);
+  }
+
+  &:is(.text-slate-400, .text-slate-500, .text-slate-600) {
+    color: var(--theme-muted);
+  }
+
+  &:is(.text-primary, .text-emerald-300, .text-emerald-400, .text-success,
+    [class~="text-[#39FF14]"], [class~="text-[#39FF14]/50"], [class~="text-[#39FF14]/60"],
+    [class~="text-[#39FF14]/70"], [class~="text-[#32e012]"]) {
+    color: var(--theme-accent);
+  }
+
+  &:is([class~="text-[#00e5ff]"], .text-info, .text-cyan-300, .text-cyan-400, .text-sky-400, .text-blue-400) {
+    color: var(--theme-info);
+  }
+
+  &:is([class~="text-[#ff9100]"], .text-warning, .text-amber-200, .text-amber-300, .text-amber-400,
+    [class~="text-amber-300/90"], [class~="text-amber-400/80"], .text-yellow-400) {
+    color: var(--theme-warning);
+  }
+
+  &:is(.text-error, .text-rose-300, .text-rose-400, .text-red-300, .text-red-400) {
+    color: var(--theme-danger);
+  }
+
+  &:is(.text-purple-200, .text-purple-300, .text-purple-400, .text-pink-400, [class~="text-[#e879f9]"]) {
+    color: var(--theme-purple);
+  }
+
+  &:is(
+    [class~="border-white/5"], [class~="border-white/10"], [class~="border-white/15"],
+    [class~="border-white/20"], [class~="border-white/[0.06]"], [class~="border-white/[0.08]"],
+    [class~="border-[#1e2433]"], [class~="border-[#1e2433]/80"], [class~="border-[#1e2433]/70"],
+    [class~="border-[#111215]"], [class~="border-[#232B35]"], [class~="border-[#2E3845]"],
+    .border-slate-700, .border-slate-800
+  ) {
+    border-color: var(--theme-border);
+  }
+
+  &:is([class~="divide-[#1e2433]"], [class~="divide-[#1e2433]/70"],
+    [class~="divide-[#272930]/60"], [class~="divide-white/10"]) > :not(:last-child),
+  &[class~="[&>*]:border-[#1e2433]"] > * {
+    border-color: var(--theme-border);
+  }
+
+  &[class~="before:bg-[#1e2433]"]::before {
+    background-color: var(--theme-border);
+  }
+
+  &[class~="border-b-[#39FF14]"] {
+    border-bottom-color: var(--theme-action);
+  }
+
+  &[class~="border-[#39FF14]"],
+  &:is([class~="focus:border-[#39FF14]"], [class~="focus:border-primary"]):focus {
+    border-color: var(--theme-marker);
+  }
+
+  &:is(
+    [class~="border-[#39FF14]/20"], [class~="border-[#39FF14]/30"], [class~="border-[#39FF14]/40"],
+    [class~="border-[#39FF14]/50"], [class~="border-[#39FF14]/60"], [class~="border-[#39FF14]/80"]
+  ) {
+    border-color: color-mix(in srgb, var(--theme-marker) 40%, var(--theme-border));
+  }
+
+  &:is([class~="accent-[#39FF14]"], [class~="accent-[#00e5ff]"]) {
+    accent-color: var(--theme-accent);
+  }
+
+  &:is([class~="ring-[#39FF14]/20"], [class~="ring-[#39FF14]/30"], [class~="ring-[#39FF14]/40"]),
+  &:is([class~="focus:ring-[#39FF14]"], [class~="focus:ring-[#39FF14]/40"]):focus {
+    --tw-ring-color: color-mix(in srgb, var(--theme-marker) 40%, transparent);
+  }
+
+  &:is([class~="selection:bg-[#39FF14]"], [class~="selection:bg-[#39FF14]"] *)::selection {
+    background-color: var(--theme-action);
+    color: var(--theme-ink);
+  }
+
+  &:is(.placeholder-slate-400, .placeholder-slate-500, [class~="placeholder:text-slate-500"], [class~="placeholder:text-slate-600"])::placeholder {
+    color: var(--theme-muted);
+    opacity: 1;
+  }
+
+  &[class~="file:bg-[#040508]"]::file-selector-button {
+    background-color: var(--theme-raised);
+    color: var(--theme-ink);
+    border-color: var(--theme-marker);
+  }
+
+  &:is([class~="from-[#040508]"], [class~="from-[#07090e]"], [class~="from-[#0B0E12]"], [class~="from-slate-900/40"]) {
+    --tw-gradient-from: var(--theme-canvas);
+  }
+  &:is([class~="from-[#0a0c12]"], [class~="from-[#11141e]"]) { --tw-gradient-from: var(--theme-surface); }
+  &:is([class~="via-[#0a0c12]"], [class~="via-[#040508]"], [class~="via-[#0e1420]"], [class~="via-[#0E1318]"]) {
+    --tw-gradient-via: var(--theme-raised);
+  }
+  &:is([class~="to-[#040508]"], [class~="to-[#0a0c12]"], [class~="to-[#11141e]"], [class~="to-[#12171E]"], [class~="to-emerald-950/20"]) {
+    --tw-gradient-to: var(--theme-raised);
+  }
+  &[class~="from-[#39FF14]"] { --tw-gradient-from: var(--theme-action); }
+  &[class~="via-[#39FF14]"] { --tw-gradient-via: var(--theme-action); }
+  &[class~="to-[#39FF14]"] { --tw-gradient-to: var(--theme-action); }
+  &[class~="from-[#39FF14]/10"] { --tw-gradient-from: var(--color-theme-soft); }
+  &[class~="to-[#39FF14]/5"] { --tw-gradient-to: var(--color-theme-soft); }
+  &[class~="from-[#00e5ff]"] { --tw-gradient-from: var(--theme-info-fill); }
+  &[class~="via-[#00e5ff]"] { --tw-gradient-via: var(--theme-info-fill); }
+  &[class~="to-[#00e5ff]"] { --tw-gradient-to: var(--theme-info-fill); }
+  &[class~="from-[#ff9100]/10"] { --tw-gradient-from: var(--theme-warning-fill); }
+  &[class~="to-[#ff9100]/5"] { --tw-gradient-to: var(--theme-warning-fill); }
+
+  &:is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+    --tw-shadow-color: rgb(25 39 31 / 12%);
+  }
+
+  @media (hover: hover) {
+    &:is(
+      [class~="hover:bg-[#040508]"], [class~="hover:bg-[#11141e]"],
+      [class~="hover:bg-[#11141e]/50"], [class~="hover:bg-[#11141e]/60"],
+      [class~="hover:bg-[#272930]"], [class~="hover:bg-[#1a2030]"], [class~="hover:bg-[#1c2233]"],
+      [class~="hover:bg-[#1e2433]"], [class~="hover:bg-[#252E3A]"], [class~="hover:bg-slate-800"],
+      [class~="hover:bg-white/5"], [class~="hover:bg-white/10"], [class~="hover:bg-white/15"]
+    ):hover {
+      background-color: var(--theme-raised);
+    }
+    &:is([class~="hover:bg-[#32e012]"], [class~="hover:bg-[#32e010]"]):hover {
+      background-color: var(--theme-action-hover);
+    }
+    &:is([class~="hover:bg-[#39FF14]/10"], [class~="hover:bg-[#39FF14]/20"], [class~="hover:bg-[#39FF14]/25"]):hover {
+      background-color: var(--color-theme-soft);
+    }
+    &:is([class~="hover:bg-[#00c8e0]"], [class~="hover:bg-[#38eeff]"]):hover {
+      background-color: var(--theme-info-fill);
+    }
+    &:is([class~="hover:bg-rose-900"], [class~="hover:bg-rose-900/40"], [class~="hover:bg-rose-900/60"], [class~="hover:bg-rose-950/40"], [class~="hover:bg-red-900/30"]):hover {
+      background-color: var(--theme-danger-fill);
+    }
+    &[class~="hover:bg-rose-500"]:hover { background-color: #802039; }
+    &:is([class~="hover:text-white"], [class~="hover:text-slate-100"], [class~="hover:text-slate-200"]):not(
+      :where([class~="bg-slate-950/80"], [class~="bg-black/70"])
+    ):hover {
+      color: var(--theme-ink);
+    }
+    &:is([class~="hover:text-primary"], [class~="hover:text-[#39FF14]"], [class~="hover:text-[#32e012]"]):hover {
+      color: var(--theme-accent);
+    }
+    &[class~="hover:text-[#00e5ff]"]:hover { color: var(--theme-info); }
+    &:is([class~="hover:text-rose-300"], [class~="hover:text-rose-400"], [class~="hover:text-red-300"]):hover {
+      color: var(--theme-danger);
+    }
+    &:is([class~="hover:border-[#39FF14]"], [class~="hover:border-[#39FF14]/30"], [class~="hover:border-[#39FF14]/40"],
+      [class~="hover:border-[#39FF14]/50"], [class~="hover:border-[#39FF14]/60"]):hover {
+      border-color: var(--theme-marker);
+    }
+    :where(.group:hover) &:is([class~="group-hover:text-[#39FF14]"], [class~="group-hover:text-emerald-400"]) {
+      color: var(--theme-accent);
+    }
+    :where(.group:hover) &[class~="group-hover:text-[#00e5ff]"] { color: var(--theme-info); }
+    :where(.group:hover) &[class~="group-hover:text-[#ff9100]"] { color: var(--theme-warning); }
+  }
+}

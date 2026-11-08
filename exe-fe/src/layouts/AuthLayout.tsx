@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,9 +15,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             PrintHub <span className="text-[#39FF14]">3D</span>
           </span>
         </Link>
-        <Link to="/catalog" className="text-xs text-[#39FF14] hover:underline font-bold">
-          Xem danh mục →
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/catalog" className="text-xs text-[#39FF14] hover:underline font-bold">
+            Xem danh mục →
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Form Content */}

@@ -299,13 +299,17 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   };
 
   const pageTitle = admin
-    ? 'Quản lý đơn hàng hệ thống (Admin)'
+    ? history
+      ? 'Lịch sử đơn hàng toàn hệ thống (Admin)'
+      : 'Quản lý đơn hàng hệ thống (Admin)'
     : history
     ? 'Lịch sử đơn hàng & In lại'
     : 'Theo dõi tiến độ in 3D';
 
   const pageDesc = admin
-    ? 'Theo dõi tiến độ gia công in 3D và trạng thái giao hàng cho cả đơn Marketplace và đơn Custom đã chốt giá.'
+    ? history
+      ? 'Xem lại lịch sử tất cả các đơn hàng đã hoàn tất, đã hủy hoặc hết hạn thanh toán trên toàn hệ thống.'
+      : 'Theo dõi tiến độ gia công in 3D và trạng thái giao hàng cho cả đơn Marketplace và đơn Custom đã chốt giá.'
     : history
     ? 'Xem lại các đơn hàng đã hoàn tất hoặc đã hủy, và gửi đánh giá chất lượng in.'
     : 'Theo dõi trực tiếp từng bước gia công in 3D và trạng thái giao hàng.';
@@ -366,8 +370,8 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         </button>
       </div>
 
-      {/* Buyer History Filter Tabs */}
-      {!admin && history && (
+      {/* History Filter Tabs */}
+      {history && (
         <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-white/10 bg-[#0a0c12] scrollbar-none text-xs font-bold font-mono">
           <button
             onClick={() => setHistoryTab('ALL')}
@@ -414,8 +418,8 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         </div>
       )}
 
-      {/* Buyer Active Order Filter Tabs */}
-      {!admin && !history && (
+      {/* Active Order Filter Tabs */}
+      {!history && (
         <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 rounded-2xl border border-white/10 bg-[#0a0c12] scrollbar-none text-xs font-bold font-mono">
           <button
             onClick={() => setActiveOrderTab('ALL')}
@@ -630,6 +634,15 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2.5">
+                    {admin && (
+                      <Link
+                        to={`/admin/orders/${o.id}`}
+                        className="whitespace-nowrap shrink-0 px-3.5 py-2 rounded-xl bg-[#11141e] hover:bg-[#1a2030] border border-white/10 hover:border-[#39FF14]/50 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#00e5ff]" />
+                        <span>Xem chi tiết đơn</span>
+                      </Link>
+                    )}
                     {!admin && (o.status === 'EXPIRED' || o.status === 'CANCELLED') && (
                       <Link
                         to="/catalog"
@@ -915,6 +928,15 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2.5">
+                    {admin && (
+                      <Link
+                        to={`/admin/orders/${c.id}`}
+                        className="whitespace-nowrap shrink-0 px-3.5 py-2 rounded-xl bg-[#11141e] hover:bg-[#1a2030] border border-white/10 hover:border-[#ff9100]/50 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#ff9100]" />
+                        <span>Xem chi tiết đơn</span>
+                      </Link>
+                    )}
                     {admin && next && (
                       <button
                         className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-[#ff9100] hover:bg-[#ff9e1a] text-[#040508] font-black text-xs shadow-md shadow-amber-950/50 transition cursor-pointer"

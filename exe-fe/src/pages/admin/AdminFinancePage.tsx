@@ -4,6 +4,37 @@ import { formatPrice } from '../../utils/format';
 import { adminService, type FinanceSummaryData } from '../../services/adminService';
 import { PageHeader } from '../../components/DataUI';
 
+// Định dạng trạng thái giao dịch: Thành công (xanh) - Hủy (đỏ) - Pending (vàng)
+const getTransactionStatusMeta = (rawStatus?: string) => {
+  const s = (rawStatus || '').toUpperCase();
+  if (s.includes('THÀNH CÔNG') || s === 'SUCCESS' || s === 'PAID' || s === 'COMPLETED') {
+    return {
+      label: rawStatus || 'Thành công',
+      badgeClass: 'bg-emerald-500/15 text-[#39FF14] border-emerald-500/40',
+      dotClass: 'bg-[#39FF14] ring-[#39FF14]/30',
+      amountClass: 'text-[#39FF14]',
+      prefix: '+',
+    };
+  }
+  if (s.includes('HỦY') || s.includes('HUY') || s === 'CANCELLED' || s === 'CANCELED' || s === 'FAILED' || s === 'EXPIRED') {
+    return {
+      label: s === 'EXPIRED' ? 'Hết hạn' : (rawStatus || 'Đã hủy'),
+      badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/40',
+      dotClass: 'bg-rose-400 ring-rose-400/30',
+      amountClass: 'text-rose-400/80',
+      prefix: '',
+    };
+  }
+  // Pending / Chờ thanh toán / Chờ xử lý
+  return {
+    label: s === 'UNPAID' ? 'Chưa thanh toán' : (rawStatus || 'Chờ thanh toán (Pending)'),
+    badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+    dotClass: 'bg-amber-400 ring-amber-400/30',
+    amountClass: 'text-amber-300',
+    prefix: '',
+  };
+};
+
 export default function AdminFinancePage() {
   const [data, setData] = useState<FinanceSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,30 +148,34 @@ export default function AdminFinancePage() {
         <div className="divide-y divide-[#1e2433]/70">
           {(!data?.recentTransactions || data.recentTransactions.length === 0) ? (
             <div className="py-12 text-center text-slate-500 font-mono">
-              Chưa có giao dịch thanh toán thành công nào được ghi nhận dưới cơ sở dữ liệu.
+              Chưa có giao dịch thanh toán nào được ghi nhận dưới cơ sở dữ liệu.
             </div>
           ) : (
-            data.recentTransactions.map((t) => (
-              <div key={t.id} className="py-3.5 flex flex-wrap items-center justify-between gap-3 hover:bg-[#11141e]/50 px-2 rounded-xl transition">
-                <div className="space-y-1">
-                  <span className="font-mono text-[#00e5ff] font-bold text-xs">MÃ GD: #{t.id}</span>
-                  <h4 className="font-bold text-white text-xs">{t.type} • {t.user}</h4>
-                  <p className="text-slate-400 text-[11px] font-mono">
-                    {t.date ? new Date(t.date).toLocaleString('vi-VN') : 'Mới tạo'} • Cổng:{' '}
-                    <span className="font-semibold text-[#39FF14]">{t.gateway || 'PayOS VietQR'}</span>
-                  </p>
-                </div>
+            data.recentTransactions.map((t) => {
+              const meta = getTransactionStatusMeta(t.status);
+              return (
+                <div key={t.id} className="py-3.5 flex flex-wrap items-center justify-between gap-3 hover:bg-[#11141e]/50 px-2 rounded-xl transition">
+                  <div className="space-y-1">
+                    <span className="font-mono text-[#00e5ff] font-bold text-xs">MÃ GD: #{t.id}</span>
+                    <h4 className="font-bold text-white text-xs">{t.type} • {t.user}</h4>
+                    <p className="text-slate-400 text-[11px] font-mono">
+                      {t.date ? new Date(t.date).toLocaleString('vi-VN') : 'Mới tạo'} • Cổng:{' '}
+                      <span className="font-semibold text-slate-200">{t.gateway || 'PayOS VietQR'}</span>
+                    </p>
+                  </div>
 
-                <div className="text-right">
-                  <span className="text-base font-black text-[#39FF14] font-mono block">
-                    +{formatPrice(t.amount)}đ
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 whitespace-nowrap shrink-0">
-                    {t.status}
-                  </span>
+                  <div className="text-right">
+                    <span className={`text-base font-black font-mono block ${meta.amountClass}`}>
+                      {meta.prefix}{formatPrice(t.amount)}đ
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${meta.badgeClass}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ring-2 ${meta.dotClass}`} />
+                      {meta.label}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Menu, Search, Bell, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import ThemeToggle from '../components/ThemeToggle';
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -27,7 +28,7 @@ export default function AdminHeader({
         <div className="flex items-center gap-2.5">
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>PORTAL QUẢN TRỊ</span>
+            <span className="sr-only min-[420px]:not-sr-only">PORTAL QUẢN TRỊ</span>
           </span>
         </div>
       </div>
@@ -51,6 +52,7 @@ export default function AdminHeader({
 
       {/* Right: Actions & Admin Profile */}
       <div className="flex items-center gap-2.5">
+        <ThemeToggle />
         <button
           type="button"
           onClick={onOpenCommandPalette}

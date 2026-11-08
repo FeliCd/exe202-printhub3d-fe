@@ -4,6 +4,7 @@ import { Bell, ShoppingBag, Search, Sparkles, User as UserIcon, Menu } from 'luc
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import NotificationDropdown from '../components/NotificationDropdown';
+import ThemeToggle from '../components/ThemeToggle';
 
 interface HeaderProps {
   sidebarOpen?: boolean;
@@ -28,7 +29,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
       {/* ========================================================================= */}
       {/* TOP LEFT: HAMBURGER TOGGLE MENU & PRINTHUB 3D LOGO */}
       {/* ========================================================================= */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
         <button
           aria-label="Đóng mở thanh menu"
           aria-expanded={sidebarOpen}
@@ -84,7 +85,8 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
       {/* ========================================================================= */}
       {/* TOP RIGHT: PROFILE - GIỎ HÀNG */}
       {/* ========================================================================= */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+        <ThemeToggle />
         {/* Real-time Notification Bell */}
         <div className="relative">
           <button
@@ -125,9 +127,11 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Link
               to="/login"
-              className="px-3.5 py-2 min-h-[44px] rounded-xl border border-border hover:border-[#39FF14] text-xs font-bold text-slate-200 hover:text-[#39FF14] transition flex items-center justify-center"
+              aria-label="Đăng nhập"
+              className="min-w-11 min-h-11 px-2 min-[400px]:px-3.5 py-2 rounded-xl border border-border hover:border-[#39FF14] text-xs font-bold text-slate-200 hover:text-[#39FF14] transition flex items-center justify-center"
             >
-              Đăng nhập
+              <UserIcon className="size-4 min-[400px]:hidden" aria-hidden="true" />
+              <span className="hidden min-[400px]:inline">Đăng nhập</span>
             </Link>
             <Link
               to="/signup"
@@ -141,14 +145,14 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         {/* TOP RIGHT: CART DRAWER BUTTON */}
         {!isAdmin && (
           <button
-            className="min-h-[44px] flex items-center gap-2 bg-[#39FF14] hover:bg-primary text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-primary/60 active:scale-95 transition cursor-pointer"
+            className="relative min-h-11 min-w-11 flex items-center justify-center gap-2 bg-[#39FF14] hover:bg-primary text-slate-950 font-black min-[400px]:px-2 sm:px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-primary/60 active:scale-95 transition cursor-pointer"
             onClick={onOpenCart}
             title="Xem giỏ hàng"
             aria-label={`Giỏ hàng, ${cartCount} sản phẩm`}
           >
             <ShoppingBag className="w-4 h-4" />
             <span className="hidden sm:inline">Giỏ Hàng</span>
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-950 text-[#39FF14] font-mono text-xs">
+            <span className="absolute -top-1 -right-1 min-[400px]:static px-1.5 py-0.5 rounded-md bg-slate-950 text-[#39FF14] font-mono text-xs">
               {cartCount}
             </span>
           </button>

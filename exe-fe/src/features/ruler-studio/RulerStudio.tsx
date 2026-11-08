@@ -413,7 +413,7 @@ export default function RulerStudio({
             }}
           > {tr("Reset")} </button>
           <button
-            style={{ fontWeight: "bold", background: "#39FF14", color: "#000" }}
+            style={{ fontWeight: "bold", background: "var(--theme-action, #39FF14)", color: "#000" }}
             disabled={isExporting}
             onClick={handleOpenExportDialog}
           >
