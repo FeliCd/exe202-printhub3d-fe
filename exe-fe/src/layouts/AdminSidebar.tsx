@@ -6,6 +6,7 @@ import {
   Package,
   Tag,
   FileEdit,
+  MessageSquare,
   PackageCheck,
   History,
   Sparkles,
@@ -53,6 +54,7 @@ const navGroups: NavGroup[] = [
     title: 'HÀNG HÓA & ĐƠN HÀNG',
     items: [
       { path: '/admin/products', label: 'Sản Phẩm Trên Sàn', icon: Package },
+      { path: '/admin/reviews', label: 'Đánh giá khách hàng', icon: MessageSquare },
       { path: '/admin/categories', label: 'Danh Mục Sản Phẩm', icon: Tag },
       {
         path: '/admin/custom-orders',
