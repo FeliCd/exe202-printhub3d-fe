@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
-import { translateCustom as tr } from './language';
+import { useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle, type Ref } from "react";
+import { translateCustom as tr, useCustomLanguage } from './language';
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import { useReducedMotion } from "framer-motion";
@@ -180,6 +180,7 @@ function Rig({
   height,
   surface,
   surfaceSerial,
+  zoomRef,
 }: {
   view: View;
   serial: number;
@@ -188,20 +189,50 @@ function Rig({
   height: number;
   surface: Surface;
   surfaceSerial: number;
+  zoomRef: Ref<(factor: number) => void>;
 }) {
   const controls = useRef<Controls>(null),
     moving = useRef(true),
     elapsed = useRef(0),
     idle = useRef(false),
     idleElapsed = useRef(0);
-  const { invalidate, size } = useThree();
+  const { gl, invalidate, size } = useThree();
+  const zoomBy = useCallback((factor: number) => {
+    if (!controls.current) return;
+    moving.current = false;
+    idle.current = false;
+    controls.current.setScale(factor);
+    invalidate();
+  }, [invalidate]);
+
+  useImperativeHandle(zoomRef, () => zoomBy, [zoomBy]);
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey) return;
+      const units = event.deltaMode;
+      if (event.deltaY === 0) return;
+      event.preventDefault();
+      const pixels = event.deltaY * (units === WheelEvent.DOM_DELTA_LINE
+        ? 16 : units === WheelEvent.DOM_DELTA_PAGE ? canvas.clientHeight : 1);
+      zoomBy(Math.exp(Math.max(-0.3, Math.min(0.3, pixels * 0.0015))));
+    };
+    canvas.addEventListener("wheel", onWheel, { passive: false });
+    return () => canvas.removeEventListener("wheel", onWheel);
+  }, [gl, zoomBy]);
+
+  // Keep the camera outside the ruler's footprint, including when viewed end-on.
+  const minDistance = Math.hypot(length, height) / 2 + 1;
   const destination = useMemo(() => {
+    const framing = view === "Hero" && surface === "ruler" && size.width < 600
+      ? 2.35
+      : 2.15;
     const distance =
       Math.max(
         ((length + 2) * size.height) / Math.max(1, size.width),
         height + 2,
       ) *
-      2.15 *
+      framing *
       (view === "Top" ? 2.73 : 1);
     const vectors: Record<View, [number, number, number]> = {
       Hero: [0.2, 0.8, 1],
@@ -222,8 +253,8 @@ function Rig({
         : vectors[view]),
     )
       .normalize()
-      .multiplyScalar(distance);
-  }, [view, length, height, size, surface]);
+      .multiplyScalar(Math.max(distance, minDistance * 1.35));
+  }, [view, length, height, size, surface, minDistance]);
   useEffect(() => {
     moving.current = true;
     elapsed.current = 0;
@@ -285,9 +316,11 @@ function Rig({
   return (
     <OrbitControls
       ref={controls}
+      domElement={gl.domElement}
       makeDefault
       enableDamping
-      minDistance={6}
+      enableZoom={false}
+      minDistance={minDistance}
       maxDistance={1500}
       onStart={() => {
         moving.current = false;
@@ -473,11 +506,13 @@ const Scene = forwardRef<
   },
   ref,
 ) {
+  const { language } = useCustomLanguage();
   const [view, setView] = useState<View>("Hero"),
     [serial, setSerial] = useState(0),
     [dimensions, setDimensions] = useState(true),
     [error, setError] = useState("");
   const model = useRef<Group>(null);
+  const zoom = useRef<(factor: number) => void>(null);
   const ruler = getRuler(design.rulerId),
     profile = getProfile(design);
   const [manualSurfaceSerial, setManualSurfaceSerial] = useState(surfaceSerial);
@@ -614,12 +649,13 @@ const Scene = forwardRef<
       aria-label={tr("Interactive 3D ruler preview")}
     >
       <div className="studio-preview-heading">
-        <span>{tr("PRINT HUB / DESIGN STUDIO")}</span>
         <strong>
-          {ruler.name} · {design.length} {tr("cm")} </strong>
+          {language === 'vi' ? ruler.vietnameseName : ruler.name} · {design.length} {tr("cm")}
+        </strong>
       </div>
       <div className={`studio-canvas ${reduced ? "" : "studio-enter"}`}>
         <Canvas
+          style={{ position: "absolute", inset: 0 }}
           shadows={{ type: PCFShadowMap }}
           frameloop="demand"
           dpr={[1, 1.75]}
@@ -678,6 +714,7 @@ const Scene = forwardRef<
             surface={surface}
             surfaceSerial={surfaceSerial}
             reduced={reduced}
+            zoomRef={zoom}
           />
         </Canvas>
       </div>
@@ -703,6 +740,10 @@ const Scene = forwardRef<
               setSerial((s) => s + 1);
             }}
           > {tr("Reset view")} </button>
+          <div className="studio-camera-zoom" role="group" aria-label={tr("3D zoom")}>
+            <button type="button" aria-label={tr("Zoom out 3D")} title={tr("Zoom out 3D")} onClick={() => zoom.current?.(1.15)}>−</button>
+            <button type="button" aria-label={tr("Zoom in 3D")} title={tr("Zoom in 3D")} onClick={() => zoom.current?.(1 / 1.15)}>+</button>
+          </div>
         </div>
         <div className="studio-row">
           <label>
@@ -733,7 +774,7 @@ const Scene = forwardRef<
           </p>
         )}
         <p className="studio-hint">
-          {tr("Kéo chuột / chạm để xoay 3D · Cuộn để phóng to/thu nhỏ.")}
+          {tr("Drag to rotate · Ctrl + scroll or use − / + to zoom.")}
         </p>
         {error && <p role="alert">{tr(error)}</p>}
       </div>

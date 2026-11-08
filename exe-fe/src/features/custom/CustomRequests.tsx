@@ -1,14 +1,14 @@
+import RecordList, { RecordDetailHeader } from '../../components/RecordList';
 import { useState, useMemo } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
-import api, { send, uploadFormData } from '../../services/api';
+import api, { send } from '../../services/api';
 import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
 import type { CustomDTO } from '../../services/quotationService';
-import { Notice } from '../../components/DataUI';
+import { Notice, RemoteState } from '../../components/DataUI';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { money } from '../../utils/format';
-import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import {
   Ruler,
   Layers,
@@ -19,7 +19,6 @@ import {
   Download,
   Eye,
   Trash2,
-  X,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -33,12 +32,8 @@ import {
   Truck,
   Printer,
   ChevronRight,
-  FileCode,
   ShieldCheck,
-  Send,
   PlusCircle,
-  FileUp,
-  ArrowRight,
 } from 'lucide-react';
 
 /* ========================================================================= */
@@ -295,250 +290,6 @@ function renderStatusBadge(status?: string, tr: (text: string) => string = text 
 /* ========================================================================= */
 /* 2. CUSTOM REQUEST FORM (UPLOAD TAB)                                       */
 /* ========================================================================= */
-export function CustomRequestForm({
-  bulk = false,
-  onCreated,
-  translate: tr = text => text,
-  initialRequirements = '',
-}: {
-  bulk?: boolean;
-  onCreated?: () => void;
-  translate?: (text: string) => string;
-  initialRequirements?: string;
-}) {
-  const { isAuthenticated } = useAuth();
-  const action = useAction(onCreated);
-  const [files, setFiles] = useState<File[]>([]);
-  const [fileError, setFileError] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [requirements, setRequirements] = useState(initialRequirements);
-  const [address, setAddress] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const validateAndAddFiles = (incomingFiles: File[]) => {
-    setFileError('');
-    if (!incomingFiles.length) return;
-    const MAX_SIZE = 20 * 1024 * 1024; // 20MB
-    const ALLOWED = ['.stl', '.obj', '.step', '.stp'];
-    const valid: File[] = [];
-
-    for (const f of incomingFiles) {
-      if (f.size === 0) {
-        setFileError(`Tệp "${f.name}" bị rỗng (0 bytes). Vui lòng chọn tệp hợp lệ.`);
-        return;
-      }
-      if (f.size > MAX_SIZE) {
-        setFileError(`Tệp "${f.name}" (${(f.size / (1024 * 1024)).toFixed(1)}MB) vượt quá giới hạn 20MB cho phép.`);
-        return;
-      }
-      const dotIndex = f.name.lastIndexOf('.');
-      const ext = dotIndex !== -1 ? f.name.substring(dotIndex).toLowerCase() : '';
-      if (!ALLOWED.includes(ext)) {
-        setFileError(`Tệp "${f.name}" không hợp lệ. Chỉ chấp nhận định dạng: .stl, .obj, .step, .stp.`);
-        return;
-      }
-      valid.push(f);
-    }
-
-    if (bulk) {
-      setFiles(prev => [...prev, ...valid]);
-    } else {
-      setFiles(valid.slice(0, 1));
-    }
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="p-8 rounded-3xl border border-border bg-surface text-center space-y-4 max-w-lg mx-auto">
-        <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary mx-auto">
-          <User className="w-6 h-6" />
-        </div>
-        <h2 className="text-lg font-bold text-white">{tr("Yêu cầu đăng nhập")}</h2>
-        <p className="text-sm text-slate-400"> {tr("Vui lòng đăng nhập để gửi tệp thiết kế 3D và nhận báo giá từ xưởng PrintHub.")} </p>
-        <Link
-          to={`/login?redirect=${bulk ? '/bulk-order' : '/custom'}`}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-slate-950 font-bold hover:brightness-110 transition shadow-lg shadow-primary/20 text-sm"
-        > {tr("Đăng nhập ngay")} <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-3xl border border-border bg-surface p-6 sm:p-8 max-w-3xl mx-auto shadow-lg relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
-
-      <div className="flex items-center gap-3.5 pb-6 border-b border-border/80">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
-          <FileUp className="w-6 h-6" />
-        </div>
-        <div>
-          <h2 className="text-xl font-black text-white">
-            {bulk ? tr("Gửi Lô Thiết Kế Nhận Báo Giá Số Lượng Lớn") : tr("Gửi Tệp Thiết Kế 3D Yêu Cầu Báo Giá")}
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5"> {tr("Tải lên file STL/OBJ/STEP để kỹ thuật viên thẩm định kết cấu in và gửi báo giá chính xác.")} </p>
-        </div>
-      </div>
-
-      <Notice error={action.error} />
-      {fileError && (
-        <div className="my-4 p-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 text-rose-400 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{fileError}</span>
-        </div>
-      )}
-      {success && (
-        <div className="my-4 p-4 rounded-2xl border border-primary/40 bg-primary/2 text-primary text-sm flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-          <span>{success}</span>
-        </div>
-      )}
-
-      <form
-        className="space-y-6 mt-6"
-        onSubmit={async e => {
-          e.preventDefault();
-          setSuccess('');
-          setFileError('');
-          let completed = 0;
-          const ok = await action.run(async () => {
-            if (!files.length) throw new Error('Vui lòng chọn ít nhất một tệp thiết kế 3D.');
-            for (const file of files) {
-              const formData = new FormData();
-              formData.append('file', file);
-              formData.append('folder', 'printhub3d/custom_prints');
-              const res = await uploadFormData<string | { result?: string }>('/upload/raw', formData);
-              const attachmentUrl = typeof res === 'string' ? res : (res?.result || '');
-              await send('/custom-orders', {
-                attachmentUrl,
-                requirements,
-                quantity,
-                shippingAddress: address,
-              });
-              completed++;
-              setFiles(prev => prev.filter(f => f !== file));
-            }
-          });
-          if (ok) {
-            setSuccess(`Đã gửi thành công ${completed} yêu cầu in! Hãy chuyển sang tab Báo giá để theo dõi.`);
-            setRequirements('');
-          } else if (completed) {
-            setSuccess(`Đã gửi ${completed} tệp. Các tệp còn lại chưa xong, bạn có thể thử lại.`);
-          }
-        }}
-      >
-        {/* File Dropzone */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <FileCode className="w-4 h-4 text-primary" /> {tr("Tệp thiết kế 3D (.STL, .OBJ, .STEP)")} <span className="text-rose-400">*</span>
-          </label>
-          <div className="relative border-2 border-dashed border-border hover:border-primary/50 transition rounded-2xl p-6 text-center bg-surface-inset/60">
-            <input
-              type="file"
-              accept=".stl,.obj,.step,.stp"
-              multiple={bulk}
-              required={!files.length}
-              onChange={e => {
-                const selected = Array.from(e.target.files || []);
-                validateAndAddFiles(selected);
-                e.target.value = '';
-              }}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <div className="space-y-2 pointer-events-none">
-              <Download className="w-8 h-8 text-primary mx-auto opacity-80" />
-              <p className="text-sm font-semibold text-white"> {tr("Kéo thả file thiết kế vào đây hoặc")} <span className="text-primary underline">{tr("chọn tệp")}</span>
-              </p>
-              <p className="text-xs text-slate-400"> {tr("Hỗ trợ STL, OBJ, STEP (tối đa 20MB mỗi tệp)")} </p>
-            </div>
-          </div>
-          {files.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              {files.map((f, idx) => (
-                <span
-                  key={`${f.name}-${idx}`}
-                  className="px-3 py-1 rounded-xl bg-surface-inset border border-border text-xs text-slate-300 flex items-center gap-2"
-                >
-                  <FileCode className="w-3.5 h-3.5 text-primary" />
-                  <span className="font-mono">{f.name}</span>
-                  <span className="text-[10px] text-slate-500">({(f.size / 1024 / 1024).toFixed(2)} {tr("MB)")}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
-                    className="p-0.5 hover:text-rose-400 text-slate-400 transition cursor-pointer"
-                    title="Xóa tệp này"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Quantity */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-primary" /> {tr("Số lượng in (cây / cái)")} <span className="text-rose-400">*</span>
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={10000}
-            required
-            value={quantity}
-            onChange={e => setQuantity(Number(e.target.value))}
-            className="w-full rounded-xl border border-border bg-surface-inset px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        {/* Technical Requirements */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Ruler className="w-4 h-4 text-purple-400" /> {tr("Yêu cầu kỹ thuật & Vật liệu")} <span className="text-rose-400">*</span>
-          </label>
-          <textarea
-            rows={3}
-            maxLength={4000}
-            required
-            placeholder={tr("Ví dụ: Thước dài 20cm, nhựa PLA Pro+ màu Emerald, độ đặc Infill 20%, khắc tên 'Nguyễn Văn A' laser chìm...")}
-            value={requirements}
-            onChange={e => setRequirements(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface-inset p-3 text-sm text-white focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        {/* Shipping Address */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" /> {tr("Thông tin người nhận & Địa chỉ giao hàng")} <span className="text-rose-400">*</span>
-          </label>
-          <textarea
-            rows={2}
-            maxLength={1000}
-            required
-            placeholder={tr("Ví dụ: Lê Quốc Khánh · 0786954657 · Khu Công Nghệ Cao, P. Long Thạnh Mỹ, TP. Thủ Đức")}
-            value={address}
-            onChange={e => setAddress(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface-inset p-3 text-sm text-white focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={action.busy}
-            className="w-full py-3.5 rounded-xl bg-primary text-slate-950 font-black hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm shadow-xl shadow-primary/20 uppercase tracking-tight cursor-pointer disabled:opacity-50"
-          >
-            <Send className="w-4 h-4" />
-            <span>{action.busy ? tr("Đang tải file & gửi yêu cầu...") : tr("Gửi Yêu Cầu Báo Giá")}</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
 /* ========================================================================= */
 /* 3. CUSTOM REQUESTS - BEAUTIFIED LISTING PAGE                              */
 /* ========================================================================= */
@@ -548,6 +299,8 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
   const [prices, setPrices] = useState<Record<string, string>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
+  const { requestId } = useParams<{ requestId: string }>();
+  const detailId = admin ? undefined : requestId;
   const [cancelModalOrderId, setCancelModalOrderId] = useState<string | null>(null);
   const [codModalOrder, setCodModalOrder] = useState<{ id: string; nextStatus: string } | null>(null);
   const [quoteError, setQuoteError] = useState<Record<string, string>>({});
@@ -608,8 +361,13 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
     return allOrders;
   }, [allOrders, activeFilter]);
 
+  const visibleRequest = detailId ? remote.data?.find(c => c.id === detailId) : undefined;
+
   return (
     <div className="w-full max-w-6xl mx-auto pb-16 px-4 space-y-8 animate-in fade-in duration-300 min-w-0">
+      {detailId ? (
+        <RecordDetailHeader to="/quotations" label={tr("Yêu cầu & báo giá")} title={visibleRequest ? `Báo giá #${visibleRequest.id.slice(0, 8)}` : tr("Chi tiết báo giá")} />
+      ) : <>
       {/* ========================================================================= */}
       {/* PAGE HEADER & QUICK ACTIONS                                               */}
       {/* ========================================================================= */}
@@ -730,15 +488,32 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       {/* ========================================================================= */}
       {/* VIVID & BEAUTIFIED REQUEST CARDS LIST                                      */}
       {/* ========================================================================= */}
+      </>}
+      {detailId && <Notice error={action.error} />}
+      {detailId && (
+        <RemoteState {...remote} empty={!visibleRequest} emptyMessage={tr("Không tìm thấy yêu cầu này.")} retry={remote.reload} />
+      )}
+      {!admin && !detailId && filteredOrders.length > 0 && (
+        <RecordList
+          label={tr("Yêu cầu & báo giá")}
+          entries={filteredOrders.map(c => ({
+            id: c.id,
+            to: `/quotations/${encodeURIComponent(c.id)}`,
+            title: parseOrderRequirements(c.requirements, c).modelName,
+            meta: `#${c.id.slice(0, 8)} · ${formatDate(c.createdAt)}`,
+            status: renderStatusBadge(c.status, tr),
+          }))}
+        />
+      )}
       <div className="space-y-6">
-        {filteredOrders.map(c => {
+        {(admin ? filteredOrders : visibleRequest ? [visibleRequest] : []).map(c => {
           const req = parseOrderRequirements(c.requirements, c);
           const ship = parseShippingAddress(c.shippingAddress, c.buyerName);
 
           return (
             <div
               key={c.id}
-              className="rounded-3xl border border-white/10 bg-[#0a0c12] hover:border-[#39FF14]/40 transition-all duration-300 shadow-xl overflow-hidden relative group"
+              className="min-w-0 rounded-xl border border-border bg-surface overflow-hidden relative group"
             >
               {/* Subtle neon gradient top accent line */}
               <div className="h-[2px] w-full bg-gradient-to-r from-[#39FF14] via-[#00e5ff] to-[#ff9100] opacity-70 group-hover:opacity-100 transition" />
@@ -797,7 +572,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                 {/* ------------------------------------------------------------- */}
                 {/* B. STRUCTURED GRID: 3 VIVID MODULES                            */}
                 {/* ------------------------------------------------------------- */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 gap-4 2xl:grid-cols-3">
                   {/* MODULE 1: IN ẤN & THÔNG SỐ KỸ THUẬT */}
                   <div className="p-4 rounded-2xl border border-white/10 bg-[#040508]/80 space-y-3 flex flex-col justify-between">
                     <div className="space-y-3">

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { button, secondary } from '../components/DataUI';
 import { send, errorText } from '../services/api';
-import { formatPrice } from '../utils/format';
 import type { ShippingAddress } from '../features/address/data';
 import {
   MapPin,
@@ -18,7 +18,6 @@ import {
   RotateCcw,
   Check,
   Send,
-  Info,
 } from 'lucide-react';
 
 export interface CustomRulerOrderConfig {
@@ -42,7 +41,6 @@ export interface CustomRulerOrderConfig {
   materialType: string;
   infillDensity: number;
   stickersCount: number;
-  estimatedPrice: number;
   attachmentUrl?: string;
   fileName?: string;
 }
@@ -78,9 +76,8 @@ export default function CustomOrderCheckoutPage({
 
   // 1. Load Custom Ruler Configuration from location.state or sessionStorage
   const [orderConfig] = useState<CustomRulerOrderConfig | null>(() => {
-    if (location.state && (location.state as any).orderConfig) {
-      return (location.state as any).orderConfig;
-    }
+    const config = (location.state as { orderConfig?: CustomRulerOrderConfig } | null)?.orderConfig;
+    if (config) return config;
     const saved = sessionStorage.getItem('printhub_custom_ruler_order');
     if (saved) {
       try {
@@ -97,16 +94,16 @@ export default function CustomOrderCheckoutPage({
 
   // Step 1: Shipping Details
   const [recipientName, setRecipientName] = useState(
-    shippingAddress?.recipientName || user?.name || 'Lê Quốc Khánh'
+    shippingAddress?.recipientName || user?.name || ''
   );
   const [phone, setPhone] = useState(
-    shippingAddress?.phone || user?.phone || '0786954657'
+    shippingAddress?.phone || user?.phone || ''
   );
   const [province, setProvince] = useState(
-    shippingAddress?.province || 'TP. Hồ Chí Minh'
+    shippingAddress?.province || ''
   );
   const [addressLine, setAddressLine] = useState(
-    shippingAddress?.addressLine || user?.address || 'Khu Công Nghệ Cao, P. Long Thạnh Mỹ, TP. Thủ Đức'
+    shippingAddress?.addressLine || user?.address || ''
   );
   const [addressError, setAddressError] = useState('');
 
@@ -129,72 +126,6 @@ export default function CustomOrderCheckoutPage({
   const [paymentMethod] = useState<'PAYOS'>('PAYOS');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-
-  // Pricing Calculation & Flow 09 Dynamic Entitlement
-  const [activePlan, setActivePlan] = useState<{
-    name: string;
-    discountPercent: number;
-    maxDiscountAmount: number | null;
-    freeShipping: boolean;
-  } | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    send<{ subscriptions?: Array<{ name?: string; planName?: string; isActive?: boolean; endDate?: string; structuredBenefits?: string }> }>('/subscriptions/me')
-      .then((res) => {
-        if (!isMounted || !res?.subscriptions) return;
-        const now = new Date();
-        const activeSub = res.subscriptions.find((s) => s.isActive && (!s.endDate || new Date(s.endDate) > now));
-        if (activeSub) {
-          let discountPercent = 0;
-          let maxDiscountAmount: number | null = null;
-          let freeShipping = false;
-          if (activeSub.structuredBenefits) {
-            try {
-              const parsed = JSON.parse(activeSub.structuredBenefits);
-              if (parsed.discount?.percent) {
-                discountPercent = Number(parsed.discount.percent) || 0;
-              }
-              if (parsed.discount?.maxDiscountAmount) {
-                maxDiscountAmount = Number(parsed.discount.maxDiscountAmount);
-              }
-              if (parsed.shipping?.freeUsesPerTerm && Number(parsed.shipping.freeUsesPerTerm) > 0) {
-                freeShipping = true;
-              }
-            } catch {
-              discountPercent = 10;
-            }
-          } else {
-            discountPercent = 10;
-          }
-          setActivePlan({
-            name: activeSub.planName || activeSub.name || 'Gói Hội Viên',
-            discountPercent,
-            maxDiscountAmount,
-            freeShipping,
-          });
-        }
-      })
-      .catch((err) => {
-        console.warn('Could not load user subscription entitlement:', err);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const unitPrice = orderConfig?.estimatedPrice || 45000;
-  const subtotal = unitPrice * quantity;
-  let rawDiscount = 0;
-  if (activePlan && activePlan.discountPercent > 0) {
-    rawDiscount = Math.round(subtotal * (activePlan.discountPercent / 100));
-    if (activePlan.maxDiscountAmount != null && rawDiscount > activePlan.maxDiscountAmount) {
-      rawDiscount = activePlan.maxDiscountAmount;
-    }
-  }
-  const vipDiscount = rawDiscount;
-  const shippingFee = (subtotal >= 100000 || activePlan?.freeShipping) ? 0 : 15000;
-  const totalAmount = Math.max(0, subtotal - vipDiscount + shippingFee);
 
   // Validation Step 1
   const handleNextFromStep1 = () => {
@@ -221,7 +152,7 @@ export default function CustomOrderCheckoutPage({
 
   // Submit Final Custom Order
   const handleFinalSubmit = async () => {
-    if (!orderConfig) return;
+    if (!orderConfig || isSubmitting) return;
     setIsSubmitting(true);
     setSubmitError('');
 
@@ -241,7 +172,7 @@ export default function CustomOrderCheckoutPage({
         .join('; ');
 
       // Post custom order to backend
-      await send<any>('/custom-orders', {
+      await send('/custom-orders', {
         attachmentUrl: orderConfig.attachmentUrl,
         quantity,
         shippingAddress: fullShippingAddress,
@@ -290,7 +221,7 @@ export default function CustomOrderCheckoutPage({
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-16 px-4 space-y-8 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto pb-12 space-y-6 animate-in fade-in duration-300">
       {/* ========================================================================= */}
       {/* 1. HEADER & TOP STEPPER INDICATOR */}
       {/* ========================================================================= */}
@@ -301,10 +232,10 @@ export default function CustomOrderCheckoutPage({
               <span className="p-2 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] shadow-md shadow-emerald-950/50">
                 <Ruler className="w-6 h-6" />
               </span>
-              Xác Nhận Đặt In Thước 3D
+              Xác nhận yêu cầu in
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Quy trình 4 bước kiểm tra thông tin và đặt sản xuất thước in 3D cá nhân hóa.
+              Kiểm tra thiết kế và thông tin giao hàng trước khi gửi xưởng báo giá.
             </p>
           </div>
           <Link
@@ -323,16 +254,19 @@ export default function CustomOrderCheckoutPage({
               { num: 1, title: 'Địa chỉ nhận', icon: MapPin },
               { num: 2, title: 'Mẫu thước 3D', icon: Ruler },
               { num: 3, title: 'Số lượng & Ghi chú', icon: Layers },
-              { num: 4, title: 'Gửi báo giá', icon: Send },
+              { num: 4, title: 'Xác nhận', icon: Send },
             ].map(step => {
               const isPassed = currentStep > step.num;
               const isCurrent = currentStep === step.num;
               const Icon = step.icon;
 
               return (
-                <div
+                <button
+                  type="button"
                   key={step.num}
-                  className={`flex flex-col items-center text-center space-y-1.5 cursor-pointer transition select-none ${
+                  aria-current={isCurrent ? 'step' : undefined}
+                  disabled={!isPassed || isSubmitting}
+                  className={`flex flex-col items-center text-center space-y-1.5 transition select-none ${
                     isCurrent
                       ? 'text-[#39FF14]'
                       : isPassed
@@ -359,7 +293,7 @@ export default function CustomOrderCheckoutPage({
                   <span className="text-[11px] sm:text-xs font-bold truncate max-w-[85px] sm:max-w-none font-mono">
                     {step.num}. {step.title}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -438,6 +372,7 @@ export default function CustomOrderCheckoutPage({
                 onChange={e => setProvince(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-[#040508] px-3.5 py-2.5 text-sm text-white focus:border-[#39FF14] focus:outline-none"
               >
+                <option value="">Chọn tỉnh hoặc thành phố</option>
                 {VIETNAM_PROVINCES.map(p => (
                   <option key={p} value={p} className="bg-slate-900 text-white">
                     {p}
@@ -662,9 +597,6 @@ export default function CustomOrderCheckoutPage({
                     +
                   </button>
                 </div>
-                <div className="text-xs text-slate-400 font-mono">
-                  <span className="font-bold text-[#39FF14]">{formatPrice(unitPrice * quantity)}đ</span> (Đơn giá: {formatPrice(unitPrice)}đ/cây)
-                </div>
               </div>
             </div>
 
@@ -729,7 +661,7 @@ export default function CustomOrderCheckoutPage({
                 onClick={() => setCurrentStep(4)}
                 className="whitespace-nowrap shrink-0 px-6 py-3 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-md shadow-emerald-950/50"
               >
-                <span>Tiếp tục: Xác nhận &amp; Gửi báo giá</span>
+                <span>Tiếp tục: Xác nhận yêu cầu</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -741,138 +673,50 @@ export default function CustomOrderCheckoutPage({
       {/* STEP 4: 📨 XÁC NHẬN THÔNG TIN & GỬI YÊU CẦU BÁO GIÁ */}
       {/* ========================================================================= */}
       {currentStep === 4 && (
-        <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-          <div className="rounded-2xl border border-white/10 bg-[#0a0c12] p-6 sm:p-8 space-y-6 shadow-xl">
-            <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14]">
-                <Send className="w-5 h-5" />
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(16rem,0.85fr)]" aria-busy={isSubmitting}>
+          <section className="space-y-4 rounded-xl border border-border bg-surface p-4 sm:p-5">
+            <h2 className="text-base font-semibold text-theme-ink">Kiểm tra thông tin</h2>
+            <div className="divide-y divide-border text-sm">
+              <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 py-3">
+                <h3 className="font-semibold text-theme-ink">Người nhận</h3>
+                <button type="button" disabled={isSubmitting} onClick={() => setCurrentStep(1)} className="row-span-2 self-center text-theme-accent underline" aria-label="Sửa địa chỉ người nhận">Sửa</button>
+                <p className="min-w-0 break-words text-theme-muted">{recipientName} · {phone}<br />{addressLine}, {province}</p>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Bước 4: Xác nhận thông tin &amp; Gửi yêu cầu báo giá</h2>
-                <p className="text-xs text-slate-400">Kiểm tra thông số chi tiết và gửi yêu cầu thẩm định đến kỹ sư xưởng PrintHub 3D.</p>
+              <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 py-3">
+                <h3 className="font-semibold text-theme-ink">Mẫu thước</h3>
+                <button type="button" disabled={isSubmitting} onClick={() => setCurrentStep(2)} className="row-span-2 self-center text-theme-accent underline" aria-label="Xem thông số mẫu thước">Xem</button>
+                <p className="break-words text-theme-muted">{orderConfig.selectedModel.name} · {orderConfig.selectedModel.length} cm · {orderConfig.materialType}</p>
               </div>
-            </div>
-
-            {/* Payment Method Radio Cards */}
-            <div className="space-y-3">
-              <label className="text-xs font-bold text-slate-300 block">
-                Phương thức thanh toán dự kiến: <span className="font-normal text-slate-400">(Áp dụng khi bạn duyệt báo giá chính thức)</span>
-              </label>
-              <div className="grid grid-cols-1 gap-3">
-                {/* PayOS Option */}
-                <div
-                  className="p-4 rounded-xl border border-[#39FF14] bg-[#39FF14]/10 text-white ring-2 ring-[#39FF14]/20 shadow-md shadow-emerald-950/50 relative text-left space-y-2"
-                >
-                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[#39FF14]/20 border border-[#39FF14]/40 text-[10px] font-mono font-bold text-[#39FF14]">
-                    Phương thức duy nhất
-                  </span>
-                  <div className="flex items-center gap-2.5">
-                    <CreditCard className="w-5 h-5 text-[#39FF14]" />
-                    <div>
-                      <p className="font-bold text-sm">Cổng PayOS (VietQR)</p>
-                      <p className="text-[11px] text-slate-300">Quét mã VietQR chuyển khoản tự động tức thì</p>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-300 pt-1">
-                    ⚡ Đơn in 3D theo yêu cầu riêng (khắc tên/MSSV) chỉ áp dụng thanh toán PayOS sau khi xưởng phát hành báo giá chính thức.
-                  </p>
-                </div>
+              <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 py-3">
+                <h3 className="font-semibold text-theme-ink">Số lượng và ghi chú</h3>
+                <button type="button" disabled={isSubmitting} onClick={() => setCurrentStep(3)} className="row-span-2 self-center text-theme-accent underline" aria-label="Sửa số lượng và ghi chú">Sửa</button>
+                <p className="min-w-0 whitespace-pre-wrap break-words text-theme-muted">{quantity} cây{notes.trim() && <><br />{notes.trim()}</>}</p>
               </div>
             </div>
-
-            {/* Price Breakdown Card */}
-            <div className="rounded-xl border border-white/10 bg-[#040508] p-5 space-y-3 text-sm font-mono">
-              <h3 className="font-bold text-white text-xs uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 font-sans flex items-center justify-between">
-                <span>Dự toán chi phí sơ bộ</span>
-                <span className="text-[10px] text-[#00e5ff] font-mono normal-case">Chưa phải báo giá chính thức</span>
-              </h3>
-
-              <div className="rounded-xl border border-[#00e5ff]/40 bg-[#00e5ff]/10 p-3 text-xs text-[#00e5ff] leading-relaxed flex items-start gap-2.5 font-sans">
-                <Info className="w-4 h-4 text-[#00e5ff] shrink-0 mt-0.5" />
-                <span>
-                  <strong>Quy trình báo giá:</strong> Bảng tính bên dưới là <strong>dự toán sơ bộ</strong> theo thông số 3D. Sau khi bạn gửi yêu cầu, kỹ sư xưởng PrintHub 3D sẽ kiểm tra file thiết kế thực tế và gửi báo giá chính thức trong vòng 24 giờ.
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center text-xs pt-1">
-                <span className="text-slate-400 font-sans">Đơn giá dự toán:</span>
-                <span className="text-white">~{formatPrice(unitPrice)}đ</span>
-              </div>
-
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-sans">Số lượng đặt:</span>
-                <span className="text-white">× {quantity} cây</span>
-              </div>
-
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-sans">Tạm tính:</span>
-                <span className="text-white font-bold">~{formatPrice(subtotal)}đ</span>
-              </div>
-
-              {vipDiscount > 0 && activePlan && (
-                <div className="flex justify-between items-center text-xs text-[#39FF14]">
-                  <span className="font-sans">
-                    Ưu đãi hội viên ({activePlan.name} -{activePlan.discountPercent}%):
-                  </span>
-                  <span className="font-bold">-{formatPrice(vipDiscount)}đ</span>
-                </div>
-              )}
-
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-sans">Phí giao hàng dự kiến:</span>
-                <span className="text-white">
-                  {shippingFee === 0 ? (
-                    <span className="text-[#39FF14] font-bold font-sans">
-                      Miễn phí {activePlan?.freeShipping ? `(Đặc quyền ${activePlan.name})` : '(Đơn từ 100k)'}
-                    </span>
-                  ) : (
-                    `~${formatPrice(shippingFee)}đ`
-                  )}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center pt-3 border-t border-white/10 text-base">
-                <span className="font-bold text-white font-sans">DỰ TOÁN TỔNG CỘNG:</span>
-                <span className="text-2xl font-black text-[#39FF14]">
-                  ~{formatPrice(totalAmount)}đ
-                </span>
+            <button type="button" disabled={isSubmitting} onClick={() => setCurrentStep(3)} className={secondary}>
+              <ArrowLeft className="size-4" /> Quay lại
+            </button>
+          </section>
+          <aside className="min-w-0 space-y-3 rounded-xl border border-border bg-surface p-4 text-sm sm:p-5">
+            <div className="grid justify-items-center gap-2 rounded-lg border border-border bg-surface-inset p-4 text-center">
+              <Ruler className="size-8 text-theme-accent" aria-hidden="true" />
+              <p className="break-words font-semibold text-theme-ink">{orderConfig.selectedModel.name}</p>
+              <p className="text-xs text-theme-muted">{orderConfig.selectedModel.length} × {orderConfig.selectedModel.width} × {orderConfig.selectedModel.thickness} cm</p>
+              <div className="flex gap-2" aria-label="Màu thân thước, biển tên và chữ">
+                {[orderConfig.baseColor, orderConfig.plateColor, orderConfig.textColor].map((color, index) => (
+                  <span key={index} className="size-5 rounded-full border border-border" style={{ backgroundColor: color }} />
+                ))}
               </div>
             </div>
-
-            {/* Summary of Recipient */}
-            <div className="p-3.5 rounded-xl border border-white/10 bg-[#040508] text-xs text-slate-300 flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-[#39FF14] shrink-0 mt-0.5" />
-              <div>
-                <strong className="text-white">Giao đến:</strong> {recipientName} ({phone}) — {addressLine}, {province}
-              </div>
-            </div>
-
-            {/* BUTTON BAR STEP 4 */}
-            <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-white/10">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(3)}
-                className="whitespace-nowrap shrink-0 px-5 py-2.5 rounded-xl border border-white/10 bg-[#11141e] text-slate-300 hover:text-white hover:border-[#39FF14]/40 transition flex items-center gap-2 text-sm"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Quay lại: Số lượng</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleFinalSubmit}
-                className="whitespace-nowrap shrink-0 px-8 py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-black active:scale-[0.99] transition flex items-center gap-2 text-sm shadow-md shadow-emerald-950/50 uppercase tracking-tight cursor-pointer disabled:opacity-50"
-              >
-                <Send className="w-4 h-4" />
-                <span>
-                  {isSubmitting
-                    ? 'Đang gửi yêu cầu báo giá...'
-                    : 'Gửi Yêu Cầu Báo Giá Đến Xưởng'}
-                </span>
-              </button>
-            </div>
-          </div>
+            <h3 className="font-semibold text-theme-ink">Tóm tắt yêu cầu</h3>
+            <p className="text-theme-muted">Xưởng sẽ kiểm tra thiết kế và gửi báo giá trong mục Yêu cầu &amp; báo giá.</p>
+            <p className="flex items-center gap-2 border-t border-border pt-3 text-theme-muted">
+              <CreditCard className="size-4 shrink-0 text-theme-accent" /> Thanh toán qua PayOS sau khi chấp nhận báo giá.
+            </p>
+            <button type="button" disabled={isSubmitting} onClick={handleFinalSubmit} className={`${button} w-full`}>
+              <Send className="size-4" /> {isSubmitting ? 'Đang gửi yêu cầu…' : 'Gửi yêu cầu báo giá'}
+            </button>
+          </aside>
         </div>
       )}
     </div>

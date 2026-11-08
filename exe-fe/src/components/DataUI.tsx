@@ -326,6 +326,7 @@ const labels: Record<string, string> = {
   SHIPPING: 'Đang giao hàng',
   COMPLETED: 'Hoàn thành',
   CANCELLED: 'Đã hủy',
+  EXPIRED: 'Hết hạn thanh toán',
   REQUESTED: 'Chờ báo giá',
   QUOTED: 'Đã báo giá',
   ACCEPTED: 'Đã chấp nhận',
@@ -349,7 +350,7 @@ export function Status({ value, className = '' }: { value?: string; className?: 
   if (['CANCELLED', 'FAILED', 'REJECTED', 'DISPUTED'].includes(v)) {
     color = 'border-red-500/40 bg-red-950/40 text-red-400 font-semibold';
     dotColor = 'bg-red-400';
-  } else if (['PENDING', 'REQUESTED', 'UNDER_REVIEW', 'OPEN', 'UNPAID'].includes(v)) {
+  } else if (['PENDING', 'REQUESTED', 'UNDER_REVIEW', 'OPEN', 'UNPAID', 'EXPIRED'].includes(v)) {
     color = 'border-amber-500/40 bg-amber-950/40 text-amber-300 font-semibold';
     dotColor = 'bg-amber-400';
   } else if (['PREPARING', 'PRINTING', 'SHIPPING', 'QUOTED'].includes(v)) {

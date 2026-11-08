@@ -119,12 +119,6 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   const marketplaceShippingFee = selectedMarketplaceItems.length > 0 ? 30000 : 0;
   const marketplaceTotalAmount = marketplaceSubtotal + marketplaceShippingFee;
 
-  // Dự toán ước tính Custom (không thu tiền trực tiếp tại giỏ)
-  const customEstimatedSubtotal = selectedCustomItems.reduce(
-    (sum, item) => sum + (item.product.price || 0) * item.quantity,
-    0
-  );
-
   // Đặt hàng Marketplace
   const handleMarketplaceCheckout = () =>
     action.run(async () => {
@@ -225,10 +219,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Giỏ hàng & Thanh toán thông minh"
-        description="Kiểm tra danh sách sản phẩm, tuỳ biến giao hàng và tiến hành thanh toán an toàn qua VietQR PayOS."
+        title="Giỏ hàng"
+        description="Kiểm tra sản phẩm và thiết kế bạn muốn đặt in."
         badge={cart.items.length > 0 ? `${cart.items.length} món` : undefined}
-        icon={ShoppingBag}
       />
       <Notice error={action.error || cart.error} />
 
@@ -478,9 +471,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                       </div>
 
                       {/* 2-COLUMN LAYOUT: MARKETPLACE */}
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 xl:gap-6 items-start">
                         {/* CỘT TRÁI: DANH SÁCH SẢN PHẨM (7 cols) */}
-                        <div className="lg:col-span-7 space-y-3">
+                        <div className="lg:col-span-7 min-w-0 space-y-2">
                           {marketplaceItems.map(item => {
                             const lineId = item.clientLineId || item.id;
                             return (
@@ -488,6 +481,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                                 key={lineId}
                                 item={item}
                                 onUpdateQuantity={cart.updateQuantity}
+                                onRemove={cart.removeFromCart}
+                                busy={cart.saving}
                                 selected={selectedIds.has(lineId)}
                                 onToggleSelect={() => toggleItemSelect(lineId)}
                               />
@@ -496,8 +491,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                         </div>
 
                         {/* CỘT PHẢI: THANH TOÁN MARKETPLACE (5 cols) */}
-                        <div className="lg:col-span-5 lg:sticky lg:top-20">
-                          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
+                        <div className="lg:col-span-5 min-w-0 lg:sticky lg:top-4">
+                          <div className="space-y-4 rounded-xl border border-border bg-surface p-4 sm:p-5">
+                            <h2 className="text-lg font-semibold text-theme-ink">Tóm tắt đơn</h2>
                             {/* ĐỊA CHỈ NHẬN HÀNG */}
                             <div>
                               <div className="flex items-center justify-between">
@@ -606,11 +602,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                       <div className="rounded-2xl border border-[#39FF14]/30 bg-[#39FF14]/5 p-4 text-xs text-slate-300 leading-relaxed flex items-start gap-3 shadow-md">
                         <Info className="w-5 h-5 text-[#39FF14] shrink-0 mt-0.5" />
                         <div>
-                          <strong className="text-white text-sm block mb-1">Quy trình thẩm định và báo giá in 3D:</strong>
-                          Tất cả thiết kế trong tab này sẽ được gửi đến kỹ sư xưởng PrintHub 3D để kiểm tra tệp 3D (slicing, độ dày thành, khối lượng nhựa) và phát hành báo giá chính thức trong vòng 24 giờ.
-                          <span className="text-[#39FF14] font-semibold block mt-1">
-                            ✓ Bạn chưa phải thanh toán bất kỳ khoản tiền nào ở bước gửi yêu cầu này.
-                          </span>
+                          <strong className="text-theme-ink text-sm block mb-1">Xác nhận yêu cầu in</strong>
+                          Chọn thiết kế muốn in và kiểm tra địa chỉ giao hàng. Xưởng sẽ kiểm tra tệp trước khi gửi báo giá.
                         </div>
                       </div>
 
@@ -623,7 +616,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                             onChange={toggleSelectAllTab}
                             className="w-4 h-4 rounded border-white/20 text-[#39FF14] focus:ring-[#39FF14] bg-[#040508] cursor-pointer accent-[#39FF14]"
                           />
-                          <span>Chọn tất cả thiết kế custom ({customItems.length} mẫu)</span>
+                          <span>Chọn tất cả thiết kế ({customItems.length} mẫu)</span>
                         </label>
 
                         <span className="text-xs text-slate-400">
@@ -632,9 +625,9 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                       </div>
 
                       {/* 2-COLUMN LAYOUT: CUSTOM REQUEST */}
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 xl:gap-6 items-start">
                         {/* CỘT TRÁI: DANH SÁCH THIẾT KẾ CUSTOM (7 cols) */}
-                        <div className="lg:col-span-7 space-y-3">
+                        <div className="lg:col-span-7 min-w-0 space-y-2">
                           {customItems.map(item => {
                             const lineId = item.clientLineId || item.id;
                             return (
@@ -642,6 +635,8 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                                 key={lineId}
                                 item={item}
                                 onUpdateQuantity={cart.updateQuantity}
+                                onRemove={cart.removeFromCart}
+                                busy={cart.saving}
                                 selected={selectedIds.has(lineId)}
                                 onToggleSelect={() => toggleItemSelect(lineId)}
                               />
@@ -650,17 +645,17 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                         </div>
 
                         {/* CỘT PHẢI: GỬI YÊU CẦU BÁO GIÁ (5 cols) */}
-                        <div className="lg:col-span-5 lg:sticky lg:top-20">
-                          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-5 shadow-xl space-y-4">
+                        <div className="lg:col-span-5 min-w-0 lg:sticky lg:top-4">
+                          <div className="space-y-4 rounded-xl border border-border bg-surface p-4 sm:p-5">
                             <div className="flex items-center gap-2.5 pb-2 border-b border-white/10">
                               <div className="w-8 h-8 rounded-lg bg-[#39FF14]/15 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14]">
                                 <Send className="w-4 h-4" />
                               </div>
                               <div>
                                 <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                                  Gửi yêu cầu báo giá đến xưởng
+                                  Tóm tắt yêu cầu
                                 </h3>
-                                <p className="text-[11px] text-slate-400">Kỹ thuật viên sẽ phản hồi trong 24h</p>
+                                <p className="text-xs text-theme-muted">Kiểm tra trước khi gửi xưởng</p>
                               </div>
                             </div>
 
@@ -668,7 +663,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                             <div>
                               <div className="flex items-center justify-between">
                                 <h3 className="font-bold text-white text-xs flex items-center gap-2">
-                                  <MapPin className="h-4 w-4 text-[#39FF14]" /> Địa chỉ giao nhận dự kiến
+                                  <MapPin className="h-4 w-4 text-theme-accent" /> Địa chỉ giao hàng
                                 </h3>
                                 <button className="whitespace-nowrap shrink-0 px-3 py-1.5 rounded-lg bg-[#11141e] hover:bg-[#1a2030] text-slate-200 border border-white/10 hover:border-[#39FF14]/40 font-semibold text-xs transition" disabled={action.busy} onClick={onOpenAddressModal}>
                                   {a.id ? 'Thay đổi' : '+ Chọn địa chỉ'}
@@ -681,24 +676,15 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                               </p>
                             </div>
 
-                            {/* BẢNG TÍNH DỰ TOÁN SƠ BỘ */}
+                            {/* Tóm tắt thiết kế đã chọn */}
                             <div className="pt-3 border-t border-white/10 space-y-2.5 text-xs">
                               <div className="flex justify-between text-slate-300">
                                 <span>Số lượng thiết kế:</span>
                                 <span className="font-mono text-white font-bold">{selectedCustomItems.length} mẫu</span>
                               </div>
 
-                              <div className="flex justify-between text-slate-300">
-                                <span>Dự toán sơ bộ (ước tính):</span>
-                                <span className="font-mono text-[#39FF14] font-medium">
-                                  {customEstimatedSubtotal > 0 ? `~${money(customEstimatedSubtotal)}` : 'Chờ xưởng báo giá'}
-                                </span>
-                              </div>
 
-                              <div className="p-3 rounded-xl border border-white/10 bg-[#040508] text-[11px] text-slate-400 space-y-1">
-                                <p className="text-slate-300 font-semibold">ℹ️ Lưu ý về báo giá:</p>
-                                <p>Đơn giá chính thức sẽ được kỹ thuật viên báo sau khi kiểm tra độ mịn lớp in (layer height 0.16mm) và kết cấu sợi in PLA Pro+.</p>
-                              </div>
+                              <p className="text-theme-muted">Bạn có thể theo dõi báo giá trong mục Yêu cầu &amp; báo giá. Chưa cần thanh toán ở bước này.</p>
                             </div>
 
                             {/* NÚT GỬI YÊU CẦU BÁO GIÁ */}

@@ -1,10 +1,11 @@
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { Product } from '../types';
 import type { useCart } from '../features/cart/hooks/useCart';
 import type { Design } from '../features/ruler-studio/model';
 import ErrorBoundary from '../components/ErrorBoundary';
-import { CustomRequestForm, CustomRequests } from '../features/custom/CustomRequests';
+import CustomRequestForm from '../features/custom/CustomRequestForm';
+import { CustomRequests } from '../features/custom/CustomRequests';
 import { useAuth } from '../context/AuthContext';
 import { useCustomLanguage, translateCustom as tr } from '../features/ruler-studio/language';
 
@@ -19,7 +20,7 @@ export default function CustomOrderPage({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const tabParam = searchParams.get('tab');
   const templateParam = searchParams.get('template') || undefined;
@@ -28,15 +29,14 @@ export default function CustomOrderPage({
   const lenParam = searchParams.get('len') ? Number(searchParams.get('len')) : undefined;
   const matParam = (searchParams.get('mat') === 'PETG' ? 'PETG' : searchParams.get('mat') === 'PLA' ? 'PLA' : undefined) as 'PLA' | 'PETG' | undefined;
 
-  const [tab, setTab] = useState<'design' | 'upload' | 'requests'>(
-    tabParam === 'upload' ? 'upload' : tabParam === 'requests' ? 'requests' : 'design'
-  );
-
-  useEffect(() => {
-    if (tabParam === 'upload' || tabParam === 'requests' || tabParam === 'design') {
-      setTab(tabParam);
-    }
-  }, [tabParam]);
+  const tab = tabParam === 'upload' || tabParam === 'requests' ? tabParam : 'design';
+  const setTab = (next: 'design' | 'upload' | 'requests') => {
+    if (next === tab) return;
+    const params = new URLSearchParams(searchParams);
+    if (next === 'design') params.delete('tab');
+    else params.set('tab', next);
+    setSearchParams(params, { state: location.state, preventScrollReset: true });
+  };
 
   const { isAuthenticated } = useAuth();
   const { language, setLanguage } = useCustomLanguage();
@@ -63,11 +63,10 @@ export default function CustomOrderPage({
   };
 
   const headerControls = (
-    <header className="studio-page-controls flex flex-wrap items-center justify-between gap-x-4 gap-y-3 p-4 bg-[#0a0c12] border-b border-white/10">
+    <header className="studio-page-controls flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2 bg-surface border-b border-border">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse" />
-          <h1 id="custom-print-title" className="text-sm font-black tracking-wider text-white uppercase font-mono">
+          <h1 id="custom-print-title" className="text-sm font-semibold text-white">
             {tr('Design and order 3D prints')}
           </h1>
         </div>
@@ -78,13 +77,13 @@ export default function CustomOrderPage({
         )}
       </div>
 
-      <div className="flex items-center gap-2 bg-[#040508] p-1 rounded-xl border border-white/10">
+      <div className="flex max-w-full flex-wrap items-center gap-1.5">
         {([['design', '3D Design'], ['upload', 'Upload a file'], ['requests', 'My requests']] as const).map(([key, label]) => (
           <button
             key={key}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition font-mono ${
+            className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
               tab === key
-                ? 'bg-[#39FF14] text-slate-950 shadow-md shadow-[#39FF14]/30'
+                ? 'border-b-2 border-primary text-theme-accent'
                 : 'text-slate-400 hover:text-white'
             }`}
             aria-pressed={tab === key}
@@ -114,7 +113,7 @@ export default function CustomOrderPage({
     <section
       lang={language}
       aria-labelledby="custom-print-title"
-      className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#040508] shadow-lg [&>.ruler-studio]:border-0 [&>.ruler-studio]:rounded-none"
+      className="custom-order-frame min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#040508] shadow-lg [&>.ruler-studio]:border-0 [&>.ruler-studio]:rounded-none"
     >
       {tab !== 'design' && headerControls}
       {tab === 'design' && (
@@ -138,7 +137,7 @@ export default function CustomOrderPage({
         </ErrorBoundary>
       )}
       {tab === 'upload' && (
-        <div className="p-6 bg-[#0a0c12]">
+        <div className="p-3 sm:p-5 bg-[#0a0c12]">
           <CustomRequestForm
             translate={tr}
             initialRequirements={productNameParam ? `[Yêu cầu tùy biến cho sản phẩm: ${productNameParam}]\n` : ''}
@@ -147,7 +146,7 @@ export default function CustomOrderPage({
         </div>
       )}
       {tab === 'requests' && (
-        <div className="p-6 bg-[#0a0c12]">
+        <div className="p-3 sm:p-5 bg-[#0a0c12]">
           {isAuthenticated ? <CustomRequests translate={tr} /> : <p className="text-slate-400">{tr('Sign in to view your requests.')}</p>}
         </div>
       )}

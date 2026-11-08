@@ -137,7 +137,7 @@ export default function AppRoutes({
           element={<Navigate to={{ pathname: '/catalog', search: location.search, hash: location.hash }} replace />}
         />
         <Route
-          path="/catalog"
+          path="/catalog/:productId?"
           element={
             <AnimatePresence mode="wait">
               <PageTransition key={location.pathname}>
@@ -193,7 +193,7 @@ export default function AppRoutes({
           }
         />
         <Route
-          path="/orders"
+          path="/orders/:orderKey?"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
@@ -205,7 +205,7 @@ export default function AppRoutes({
           }
         />
         <Route
-          path="/order-history"
+          path="/order-history/:orderKey?"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
@@ -218,7 +218,7 @@ export default function AppRoutes({
         />
         <Route path="/file-vault" element={<Navigate to="/quotations" replace />} />
         <Route
-          path="/quotations"
+          path="/quotations/:requestId?"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
@@ -292,7 +292,7 @@ export default function AppRoutes({
           }
         />
         <Route
-          path="/warranty"
+          path="/warranty/:claimId?"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
@@ -304,7 +304,7 @@ export default function AppRoutes({
           }
         />
         <Route
-          path="/disputes"
+          path="/disputes/:disputeId?"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">

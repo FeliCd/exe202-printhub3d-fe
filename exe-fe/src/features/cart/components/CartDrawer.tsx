@@ -44,6 +44,10 @@ export default function CartDrawer({
 
 
   const { isAuthenticated } = useAuth();
+  const hasCustomDesigns = items.some(item => !!item.product.rulerDesign);
+  const productSubtotal = items.reduce((sum, item) => (
+    item.product.rulerDesign ? sum : sum + item.product.price * item.quantity
+  ), 0);
 
   return (
     <Modal open={isOpen} onClose={onClose} label="Giỏ hàng của bạn" drawer>
@@ -120,6 +124,16 @@ export default function CartDrawer({
 
       {/* Footer: Checkout */}
       <div className="p-4 border-t border-border bg-surface space-y-3">
+        {hasCustomDesigns ? (
+          <div className="space-y-2 text-xs text-theme-muted">
+            {productSubtotal > 0 && (
+              <div className="flex justify-between gap-2">
+                <span>Tiền sản phẩm có sẵn</span><strong className="text-theme-ink">{formatPrice(productSubtotal)}đ</strong>
+              </div>
+            )}
+            <p>Thiết kế riêng chờ xưởng báo giá. Mở giỏ hàng để xem từng nhóm sản phẩm.</p>
+          </div>
+        ) : (
         <div className="space-y-1.5 text-xs text-text-muted">
           <div className="flex justify-between">
             <span>Tạm tính ({totalItems} thước):</span>
@@ -140,6 +154,7 @@ export default function CartDrawer({
             <span className="text-[#39FF14] text-base">{formatPrice(total)}đ</span>
           </div>
         </div>
+        )}
         <button
           disabled={!items.length}
           onClick={() => {

@@ -80,7 +80,7 @@ export default function App() {
   );
 
   return (
-    <div className="bg-[#0A0A0A] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-[#39FF14] selection:text-black">
+    <div className="app-root bg-[#0A0A0A] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-[#39FF14] selection:text-black">
       <Notice error={cart.error} />
       <AppRoutes
         cart={cart}

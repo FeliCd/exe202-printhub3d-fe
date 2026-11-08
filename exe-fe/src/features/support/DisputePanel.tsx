@@ -1,3 +1,5 @@
+import RecordList, { RecordDetailHeader } from '../../components/RecordList';
+import { Link, useParams } from 'react-router-dom';
 import { useState, useRef, useId } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send, uploadFormData } from '../../services/api';
@@ -20,7 +22,7 @@ import {
   Clock,
   XCircle,
 } from 'lucide-react';
-import { PageHeader, CopyButton } from '../../components/DataUI';
+import { PageHeader, CopyButton, Notice } from '../../components/DataUI';
 import DisputeResolutionModal, { type DisputeResolutionTarget } from './DisputeResolutionModal';
 
 interface Dispute {
@@ -174,6 +176,9 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const { disputeId } = useParams<{ disputeId: string }>();
+  const detailId = admin ? undefined : disputeId;
+  const [createOpen, setCreateOpen] = useState(false);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [resolutionTarget, setResolutionTarget] = useState<DisputeResolutionTarget | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -257,15 +262,23 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
   };
 
   const completedOrders = orders.data || [];
+  const disputes = remote.data ?? [];
+  const visibleDispute = detailId ? disputes.find(d => d.id === detailId) : undefined;
 
   return (
     <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
-      {/* Header */}
-      <PageHeader
-        title={admin ? 'QUẢN LÝ KHIẾU NẠI & ĐỐI SOÁT (ADMIN TELEMETRY)' : 'KHIẾU NẠI & ĐỐI SOÁT ĐƠN HÀNG'}
+      {detailId ? (
+        <RecordDetailHeader to="/disputes" label="Khiếu nại" title="Chi tiết khiếu nại" />
+      ) : <PageHeader
+        title={admin ? 'QUẢN LÝ KHIẾU NẠI & ĐỐI SOÁT (ADMIN TELEMETRY)' : 'Khiếu nại'}
         description="Hệ thống tiếp nhận phản hồi, đối soát thanh toán và giải quyết tranh chấp chất lượng sản phẩm in 3D theo chuẩn ISO/ASTM."
         icon={Scale}
-        actions={
+        actions={!admin ? (
+          <button type="button" aria-expanded={createOpen} onClick={() => setCreateOpen(open => !open)}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#040508]">
+            {createOpen ? 'Đóng biểu mẫu' : 'Tạo khiếu nại'}
+          </button>
+        ) : (
           <button
             type="button"
             onClick={remote.reload}
@@ -274,12 +287,12 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
             <RefreshCw className={`w-3.5 h-3.5 ${remote.loading ? 'animate-spin text-[#39FF14]' : ''}`} />
             <span>LÀM MỚI DỮ LIỆU</span>
           </button>
-        }
-      />
+        )}
+      />}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* CỘT TRÁI: FORM TẠO KHIẾU NẠI (Dành cho Buyer) */}
-        {!admin && (
+        {!admin && !detailId && createOpen && (
           <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-5 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
             <div className="border-b border-[#1e2433] pb-3.5 flex items-center justify-between">
@@ -441,7 +454,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
         )}
 
         {/* CỘT PHẢI: DANH SÁCH TRANH CHẤP & TRAO ĐỔI */}
-        <div className={admin ? 'lg:col-span-12 space-y-4' : 'lg:col-span-7 space-y-4'}>
+        <div className={admin || !createOpen ? 'lg:col-span-12 min-w-0 space-y-4' : 'lg:col-span-7 min-w-0 space-y-4'}>
           <div className="flex items-center justify-between bg-[#0a0c12] border border-[#1e2433] px-4 py-3 rounded-xl">
             <h2 className="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
               <span className="w-2 h-2 rounded-full bg-[#00e5ff] ring-2 ring-[#00e5ff]/40" />
@@ -457,6 +470,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
             </button>
           </div>
 
+          <Notice error={remote.error} />
           {remote.loading && (
             <div className="p-12 text-center text-slate-400 space-y-3 bg-[#0a0c12] border border-[#1e2433] rounded-2xl">
               <Loader2 className="w-7 h-7 animate-spin mx-auto text-[#39FF14]" />
@@ -464,7 +478,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
             </div>
           )}
 
-          {!remote.loading && (!remote.data || remote.data.length === 0) && (
+          {!detailId && !remote.loading && !remote.error && !disputes.length && (
             <div className="p-12 rounded-2xl bg-[#0a0c12] border border-[#1e2433] text-center text-slate-400 space-y-2.5">
               <Scale className="w-10 h-10 mx-auto text-slate-600" />
               <p className="text-sm font-bold text-white font-mono">CHƯA CÓ YÊU CẦU TRANH CHẤP NÀO</p>
@@ -474,8 +488,23 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
             </div>
           )}
 
+          {detailId && !remote.loading && !remote.error && !visibleDispute && (
+            <p role="status" className="rounded-xl border border-border bg-surface p-4 text-sm text-theme-muted">Không tìm thấy yêu cầu khiếu nại này.</p>
+          )}
+          {!admin && !detailId && disputes.length > 0 && (
+            <RecordList
+              label="Yêu cầu khiếu nại"
+              entries={disputes.map(d => ({
+                id: d.id,
+                to: `/disputes/${encodeURIComponent(d.id)}`,
+                title: d.description || 'Khiếu nại đơn hàng',
+                meta: `Đơn #${d.orderId.slice(0, 8)}`,
+                status: <DisputeStatusBadge status={d.status} />,
+              }))}
+            />
+          )}
           <div className="space-y-4">
-            {remote.data?.map((d) => (
+            {(admin ? disputes : visibleDispute ? [visibleDispute] : []).map((d) => (
               <div
                 key={d.id}
                 className="p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 space-y-4 transition shadow-xl relative overflow-hidden"
@@ -483,9 +512,13 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1e2433] pb-3.5">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-[#00e5ff]">
-                        MÃ ĐƠN #{d.orderId.substring(0, 10)}...
-                      </span>
+                      {admin ? (
+                        <span className="text-xs font-mono font-bold text-[#00e5ff]">MÃ ĐƠN #{d.orderId.substring(0, 10)}...</span>
+                      ) : (
+                        <Link to={`/orders/${encodeURIComponent(`product:${d.orderId}`)}`} className="text-sm font-semibold text-theme-accent hover:underline">
+                          Xem đơn #{d.orderId.slice(0, 8)}
+                        </Link>
+                      )}
                       <CopyButton text={d.orderId} />
                     </div>
                     <p className="text-xs text-slate-400 font-mono">
@@ -502,7 +535,15 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                   <p className="whitespace-pre-wrap">{d.description}</p>
                 </div>
 
-                {d.evidenceUrl && (
+                {d.evidenceUrl && !admin && (
+                  <figure className="space-y-2">
+                    <figcaption className="text-sm font-medium text-theme-ink">Ảnh đính kèm</figcaption>
+                    <a href={d.evidenceUrl} target="_blank" rel="noreferrer" className="inline-block rounded-lg" aria-label="Mở ảnh khiếu nại gốc">
+                      <img src={d.evidenceUrl} alt="Ảnh bằng chứng gửi kèm khiếu nại" loading="lazy" className="max-h-56 max-w-full rounded-lg border border-border object-contain" />
+                    </a>
+                  </figure>
+                )}
+                {d.evidenceUrl && admin && (
                   <div className="flex items-center gap-2 text-xs pt-1">
                     <span className="text-slate-400 font-mono">Bằng chứng:</span>
                     <a
@@ -531,7 +572,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
 
                 {/* Buttons trao đổi & Admin Resolve */}
                 <div className="pt-3 border-t border-[#1e2433] flex flex-wrap items-center justify-between gap-3">
-                  <button
+                  {admin && <button
                     type="button"
                     onClick={() => setActiveChatId(activeChatId === d.id ? null : d.id)}
                     className="px-3.5 py-2 rounded-xl bg-[#11141e] border border-[#1e2433] hover:border-[#00e5ff] text-slate-200 hover:text-[#00e5ff] text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0"
@@ -539,7 +580,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                     <MessageSquare className="w-3.5 h-3.5 text-[#00e5ff]" />
                     <span>{activeChatId === d.id ? 'THU GỌN TRAO ĐỔI' : 'XEM & PHẢN HỒI'}</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${activeChatId === d.id ? 'rotate-180' : ''}`} />
-                  </button>
+                  </button>}
 
                   {/* Hành động của Admin */}
                   {admin && ['OPEN', 'UNDER_REVIEW'].includes(d.status) && (
@@ -565,7 +606,7 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
                 </div>
 
                 {/* Khung chat trao đổi */}
-                {activeChatId === d.id && <DisputeChat disputeId={d.id} />}
+                {(!admin || activeChatId === d.id) && <DisputeChat disputeId={d.id} />}
               </div>
             ))}
           </div>

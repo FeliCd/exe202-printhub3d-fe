@@ -1,3 +1,5 @@
+import RecordList, { RecordDetailHeader } from '../../components/RecordList';
+import { Link, useParams } from 'react-router-dom';
 import { useState, useRef, useId } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send, uploadFormData } from '../../services/api';
@@ -17,6 +19,7 @@ import {
   PageHeader,
   Status,
   CopyButton,
+  Notice,
 } from '../../components/DataUI';
 
 interface Claim {
@@ -31,11 +34,14 @@ interface Claim {
 
 export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
   const remote = useRemote<Claim[]>(admin ? '/warranty/admin/claims' : '/warranty/user/me');
-  const orders = useRemote<OrderDTO[]>(admin ? null : '/orders/me');
+  const { claimId } = useParams<{ claimId: string }>();
+  const detailId = admin ? undefined : claimId;
+  const orders = useRemote<OrderDTO[]>(admin || detailId ? null : '/orders/me');
   const action = useAction(remote.reload);
 
   const [orderId, setOrderId] = useState('');
   const [description, setDescription] = useState('');
+  const [reviewing, setReviewing] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -78,13 +84,16 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
 
   const handleSubmitClaim = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!orderId) {
+    if (!orderId || !description.trim() || uploading || action.busy) return;
+    if (!reviewing) {
+      setReviewing(true);
       return;
     }
     const success = await action.run(() =>
       send('/warranty/claim', { orderId, description: description.trim(), imageUrl })
     );
     if (success) {
+      setReviewing(false);
       setOrderId('');
       setDescription('');
       setImageUrl('');
@@ -92,12 +101,15 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
   };
 
   const completedOrders = orders.data?.filter((o) => o.status === 'COMPLETED') || [];
+  const chosenOrder = completedOrders.find(order => order.id === orderId);
+  const visibleClaim = detailId ? remote.data?.find(claim => claim.id === detailId) : undefined;
 
   return (
     <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
-      {/* Header */}
-      <PageHeader
-        title={admin ? 'Xử Lý Yêu Cầu Bảo Hành & Đổi Trả' : 'Trung Tâm Bảo Hành & Khiếu Nại Kỹ Thuật'}
+      {detailId ? (
+        <RecordDetailHeader to="/warranty" label="Bảo hành" title="Chi tiết yêu cầu bảo hành" />
+      ) : <PageHeader
+        title={admin ? 'Xử Lý Yêu Cầu Bảo Hành & Đổi Trả' : 'Bảo hành'}
         description="Chính sách in lại 1-1 đối với mô hình kỹ thuật bị sai lệch kích thước >0.1mm, cong vênh vật liệu hoặc hư hại vận chuyển."
         icon={ShieldCheck}
         actions={
@@ -110,11 +122,11 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
             Làm mới
           </button>
         }
-      />
+      />}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* CỘT TRÁI: FORM GỬI YÊU CẦU BẢO HÀNH (Chỉ cho Buyer) */}
-        {!admin && (
+        {!admin && !detailId && (
           <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-5 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
             <div className="border-b border-white/10 pb-3">
@@ -132,6 +144,16 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
             )}
 
             <form onSubmit={handleSubmitClaim} className="space-y-4">
+              <ol aria-label="Tiến trình yêu cầu bảo hành" className="flex flex-wrap gap-2 text-xs text-theme-muted">
+                {['Chọn đơn', 'Mô tả', 'Xem lại'].map((step, index) => {
+                  const current = reviewing ? 2 : orderId ? 1 : 0;
+                  return <li key={step} aria-current={current === index ? 'step' : undefined}
+                    className={current === index ? 'rounded-md bg-primary/10 px-2.5 py-1.5 font-semibold text-theme-accent' : 'px-2.5 py-1.5'}>
+                    {index + 1}. {step}
+                  </li>;
+                })}
+              </ol>
+              <fieldset hidden={reviewing} disabled={reviewing} className="min-w-0 space-y-4">
               {/* Chọn đơn hàng */}
               <div className="space-y-1.5">
                 <label htmlFor={orderSelectId} className="text-xs font-bold text-slate-300 flex items-center gap-1.5 font-mono">
@@ -251,10 +273,20 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                 {uploadError && <p className="text-[11px] text-rose-400 font-semibold">{uploadError}</p>}
               </div>
 
+              </fieldset>
+              {reviewing && (
+                <div className="space-y-3 rounded-xl border border-border bg-surface-inset p-4 text-sm">
+                  <h3 className="font-semibold text-theme-ink">Kiểm tra yêu cầu bảo hành</h3>
+                  <p className="break-words text-theme-muted">Đơn #{orderId.slice(0, 8)}{chosenOrder ? ` · ${chosenOrder.items.map(item => item.productTitle).join(', ')}` : ''}</p>
+                  <p className="whitespace-pre-wrap break-words text-theme-copy">{description.trim()}</p>
+                  {imageUrl && <img src={imageUrl} alt="Ảnh đính kèm yêu cầu bảo hành" className="max-h-32 rounded-lg object-contain" />}
+                  <button type="button" disabled={action.busy} onClick={() => setReviewing(false)} className="text-theme-accent underline">Sửa thông tin</button>
+                </div>
+              )}
               {/* Nút gửi yêu cầu bảo hành */}
               <button
                 type="submit"
-                disabled={action.busy || uploading || !orderId}
+                disabled={action.busy || uploading || !orderId || !description.trim()}
                 className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg shadow-[#39FF14]/20 disabled:opacity-50 cursor-pointer mt-2 whitespace-nowrap shrink-0"
               >
                 {action.busy ? (
@@ -262,7 +294,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                     <Loader2 className="w-4 h-4 animate-spin" /> Đang gửi yêu cầu...
                   </>
                 ) : (
-                  'Gửi Yêu Cầu Bảo Hành'
+                  reviewing ? 'Gửi yêu cầu bảo hành' : 'Xem lại yêu cầu'
                 )}
               </button>
             </form>
@@ -270,7 +302,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
         )}
 
         {/* CỘT PHẢI: THEO DÕI CÁC YÊU CẦU BẢO HÀNH ĐÃ GỬI */}
-        <div className={admin ? 'lg:col-span-12 space-y-4' : 'lg:col-span-7 space-y-4'}>
+        <div className={admin || detailId ? 'lg:col-span-12 space-y-4' : 'lg:col-span-7 space-y-4'}>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
               <ShieldCheck className="w-4 h-4 text-[#00e5ff]" /> Danh Sách Yêu Cầu Bảo Hành ({remote.data?.length || 0})
@@ -284,6 +316,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
             </button>
           </div>
 
+          <Notice error={remote.error} />
           {remote.loading && (
             <div className="p-12 text-center text-slate-400 space-y-2">
               <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#39FF14]" />
@@ -291,7 +324,7 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
             </div>
           )}
 
-          {!remote.loading && (!remote.data || remote.data.length === 0) && (
+          {!detailId && !remote.loading && !remote.error && !remote.data?.length && (
             <div className="p-12 rounded-2xl bg-[#0a0c12] border border-white/10 text-center text-slate-400 space-y-2 shadow-sm">
               <ShieldCheck className="w-9 h-9 mx-auto text-slate-600" />
               <p className="text-sm font-semibold text-slate-300">Chưa có yêu cầu bảo hành nào.</p>
@@ -301,8 +334,23 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
             </div>
           )}
 
+          {detailId && !remote.loading && !remote.error && !visibleClaim && (
+            <p role="status" className="rounded-xl border border-border bg-surface p-4 text-sm text-theme-muted">Không tìm thấy yêu cầu bảo hành này.</p>
+          )}
+          {!admin && !detailId && !!remote.data?.length && (
+            <RecordList
+              label="Yêu cầu bảo hành"
+              entries={remote.data.map(c => ({
+                id: c.id,
+                to: `/warranty/${encodeURIComponent(c.id)}`,
+                title: c.description || 'Yêu cầu bảo hành',
+                meta: `Đơn #${c.orderId.slice(0, 8)}`,
+                status: <Status value={c.status} />,
+              }))}
+            />
+          )}
           <div className="space-y-4">
-            {remote.data?.map((c) => (
+            {(admin ? remote.data ?? [] : visibleClaim ? [visibleClaim] : []).map((c) => (
               <div
                 key={c.id}
                 className="p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-white/10 hover:border-[#39FF14]/40 space-y-3.5 transition shadow-lg relative overflow-hidden group"
@@ -310,9 +358,11 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-white">
-                        ĐƠN #{c.orderId.substring(0, 10)}...
-                      </span>
+                      {detailId ? (
+                        <Link className="text-sm font-semibold text-theme-accent hover:underline" to={`/orders/${encodeURIComponent(`product:${c.orderId}`)}`}>
+                          Xem đơn #{c.orderId.slice(0, 8)}
+                        </Link>
+                      ) : <span className="text-xs font-mono font-bold text-white">ĐƠN #{c.orderId.substring(0, 10)}...</span>}
                       <CopyButton text={c.orderId} />
                     </div>
                     <p className="text-xs text-slate-400">
@@ -330,7 +380,15 @@ export default function WarrantyPanel({ admin = false }: { admin?: boolean }) {
                   <p className="whitespace-pre-wrap">{c.description}</p>
                 </div>
 
-                {c.imageUrl && (
+                {c.imageUrl && !admin && (
+                  <figure className="space-y-2">
+                    <figcaption className="text-sm font-medium text-theme-ink">Ảnh đính kèm</figcaption>
+                    <a href={c.imageUrl} target="_blank" rel="noreferrer" className="inline-block rounded-lg" aria-label="Mở ảnh bảo hành gốc">
+                      <img src={c.imageUrl} alt="Ảnh sự cố gửi kèm yêu cầu bảo hành" loading="lazy" className="max-h-56 max-w-full rounded-lg border border-border object-contain" />
+                    </a>
+                  </figure>
+                )}
+                {c.imageUrl && admin && (
                   <div className="flex items-center gap-2 text-xs pt-1">
                     <span className="text-slate-400">Bằng chứng lỗi đính kèm:</span>
                     <a

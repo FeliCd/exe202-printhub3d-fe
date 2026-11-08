@@ -153,6 +153,13 @@ body {
   :where(p, h1, h2, h3, h4, h5) { overflow-wrap: anywhere; }
 }
 
+.app-root:has(> .app-shell) {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.app-shell > header { flex-shrink: 0; }
+.app-shell .sidebar-scroll { overscroll-behavior-y: contain; }
 .app-content { scrollbar-gutter: stable; }
 .app-content :where(.grid > *, .flex > div) { min-width: 0; }
 .app-content h1.text-2xl { font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); font-weight: 700; }
@@ -196,6 +203,10 @@ body {
 .desktop-sidebar[data-open='true'] > .desktop-sidebar-content {
   opacity: 1;
   transform: translateX(0);
+}
+.desktop-sidebar-compact[data-open='true'],
+.desktop-sidebar-compact > .desktop-sidebar-content {
+  width: 13rem;
 }
 @media (prefers-reduced-motion: reduce) {
   .desktop-sidebar, .desktop-sidebar-content { transition: none; }

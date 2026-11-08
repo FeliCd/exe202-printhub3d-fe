@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import RecordList, { RecordDetailHeader } from '../../components/RecordList';
+import { useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   Package,
   RotateCcw,
@@ -29,6 +30,7 @@ import RulerSpecsViewer from '../../components/RulerSpecsViewer';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Modal from '../../components/Modal';
 import { Modal3DViewer } from '../ruler-studio/Modal3DViewer';
+import type { Design } from '../ruler-studio/model';
 import '../ruler-studio/studio.css';
 
 // Stepper 5 bước chuẩn hóa
@@ -153,6 +155,27 @@ interface CustomOrderAdminItem {
   blockedActions?: { action: string; reasonCode: string; message: string }[];
 }
 
+const historyTabs = [
+  ['ALL', 'Tất cả'],
+  ['COMPLETED', 'Hoàn thành'],
+  ['CANCELLED', 'Đã hủy'],
+  ['EXPIRED', 'Hết hạn thanh toán'],
+] as const;
+type HistoryTab = typeof historyTabs[number][0];
+type OrderType = 'ALL' | 'MARKETPLACE' | 'CUSTOM';
+type HistoryFilters = { q: string; from: string; kind: OrderType; status: HistoryTab };
+const emptyHistoryFilters: HistoryFilters = { q: '', from: '', kind: 'ALL', status: 'ALL' };
+function historyParams({ q, from, kind, status }: HistoryFilters) {
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (from) params.set('from', from);
+  if (kind !== 'ALL') params.set('kind', kind);
+  if (status !== 'ALL') params.set('status', status);
+  return params;
+}
+const normalizeOrderSearch = (value: string) =>
+  value.trim().toLocaleLowerCase('vi').normalize('NFD').replace(/\p{Diacritic}|#/gu, '').replace(/đ/g, 'd');
+
 export default function OrderList({ admin = false, history = false }: { admin?: boolean; history?: boolean }) {
   const remote = useRemote<OrderDTO[]>(admin ? '/admin/orders' : '/orders/me');
   const customRemote = useRemote<CustomOrderAdminItem[]>(admin ? '/admin/custom-orders' : '/custom-orders');
@@ -163,9 +186,41 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   };
 
   const action = useAction(handleReload);
+  const { orderKey } = useParams<{ orderKey: string }>();
+  const [params, setParams] = useSearchParams();
+  const userHistory = !admin && history;
+  const detailKey = admin ? undefined : orderKey;
+  const listPath = userHistory ? '/order-history' : '/orders';
+  const [historyFilters, setHistoryFilters] = useState<HistoryFilters>(() => {
+    const kind = params.get('kind');
+    return {
+      q: params.get('q') || '',
+      from: params.get('from') || '',
+      kind: kind === 'MARKETPLACE' || kind === 'CUSTOM' ? kind : 'ALL',
+      status: historyTabs.find(([value]) => value === params.get('status'))?.[0] || 'ALL',
+    };
+  });
+  const latestFilters = useRef(historyFilters);
+  const setHistoryFilter = (changes: Partial<HistoryFilters>) => {
+    const next = { ...latestFilters.current, ...changes };
+    latestFilters.current = next;
+    setHistoryFilters(next);
+    setParams(historyParams(next), { replace: true });
+  };
+  const query = userHistory ? historyParams(historyFilters).toString() : '';
+  const suffix = query ? '?' + query : '';
+  const [activeSearch, setActiveSearch] = useState('');
+  const [activeDate, setActiveDate] = useState('');
+  const orderSearch = userHistory ? historyFilters.q : activeSearch;
+  const orderDate = userHistory ? historyFilters.from : activeDate;
 
   // Filter Tabs: ALL, MARKETPLACE, CUSTOM
-  const [activeTab, setActiveTab] = useState<'ALL' | 'MARKETPLACE' | 'CUSTOM'>('ALL');
+  const [orderType, setOrderType] = useState<OrderType>('ALL');
+  const activeTab = userHistory ? historyFilters.kind : orderType;
+  const setActiveTab = (value: OrderType) => {
+    if (userHistory) setHistoryFilter({ kind: value });
+    else setOrderType(value);
+  };
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [codConfirmTarget, setCodConfirmTarget] = useState<{
     orderId: string;
@@ -174,11 +229,16 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     totalAmount?: number;
   } | null>(null);
   const [reviewTarget, setReviewTarget] = useState<{ orderId: string; item: OrderItemDTO } | null>(null);
-  const [preview3DDesign, setPreview3DDesign] = useState<{ design: any; name?: string } | null>(null);
+  const [preview3DDesign, setPreview3DDesign] = useState<{ design: Design; name?: string } | null>(null);
   const [previewImageModalUrl, setPreviewImageModalUrl] = useState<string | null>(null);
 
   // Filter tabs for Buyer History (bổ sung EXPIRED)
-  const [historyTab, setHistoryTab] = useState<'ALL' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED'>('ALL');
+  const [adminHistoryTab, setAdminHistoryTab] = useState<HistoryTab>('ALL');
+  const historyTab = userHistory ? historyFilters.status : adminHistoryTab;
+  const setHistoryTab = (value: HistoryTab) => {
+    if (userHistory) setHistoryFilter({ status: value });
+    else setAdminHistoryTab(value);
+  };
   // Filter tabs for Buyer Active Orders
   const [activeOrderTab, setActiveOrderTab] = useState<'ALL' | 'PENDING' | 'PRINTING' | 'SHIPPING'>('ALL');
 
@@ -224,6 +284,52 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     if (activeOrderTab === 'SHIPPING') return c.status === 'SHIPPING';
     return true;
   });
+
+  const search = normalizeOrderSearch(orderSearch);
+  const since = orderDate ? Date.parse(orderDate + 'T00:00:00+07:00') : NaN;
+  const historyOrders = [...rawMarketplaceOrders, ...currentCustomOrders];
+  const detailUrl = (id: string) => `${listPath}/${encodeURIComponent(id)}${suffix}`;
+  const entries = [
+    ...marketplaceOrders.map(o => {
+      const products = o.items?.map(item => item.productTitle) || [];
+      return {
+        id: `product:${o.id}`,
+        to: detailUrl(`product:${o.id}`),
+        title: products.join(', ') || `Đơn #${o.id.slice(0, 8)}`,
+        meta: `#${o.orderCode || o.id.slice(0, 8)} · ${formatDateTime(o.createdAt)}${history ? ' · Sản phẩm có sẵn' : ''}`,
+        amount: money(o.totalAmount),
+        thumbnail: null,
+        createdAt: o.createdAt,
+        status: <Status value={o.status} />,
+        searchText: `${o.id} ${o.orderCode || ''} ${products.join(' ')}`,
+      };
+    }),
+    ...displayedCustomOrders.map(o => ({
+      id: `custom:${o.id}`,
+      to: detailUrl(`custom:${o.id}`),
+      title: o.rulerModel || `Đơn in 3D #${o.id.slice(0, 8)}`,
+      meta: `#CUS-${o.id.slice(0, 8)} · ${formatDateTime(o.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
+      amount: o.quotedPrice == null ? undefined : money(o.quotedPrice),
+      thumbnail: null,
+      createdAt: o.createdAt,
+      status: <Status value={o.status} />,
+      searchText: `CUS-${o.id} ${o.id} ${o.rulerModel || ''}`,
+    })),
+  ].filter(o => normalizeOrderSearch(o.searchText).includes(search)
+    && (Number.isNaN(since) || Date.parse(o.createdAt) >= since))
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  const detailProducts = detailKey
+    ? (history ? rawMarketplaceOrders : remote.data ?? []).filter(o => detailKey === `product:${o.id}`)
+    : marketplaceOrders;
+  const detailCustomOrders = detailKey
+    ? (history ? currentCustomOrders : allCustomOrders).filter(c => detailKey === `custom:${c.id}`)
+    : displayedCustomOrders;
+  const detailRemote = detailKey?.startsWith('custom:') ? customRemote : remote;
+  const listLoading = remote.loading || (!admin && customRemote.loading);
+  const listError = remote.error || (!admin ? customRemote.error : '');
+  const filtersApplied = !!search || !Number.isNaN(since) || activeTab !== 'ALL'
+    || (history ? historyTab !== 'ALL' : activeOrderTab !== 'ALL');
+
 
   const actionToStatus = (act: string): string => {
     switch (act) {
@@ -300,24 +406,73 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     await executeNextStatus(orderId, nextStatus, isCustom);
   };
 
-  const pageTitle = admin
-    ? history
-      ? 'Lịch sử đơn hàng toàn hệ thống (Admin)'
-      : 'Quản lý đơn hàng hệ thống (Admin)'
-    : history
-    ? 'Lịch sử đơn hàng & In lại'
-    : 'Theo dõi tiến độ in 3D';
-
-  const pageDesc = admin
-    ? history
-      ? 'Xem lại lịch sử tất cả các đơn hàng đã hoàn tất, đã hủy hoặc hết hạn thanh toán trên toàn hệ thống.'
-      : 'Theo dõi tiến độ gia công in 3D và trạng thái giao hàng cho cả đơn Marketplace và đơn Custom đã chốt giá.'
-    : history
-    ? 'Xem lại các đơn hàng đã hoàn tất hoặc đã hủy, và gửi đánh giá chất lượng in.'
-    : 'Theo dõi trực tiếp từng bước gia công in 3D và trạng thái giao hàng.';
+  const pageTitle = history ? 'Lịch sử đơn hàng toàn hệ thống (Admin)' : 'Quản lý đơn hàng hệ thống (Admin)';
+  const pageDesc = history
+    ? 'Xem lại lịch sử tất cả các đơn hàng đã hoàn tất, đã hủy hoặc hết hạn thanh toán trên toàn hệ thống.'
+    : 'Theo dõi tiến độ gia công in 3D và trạng thái giao hàng cho cả đơn Marketplace và đơn Custom đã chốt giá.';
 
   return (
     <div className="space-y-6 w-full">
+      {detailKey ? (
+        <RecordDetailHeader to={listPath + suffix} label={userHistory ? 'Lịch sử đơn hàng' : 'Đơn hàng'} title="Chi tiết đơn hàng" />
+      ) : !admin ? (
+        <>
+          <header className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold tracking-tight text-theme-ink sm:text-3xl">{history ? 'Lịch sử đơn hàng' : 'Đơn hàng của bạn'}</h1>
+              <p className="text-sm text-theme-muted">{history
+                ? 'Xem lại đơn đã hoàn thành, đã hủy hoặc hết hạn thanh toán.'
+                : 'Theo dõi và quản lý các đơn in của bạn.'}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={handleReload} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm text-theme-copy hover:border-theme-accent">
+                <RotateCcw className="size-3.5" aria-hidden="true" /> Tải lại
+              </button>
+              <Link to={history ? '/orders' : '/custom'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-theme-ink hover:border-theme-accent">
+                {history ? 'Đơn đang xử lý' : 'Tạo đơn mới'}
+              </Link>
+            </div>
+          </header>
+          <div className="flex gap-4 overflow-x-auto border-b border-border" aria-label="Trạng thái đơn hàng">
+            {history ? historyTabs.map(([value, label]) => (
+              <button key={value} type="button" aria-pressed={historyTab === value} onClick={() => setHistoryTab(value)}
+                className="shrink-0 cursor-pointer border-b-2 border-transparent px-1 py-3 text-sm font-medium text-theme-muted hover:text-theme-ink aria-pressed:border-primary aria-pressed:text-theme-accent">
+                {label}{!listLoading && !listError && ` (${value === 'ALL' ? historyOrders.length : historyOrders.filter(order => order.status === value).length})`}
+              </button>
+            )) : ([
+              ['ALL', 'Tất cả', rawMarketplaceOrders.length + currentCustomOrders.length],
+              ['PENDING', 'Chờ xử lý', rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCustomOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING'].includes(o.status)).length],
+              ['PRINTING', 'Đang sản xuất', rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCustomOrders.filter(o => o.status === 'PRINTING').length],
+              ['SHIPPING', 'Đang giao', rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCustomOrders.filter(o => o.status === 'SHIPPING').length],
+            ] as const).map(([value, label, count]) => (
+              <button key={value} type="button" aria-pressed={activeOrderTab === value} onClick={() => setActiveOrderTab(value)}
+                className="shrink-0 cursor-pointer border-b-2 border-transparent px-1 py-3 text-sm font-medium text-theme-muted hover:text-theme-ink aria-pressed:border-primary aria-pressed:text-theme-accent">
+                {label} ({count})
+              </button>
+            ))}
+            {!history && <Link to="/order-history" className="shrink-0 px-1 py-3 text-sm text-theme-muted hover:text-theme-accent">Lịch sử</Link>}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input type="search" aria-label="Tìm đơn hàng" placeholder="Tìm mã đơn hoặc sản phẩm" value={orderSearch}
+              onChange={e => userHistory ? setHistoryFilter({ q: e.target.value }) : setActiveSearch(e.target.value)}
+              className="min-h-10 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-sm text-theme-ink sm:max-w-md" />
+            <select aria-label="Loại đơn hàng" value={activeTab} onChange={e => setActiveTab(e.target.value as typeof activeTab)}
+              className="min-h-10 rounded-lg border border-border bg-surface px-3 text-sm text-theme-ink">
+              <option value="ALL">Mọi loại đơn</option><option value="MARKETPLACE">Sản phẩm có sẵn</option><option value="CUSTOM">In theo yêu cầu</option>
+            </select>
+            <label className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm text-theme-muted">
+              Từ ngày
+              <input type="date" value={orderDate}
+                onInput={e => userHistory ? setHistoryFilter({ from: e.currentTarget.value }) : setActiveDate(e.currentTarget.value)}
+                className="min-w-0 text-theme-ink" />
+            </label>
+            {userHistory && filtersApplied && <button type="button" onClick={() => setHistoryFilter(emptyHistoryFilters)}
+              className="min-h-10 rounded-lg px-3 text-sm font-medium text-theme-accent hover:bg-surface-raised">
+              Xóa bộ lọc
+            </button>}
+          </div>
+        </>
+      ) : <>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
@@ -466,16 +621,37 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         </div>
       )}
 
-      <Notice error={action.error} />
-      <RemoteState {...remote} empty={!marketplaceOrders.length && !displayedCustomOrders.length} retry={handleReload} />
+      </>}
 
-      <div className="space-y-5">
+      <Notice error={action.error} />
+      {!detailKey && <RemoteState
+        loading={listLoading}
+        error={listError}
+        empty={admin ? !marketplaceOrders.length && !displayedCustomOrders.length && !customRemote.loading : !entries.length}
+        emptyMessage={!admin && filtersApplied
+          ? 'Không tìm thấy đơn hàng phù hợp với bộ lọc.'
+          : userHistory ? 'Bạn chưa có đơn hàng nào trong lịch sử.' : undefined}
+        retry={handleReload} />}
+      {!admin && !detailKey && entries.length > 0 && <RecordList label={userHistory ? 'Lịch sử đơn hàng' : 'Đơn hàng'} entries={entries} />}
+      {detailKey && (
+        <RemoteState
+          loading={detailRemote.loading}
+          error={detailRemote.error}
+          empty={!detailProducts.length && !detailCustomOrders.length}
+          emptyMessage="Không tìm thấy đơn hàng này trong tài khoản của bạn."
+          retry={detailRemote.reload}
+        />
+      )}
+
+      {(admin || detailKey) && (
+      <div className="min-w-0 space-y-5">
         {/* ========================================================================= */}
         {/* 1. HIỂN THỊ ĐƠN HÀNG MARKETPLACE */}
         {/* ========================================================================= */}
-        {(activeTab === 'ALL' || activeTab === 'MARKETPLACE') &&
-          marketplaceOrders.map(o => {
+        {(detailKey || activeTab !== 'CUSTOM') &&
+          detailProducts.map(o => {
             const next = nextStateMarketplace(o);
+            const orderCode = userHistory ? o.orderCode || o.id : o.id;
             return (
               <div
                 key={o.id}
@@ -495,13 +671,13 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                           <ShoppingBag className="w-3 h-3" /> MARKETPLACE
                         </span>
                       )}
-                      <span className="font-mono text-sm sm:text-base font-bold text-white break-all">#{o.id}</span>
+                      <span className="font-mono text-sm sm:text-base font-bold text-white break-all">#{orderCode}</span>
                       <button
-                        onClick={() => copyOrderId(o.id)}
+                        onClick={() => copyOrderId(orderCode)}
                         className="inline-flex items-center gap-1 rounded-md bg-[#040508] border border-white/10 px-2 py-0.5 text-[11px] text-slate-400 hover:text-white transition-colors"
                         title="Sao chép mã đơn"
                       >
-                        {copiedId === o.id ? (
+                        {copiedId === orderCode ? (
                           <>
                             <Check className="h-3 w-3 text-[#39FF14]" />
                             <span className="text-[#39FF14] font-medium font-mono">Đã chép</span>
@@ -541,7 +717,11 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                     {o.items?.map((i: OrderItemDTO, n: number) => (
                       <li key={n} className="py-2.5 flex flex-wrap items-center justify-between gap-3 text-sm">
                         <div className="space-y-0.5 max-w-md">
-                          <p className="font-semibold text-white">{i.productTitle}</p>
+                          {detailKey && i.productId ? (
+                            <Link to={`/catalog/${encodeURIComponent(i.productId)}`} className="font-semibold text-theme-ink hover:text-theme-accent hover:underline">
+                              {i.productTitle}
+                            </Link>
+                          ) : <p className="font-semibold text-white">{i.productTitle}</p>}
                           <div className="flex flex-wrap gap-2 text-xs text-slate-400 font-mono">
                             <span>Số lượng: <strong className="text-white">{i.quantity}</strong></span>
                             {i.color && <span>· Màu: <strong className="text-slate-300">{i.color}</strong></span>}
@@ -651,7 +831,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                         className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Đặt lại sản phẩm khác</span>
+                        <span>Xem danh mục sản phẩm</span>
                       </Link>
                     )}
                     {admin && next && (
@@ -678,8 +858,8 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         {/* ========================================================================= */}
         {/* 2. HIỂN THỊ ĐƠN HÀNG IN CUSTOM (ĐÃ CHỐT BÁO GIÁ) */}
         {/* ========================================================================= */}
-        {(activeTab === 'ALL' || activeTab === 'CUSTOM') &&
-          displayedCustomOrders.map(c => {
+        {(detailKey || activeTab !== 'MARKETPLACE') &&
+          detailCustomOrders.map(c => {
             const next = nextStateCustom(c);
             return (
               <div
@@ -737,14 +917,21 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   const reqMeta = (() => {
                     try {
                       if (c.requirements?.startsWith('{')) {
-                        const p = JSON.parse(c.requirements);
+                        const p = JSON.parse(c.requirements) as (Partial<Design> & {
+                          glbUrl?: string;
+                          previewImageUrl?: string;
+                          screenshotUrl?: string;
+                          imageUrl?: string;
+                        }) | null;
                         return {
                           glbUrl: p?.glbUrl || null,
                           previewImageUrl: p?.previewImageUrl || p?.screenshotUrl || p?.imageUrl || null,
-                          design: p?.rulerId ? p : null,
+                          design: p?.rulerId ? p as Design : null,
                         };
                       }
-                    } catch {}
+                    } catch {
+                      // Older orders may store the requirements as plain text.
+                    }
                     return { glbUrl: null, previewImageUrl: null, design: null };
                   })();
 
@@ -758,6 +945,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                     )
                   );
                   const resolvedImageUrl = reqMeta.previewImageUrl || (isAttachmentImage ? c.attachmentUrl : null);
+                  const savedDesign = reqMeta.design;
 
                   return (
                     <div className="rounded-xl border border-[#ff9100]/30 bg-[#040508] p-3.5 space-y-3">
@@ -767,10 +955,11 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                           <span>Thông số chế tác thước cá nhân hóa</span>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          {reqMeta.design && (
+                          {savedDesign && (
                             <button
                               type="button"
-                              onClick={() => setPreview3DDesign({ design: reqMeta.design, name: c.rulerModel || 'Thước 3D' })}
+                              aria-expanded={detailKey ? !!preview3DDesign : undefined}
+                              onClick={() => setPreview3DDesign(detailKey && preview3DDesign ? null : { design: savedDesign, name: c.rulerModel || 'Thước 3D' })}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-[#39FF14] text-xs font-mono font-bold transition cursor-pointer"
                               title="Mở trình xem mô hình 3D trực quan, xoay 360 độ"
                             >
@@ -794,12 +983,12 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold transition cursor-pointer"
-                              title="Tải tệp STL cho máy in 3D"
+                              title="Tải tệp dùng để in 3D"
                             >
-                              <Download className="w-3.5 h-3.5" /> File In (.STL)
+                              <Download className="w-3.5 h-3.5" /> Tải tệp in
                             </a>
                           )}
-                          {resolvedImageUrl && (
+                          {!detailKey && resolvedImageUrl && (
                             <button
                               type="button"
                               onClick={() => setPreviewImageModalUrl(resolvedImageUrl)}
@@ -813,7 +1002,18 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                       </div>
 
                       {/* Hiển thị ảnh chụp 3D render trực quan nếu có */}
-                      {resolvedImageUrl && (
+                      {detailKey && preview3DDesign && (
+                        <section aria-label="Mô hình 3D" className="overflow-hidden rounded-xl border border-border bg-surface">
+                          <Modal3DViewer design={preview3DDesign.design} />
+                        </section>
+                      )}
+                      {detailKey && resolvedImageUrl && (
+                        <details className="rounded-xl border border-border bg-surface">
+                          <summary className="cursor-pointer p-3 font-semibold text-theme-ink">Ảnh mô phỏng thiết kế</summary>
+                          <img src={resolvedImageUrl} alt="Ảnh dựng 3D thước" className="mx-auto max-h-96 max-w-full object-contain p-3" />
+                        </details>
+                      )}
+                      {!detailKey && resolvedImageUrl && (
                         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 p-2.5 rounded-xl bg-[#0a0c12] border border-white/10">
                           <img
                             src={resolvedImageUrl}
@@ -896,7 +1096,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                     </div>
                     <div className="text-xs space-y-1 text-slate-300 pl-6">
                       <p className="text-white font-medium">Người nhận: <span className="font-bold">{c.buyerName}</span></p>
-                      <p className="text-slate-300">Địa chỉ: {c.shippingAddress || 'Nhận tại KTX / PrintHub Lab'}</p>
+                      <p className="text-slate-300">Địa chỉ: {c.shippingAddress || (userHistory ? 'Chưa có thông tin' : 'Nhận tại KTX / PrintHub Lab')}</p>
                     </div>
                   </div>
 
@@ -925,7 +1125,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                   <div>
                     <span className="text-xs text-slate-400 block font-mono">Giá chốt báo giá:</span>
                     <span className="text-xl sm:text-2xl font-black text-[#ff9100] font-mono">
-                      {money(c.quotedPrice || 0)}
+                      {userHistory && c.quotedPrice == null ? 'Chưa có báo giá' : money(c.quotedPrice)}
                     </span>
                   </div>
 
@@ -971,6 +1171,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             );
           })}
       </div>
+      )}
 
       {/* Modal Đánh giá chất lượng in 3D */}
       {reviewTarget && (
@@ -1007,7 +1208,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         busy={action.busy}
       />
       {/* Modal Trình Xem 3D Trực Quan Cho Đơn In Custom */}
-      {preview3DDesign && (
+      {!detailKey && preview3DDesign && (
         <Modal
           open={!!preview3DDesign}
           onClose={() => setPreview3DDesign(null)}

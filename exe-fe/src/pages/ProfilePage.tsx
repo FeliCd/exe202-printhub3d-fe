@@ -117,52 +117,170 @@ function ProfilePageContent() {
   return (
     <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
       <PageHeader
-        title="Quản Lý Trang Cá Nhân"
+        title="Hồ sơ của bạn"
         description="Xem và cập nhật thông tin tài khoản, tích lũy điểm thưởng và cấu hình địa chỉ nhận hàng."
-        badge={user?.role === 'ADMIN' ? 'Quản Trị Viên' : 'Tài Khoản Sinh Viên'}
-        icon={User}
       />
 
       <Notice error={profileError} success={savedSuccess ? 'Đã cập nhật thành công thông tin tài khoản!' : undefined} />
 
-      {/* Grid: Thông tin tóm tắt & Điểm thưởng */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column: Avatar & Account Badge */}
-        <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-4 text-center flex flex-col justify-between shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
-          <div className="space-y-3">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#39FF14] to-[#00e5ff] flex items-center justify-center font-black text-2xl text-slate-950 uppercase mx-auto shadow-xl shadow-[#39FF14]/20 font-mono">
-              {name.substring(0, 2) || '3D'}
-            </div>
-            <div>
-              <h3 className="font-bold text-white text-base tracking-tight">{name || 'Người dùng'}</h3>
-              <p className="text-xs text-[#39FF14] font-mono font-semibold mt-0.5">{user?.email}</p>
-              <div className="mt-2.5 flex items-center justify-center gap-1.5">
-                <span className="inline-flex items-center gap-1 text-[11px] font-mono px-3 py-1 rounded-full bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30 font-bold whitespace-nowrap shrink-0">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#39FF14]" />
-                  {user?.role === 'ADMIN' ? 'QUẢN TRỊ VIÊN HỆ THỐNG' : 'TÀI KHOẢN SINH VIÊN'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Nút Đổi mật khẩu mở Modal */}
-          <div className="pt-4 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => setIsPasswordModalOpen(true)}
-              className="w-full py-2.5 px-3 rounded-xl bg-[#040508] hover:bg-[#11141e] border border-white/10 hover:border-[#39FF14]/50 text-slate-300 hover:text-white font-mono font-bold text-xs flex items-center justify-center gap-2 transition whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              <KeyRound className="w-4 h-4 text-[#39FF14]" /> Đổi Mật Khẩu Tài Khoản
-            </button>
-          </div>
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="grid size-16 shrink-0 place-items-center rounded-full border border-border bg-surface-raised text-xl font-bold uppercase text-theme-ink">
+          {name.trim().split(/\s+/).slice(-2).map(part => part[0]).join('') || '3D'}
+        </span>
+        <div className="min-w-0 space-y-1">
+          <h2 className="break-words text-xl font-bold text-theme-ink">{name || 'Người dùng'}</h2>
+          <p className="break-words text-sm text-theme-muted">{user?.email}</p>
+          <span className="inline-flex items-center gap-1 text-xs text-theme-muted">
+            <ShieldCheck className="size-3.5 text-theme-accent" aria-hidden="true" />
+            {user?.role === 'ADMIN' ? 'Quản trị viên' : 'Tài khoản sinh viên'}
+          </span>
         </div>
+      </div>
 
-        {/* Middle & Right: Điểm thưởng & Gói hội viên Card */}
-        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <nav aria-label="Các phần trong hồ sơ" className="flex flex-wrap gap-2 border-b border-border pb-3 text-sm">
+        <a href="#profile-contact" className="rounded-md px-3 py-2 font-medium text-theme-muted hover:bg-surface hover:text-theme-accent">Thông tin cá nhân</a>
+        <a href="#profile-security" className="rounded-md px-3 py-2 font-medium text-theme-muted hover:bg-surface hover:text-theme-accent">Bảo mật</a>
+        <a href="#profile-rewards" className="rounded-md px-3 py-2 font-medium text-theme-muted hover:bg-surface hover:text-theme-accent">Điểm thưởng</a>
+        <Link to="/addresses" className="rounded-md px-3 py-2 font-medium text-theme-muted hover:bg-surface hover:text-theme-accent">Sổ địa chỉ</Link>
+      </nav>
+
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)]">
+        <div className="min-w-0 space-y-4">
+          {/* Thông tin liên hệ: VIEW MODE / EDIT MODE */}
+          <div id="profile-contact" className="scroll-mt-4 p-5 rounded-xl bg-surface border border-border space-y-5 relative overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+                  <User className="w-4 h-4 text-[#39FF14]" /> Thông tin liên hệ
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {isEditing ? 'Đang ở chế độ chỉnh sửa thông tin tài khoản' : 'Thông tin đăng ký của bạn trên nền tảng'}
+                </p>
+              </div>
+
+              {!isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="py-2 px-3.5 rounded-xl bg-[#040508] hover:bg-[#11141e] border border-white/10 hover:border-[#39FF14] text-white font-mono font-bold text-xs flex items-center gap-1.5 transition whitespace-nowrap shrink-0 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-[#39FF14]" /> Chỉnh Sửa Thông Tin
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="py-2 px-3 rounded-xl border border-white/10 hover:bg-[#040508] text-slate-300 text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1"
+                  >
+                    <X className="w-3.5 h-3.5" /> Hủy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="py-2 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-[#39FF14]/20 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5" /> {saving ? 'Đang lưu...' : 'Lưu Thay Đổi'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                {/* Họ và tên */}
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-300 font-mono">Họ và tên</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] font-mono transition"
+                    />
+                  ) : (
+                    <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white font-semibold font-mono">
+                      {name || 'Chưa cập nhật'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Số điện thoại */}
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-300 flex items-center gap-1.5 font-mono">
+                    <Phone className="w-3.5 h-3.5 text-[#39FF14]" /> Số điện thoại liên hệ
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] font-mono transition"
+                    />
+                  ) : (
+                    <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white font-mono">
+                      {phone || 'Chưa cập nhật'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Mã số sinh viên */}
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-300 font-mono">Mã số sinh viên (MSSV)</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={studentId}
+                      onChange={(e) => setStudentId(e.target.value)}
+                      placeholder="Ví dụ: 21127000"
+                      className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white font-mono outline-none focus:border-[#39FF14] transition"
+                    />
+                  ) : (
+                    <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white font-mono">
+                      {studentId || 'Chưa cập nhật'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Trường Đại học */}
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-300 font-mono">Trường ĐH / Học viện</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={university}
+                      onChange={(e) => setUniversity(e.target.value)}
+                      placeholder="Ví dụ: Đại Học Bách Khoa ĐHQG TP.HCM"
+                      className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition"
+                    />
+                  ) : (
+                    <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white">
+                      {university || 'Chưa cập nhật'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <section id="profile-security" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4">
+            <div>
+              <h2 className="font-semibold text-theme-ink">Bảo mật</h2>
+              <p className="mt-1 text-xs text-theme-muted">Quản lý mật khẩu tài khoản</p>
+            </div>
+            <button type="button" onClick={() => setIsPasswordModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface-inset px-3 py-2 text-sm text-theme-ink hover:border-theme-accent">
+              <KeyRound className="size-4 text-theme-accent" aria-hidden="true" /> Đổi mật khẩu
+            </button>
+          </section>
+        </div>
+        <aside className="min-w-0 space-y-4" aria-label="Điểm thưởng và hồ sơ sinh viên">
           {/* Card Điểm thưởng PrintHub Xu */}
-          <div className="p-6 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/30 space-y-4 flex flex-col justify-between shadow-xl relative overflow-hidden group">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
+          <div id="profile-rewards" className="scroll-mt-4 p-5 rounded-xl bg-surface border border-border space-y-4 flex flex-col justify-between relative overflow-hidden group">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 font-mono">
@@ -193,7 +311,7 @@ function ProfilePageContent() {
           </div>
 
           {/* Card Ưu đãi Sinh viên / Đại học */}
-          <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-4 flex flex-col justify-between shadow-xl relative overflow-hidden group">
+          <div className="p-5 rounded-xl bg-surface border border-border space-y-4 flex flex-col justify-between relative overflow-hidden group">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 font-mono">
@@ -217,128 +335,7 @@ function ProfilePageContent() {
               <span>Miễn phí giao hàng nội khu ĐHQG TP.HCM</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Thông Tin Cá Nhân: VIEW MODE / EDIT MODE */}
-      <div className="p-6 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-5 shadow-lg relative overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
-              <User className="w-4 h-4 text-[#39FF14]" /> Thông Tin Cá Nhân
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {isEditing ? 'Đang ở chế độ chỉnh sửa thông tin tài khoản' : 'Thông tin đăng ký của bạn trên nền tảng'}
-            </p>
-          </div>
-
-          {!isEditing ? (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="py-2 px-3.5 rounded-xl bg-[#040508] hover:bg-[#11141e] border border-white/10 hover:border-[#39FF14] text-white font-mono font-bold text-xs flex items-center gap-1.5 transition whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              <Edit3 className="w-3.5 h-3.5 text-[#39FF14]" /> Chỉnh Sửa Thông Tin
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCancelEdit}
-                className="py-2 px-3 rounded-xl border border-white/10 hover:bg-[#040508] text-slate-300 text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1"
-              >
-                <X className="w-3.5 h-3.5" /> Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveProfile}
-                disabled={saving}
-                className="py-2 px-4 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-[#39FF14]/20 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-              >
-                <Save className="w-3.5 h-3.5" /> {saving ? 'Đang lưu...' : 'Lưu Thay Đổi'}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Form Body */}
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            {/* Họ và tên */}
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 font-mono">Họ và tên</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] font-mono transition"
-                />
-              ) : (
-                <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white font-semibold font-mono">
-                  {name || 'Chưa cập nhật'}
-                </div>
-              )}
-            </div>
-
-            {/* Số điện thoại */}
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 flex items-center gap-1.5 font-mono">
-                <Phone className="w-3.5 h-3.5 text-[#39FF14]" /> Số điện thoại liên hệ
-              </label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] font-mono transition"
-                />
-              ) : (
-                <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white font-mono">
-                  {phone || 'Chưa cập nhật'}
-                </div>
-              )}
-            </div>
-
-            {/* Mã số sinh viên */}
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 font-mono">Mã số sinh viên (MSSV)</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
-                  placeholder="Ví dụ: 21127000"
-                  className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white font-mono outline-none focus:border-[#39FF14] transition"
-                />
-              ) : (
-                <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white font-mono">
-                  {studentId || 'Chưa cập nhật'}
-                </div>
-              )}
-            </div>
-
-            {/* Trường Đại học */}
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 font-mono">Trường ĐH / Học viện</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={university}
-                  onChange={(e) => setUniversity(e.target.value)}
-                  placeholder="Ví dụ: Đại Học Bách Khoa ĐHQG TP.HCM"
-                  className="w-full bg-[#040508] border border-[#39FF14]/60 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition"
-                />
-              ) : (
-                <div className="w-full bg-[#040508]/80 border border-white/10 rounded-xl p-3 text-white">
-                  {university || 'Chưa cập nhật'}
-                </div>
-              )}
-            </div>
-          </div>
-        </form>
+        </aside>
       </div>
 
       {/* Địa Chỉ Nhận Hàng Mặc Định & Chuyển Đổi Địa Chỉ Đã Lưu */}

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Star, Ruler } from 'lucide-react';
 import type { Product } from '../../../types';
 import { formatPrice } from '../../../utils/format';
-import ProductReviewsModal from '../../reviews/ProductReviewsModal';
 
 interface ProductCardProps {
   product: Product;
@@ -77,15 +76,14 @@ function ProductThumbnail({ type }: { type: Product['thumbnail'] }) {
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const detailUrl = `/catalog/${encodeURIComponent(product.id)}`;
   const [imageError, setImageError] = useState(false);
   const badge = getBadgeClasses(product.badgeColor);
 
   return (
-    <>
-      <article className="bg-[#0a0c12]/90 border border-white/10 rounded-2xl overflow-hidden hover:border-[#39FF14]/50 hover:shadow-md shadow-emerald-950/50 transition-all duration-300 flex flex-col group relative backdrop-blur-md">
+      <article className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-surface transition-colors group hover:border-theme-accent">
         {/* Thumbnail */}
-        <div className="relative h-48 bg-gradient-to-br from-[#040508] to-[#11141e] p-4 flex items-center justify-center overflow-hidden border-b border-white/10">
+        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden border-b border-border bg-surface-raised p-3">
           <span className={`absolute top-3 left-3 ${badge.bg} ${badge.text} text-[10px] font-black uppercase px-2.5 py-1 rounded-md border ${badge.border} tracking-wider font-mono whitespace-nowrap shrink-0`}>
             {product.badgeText}
           </span>
@@ -97,7 +95,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               src={product.imageUrl}
               alt={product.name}
               onError={() => setImageError(true)}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
             />
           ) : product.thumbnail && product.thumbnail !== 'custom-model' ? (
             <ProductThumbnail type={product.thumbnail} />
@@ -115,11 +113,10 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
           <div>
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-mono font-bold text-[#00e5ff] uppercase tracking-wider">{product.category}</p>
+              <p className="text-xs font-medium text-theme-muted">{product.category}</p>
               {/* Star Rating Badge button */}
-              <button
-                type="button"
-                onClick={() => setShowReviewsModal(true)}
+              <Link
+                to={`${detailUrl}?section=reviews`}
                 className="inline-flex items-center gap-1 text-[11px] hover:underline focus:outline-none cursor-pointer whitespace-nowrap shrink-0"
                 title="Xem đánh giá khách hàng"
               >
@@ -135,11 +132,16 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                     <span>Mới</span>
                   </div>
                 )}
-              </button>
+              </Link>
             </div>
 
-            <h4 className="text-base font-bold text-white group-hover:text-[#39FF14] transition">{product.name}</h4>
-            <p className="text-sm text-slate-400 line-clamp-2 mt-1">{product.description}</p>
+            <h2 className="text-base font-bold text-theme-ink">
+              <Link to={detailUrl} className="hover:text-theme-accent hover:underline">{product.name}</Link>
+            </h2>
+            {product.dimensions && (
+              <p className="mt-1 text-xs text-theme-muted">{product.dimensions.x} × {product.dimensions.y} × {product.dimensions.z} mm</p>
+            )}
+            <p className="mt-1 line-clamp-2 text-sm text-theme-muted">{product.description}</p>
           </div>
           <div className="pt-2 border-t border-white/10 flex flex-wrap gap-3 items-center justify-between">
             <div>
@@ -148,7 +150,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                   {formatPrice(product.originalPrice)}đ
                 </span>
               )}
-              <span className="text-lg font-black font-mono text-[#39FF14]">
+              <span className="text-lg font-bold text-theme-ink">
                 {formatPrice(product.price)}
                 <span className="text-xs font-normal text-slate-400 ml-0.5">đ</span>
               </span>
@@ -177,7 +179,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                 </Link>
               )}
               <button
-                className="whitespace-nowrap shrink-0 p-2 rounded-lg bg-[#39FF14] hover:bg-[#32e012] text-[#040508] font-bold shadow-md shadow-emerald-950/50 transition active:scale-95"
+                className="shrink-0 rounded-lg border border-border bg-surface-raised p-2 text-theme-ink transition hover:border-theme-accent hover:bg-primary hover:text-[#040508]"
                 onClick={() => onAddToCart(product)}
                 title="Thêm vào giỏ"
                 aria-label={`Thêm ${product.name} vào giỏ`}
@@ -191,14 +193,5 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         </div>
       </article>
 
-      {/* Modal xem đánh giá chi tiết */}
-      {showReviewsModal && (
-        <ProductReviewsModal
-          open={showReviewsModal}
-          onClose={() => setShowReviewsModal(false)}
-          product={product}
-        />
-      )}
-    </>
   );
 }

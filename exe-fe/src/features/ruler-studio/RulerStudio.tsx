@@ -27,7 +27,17 @@ import { getRuler } from "./library/registry";
 import { getProfile } from "./geometry/profiles";
 import { uploadFormData } from "../../services/api";
 import { parseDesignFile } from "./design/parseDesignFile";
-import { AlertCircle } from "lucide-react";
+import { useAction } from "../../hooks/useRemote";
+import { Undo2, Redo2, ChevronDown, AlertCircle, Ruler, Badge, Type, Shapes, Pencil, LayoutTemplate } from "lucide-react";
+
+const toolIcons = {
+  Ruler,
+  "Name Tag": Badge,
+  Text: Type,
+  Stickers: Shapes,
+  Draw: Pencil,
+  Templates: LayoutTemplate,
+};
 
 export default function RulerStudio({
   onAddToCart,
@@ -146,6 +156,7 @@ export default function RulerStudio({
         }),
       );
   };
+  const cartAction = useAction();
   const price = quote(design);
   const buildProduct = async (): Promise<Product> => {
     let thumbnail = "custom-model";
@@ -350,77 +361,55 @@ export default function RulerStudio({
       onPointerUpCapture={end}
       onPointerCancelCapture={end}
     >
-      <div className="studio-ruler-info">
-        {headerControls}
-        <div>
-          <span>{tr("Ruler")}</span>
-          <strong>
-            {language === 'vi' ? ruler.vietnameseName : ruler.name} · {design.length} {tr("cm")} </strong>
-          <small>{language === 'vi' ? ruler.name : ruler.vietnameseName}</small>
+      <div className="studio-command-bar">
+        <div className="studio-document">
+          <label className="studio-name">
+            <span className="sr-only">{tr("Design name")}</span>
+            <input aria-label={tr("Design name")} maxLength={40} value={design.name}
+              onChange={e => change({ ...design, name: e.target.value })} />
+          </label>
+          <span className="save-status" role="status">{isSaved ? tr("Design saved ✓") : tr("Unsaved design")}</span>
         </div>
-        <button onClick={() => setLibraryOpen(true)}>{tr("Change Ruler")}</button>
-        <span className="save-status">
-          {isSaved ? tr("Design saved ✓") : tr("Unsaved design")}
-        </span>
+        <div className="studio-command-actions">
+          <button onClick={() => setLibraryOpen(true)}>{tr("Change Ruler")}</button>
+          <button onClick={() => setMessage(save() ? "Saved on this device." : "Could not save: device storage is full or unavailable.")}>
+            {tr("Save")}
+          </button>
+          <button className="studio-primary" disabled={cartAction.busy}
+            onClick={() => void cartAction.run(editingCartItemId ? handleSaveToCart : add)}>
+            {cartAction.busy ? (language === "vi" ? "Đang lưu…" : "Saving…") : (language === "vi" ? "Lưu vào giỏ" : "Save to cart")}
+          </button>
+        </div>
       </div>
-      <header className="studio-toolbar">
-        <label className="studio-name"> {tr("Design name")} <input
-            aria-label={tr("Design name")}
-            maxLength={40}
-            value={design.name}
-            onChange={(e) => change({ ...design, name: e.target.value })}
-          />
-        </label>
-        <div className="studio-row">
-          <button disabled={!canUndo} onClick={undo} title={tr("Ctrl/Cmd+Z")}> {tr("Undo")} </button>
-          <button disabled={!canRedo} onClick={redo} title={tr("Ctrl/Cmd+Shift+Z")}> {tr("Redo")} </button>
-          <button
-            onClick={() =>
-              setMessage(
-                save()
-                  ? "Saved on this device."
-                  : "Could not save: device storage is full or unavailable.",
-              )
-            }
-          > {tr("Save")} </button>
-          <button
-            onClick={() => {
-              setMessage(
-                load()
-                  ? "Saved design restored."
-                  : "No saved design found on this device.",
-              );
+      <div className="studio-navigation-row">
+        <div className="studio-history-actions">
+          <button aria-label={tr("Undo")} disabled={!canUndo} onClick={undo} title={tr("Ctrl/Cmd+Z")}><Undo2 size={16} /></button>
+          <button aria-label={tr("Redo")} disabled={!canRedo} onClick={redo} title={tr("Ctrl/Cmd+Shift+Z")}><Redo2 size={16} /></button>
+        </div>
+        {headerControls}
+        <details className="studio-more-actions">
+          <summary>{language === "vi" ? "Thao tác" : "Actions"} <ChevronDown size={14} aria-hidden="true" /></summary>
+          <div className="studio-more-actions-menu">
+            <button onClick={() => {
+              setMessage(load() ? "Saved design restored." : "No saved design found on this device.");
               select("");
-            }}
-          > {tr("Restore saved")} </button>
-          <button
-            onClick={() => {
-              change({
-                ...design,
-                id: uid(),
-                name: `${design.name.slice(0, 33)} copy`,
-              });
-              setMessage(
-                "Working copy created. Save to replace the saved draft, or export to keep both.",
-              );
-            }}
-          > {tr("Duplicate")} </button>
-          <button
-            onClick={() => {
+            }}>{tr("Restore saved")}</button>
+            <button onClick={() => {
+              change({ ...design, id: uid(), name: `${design.name.slice(0, 33)} copy` });
+              setMessage("Working copy created. Save to replace the saved draft, or export to keep both.");
+            }}>{tr("Duplicate")}</button>
+            <button onClick={() => {
               resetDraft();
               select("");
               setMessage(tr("Design reset. Undo restores your previous design."));
-            }}
-          > {tr("Reset")} </button>
-          <button
-            style={{ fontWeight: "bold", background: "var(--theme-action, #39FF14)", color: "#000" }}
-            disabled={isExporting}
-            onClick={handleOpenExportDialog}
-          >
-            {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
-          </button>
-        </div>
-      </header>
+            }}>{tr("Reset")}</button>
+            <button disabled={isExporting} onClick={handleOpenExportDialog}>
+              {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
+            </button>
+          </div>
+        </details>
+      </div>
+      {cartAction.error && <p role="alert" className="border-b border-border px-4 py-2 text-sm text-error">{cartAction.error}</p>}
       {tab === "Draw" && (
         <div className="draw-mobile-switch">
           <button
@@ -464,8 +453,49 @@ export default function RulerStudio({
           </div>
         </div>
       )}
-      <div className="studio-layout" ref={workspace}>
-        <div className="studio-workspace">
+      <div className="studio-layout studio-with-tool-rail" ref={workspace}>
+        <div
+          className="studio-tabs"
+          role="tablist"
+          aria-label={tr("Customization categories")}
+        >
+          {tabs.map((t) => {
+            const Icon = toolIcons[t];
+            return (
+            <button
+              role="tab"
+              id={`studio-tab-${t}`}
+              aria-controls="studio-controls"
+              tabIndex={tab === t ? 0 : -1}
+              aria-selected={tab === t}
+              key={t}
+              onClick={() => chooseTab(t)}
+              onKeyDown={(e) => {
+                if (
+                  !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)
+                )
+                  return;
+                e.preventDefault();
+                const index =
+                  e.key === "Home"
+                    ? 0
+                    : e.key === "End"
+                      ? tabs.length - 1
+                      : (tabs.indexOf(t) +
+                          (["ArrowRight", "ArrowDown"].includes(e.key) ? 1 : -1) +
+                          tabs.length) %
+                        tabs.length;
+                chooseTab(tabs[index]);
+                document.getElementById(`studio-tab-${tabs[index]}`)?.focus();
+              }}
+            >
+              <Icon size={18} aria-hidden="true" />
+              <span>{tr(t)}</span>
+            </button>
+            );
+          })}
+        </div>
+        <div className="studio-workspace" role="region" aria-label={language === 'vi' ? 'Khung làm việc 3D và 2D' : '3D and 2D workspace'} tabIndex={0}>
           <div className="studio-mode-toggle-bar">
             <div className="studio-mode-pill">
               <button
@@ -497,6 +527,12 @@ export default function RulerStudio({
             surfaceSerial={surfaceSerial}
             previewMode={previewMode}
           />
+          {tab !== "Draw" && (
+            <div className="studio-mobile-switch">
+              <button aria-pressed={mobileWorkspace === "view"} onClick={() => setMobileWorkspace("view")}>{tr("3D View")}</button>
+              <button aria-pressed={mobileWorkspace === "edit"} onClick={() => setMobileWorkspace("edit")}>{language === "vi" ? "Chỉnh sửa" : "Edit"}</button>
+            </div>
+          )}
           <div className="studio-edit-workspace">
             <div className="studio-surface-tabs" aria-label={tr("Editing surface")}>
               <span>{tr("Surface")}</span>
@@ -527,43 +563,6 @@ export default function RulerStudio({
           </div>
         </div>
         <aside className="studio-sidebar">
-          <div
-            className="studio-tabs"
-            role="tablist"
-            aria-label={tr("Customization categories")}
-          >
-            {tabs.map((t) => (
-              <button
-                role="tab"
-                id={`studio-tab-${t}`}
-                aria-controls="studio-controls"
-                tabIndex={tab === t ? 0 : -1}
-                aria-selected={tab === t}
-                key={t}
-                onClick={() => chooseTab(t)}
-                onKeyDown={(e) => {
-                  if (
-                    !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
-                  )
-                    return;
-                  e.preventDefault();
-                  const index =
-                    e.key === "Home"
-                      ? 0
-                      : e.key === "End"
-                        ? tabs.length - 1
-                        : (tabs.indexOf(t) +
-                            (e.key === "ArrowRight" ? 1 : -1) +
-                            tabs.length) %
-                          tabs.length;
-                  chooseTab(tabs[index]);
-                  document.getElementById(`studio-tab-${tabs[index]}`)?.focus();
-                }}
-              >
-                {tr(t)}
-              </button>
-            ))}
-          </div>
           <Panels
             design={design}
             change={change}
@@ -573,28 +572,20 @@ export default function RulerStudio({
             select={select}
           />
           <footer className="studio-price">
-            {tab === "Draw" && (
-              <button
-                onClick={() =>
-                  setMessage(
-                    save() ? "Saved on this device." : "Could not save design.",
-                  )
-                }
-              >
-                {isSaved ? tr("Saved ✓") : tr("Save design")}
-              </button>
-            )}
+            <p>{language === "vi" ? "Xưởng xác nhận giá sau khi kiểm tra thiết kế." : "The workshop confirms pricing after reviewing the design."}</p>
             {editingCartItemId ? (
               <div className="flex flex-col gap-2 w-full mt-2">
                 <button
-                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-bold w-full py-3 cursor-pointer shadow-lg shadow-[#39FF14]/20 flex items-center justify-center gap-2"
-                  onClick={handleSaveToCart}
+                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-bold w-full py-3 cursor-pointer flex items-center justify-center gap-2"
+                  disabled={cartAction.busy}
+                  onClick={() => void cartAction.run(handleSaveToCart)}
                 >
                   {language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart'}
                 </button>
                 <button
                   className="px-4 py-2.5 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-300 hover:text-white font-medium transition cursor-pointer"
-                  onClick={handleSaveAsNew}
+                  disabled={cartAction.busy}
+                  onClick={() => void cartAction.run(handleSaveAsNew)}
                 >
                   {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
                 </button>
@@ -602,8 +593,9 @@ export default function RulerStudio({
             ) : (
               <div className="flex flex-col gap-2 w-full mt-2">
                 <button
-                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-black shadow-lg shadow-[#39FF14]/20 flex items-center justify-center gap-2 cursor-pointer w-full py-3 text-sm"
-                  onClick={add}
+                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-black flex items-center justify-center gap-2 cursor-pointer w-full py-3 text-sm"
+                  disabled={cartAction.busy}
+                  onClick={() => void cartAction.run(add)}
                 >
                   {language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart'}
                 </button>

@@ -6,7 +6,7 @@ export default function TermsOfServicePage() {
 
   return (
     <div className="min-h-screen bg-[#040508] text-slate-200 py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#39FF14]/30 selection:text-white">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Navigation / Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-6">
           <button
@@ -38,9 +38,19 @@ export default function TermsOfServicePage() {
         </div>
 
         {/* Terms Content Sections */}
+        <div className="grid items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
+          <nav aria-label="Mục lục" className="rounded-xl border border-border bg-surface p-3 lg:sticky lg:top-4">
+            <p className="px-2 pb-1 text-sm font-semibold text-theme-ink">Mục lục</p>
+            <ol className="grid">
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#terms-1">Dịch vụ cung ứng</a></li>
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#terms-2">Đặt hàng, Thanh toán & Thời hạn giữ đơn</a></li>
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#terms-3">Chính sách kiểm tra hàng & Bảo hành đổi trả</a></li>
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#terms-4">Giới hạn từ chối in ấn</a></li>
+            </ol>
+          </nav>
         <div className="space-y-6 text-sm sm:text-base text-slate-300">
           {/* Section 1 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="terms-1" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <CheckCircle2 className="w-5 h-5 text-[#39FF14]" />
               1. Dịch vụ cung ứng
@@ -51,7 +61,7 @@ export default function TermsOfServicePage() {
           </div>
 
           {/* Section 2 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="terms-2" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <Clock className="w-5 h-5 text-yellow-400" />
               2. Đặt hàng, Thanh toán & Thời hạn giữ đơn
@@ -64,7 +74,7 @@ export default function TermsOfServicePage() {
           </div>
 
           {/* Section 3 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="terms-3" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <RefreshCw className="w-5 h-5 text-[#00e5ff]" />
               3. Chính sách kiểm tra hàng & Bảo hành đổi trả
@@ -76,7 +86,7 @@ export default function TermsOfServicePage() {
           </div>
 
           {/* Section 4 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="terms-4" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <AlertTriangle className="w-5 h-5 text-red-400" />
               4. Giới hạn từ chối in ấn
@@ -99,6 +109,7 @@ export default function TermsOfServicePage() {
               Liên hệ chúng tôi
             </Link>
           </div>
+        </div>
         </div>
       </div>
     </div>

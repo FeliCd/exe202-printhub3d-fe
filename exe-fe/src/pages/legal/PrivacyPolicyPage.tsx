@@ -6,7 +6,7 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div className="min-h-screen bg-[#040508] text-slate-200 py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#39FF14]/30 selection:text-white">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Navigation / Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-6">
           <button
@@ -38,9 +38,19 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Policy Content Sections */}
+        <div className="grid items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
+          <nav aria-label="Mục lục" className="rounded-xl border border-border bg-surface p-3 lg:sticky lg:top-4">
+            <p className="px-2 pb-1 text-sm font-semibold text-theme-ink">Mục lục</p>
+            <ol className="grid">
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#privacy-1">Dữ liệu cá nhân chúng tôi thu thập</a></li>
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#privacy-2">Cam kết quyền sở hữu trí tuệ đối với File 3D (.STL, .OBJ, .STEP)</a></li>
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#privacy-3">Bảo mật thanh toán trực tuyến</a></li>
+              <li><a className="block rounded-md px-2 py-2 text-sm text-theme-copy hover:bg-surface-raised hover:text-theme-accent" href="#privacy-4">Quyền kiểm soát dữ liệu của người dùng</a></li>
+            </ol>
+          </nav>
         <div className="space-y-6 text-sm sm:text-base text-slate-300">
           {/* Section 1 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="privacy-1" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <Lock className="w-5 h-5 text-[#39FF14]" />
               1. Dữ liệu cá nhân chúng tôi thu thập
@@ -62,7 +72,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           {/* Section 2 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="privacy-2" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <FileText className="w-5 h-5 text-[#00e5ff]" />
               2. Cam kết quyền sở hữu trí tuệ đối với File 3D (.STL, .OBJ, .STEP)
@@ -80,7 +90,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           {/* Section 3 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="privacy-3" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <ShieldCheck className="w-5 h-5 text-amber-400" />
               3. Bảo mật thanh toán trực tuyến
@@ -91,7 +101,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           {/* Section 4 */}
-          <div className="bg-[#0a0c12] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-4">
+          <div id="privacy-4" className="scroll-mt-4 space-y-3 border-b border-border pb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5 font-mono">
               <Eye className="w-5 h-5 text-emerald-400" />
               4. Quyền kiểm soát dữ liệu của người dùng
@@ -114,6 +124,7 @@ export default function PrivacyPolicyPage() {
               Liên hệ hỗ trợ
             </Link>
           </div>
+        </div>
         </div>
       </div>
     </div>

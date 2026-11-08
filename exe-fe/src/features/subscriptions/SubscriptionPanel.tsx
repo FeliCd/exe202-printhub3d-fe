@@ -10,7 +10,6 @@ import {
   Award,
   CreditCard,
   History,
-  Calendar,
   ArrowUpRight,
   ArrowDownLeft,
   AlertCircle,
@@ -482,13 +481,13 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   return (
     <div className="space-y-6 w-full max-w-6xl mx-auto pb-12 animate-in fade-in duration-300">
       <PageHeader
-        title={admin ? 'Quản Lý Hội Viên & Gói Subscriptions' : 'Hội Viên VIP & Điểm Thưởng Tích Lũy'}
+        title={admin ? 'Quản Lý Hội Viên & Gói Subscriptions' : 'Gói hội viên'}
         description={
           admin
             ? 'Thiết lập quyền lợi giảm giá in 3D, thời hạn gói, giá tiền mặt và tặng gói ưu đãi cho khách hàng.'
             : 'Đổi điểm thưởng tích lũy từ các đơn in 3D hoặc mua gói hội viên VIP để nhận ưu đãi gia công.'
         }
-        badge={admin ? 'Admin Panel' : `${availablePoints.toLocaleString()} Điểm`}
+        badge={admin ? 'Admin Panel' : undefined}
         icon={Award}
       />
 
@@ -524,75 +523,42 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* USER DASHBOARD: SỐ DƯ ĐIỂM + GÓI VIP ĐANG HOẠT ĐỘNG + TAB CHUYỂN ĐỔI      */}
-      {/* ========================================================================= */}
       {!admin && (
-        <div className="space-y-4">
-          <div className="p-5 rounded-2xl bg-[#0a0c12] border border-white/10 relative overflow-hidden group shadow-xl">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
-
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-2">
-                <p className="text-xs sm:text-sm text-slate-400 font-mono">
-                  Số dư ví điểm thưởng:{' '}
-                  <strong className="text-[#39FF14] text-xl font-mono font-black ">
-                    {availablePoints.toLocaleString()}
-                  </strong>{' '}
-                  PrintHub Xu
-                </p>
-
-                {/* Danh sách gói VIP đang kích hoạt */}
-                <div className="space-y-1.5">
-                  {!membership.data?.subscriptions?.length ? (
-                    <p className="text-xs text-slate-500 font-mono flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-600" />
-                      Bạn hiện chưa kích hoạt gói hội viên VIP nào. Hãy đổi điểm hoặc mua gói bên dưới!
-                    </p>
-                  ) : (
-                    membership.data.subscriptions.map((s, idx) => (
-                      <div
-                        key={s.subscriptionId || s.id || idx}
-                        className="flex items-center gap-2 text-xs font-semibold text-white font-mono"
-                      >
-                        <Sparkles className="w-4 h-4 text-[#39FF14]" />
-                        <span>
-                          {s.planName || s.name} · Hạn dùng đến: {new Date(s.endDate).toLocaleDateString('vi-VN')}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Navigation Tabs (Flow 06: Ledger Audit) */}
-              <div className="flex items-center gap-2 bg-[#040508] p-1 rounded-xl border border-white/10 shrink-0 self-start md:self-auto">
-                <button
-                  onClick={() => setActiveTab('plans')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 ${
-                    activeTab === 'plans'
-                      ? 'bg-[#39FF14] text-slate-950 shadow-sm'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Các Gói Hội Viên VIP
-                </button>
-                <button
-                  onClick={() => setActiveTab('ledger')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 ${
-                    activeTab === 'ledger'
-                      ? 'bg-[#00e5ff] text-slate-950 shadow-sm'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <History className="w-3.5 h-3.5" />
-                  Lịch Sử Biến Động Điểm
-                </button>
-              </div>
+        <section aria-label="Tổng quan hội viên" className="space-y-4">
+          <dl className="grid divide-y divide-border rounded-xl border border-border bg-surface sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+            <div className="space-y-1 p-4 sm:p-5">
+              <dt className="text-sm font-medium text-theme-muted">Điểm có thể sử dụng</dt>
+              <dd className="text-2xl font-bold text-theme-accent">
+                {membership.loading || membership.error ? '—' : availablePoints.toLocaleString('vi-VN')}
+                {!membership.loading && !membership.error && <span className="ml-2 text-sm font-medium text-theme-muted">PrintHub Xu</span>}
+              </dd>
             </div>
+            <div className="space-y-1 p-4 sm:p-5">
+              <dt className="text-sm font-medium text-theme-muted">Gói đang sử dụng</dt>
+              <dd className="text-sm text-theme-ink">
+                {membership.loading ? 'Đang tải gói hội viên…' : membership.error ? 'Chưa tải được gói hội viên' : membership.data?.subscriptions?.length ? (
+                  <ul className="space-y-1.5">
+                    {membership.data.subscriptions.map((plan, index) => (
+                      <li key={plan.subscriptionId || plan.id || index} className="flex flex-wrap items-center gap-x-2">
+                        <span className="font-semibold">{plan.planName || plan.name}</span>
+                        <span className="text-theme-muted">Đến {new Date(plan.endDate).toLocaleDateString('vi-VN')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : 'Chưa có gói đang hoạt động'}
+              </dd>
+            </div>
+          </dl>
+          <div className="flex flex-wrap gap-x-5 border-b border-border" aria-label="Nội dung hội viên">
+            {([{ key: 'plans', label: 'Các gói hội viên', icon: Sparkles }, { key: 'ledger', label: 'Lịch sử điểm', icon: History }] as const).map(tab => (
+              <button key={tab.key} type="button" aria-pressed={activeTab === tab.key} onClick={() => setActiveTab(tab.key)}
+                className={`inline-flex items-center gap-2 border-b-2 px-1 py-2.5 text-sm font-semibold ${activeTab === tab.key
+                  ? 'border-theme-accent text-theme-accent' : 'border-transparent text-theme-muted hover:text-theme-ink'}`}>
+                <tab.icon className="size-4" aria-hidden="true" /> {tab.label}
+              </button>
+            ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* ========================================================================= */}
@@ -1044,7 +1010,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
         <>
           <RemoteState {...remote} empty={!remote.data?.length} retry={remote.reload} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 items-stretch">
             {remote.data?.map((p) => {
               const duration = p.durationDays || 30;
               const hasCashPrice = p.allowMoneyPurchase !== false && p.price != null && p.price > 0;
@@ -1056,11 +1022,11 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               return (
                 <div
                   key={p.id}
-                  className={`p-6 rounded-2xl bg-[#0a0c12] border transition-all space-y-4 shadow-xl relative overflow-hidden group ${
+                  className={`min-w-0 rounded-xl bg-surface border transition-colors p-4 sm:p-5 space-y-4 relative overflow-hidden group ${
                     p.isActive ? 'border-white/10 hover:border-[#39FF14]/50' : 'border-white/5 opacity-60'
                   }`}
                 >
-                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff] opacity-80" />
+                  {admin && <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff] opacity-80" />}
 
                   <div className="flex items-start justify-between gap-3">
                     <div>

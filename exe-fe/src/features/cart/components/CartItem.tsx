@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { CartItem as CartItemType } from '../../../types';
 import { formatPrice } from '../../../utils/format';
@@ -7,9 +8,11 @@ interface CartItemProps {
   onUpdateQuantity: (itemId: string, delta: number) => void;
   selected?: boolean;
   onToggleSelect?: () => void;
+  onRemove?: (id: string) => void;
+  busy?: boolean;
 }
 
-export default function CartItem({ item, onUpdateQuantity, selected, onToggleSelect }: CartItemProps) {
+export default function CartItem({ item, onUpdateQuantity, selected, onToggleSelect, onRemove, busy }: CartItemProps) {
   const navigate = useNavigate();
 
   const thumbnailColorMap: Record<string, string> = {
@@ -41,19 +44,20 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
   const lineId = item.clientLineId || item.id;
 
   return (
-    <div className={`p-3.5 rounded-xl bg-[#0a0c12] border transition-all flex items-start gap-3 relative group ${selected ? 'border-[#39FF14]/60 bg-[#39FF14]/5 shadow-md shadow-emerald-950/50' : 'border-white/10 hover:border-white/20'}`}>
+    <div className={`flex min-w-0 items-start gap-3 rounded-xl border bg-surface transition-colors ${onRemove ? 'p-3 sm:p-4' : 'p-3'} ${selected ? 'border-primary/40' : 'border-border'}`}>
       {onToggleSelect && (
         <label className="flex items-center cursor-pointer pt-3 select-none">
           <input
             type="checkbox"
             checked={!!selected}
+            aria-label={`Chọn ${item.product.name}`}
             onChange={onToggleSelect}
             className="w-4 h-4 rounded border-white/20 text-[#39FF14] focus:ring-[#39FF14] bg-[#040508] cursor-pointer accent-[#39FF14]"
           />
         </label>
       )}
 
-      <div className={`w-14 h-14 rounded-lg bg-[#040508] border border-white/10 flex items-center justify-center font-mono text-xs ${colorClass} shrink-0 overflow-hidden p-1`}>
+      <div className={`${onRemove ? 'size-16 sm:size-24' : 'size-14'} rounded-lg bg-surface-raised border border-border flex items-center justify-center text-xs ${colorClass} shrink-0 overflow-hidden p-1`}>
         {hasImage ? (
           <img src={imgSrc} alt={item.product.name} className="w-full h-full object-contain" />
         ) : (
@@ -61,13 +65,21 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
         )}
       </div>
 
-      <div className="flex-1 text-xs">
-        <h5 className="font-bold text-white text-sm group-hover:text-[#39FF14] transition-colors">{item.product.name}</h5>
+      <div className="min-w-0 flex-1 text-xs">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="min-w-0 break-words text-sm font-semibold text-theme-ink">{item.product.name}</h3>
+          {onRemove && (
+            <button type="button" disabled={busy} aria-label={`Xóa ${item.product.name} khỏi giỏ`}
+              onClick={() => onRemove(lineId)} className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md text-theme-muted hover:bg-surface-raised hover:text-error disabled:opacity-50">
+              <Trash2 className="size-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
 
         {item.product.rulerDesign && (
           <button
             type="button"
-            className="mt-1 text-xs text-[#39FF14] hover:underline inline-flex items-center gap-1 font-semibold whitespace-nowrap shrink-0"
+            className="mt-1 inline-flex items-center gap-1.5 text-left text-xs font-medium text-theme-accent hover:underline"
             onClick={() => navigate('/custom', {
               state: {
                 rulerDesign: item.product.rulerDesign,
@@ -77,7 +89,7 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
               }
             })}
           >
-            ✏️ Chỉnh sửa / Xem 3D trong Studio
+            <Pencil className="size-3.5 shrink-0" aria-hidden="true" /> Chỉnh sửa thiết kế
           </button>
         )}
 
@@ -88,15 +100,12 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
           <p className="text-slate-400 font-mono text-xs mt-0.5">Màu sắc: {item.colorOption}</p>
         )}
 
-        <div className="flex items-center justify-between mt-2.5">
+        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
           <div>
             {item.product.rulerDesign ? (
-              <div className="flex flex-col">
-                <span className="font-bold text-[#39FF14] font-mono text-sm">{formatPrice(item.product.price)}đ</span>
-                <span className="text-[10px] text-slate-500 font-mono">Giá ước tính Studio</span>
-              </div>
+              <span className="text-xs font-medium text-theme-muted">Chờ xưởng báo giá</span>
             ) : (
-              <span className="font-bold text-white font-mono text-sm">{formatPrice(item.product.price)}đ</span>
+              <span className="text-sm font-semibold text-theme-ink">{formatPrice(item.product.price * (onRemove ? item.quantity : 1))}đ</span>
             )}
           </div>
 
@@ -104,6 +113,7 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
             <button
               className="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-white/5 transition active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
               aria-label={`Giảm số lượng ${item.product.name}`}
+              disabled={busy}
               onClick={() => onUpdateQuantity(lineId, -1)}
             >
               -
@@ -112,6 +122,7 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
             <button
               className="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-300 hover:text-[#39FF14] hover:bg-white/5 transition active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
               aria-label={`Tăng số lượng ${item.product.name}`}
+              disabled={busy}
               onClick={() => onUpdateQuantity(lineId, 1)}
             >
               +

@@ -141,7 +141,7 @@ export default function AddressBookPage() {
   return (
     <div className="space-y-6 w-full max-w-5xl mx-auto pb-12">
       <PageHeader
-        title="Sổ Địa Chỉ Giao Nhận Hàng"
+        title="Sổ địa chỉ"
         description="Quản lý các địa chỉ nhận hàng KTX, nhà riêng và văn phòng của bạn trên toàn quốc."
         icon={MapPin}
         badge={`${remote.data?.length || 0} địa chỉ`}
@@ -160,9 +160,10 @@ export default function AddressBookPage() {
 
       <Notice error={errorMessage || action.error} success={successMessage} />
 
+      <div className={isAdding ? 'grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.85fr)]' : 'space-y-4'}>
       {/* Form thêm địa chỉ mới */}
       {isAdding && (
-        <div className="p-6 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/40 shadow-lg space-y-5 animate-in fade-in duration-200 relative overflow-hidden">
+        <div className="min-w-0 xl:col-start-2 xl:row-start-1 p-4 sm:p-5 rounded-xl bg-surface border border-border space-y-5 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff]" />
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2 text-white font-bold text-sm font-mono">
@@ -338,7 +339,7 @@ export default function AddressBookPage() {
       )}
 
       {/* Danh sách các địa chỉ hiện có */}
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4 xl:col-start-1 xl:row-start-1">
         <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
           <span>DANH SÁCH ĐỊA CHỈ ĐÃ LƯU ({remote.data?.length || 0})</span>
         </div>
@@ -367,7 +368,7 @@ export default function AddressBookPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={isAdding ? 'grid gap-3' : 'grid grid-cols-1 gap-3 md:grid-cols-2'}>
           {remote.data?.map((addr) => (
             <div
               key={addr.id}
@@ -428,6 +429,8 @@ export default function AddressBookPage() {
             </div>
           ))}
         </div>
+      </div>
+
       </div>
 
       {/* Impeccable P4: Delete Address ConfirmDialog */}

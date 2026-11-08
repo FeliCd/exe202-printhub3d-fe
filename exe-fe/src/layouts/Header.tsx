@@ -11,9 +11,10 @@ interface HeaderProps {
   cartCount: number;
   onToggleSidebar: () => void;
   onOpenCart: () => void;
+  compactLabel?: string;
 }
 
-export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpenCart }: HeaderProps) {
+export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpenCart, compactLabel }: HeaderProps) {
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
   const closeNotifications = useCallback(() => setNotifOpen(false), []);
 
   return (
-    <header className="sticky top-0 z-40 bg-surface-inset/95 backdrop-blur border-b border-border px-3 sm:px-4 lg:px-6 py-3 flex items-center justify-between gap-2 sm:gap-4">
+    <header className={`sticky top-0 z-40 flex items-center justify-between gap-2 border-b border-border bg-surface-inset/95 px-3 backdrop-blur sm:gap-4 sm:px-4 ${compactLabel ? 'py-1.5' : 'py-3 lg:px-6'}`}>
       {/* ========================================================================= */}
       {/* TOP LEFT: HAMBURGER TOGGLE MENU & PRINTHUB 3D LOGO */}
       {/* ========================================================================= */}
@@ -34,7 +35,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
           aria-label="Đóng mở thanh menu"
           aria-expanded={sidebarOpen}
           aria-controls={sidebarOpen ? 'app-sidebar' : undefined}
-          className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl bg-surface hover:bg-[#272930] text-slate-300 hover:text-[#39FF14] transition border border-border focus:outline-none active:scale-95 flex items-center justify-center cursor-pointer"
+          className={`grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-theme-copy transition hover:bg-surface-raised hover:text-theme-accent focus-visible:outline-2 focus-visible:outline-theme-accent ${compactLabel ? '' : 'border border-border bg-surface'}`}
           onClick={onToggleSidebar}
           title="Đóng/Mở Thanh Menu"
         >
@@ -45,16 +46,17 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
           <img
             src="/logo-printhub.svg"
             alt="PrintHub 3D Logo"
-            className="w-9 h-9 rounded-xl shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform object-contain"
+            className={`size-9 rounded-lg object-contain ${compactLabel ? '' : 'shadow-lg shadow-primary/30 transition-transform group-hover:scale-105'}`}
           />
-          <span className="text-lg sm:text-xl font-extrabold tracking-wide hidden sm:inline">
+          <span className={`hidden whitespace-nowrap font-bold tracking-tight sm:inline ${compactLabel ? 'text-base' : 'text-xl'}`}>
             PrintHub <span className="text-[#39FF14]">3D</span>
           </span>
         </Link>
+        {compactLabel && <span className="hidden border-l border-border pl-3 text-sm text-theme-muted xl:inline">{compactLabel}</span>}
       </div>
 
       {/* CENTER: SEARCH BAR & QUICK 3D DESIGN BUTTON */}
-      <div className="flex-1 max-w-xl items-center gap-3 hidden lg:flex">
+      {(!compactLabel || location.pathname.startsWith('/catalog')) && <div className={`hidden flex-1 items-center gap-3 lg:flex ${compactLabel ? 'ml-auto max-w-xs' : 'max-w-xl'}`}>
         <div className="relative flex-1">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-text-muted">
             <Search className="w-4 h-4" />
@@ -64,6 +66,8 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
             placeholder="Tìm mẫu thước 3D, thước parabol, thước eke..."
             aria-label="Tìm sản phẩm"
             type="search"
+            key={location.search}
+            defaultValue={new URLSearchParams(location.search).get('q') ?? ''}
             onKeyDown={(e) => {
               if (e.key === 'Enter') navigate(`/catalog?q=${encodeURIComponent(e.currentTarget.value.trim())}`);
             }}
@@ -71,7 +75,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         </div>
 
         {/* Quick Menu Button: Tự Design Thước 3D */}
-        {!isAdmin && (
+        {!isAdmin && !compactLabel && (
           <Link
             to="/custom"
             className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-primary/10 to-primary/10 border border-primary/50 hover:border-[#39FF14] text-[#39FF14] font-bold text-xs flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-md"
@@ -80,7 +84,7 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
             <span>Tự Design Thước 3D</span>
           </Link>
         )}
-      </div>
+      </div>}
 
       {/* ========================================================================= */}
       {/* TOP RIGHT: PROFILE - GIỎ HÀNG */}
@@ -145,14 +149,14 @@ export default function Header({ sidebarOpen, cartCount, onToggleSidebar, onOpen
         {/* TOP RIGHT: CART DRAWER BUTTON */}
         {!isAdmin && (
           <button
-            className="relative min-h-11 min-w-11 flex items-center justify-center gap-2 bg-[#39FF14] hover:bg-primary text-slate-950 font-black min-[400px]:px-2 sm:px-3.5 py-2 rounded-xl text-xs shadow-lg shadow-primary/60 active:scale-95 transition cursor-pointer"
+            className={`relative flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-2 text-xs font-bold transition active:scale-95 ${compactLabel ? 'border border-border bg-surface text-theme-ink hover:border-theme-accent' : 'bg-primary text-slate-950 shadow-lg shadow-primary/60 hover:bg-primary-hover sm:px-3.5'}`}
             onClick={onOpenCart}
             title="Xem giỏ hàng"
             aria-label={`Giỏ hàng, ${cartCount} sản phẩm`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span className="hidden sm:inline">Giỏ Hàng</span>
-            <span className="absolute -top-1 -right-1 min-[400px]:static px-1.5 py-0.5 rounded-md bg-slate-950 text-[#39FF14] font-mono text-xs">
+            {!compactLabel && <span className="hidden sm:inline">Giỏ hàng</span>}
+            <span className={`absolute -right-1 -top-1 rounded-full px-1.5 py-0.5 font-mono text-[10px] ${compactLabel ? 'bg-primary text-slate-950' : 'bg-slate-950 text-theme-accent min-[400px]:static'}`}>
               {cartCount}
             </span>
           </button>
