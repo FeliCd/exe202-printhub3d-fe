@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useReducedMotion } from 'framer-motion';
 import {
   Box,
   Printer,
@@ -14,10 +15,13 @@ import {
 } from 'lucide-react';
 import LandingNavbar from '../layouts/LandingNavbar';
 import Footer from '../components/Footer';
+import FeaturedReviews from '../features/reviews/FeaturedReviews';
 
 export default function LandingPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const landingRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -26,9 +30,37 @@ export default function LandingPage() {
     }
   }, [location.search, navigate]);
 
+  useEffect(() => {
+    if (reducedMotion || typeof IntersectionObserver === 'undefined' || !Element.prototype.animate) return;
+    const targets = landingRef.current?.querySelectorAll('[data-scroll-reveal]');
+    if (!targets?.length) return;
+
+    const animations = new Map<Element, Animation>();
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        animations.get(entry.target)?.cancel();
+        if (!entry.isIntersecting) continue;
+
+        const offset = entry.boundingClientRect.top < (entry.rootBounds?.top ?? 0) ? -14 : 14;
+        const animation = entry.target.animate(
+          [{ translate: `0 ${offset}px`, opacity: 0.84 }, { translate: '0 0', opacity: 1 }],
+          { duration: 440, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+        );
+        animations.set(entry.target, animation);
+      }
+    }, { rootMargin: '-80px 0px -40px' });
+
+    targets.forEach(target => observer.observe(target));
+    return () => {
+      observer.disconnect();
+      animations.forEach(animation => animation.cancel());
+    };
+  }, [reducedMotion]);
+
   return (
     <div
-      className="landing-page w-full h-full overflow-y-auto overflow-x-hidden bg-theme-canvas text-theme-ink flex flex-col font-sans selection:bg-theme-action selection:text-black"
+      ref={landingRef}
+      className="landing-page w-full h-full overflow-x-clip bg-theme-canvas text-theme-ink flex flex-col font-sans selection:bg-theme-action selection:text-black"
     >
       {/* 1. MARKETING NAVBAR (Ref Header Pill Layout) */}
       <LandingNavbar />
@@ -225,7 +257,7 @@ export default function LandingPage() {
         {/* SECTION 2: DISCOVER OUR SERVICES (Matches Reference Image 2) */}
         {/* ========================================================================= */}
         <section id="services" aria-labelledby="ruler-intro-title" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24 space-y-8">
-          <div className="grid items-center gap-6 rounded-3xl border border-white/10 app-light:border-theme-line bg-[#0c1017] app-light:bg-white p-6 sm:gap-8 sm:p-10 md:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)] lg:gap-12 lg:p-12">
+          <div data-scroll-reveal className="grid items-center gap-6 rounded-3xl border border-white/10 app-light:border-theme-line bg-[#0c1017] app-light:bg-white p-6 sm:gap-8 sm:p-10 md:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)] lg:gap-12 lg:p-12">
             <div className="min-w-0 space-y-4">
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-theme-accent">
                 PrintHub 3D
@@ -363,7 +395,7 @@ export default function LandingPage() {
           </div>
 
           {/* 2-Column Split Section */}
-          <div className="rounded-3xl bg-gradient-to-br from-[#0e121d] via-[#090b12] to-[#040508] border border-white/10 app-light:border-theme-line p-6 sm:p-10 lg:p-14 shadow-lg overflow-hidden app-light:shadow-none app-light:from-white app-light:via-[#f8faf8] app-light:to-[#eff5f0]">
+          <div data-scroll-reveal className="rounded-3xl bg-gradient-to-br from-[#0e121d] via-[#090b12] to-[#040508] border border-white/10 app-light:border-theme-line p-6 sm:p-10 lg:p-14 shadow-lg overflow-hidden app-light:shadow-none app-light:from-white app-light:via-[#f8faf8] app-light:to-[#eff5f0]">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Left Column: 4 Feature Pillars (Full Tiếng Việt) */}
               <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -445,11 +477,13 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <FeaturedReviews />
+
         {/* ========================================================================= */}
         {/* SECTION 4: GUARANTEE & QUALITY COMMITMENT */}
         {/* ========================================================================= */}
         <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-theme-action/10 via-[#0a0d16] to-[#040508] border border-theme-accent/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg app-light:shadow-none app-light:from-theme-soft app-light:via-[#f2f8f2] app-light:to-white">
+          <div data-scroll-reveal className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-theme-action/10 via-[#0a0d16] to-[#040508] border border-theme-accent/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg app-light:shadow-none app-light:from-theme-soft app-light:via-[#f2f8f2] app-light:to-white">
             <div className="flex items-center gap-5">
               <div className="w-16 h-16 rounded-2xl bg-theme-action/15 border border-theme-accent/40 flex items-center justify-center text-theme-accent shrink-0 shadow-lg shadow-[#39FF14]/20 app-light:shadow-none">
                 <ShieldCheck className="w-9 h-9" />

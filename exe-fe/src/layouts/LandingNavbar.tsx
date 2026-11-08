@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRight, Menu, X } from 'lucide-react';
+import { motion, useReducedMotion, useScroll } from 'framer-motion';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function LandingNavbar() {
@@ -9,6 +10,8 @@ export default function LandingNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const reducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
 
   const handleNavClick = (sectionId: string) => {
     setMobileMenuOpen(false);
@@ -18,7 +21,7 @@ export default function LandingNavbar() {
     }
     const elem = document.getElementById(sectionId);
     if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth' });
+      elem.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
     }
   };
 
@@ -216,6 +219,14 @@ export default function LandingNavbar() {
             )}
           </div>
         </div>
+      )}
+      {!reducedMotion && (
+        <motion.div
+          aria-hidden="true"
+          data-scroll-progress
+          style={{ scaleX: scrollYProgress }}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 origin-left bg-theme-accent"
+        />
       )}
     </header>
   );

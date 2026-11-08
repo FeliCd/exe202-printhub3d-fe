@@ -136,7 +136,7 @@ export default function UserSidebar({ isOpen, cartCount }: UserSidebarProps) {
             aria-controls="sidebar-shopping-panel"
             className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-[#39FF14] hover:bg-surface/50 transition cursor-pointer"
           >
-            <span className="flex items-center gap-2">🛒 MUA SẮM &amp; DỊCH VỤ</span>
+            <span>MUA SẮM &amp; DỊCH VỤ</span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none text-[#39FF14] ${
                 isGroupOpen('shopping') ? 'rotate-180' : ''
@@ -230,7 +230,7 @@ export default function UserSidebar({ isOpen, cartCount }: UserSidebarProps) {
             aria-controls="sidebar-transactions-panel"
             className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-[#39FF14] hover:bg-surface/50 transition cursor-pointer"
           >
-            <span className="flex items-center gap-2">📦 QUẢN LÝ GIAO DỊCH</span>
+            <span>QUẢN LÝ GIAO DỊCH</span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none text-[#39FF14] ${
                 isGroupOpen('transactions') ? 'rotate-180' : ''
@@ -317,7 +317,7 @@ export default function UserSidebar({ isOpen, cartCount }: UserSidebarProps) {
             aria-controls="sidebar-account-panel"
             className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-[#39FF14] hover:bg-surface/50 transition cursor-pointer"
           >
-            <span className="flex items-center gap-2">👤 CÁ NHÂN &amp; HỖ TRỢ</span>
+            <span>CÁ NHÂN &amp; HỖ TRỢ</span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-300 ease-in-out motion-reduce:transition-none text-[#39FF14] ${
                 isGroupOpen('account') ? 'rotate-180' : ''

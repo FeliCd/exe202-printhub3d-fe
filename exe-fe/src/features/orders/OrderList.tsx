@@ -40,7 +40,7 @@ const STEPS = [
   { key: 'COMPLETED', label: 'Hoàn thành', icon: Check, desc: 'Đã giao thành công' },
 ];
 
-function OrderStepper({ status }: { status: string }) {
+function OrderStepper({ status, admin = false }: { status: string; admin?: boolean }) {
   const getActiveStep = (s: string) => {
     switch (s) {
       case 'PENDING':
@@ -81,9 +81,11 @@ function OrderStepper({ status }: { status: string }) {
           <Clock className="w-4 h-4 text-amber-400 shrink-0" />
           <span>Đơn hàng đã hết hạn thanh toán PayOS. Phiên giữ hàng đã kết thúc.</span>
         </div>
-        <Link to="/catalog" className="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold whitespace-nowrap transition cursor-pointer">
-          Đặt lại đơn &rarr;
-        </Link>
+        {!admin && (
+          <Link to="/catalog" className="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold whitespace-nowrap transition cursor-pointer">
+            Đặt lại đơn &rarr;
+          </Link>
+        )}
       </div>
     );
   }
@@ -526,7 +528,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
                 {/* Stepper */}
                 <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3 sm:p-4">
-                  <OrderStepper status={o.status} />
+                  <OrderStepper status={o.status} admin={admin} />
                 </div>
 
                 {/* Danh sách sản phẩm in 3D */}
@@ -727,7 +729,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
                 {/* Stepper */}
                 <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3 sm:p-4">
-                  <OrderStepper status={c.status} />
+                  <OrderStepper status={c.status} admin={admin} />
                 </div>
 
                 {/* Thông số kỹ thuật in thước custom */}

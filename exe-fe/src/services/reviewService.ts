@@ -37,6 +37,16 @@ export interface ProductReviewSummaryDTO {
   count1Star: number;
 }
 
+export interface FeaturedProductReviewDTO {
+  id: number;
+  productTitle: string;
+  reviewerName: string;
+  rating: number;
+  comment?: string | null;
+  imageUrls: string[];
+  createdAt: string;
+}
+
 export const reviewService = {
   createOrUpdateReview: (data: ProductReviewCreateDTO) =>
     send<ProductReviewDTO>('/reviews', data, 'post'),
