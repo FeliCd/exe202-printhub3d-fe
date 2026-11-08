@@ -7,7 +7,7 @@ import ReviewPhotoGallery, { ReviewPhoto } from './ReviewPhotoGallery';
 
 export default function FeaturedReviews() {
   const { data, error, loading, reload } = useRemote<FeaturedProductReviewDTO[]>('/reviews/featured');
-  const reviews = data?.filter(review => review.rating === 5 && review.imageUrls.length > 0) ?? [];
+  const reviews = data?.filter(review => review.rating === 5) ?? [];
   const [gallery, setGallery] = useState<FeaturedProductReviewDTO | null>(null);
 
   return (
@@ -18,7 +18,7 @@ export default function FeaturedReviews() {
             Đánh giá 5 sao từ khách hàng
           </h2>
           <p className="text-sm leading-relaxed text-theme-copy">
-            Xem ảnh thước khách chụp và chia sẻ sau khi nhận hàng.
+            Đọc nhận xét và xem ảnh khách gửi sau khi nhận hàng.
           </p>
         </div>
 
@@ -32,25 +32,27 @@ export default function FeaturedReviews() {
             </button>
           </div>
         ) : reviews.length === 0 ? (
-          <p className="text-sm text-theme-muted">Chưa có đánh giá 5 sao kèm ảnh.</p>
+          <p className="text-sm text-theme-muted">Chưa có đánh giá 5 sao để hiển thị.</p>
         ) : (
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {reviews.map(review => (
               <li key={review.id} className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface">
-                <button
-                  type="button"
-                  aria-label={`Xem ảnh đánh giá của ${review.reviewerName}`}
-                  onClick={() => setGallery(review)}
-                  className="group relative block w-full cursor-zoom-in overflow-hidden text-left focus-visible:outline-offset-[-3px]"
-                >
-                  <div className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-                    <ReviewPhoto key={review.imageUrls[0]} src={review.imageUrls[0]} alt={`Ảnh thước do ${review.reviewerName} gửi`} />
-                  </div>
-                  <span className="absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-xs font-semibold text-white">
-                    <Images className="size-3.5" aria-hidden="true" />
-                    {review.imageUrls.length} ảnh
-                  </span>
-                </button>
+                {review.imageUrls.length > 0 && (
+                  <button
+                    type="button"
+                    aria-label={`Xem ảnh đánh giá của ${review.reviewerName}`}
+                    onClick={() => setGallery(review)}
+                    className="group relative block w-full cursor-zoom-in overflow-hidden text-left focus-visible:outline-offset-[-3px]"
+                  >
+                    <div className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
+                      <ReviewPhoto key={review.imageUrls[0]} src={review.imageUrls[0]} alt={`Ảnh thước do ${review.reviewerName} gửi`} />
+                    </div>
+                    <span className="absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-xs font-semibold text-white">
+                      <Images className="size-3.5" aria-hidden="true" />
+                      {review.imageUrls.length} ảnh
+                    </span>
+                  </button>
+                )}
 
                 <article className="space-y-3 p-4 sm:p-5">
                   <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
