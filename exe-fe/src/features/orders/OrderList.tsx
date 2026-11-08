@@ -14,6 +14,9 @@ import {
   FileCheck,
   Star,
   Clock,
+  Eye,
+  Image as ImageIcon,
+  X,
 } from 'lucide-react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
@@ -24,6 +27,9 @@ import { RemoteState, Notice, Status } from '../../components/DataUI';
 import { money, formatDateTime } from '../../utils/format';
 import RulerSpecsViewer from '../../components/RulerSpecsViewer';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import Modal from '../../components/Modal';
+import { Modal3DViewer } from '../ruler-studio/Modal3DViewer';
+import '../ruler-studio/studio.css';
 
 // Stepper 5 bước chuẩn hóa
 const STEPS = [
@@ -166,6 +172,8 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     totalAmount?: number;
   } | null>(null);
   const [reviewTarget, setReviewTarget] = useState<{ orderId: string; item: OrderItemDTO } | null>(null);
+  const [preview3DDesign, setPreview3DDesign] = useState<{ design: any; name?: string } | null>(null);
+  const [previewImageModalUrl, setPreviewImageModalUrl] = useState<string | null>(null);
 
   // Filter tabs for Buyer History (bổ sung EXPIRED)
   const [historyTab, setHistoryTab] = useState<'ALL' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED'>('ALL');
@@ -710,78 +718,159 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 </div>
 
                 {/* Thông số kỹ thuật in thước custom */}
-                <div className="rounded-xl border border-[#ff9100]/30 bg-[#040508] p-3.5 space-y-2">
-                  <div className="flex items-center justify-between pb-1 border-b border-white/10 text-xs font-semibold uppercase tracking-wider text-[#ff9100] font-mono">
-                    <div className="flex items-center gap-2">
-                      <FileCheck className="h-3.5 w-3.5" />
-                      <span>Thông số chế tác thước cá nhân hóa</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {(() => {
-                        try {
-                          if (c.requirements?.startsWith('{')) {
-                            const p = JSON.parse(c.requirements);
-                            if (p?.glbUrl) {
-                              return (
-                                <a
-                                  href={p.glbUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 text-[#00e5ff] hover:underline normal-case font-bold font-mono"
-                                >
-                                  <Download className="w-3.5 h-3.5" /> File 3D Màu (.GLB)
-                                </a>
-                              );
-                            }
-                          }
-                        } catch {}
-                        return null;
-                      })()}
-                      {c.attachmentUrl && (
-                        <a
-                          href={c.attachmentUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-[#39FF14] hover:underline normal-case font-bold font-mono"
-                        >
-                          <Download className="w-3.5 h-3.5" /> File In (.STL)
-                        </a>
+                {(() => {
+                  const reqMeta = (() => {
+                    try {
+                      if (c.requirements?.startsWith('{')) {
+                        const p = JSON.parse(c.requirements);
+                        return {
+                          glbUrl: p?.glbUrl || null,
+                          previewImageUrl: p?.previewImageUrl || p?.screenshotUrl || p?.imageUrl || null,
+                          design: p?.rulerId ? p : null,
+                        };
+                      }
+                    } catch {}
+                    return { glbUrl: null, previewImageUrl: null, design: null };
+                  })();
+
+                  const isAttachmentImage = Boolean(
+                    c.attachmentUrl && (
+                      c.attachmentUrl.toLowerCase().includes('.png') ||
+                      c.attachmentUrl.toLowerCase().includes('.jpg') ||
+                      c.attachmentUrl.toLowerCase().includes('.jpeg') ||
+                      c.attachmentUrl.toLowerCase().includes('.webp') ||
+                      c.attachmentUrl.toLowerCase().includes('/image/upload/')
+                    )
+                  );
+                  const resolvedImageUrl = reqMeta.previewImageUrl || (isAttachmentImage ? c.attachmentUrl : null);
+
+                  return (
+                    <div className="rounded-xl border border-[#ff9100]/30 bg-[#040508] p-3.5 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10 text-xs font-semibold uppercase tracking-wider text-[#ff9100] font-mono">
+                        <div className="flex items-center gap-2">
+                          <FileCheck className="h-3.5 w-3.5" />
+                          <span>Thông số chế tác thước cá nhân hóa</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {reqMeta.design && (
+                            <button
+                              type="button"
+                              onClick={() => setPreview3DDesign({ design: reqMeta.design, name: c.rulerModel || 'Thước 3D' })}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-[#39FF14] text-xs font-mono font-bold transition cursor-pointer"
+                              title="Mở trình xem mô hình 3D trực quan, xoay 360 độ"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Xem 3D Chi Tiết
+                            </button>
+                          )}
+                          {reqMeta.glbUrl && (
+                            <a
+                              href={reqMeta.glbUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-[#00e5ff] text-xs font-mono font-bold transition cursor-pointer"
+                              title="Tải tệp 3D đa chiều đầy đủ màu sắc (.GLB)"
+                            >
+                              <Download className="w-3.5 h-3.5" /> File 3D Màu (.GLB)
+                            </a>
+                          )}
+                          {c.attachmentUrl && !isAttachmentImage && (
+                            <a
+                              href={c.attachmentUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold transition cursor-pointer"
+                              title="Tải tệp STL cho máy in 3D"
+                            >
+                              <Download className="w-3.5 h-3.5" /> File In (.STL)
+                            </a>
+                          )}
+                          {resolvedImageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setPreviewImageModalUrl(resolvedImageUrl)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-xs font-mono font-semibold transition cursor-pointer"
+                              title="Xem ảnh dựng render sắc nét của thước"
+                            >
+                              <ImageIcon className="w-3.5 h-3.5 text-amber-400" /> Ảnh Render (.PNG)
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Hiển thị ảnh chụp 3D render trực quan nếu có */}
+                      {resolvedImageUrl && (
+                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 p-2.5 rounded-xl bg-[#0a0c12] border border-white/10">
+                          <img
+                            src={resolvedImageUrl}
+                            alt="Ảnh dựng 3D thước"
+                            className="w-24 h-16 sm:w-28 sm:h-20 object-contain rounded-lg bg-black/50 border border-white/10 cursor-pointer hover:border-[#39FF14] transition"
+                            onClick={() => setPreviewImageModalUrl(resolvedImageUrl)}
+                            title="Nhấn để phóng to ảnh thiết kế"
+                          />
+                          <div className="text-xs space-y-1">
+                            <div className="flex items-center gap-1.5 text-white font-bold">
+                              <Sparkles className="w-3.5 h-3.5 text-[#39FF14]" />
+                              <span>Ảnh mô phỏng thiết kế 3D</span>
+                            </div>
+                            <p className="text-slate-400 text-[11px] leading-relaxed">
+                              Ảnh render trực tiếp từ Studio mô phỏng màu phôi, vạch chia, khắc tên và các sticker.
+                            </p>
+                            <div className="flex items-center gap-2 pt-0.5">
+                              <button
+                                type="button"
+                                onClick={() => setPreviewImageModalUrl(resolvedImageUrl)}
+                                className="text-[#39FF14] hover:underline font-semibold text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <Eye className="w-3 h-3" /> Xem ảnh phóng to
+                              </button>
+                              <span className="text-slate-600">·</span>
+                              <a
+                                href={resolvedImageUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-slate-400 hover:text-white hover:underline text-[11px] inline-flex items-center gap-1"
+                              >
+                                <Download className="w-3 h-3" /> Tải ảnh gốc (HD)
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
+                        <div>
+                          <span className="text-slate-400 block font-mono">Mẫu Thước:</span>
+                          <strong className="text-white text-sm font-sans">{c.rulerModel || 'Thước Kỹ Thuật'}</strong>
+                        </div>
+
+                        <div>
+                          <span className="text-slate-400 block font-mono">Khắc Tên &amp; MSSV:</span>
+                          <strong className="text-[#39FF14] text-sm font-mono">
+                            {c.customName || 'Không khắc'} {c.customStudentId ? `(${c.customStudentId})` : ''}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span className="text-slate-400 block font-mono">Màu sắc &amp; Kiểu chữ:</span>
+                          <span className="text-slate-200 font-semibold font-mono">
+                            Màu: {c.color || 'Mặc định'} · Font: {c.fontStyle || 'Chuẩn'}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-slate-400 block font-mono">Số lượng in:</span>
+                          <strong className="text-white text-sm font-mono">{c.quantity || 1} cái</strong>
+                        </div>
+                      </div>
+
+                      {c.requirements && (
+                        <div className="pt-2 border-t border-white/10">
+                          <RulerSpecsViewer requirements={c.requirements} />
+                        </div>
                       )}
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
-                    <div>
-                      <span className="text-slate-400 block font-mono">Mẫu Thước:</span>
-                      <strong className="text-white text-sm font-sans">{c.rulerModel || 'Thước Kỹ Thuật'}</strong>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block font-mono">Khắc Tên &amp; MSSV:</span>
-                      <strong className="text-[#39FF14] text-sm font-mono">
-                        {c.customName || 'Không khắc'} {c.customStudentId ? `(${c.customStudentId})` : ''}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block font-mono">Màu sắc &amp; Kiểu chữ:</span>
-                      <span className="text-slate-200 font-semibold font-mono">
-                        Màu: {c.color || 'Mặc định'} · Font: {c.fontStyle || 'Chuẩn'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block font-mono">Số lượng in:</span>
-                      <strong className="text-white text-sm font-mono">{c.quantity || 1} cái</strong>
-                    </div>
-                  </div>
-
-                  {c.requirements && (
-                    <div className="pt-2 border-t border-white/10">
-                      <RulerSpecsViewer requirements={c.requirements} />
-                    </div>
-                  )}
-                </div>
+                  );
+                })()}
 
                 {/* Địa chỉ & Thanh toán đơn custom */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -893,6 +982,97 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         variant="primary"
         busy={action.busy}
       />
+      {/* Modal Trình Xem 3D Trực Quan Cho Đơn In Custom */}
+      {preview3DDesign && (
+        <Modal
+          open={!!preview3DDesign}
+          onClose={() => setPreview3DDesign(null)}
+          label={`Mô hình 3D: ${preview3DDesign.name || 'Thước Tùy Chỉnh'}`}
+          className="!w-full !max-w-2xl"
+        >
+          <div className="p-4 sm:p-5 bg-[#0a0c12] text-slate-200 rounded-2xl border border-white/10 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#39FF14]" />
+                <h3 className="font-bold text-white text-base font-sans">
+                  Mô hình 3D đa chiều: <span className="text-[#39FF14]">{preview3DDesign.name || 'Thước Kỹ Thuật'}</span>
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreview3DDesign(null)}
+                aria-label="Đóng trình xem 3D"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <Modal3DViewer design={preview3DDesign.design} />
+
+            <div className="flex justify-end pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setPreview3DDesign(null)}
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Xem Ảnh Render 3D Phóng To */}
+      {previewImageModalUrl && (
+        <Modal
+          open={!!previewImageModalUrl}
+          onClose={() => setPreviewImageModalUrl(null)}
+          label="Ảnh kết xuất 3D chi tiết"
+          className="!w-full !max-w-3xl"
+        >
+          <div className="p-4 sm:p-5 bg-[#0a0c12] text-slate-200 rounded-2xl border border-white/10 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-[#39FF14]" />
+                <h3 className="font-bold text-white text-base">Ảnh render 3D chi tiết</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewImageModalUrl(null)}
+                aria-label="Đóng xem ảnh"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="bg-black/70 p-2 rounded-xl border border-white/10 flex items-center justify-center">
+              <img
+                src={previewImageModalUrl}
+                alt="3D render HD"
+                className="max-h-[65vh] w-auto object-contain rounded-lg shadow-2xl"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+              <a
+                href={previewImageModalUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#39FF14] text-slate-950 font-bold text-xs hover:brightness-110"
+              >
+                <Download className="w-3.5 h-3.5" /> Tải ảnh gốc
+              </a>
+              <button
+                type="button"
+                onClick={() => setPreviewImageModalUrl(null)}
+                className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

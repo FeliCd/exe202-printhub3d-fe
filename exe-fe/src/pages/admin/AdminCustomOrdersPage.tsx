@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { FileEdit, Search, Download, Eye, Send, CheckCircle, Clock, RotateCcw, X, Sparkles, XCircle } from 'lucide-react';
+import { FileEdit, Search, Download, Eye, Send, CheckCircle, Clock, RotateCcw, X, Sparkles, XCircle, Image as ImageIcon } from 'lucide-react';
 import api, { send, unwrap } from '../../services/api';
 import { formatPrice, formatDateTime, formatRulerType, formatStickerLabel } from '../../utils/format';
 import { PageHeader, Notice } from '../../components/DataUI';
 import Modal from '../../components/Modal';
+import { Modal3DViewer } from '../../features/ruler-studio/Modal3DViewer';
+import '../../features/ruler-studio/studio.css';
 
 interface CustomOrderItem {
   id: string;
@@ -232,16 +234,20 @@ function RulerSpecsViewer({ requirements }: { requirements: string }) {
   );
 }
 
-function extractGlbUrl(requirements?: string): string | null {
-  if (!requirements) return null;
+function extractRequirementsMeta(requirements?: string) {
+  if (!requirements) return { glbUrl: null, previewImageUrl: null, design: null };
   try {
     const trimmed = requirements.trim();
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
       const p = JSON.parse(trimmed);
-      return p?.glbUrl || null;
+      return {
+        glbUrl: p?.glbUrl || null,
+        previewImageUrl: p?.previewImageUrl || p?.screenshotUrl || p?.imageUrl || null,
+        design: p?.rulerId ? p : null,
+      };
     }
   } catch {}
-  return null;
+  return { glbUrl: null, previewImageUrl: null, design: null };
 }
 
 export default function AdminCustomOrdersPage() {
@@ -472,7 +478,8 @@ export default function AdminCustomOrdersPage() {
             const isQuoted = o.status === 'QUOTED';
             const isAccepted = ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING', 'COMPLETED'].includes(o.status);
             const isCancelled = o.status === 'CANCELLED';
-            const glbDownloadUrl = extractGlbUrl(o.requirements);
+            const { glbUrl: glbDownloadUrl, previewImageUrl: orderPreviewImg } = extractRequirementsMeta(o.requirements);
+            const resolvedImageUrl = orderPreviewImg || (o.attachmentUrl && (o.attachmentUrl.toLowerCase().includes('.png') || o.attachmentUrl.toLowerCase().includes('.jpg') || o.attachmentUrl.toLowerCase().includes('.jpeg') || o.attachmentUrl.toLowerCase().includes('.webp') || o.attachmentUrl.toLowerCase().includes('/image/upload/') || o.attachmentUrl.startsWith('data:image/')) ? o.attachmentUrl : null);
 
             return (
               <article key={o.id} aria-labelledby={`custom-order-${o.id}`} className="min-w-0 p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14]/40 transition-all space-y-4 text-sm shadow-lg relative overflow-hidden">
@@ -546,60 +553,69 @@ export default function AdminCustomOrdersPage() {
                           <Download className="w-3.5 h-3.5" /> TẢI FILE GLB (3D MÀU)
                         </a>
                       )}
-                      {o.attachmentUrl && (o.attachmentUrl.toLowerCase().includes('.stl') || o.attachmentUrl.toLowerCase().includes('.step') || o.attachmentUrl.toLowerCase().includes('.stp') || o.attachmentUrl.toLowerCase().includes('.obj') || o.attachmentUrl.toLowerCase().includes('/raw/upload/')) ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadCustomFile(o)}
-                            disabled={downloadingId === o.id}
-                            className="inline-flex items-center gap-1.5 font-bold text-[#39FF14] hover:underline text-xs whitespace-nowrap cursor-pointer disabled:opacity-50"
-                          >
-                            <Download className="w-3.5 h-3.5" /> {downloadingId === o.id ? 'Đang tải file...' : 'TẢI FILE STL / CAD'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPreviewOrder(o)}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
-                          >
-                            <Eye className="w-3 h-3 text-[#39FF14]" /> Xem chi tiết 3D
-                          </button>
-                        </>
-                      ) : o.attachmentUrl && (o.attachmentUrl.toLowerCase().includes('.png') || o.attachmentUrl.toLowerCase().includes('.jpg') || o.attachmentUrl.toLowerCase().includes('.jpeg') || o.attachmentUrl.toLowerCase().includes('.webp') || o.attachmentUrl.toLowerCase().includes('/image/upload/') || o.attachmentUrl.startsWith('data:image/')) ? (
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <a
-                              href={o.attachmentUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 font-bold text-amber-400 hover:underline text-xs whitespace-nowrap"
-                            >
-                              <Eye className="w-3.5 h-3.5" /> XEM ẢNH XEM TRƯỚC (PNG)
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => setPreviewOrder(o)}
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
-                            >
-                              <Sparkles className="w-3 h-3 text-[#39FF14]" /> Thông số thiết kế
-                            </button>
-                          </div>
-                          <span className="block text-xs text-amber-300 leading-relaxed">Đơn từ Studio: Xem thông số để duyệt &amp; xuất file in</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-400 text-xs">Mẫu thước kỹ thuật</span>
-                          <button
-                            type="button"
-                            onClick={() => setPreviewOrder(o)}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
-                          >
-                            <Eye className="w-3 h-3 text-[#39FF14]" /> Xem thông số
-                          </button>
-                        </div>
+                      {o.attachmentUrl && (o.attachmentUrl.toLowerCase().includes('.stl') || o.attachmentUrl.toLowerCase().includes('.step') || o.attachmentUrl.toLowerCase().includes('.stp') || o.attachmentUrl.toLowerCase().includes('.obj') || o.attachmentUrl.toLowerCase().includes('/raw/upload/')) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadCustomFile(o)}
+                          disabled={downloadingId === o.id}
+                          className="inline-flex items-center gap-1.5 font-bold text-[#39FF14] hover:underline text-xs whitespace-nowrap cursor-pointer disabled:opacity-50"
+                        >
+                          <Download className="w-3.5 h-3.5" /> {downloadingId === o.id ? 'Đang tải file...' : 'TẢI FILE STL / CAD'}
+                        </button>
                       )}
+                      {resolvedImageUrl && (
+                        <a
+                          href={resolvedImageUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 font-bold text-amber-400 hover:underline text-xs whitespace-nowrap"
+                          title="Xem ảnh kết xuất 3D xem trước"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" /> XEM ẢNH RENDER (PNG)
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setPreviewOrder(o)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-lg border border-white/10 cursor-pointer"
+                      >
+                        <Eye className="w-3 h-3 text-[#39FF14]" /> Xem chi tiết 3D
+                      </button>
                     </div>
                   </div>
                 </div>
+
+                {/* Render preview image thumbnail in card if available */}
+                {resolvedImageUrl && (
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 p-3 rounded-xl bg-[#040508] border border-[#1e2433]">
+                    <img
+                      src={resolvedImageUrl}
+                      alt="Ảnh dựng 3D thước"
+                      className="w-24 h-16 sm:w-28 sm:h-20 object-contain rounded-lg bg-black/50 border border-white/10 cursor-pointer hover:border-[#39FF14] transition"
+                      onClick={() => setPreviewOrder(o)}
+                      title="Nhấn để xem chi tiết thiết kế"
+                    />
+                    <div className="text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 text-white font-bold">
+                        <Sparkles className="w-3.5 h-3.5 text-[#39FF14]" />
+                        <span>Ảnh mô phỏng kết xuất 3D thực tế</span>
+                      </div>
+                      <p className="text-slate-400 text-xs leading-relaxed">
+                        Mẫu thước do sinh viên tự tùy chỉnh và đặt in từ Ruler Studio.
+                      </p>
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <a
+                          href={resolvedImageUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#39FF14] hover:underline font-semibold text-xs inline-flex items-center gap-1"
+                        >
+                          <Eye className="w-3 h-3" /> Mở ảnh gốc sắc nét
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {o.requirements && (
                   <RulerSpecsViewer requirements={o.requirements} />
@@ -756,95 +772,121 @@ export default function AdminCustomOrdersPage() {
         open={!!previewOrder}
         onClose={() => setPreviewOrder(null)}
         label="Chi tiết mô hình 3D yêu cầu in"
-        className="!w-full !max-w-xl"
+        className="!w-full !max-w-2xl"
       >
-        {previewOrder && (
-          <div className="space-y-4 p-5 bg-[#0a0c12] text-slate-200 rounded-2xl border border-white/10">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#39FF14]" />
-                <h2 className="font-bold text-white text-base">Hồ sơ thiết kế kỹ thuật 3D</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPreviewOrder(null)}
-                aria-label="Đóng chi tiết thiết kế"
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+        {previewOrder && (() => {
+          const { glbUrl, previewImageUrl, design } = extractRequirementsMeta(previewOrder.requirements);
+          const resolvedImg = previewImageUrl || (previewOrder.attachmentUrl && (previewOrder.attachmentUrl.toLowerCase().includes('.png') || previewOrder.attachmentUrl.toLowerCase().includes('.jpg') || previewOrder.attachmentUrl.toLowerCase().includes('.jpeg') || previewOrder.attachmentUrl.toLowerCase().includes('/image/upload/')) ? previewOrder.attachmentUrl : null);
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
-                <span className="text-slate-400 block font-mono">LOẠI MẪU:</span>
-                <span className="font-bold text-white">{previewOrder.rulerModel || 'Mẫu tùy chỉnh'}</span>
-              </div>
-              <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
-                <span className="text-slate-400 block font-mono">VẬT LIỆU &amp; MÀU:</span>
-                <span className="font-bold text-[#39FF14]">PLA Nguyên Sinh • {previewOrder.color || 'Màu tiêu chuẩn'}</span>
-              </div>
-              <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
-                <span className="text-slate-400 block font-mono">KHẮC TÊN:</span>
-                <span className="font-bold text-white">{previewOrder.customName || 'Không khắc'}</span>
-              </div>
-              <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
-                <span className="text-slate-400 block font-mono">MÃ SỐ SINH VIÊN:</span>
-                <span className="font-bold text-white">{previewOrder.customStudentId || 'Không có'}</span>
-              </div>
-            </div>
-
-            {/* Preview image if available */}
-            {previewOrder.attachmentUrl && (previewOrder.attachmentUrl.includes('.png') || previewOrder.attachmentUrl.includes('.jpg') || previewOrder.attachmentUrl.includes('/image/upload/')) && (
-              <div className="p-3 rounded-xl bg-[#040508] border border-white/10 text-center space-y-2">
-                <span className="text-xs text-slate-400 block">Ảnh xem trước từ Studio</span>
-                <img
-                  src={previewOrder.attachmentUrl}
-                  alt="3D Preview"
-                  className="max-h-48 mx-auto rounded-lg border border-white/10 object-contain"
-                />
-              </div>
-            )}
-
-            {/* Technical specs parser */}
-            {previewOrder.requirements && (
-              <RulerSpecsViewer requirements={previewOrder.requirements} />
-            )}
-
-            <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-white/10">
-              {extractGlbUrl(previewOrder.requirements) && (
-                <a
-                  href={extractGlbUrl(previewOrder.requirements)!}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="py-2 px-4 rounded-xl bg-[#00e5ff]/15 hover:bg-[#00e5ff]/25 border border-[#00e5ff]/40 text-[#00e5ff] text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer"
-                  title="Tải tệp 3D đa chiều đầy đủ màu sắc (.GLB)"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Tải File GLB (3D Màu)</span>
-                </a>
-              )}
-              {previewOrder.attachmentUrl && (
+          return (
+            <div className="space-y-4 p-5 bg-[#0a0c12] text-slate-200 rounded-2xl border border-white/10">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#39FF14]" />
+                  <h2 className="font-bold text-white text-base">Hồ sơ thiết kế kỹ thuật 3D</h2>
+                </div>
                 <button
                   type="button"
-                  onClick={() => handleDownloadCustomFile(previewOrder)}
-                  disabled={downloadingId === previewOrder.id}
-                  className="py-2 px-4 rounded-xl bg-[#39FF14] text-slate-950 font-bold text-xs flex items-center gap-1.5 hover:bg-[#32e012] transition cursor-pointer disabled:opacity-50"
+                  onClick={() => setPreviewOrder(null)}
+                  aria-label="Đóng chi tiết thiết kế"
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>{downloadingId === previewOrder.id ? 'Đang tải...' : 'Tải File STL Cho Máy In'}</span>
+                  <X className="w-4 h-4" />
                 </button>
+              </div>
+
+              {/* Mô hình 3D tương tác trực tiếp nếu có cấu hình design */}
+              {design && (
+                <div className="space-y-1.5 p-3 rounded-xl bg-[#040508] border border-white/10">
+                  <span className="text-xs text-[#39FF14] font-bold block font-mono">
+                    MÔ HÌNH 3D TƯƠNG TÁC (XOAY 360°, PHÓNG TO, XEM CHI TIẾT KHẮC &amp; STICKER):
+                  </span>
+                  <Modal3DViewer design={design} />
+                </div>
               )}
-              <button
-                type="button"
-                onClick={() => setPreviewOrder(null)}
-                className="py-2 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-slate-300 text-xs font-semibold cursor-pointer"
-              >
-                Đóng
-              </button>
+
+              {/* Preview image if available */}
+              {resolvedImg && (
+                <div className="p-3 rounded-xl bg-[#040508] border border-white/10 text-center space-y-2">
+                  <span className="text-xs text-slate-400 block font-mono">Ảnh xem trước kết xuất 3D từ Studio</span>
+                  <img
+                    src={resolvedImg}
+                    alt="3D Preview"
+                    className="max-h-56 mx-auto rounded-lg border border-white/10 object-contain shadow-lg"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
+                  <span className="text-slate-400 block font-mono">LOẠI MẪU:</span>
+                  <span className="font-bold text-white">{previewOrder.rulerModel || 'Mẫu tùy chỉnh'}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
+                  <span className="text-slate-400 block font-mono">VẬT LIỆU &amp; MÀU:</span>
+                  <span className="font-bold text-[#39FF14]">PLA Nguyên Sinh • {previewOrder.color || 'Màu tiêu chuẩn'}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
+                  <span className="text-slate-400 block font-mono">KHẮC TÊN:</span>
+                  <span className="font-bold text-white">{previewOrder.customName || 'Không khắc'}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#040508] border border-white/10 space-y-1">
+                  <span className="text-slate-400 block font-mono">MÃ SỐ SINH VIÊN:</span>
+                  <span className="font-bold text-white">{previewOrder.customStudentId || 'Không có'}</span>
+                </div>
+              </div>
+
+              {/* Technical specs parser */}
+              {previewOrder.requirements && (
+                <RulerSpecsViewer requirements={previewOrder.requirements} />
+              )}
+
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-white/10">
+                {glbUrl && (
+                  <a
+                    href={glbUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2 px-4 rounded-xl bg-[#00e5ff]/15 hover:bg-[#00e5ff]/25 border border-[#00e5ff]/40 text-[#00e5ff] text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    title="Tải tệp 3D đa chiều đầy đủ màu sắc (.GLB)"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Tải File GLB (3D Màu)</span>
+                  </a>
+                )}
+                {resolvedImg && (
+                  <a
+                    href={resolvedImg}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Tải Ảnh Render (PNG)</span>
+                  </a>
+                )}
+                {previewOrder.attachmentUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadCustomFile(previewOrder)}
+                    disabled={downloadingId === previewOrder.id}
+                    className="py-2 px-4 rounded-xl bg-[#39FF14] text-slate-950 font-bold text-xs flex items-center gap-1.5 hover:bg-[#32e012] transition cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{downloadingId === previewOrder.id ? 'Đang tải...' : 'Tải File STL Cho Máy In'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPreviewOrder(null)}
+                  className="py-2 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-slate-300 text-xs font-semibold cursor-pointer"
+                >
+                  Đóng
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
     </div>
   );

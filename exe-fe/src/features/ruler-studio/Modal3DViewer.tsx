@@ -87,28 +87,28 @@ export function Modal3DViewer({ design }: Modal3DViewerProps) {
             onClick={() => setIsAutoRotating((prev) => !prev)}
             title={isAutoRotating ? "Tạm dừng tự xoay" : "Bật tự xoay 360°"}
           >
-            {isAutoRotating ? "⏸️ " + tr("Dừng xoay") : "🔄 " + tr("Tự xoay")}
+            {isAutoRotating ? tr("Dừng xoay") : tr("Tự xoay")}
           </button>
           <button
             type="button"
             className="btn-snap-view"
             onClick={() => setCameraView([0, distance * 1.55, 0.001])}
           >
-            ⬆️ {tr("Mặt trước")}
+            {tr("Mặt trước")}
           </button>
           <button
             type="button"
             className="btn-snap-view"
             onClick={() => setCameraView([0, -distance * 1.55, 0.001])}
           >
-            ⬇️ {tr("Mặt sau")}
+            {tr("Mặt sau")}
           </button>
           <button
             type="button"
             className="btn-snap-view"
             onClick={() => setCameraView([distance * 0.45, distance * 0.7, distance * 0.85])}
           >
-            📐 {tr("Góc 45°")}
+            {tr("Góc 45°")}
           </button>
         </div>
       </div>

@@ -25,7 +25,6 @@ import { createLiveArtwork } from "./liveArtwork";
 import RulerLibrary from "./library/RulerLibrary";
 import { getRuler } from "./library/registry";
 import { getProfile } from "./geometry/profiles";
-import QuoteRequestModal from "./QuoteRequestModal";
 import { uploadFormData } from "../../services/api";
 import { parseDesignFile } from "./design/parseDesignFile";
 import { AlertCircle } from "lucide-react";
@@ -36,7 +35,7 @@ export default function RulerStudio({
   headerControls,
   editingCartItemId,
   onSaveCartItem,
-  onConvertToQuotation,
+  onConvertToQuotation: _onConvertToQuotation,
   requestedTemplate,
   requestedLength,
   requestedMaterial,
@@ -109,7 +108,6 @@ export default function RulerStudio({
   const [isExporting, setIsExporting] = useState(false);
   const [previewMode, setPreviewMode] = useState<"color" | "print">("color");
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [exportLoadingMsg, setExportLoadingMsg] = useState("");
   const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("Ruler"),
@@ -238,10 +236,6 @@ export default function RulerStudio({
     prod.id = `ruler-design-${uid()}`;
     onAddToCart(prod);
     setMessage(language === 'vi' ? "Đã nhân bản và lưu thành thiết kế mới vào giỏ hàng!" : "Cloned and added as a new design to cart!");
-  };
-
-  const handleConvertToQuotation = () => {
-    setShowQuoteModal(true);
   };
 
   const printValidation = useMemo(() => validateDesignForPrint(design), [design]);
@@ -593,47 +587,28 @@ export default function RulerStudio({
             {editingCartItemId ? (
               <div className="flex flex-col gap-2 w-full mt-2">
                 <button
-                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-bold"
+                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-bold w-full py-3 cursor-pointer shadow-lg shadow-[#39FF14]/20 flex items-center justify-center gap-2"
                   onClick={handleSaveToCart}
                 >
-                  💾 {language === 'vi' ? 'Lưu thay đổi vào giỏ' : 'Save changes to cart'}
+                  {language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart'}
                 </button>
                 <button
-                  className="px-4 py-2.5 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-300 hover:text-white font-medium transition"
+                  className="px-4 py-2.5 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-300 hover:text-white font-medium transition cursor-pointer"
                   onClick={handleSaveAsNew}
                 >
-                  ➕ {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
-                </button>
-                <button
-                  className="px-4 py-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-xs text-amber-300 hover:bg-amber-500/20 font-bold transition flex items-center justify-center gap-1.5"
-                  onClick={handleConvertToQuotation}
-                >
-                  📋 {language === 'vi' ? 'Gửi yêu cầu báo giá chính thức' : 'Request official quote'}
+                  {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
                 </button>
               </div>
             ) : (
               <div className="flex flex-col gap-2 w-full mt-2">
                 <button
-                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-black shadow-lg shadow-[#39FF14]/20 flex items-center justify-center gap-2 cursor-pointer"
-                  onClick={handleConvertToQuotation}
-                >
-                  <span>📋</span>
-                  <span>{language === 'vi' ? 'Yêu cầu báo giá in 3D' : 'Request 3D Print Quote'}</span>
-                </button>
-                <button
-                  className="w-full py-2.5 px-4 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-200 hover:text-white font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-black shadow-lg shadow-[#39FF14]/20 flex items-center justify-center gap-2 cursor-pointer w-full py-3 text-sm"
                   onClick={add}
                 >
-                  <span>🛒</span>
-                  <span>{language === 'vi' ? 'Lưu vào giỏ thiết kế' : 'Save to Cart'}</span>
+                  {language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart'}
                 </button>
               </div>
             )}
-            <p className="text-xs text-slate-400 mt-2 text-center leading-relaxed">
-              {language === 'vi'
-                ? 'Thiết kế in 3D cá nhân hóa sẽ được kỹ thuật viên xưởng thẩm định độ dày, thông số cắt lớp và gửi báo giá chính xác.'
-                : 'Custom 3D designs are reviewed by technicians for precise slicing parameters and official quotation.'}
-            </p>
           </footer>
         </aside>
       </div>
@@ -744,7 +719,7 @@ export default function RulerStudio({
                 className={`tab-btn ${modalPreviewMode === "3d" ? "active" : ""}`}
                 onClick={() => setModalPreviewMode("3d")}
               >
-                👁️ {language === "vi" ? "Xoay 3D Trực Tiếp (360°)" : "Interactive 3D View"}
+                {language === "vi" ? "Xoay 3D Trực Tiếp (360°)" : "Interactive 3D View"}
               </button>
               {previewScreenshotUrl && (
                 <button
@@ -752,7 +727,7 @@ export default function RulerStudio({
                   className={`tab-btn ${modalPreviewMode === "2d" ? "active" : ""}`}
                   onClick={() => setModalPreviewMode("2d")}
                 >
-                  🖼️ {language === "vi" ? "Xem Ảnh 2D" : "2D Snapshot"}
+                  {language === "vi" ? "Xem Ảnh 2D" : "2D Snapshot"}
                 </button>
               )}
             </div>
@@ -778,8 +753,7 @@ export default function RulerStudio({
                 disabled={isExporting}
                 onClick={handleDownloadPNG}
               >
-                <span className="btn-main">🖼️ {language === "vi" ? "Tải ảnh phối cảnh (.PNG)" : "Download Image (.PNG)"}</span>
-                <span className="btn-sub">{language === "vi" ? "Ảnh render độ nét cao" : "High-resolution 2D render"}</span>
+                <span className="btn-main">{language === "vi" ? "Tải ảnh phối cảnh (.PNG)" : "Download Image (.PNG)"}</span>
               </button>
 
               <button
@@ -787,8 +761,7 @@ export default function RulerStudio({
                 disabled={isExporting}
                 onClick={handleDownloadGLB}
               >
-                <span className="btn-main">🌐 {language === "vi" ? "Tải mô hình 3D (.GLB)" : "Download 3D (.GLB)"}</span>
-                <span className="btn-sub">{language === "vi" ? "Màu sắc & xoay 360 độ" : "Colors, marks & 360° view"}</span>
+                <span className="btn-main">{language === "vi" ? "Tải mô hình 3D (.GLB)" : "Download 3D (.GLB)"}</span>
               </button>
 
               <button
@@ -797,8 +770,7 @@ export default function RulerStudio({
                 disabled={isExporting}
                 onClick={handleDownloadJSON}
               >
-                <span className="btn-main">📄 {language === "vi" ? "Tải dữ liệu gốc (.JSON)" : "Download Data (.JSON)"}</span>
-                <span className="btn-sub">{language === "vi" ? "Để nhập lại chỉnh sửa" : "For re-importing later"}</span>
+                <span className="btn-main">{language === "vi" ? "Tải dữ liệu gốc (.JSON)" : "Download Data (.JSON)"}</span>
               </button>
             </div>
 
@@ -813,10 +785,7 @@ export default function RulerStudio({
                 onClick={handleDownloadSTL}
                 title={!printValidation.canExportSTL ? "Vui lòng sửa các lỗi kỹ thuật trước khi xuất STL" : undefined}
               >
-                <span className="btn-main">🧊 {language === "vi" ? "Tải file in xưởng (.STL)" : "Download Print File (.STL)"}</span>
-                <span className="btn-sub">
-                  {language === "vi" ? "Có chữ nổi/khắc thật, chuẩn milimét" : "With real embossed/engraved geometry"}
-                </span>
+                <span className="btn-main">{language === "vi" ? "Tải file in xưởng (.STL)" : "Download Print File (.STL)"}</span>
               </button>
 
               <button
@@ -824,8 +793,7 @@ export default function RulerStudio({
                 disabled={isExporting}
                 onClick={handleDownloadZip}
               >
-                <span className="btn-main">📦 {language === "vi" ? "Tải trọn bộ gửi xưởng (.ZIP)" : "Factory Package (.ZIP)"}</span>
-                <span className="btn-sub">{language === "vi" ? "Kèm STL, GLB, PNG, JSON & manifest" : "Includes STL, GLB, PNG, JSON & manifest"}</span>
+                <span className="btn-main">{language === "vi" ? "Tải trọn bộ gửi xưởng (.ZIP)" : "Factory Package (.ZIP)"}</span>
               </button>
             </div>
 
@@ -835,18 +803,6 @@ export default function RulerStudio({
           </div>
         </div>
       )}
-
-      <QuoteRequestModal
-        open={showQuoteModal}
-        onClose={() => setShowQuoteModal(false)}
-        design={design}
-        getGLB={() => sceneRef.current?.getGLBBlob() || Promise.resolve(null)}
-        onSuccess={() => {
-          if (editingCartItemId && onConvertToQuotation) {
-            onConvertToQuotation(design, editingCartItemId);
-          }
-        }}
-      />
     </div>
   );
 }

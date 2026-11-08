@@ -25,6 +25,7 @@ interface QuoteRequestModalProps {
   onClose: () => void;
   design: Design;
   getGLB?: () => Promise<Blob | null>;
+  getScreenshot?: () => Promise<Blob | null>;
   editingCartItemId?: string;
   onSuccess?: () => void;
 }
@@ -38,11 +39,13 @@ interface CustomOrderApiResult {
 function QuoteRequestFormContent({
   design,
   getGLB,
+  getScreenshot,
   onClose,
   onSuccess,
 }: {
   design: Design;
   getGLB?: () => Promise<Blob | null>;
+  getScreenshot?: () => Promise<Blob | null>;
   onClose: () => void;
   onSuccess?: () => void;
 }) {
@@ -102,8 +105,18 @@ function QuoteRequestFormContent({
         }
       }
 
-      // 2. Upload STL & GLB lên CDN Cloudinary
-      setLoadingStep('Đang tải tệp mô hình in 3D (.STL & .GLB) lên hệ thống xưởng...');
+      // 1.2 Chụp ảnh kết xuất 3D xem trước (.PNG)
+      let screenshotBlob: Blob | null = null;
+      if (getScreenshot) {
+        try {
+          screenshotBlob = await getScreenshot();
+        } catch (e) {
+          console.warn('Could not capture screenshot blob', e);
+        }
+      }
+
+      // 2. Upload STL & GLB & Ảnh PNG lên CDN Cloudinary
+      setLoadingStep('Đang tải tệp mô hình in 3D (.STL, .GLB & ảnh 3D) lên xưởng...');
       const formData = new FormData();
       formData.append('file', stlResult.blob, stlResult.fileName);
       formData.append('folder', 'printhub3d/custom_prints');
@@ -115,6 +128,22 @@ function QuoteRequestFormContent({
         throw new Error('Không thể tải tệp 3D lên máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
       }
 
+      // Upload ảnh screenshot render (nếu có)
+      let previewImageUrl = '';
+      if (screenshotBlob && screenshotBlob.size > 0) {
+        try {
+          const imgFormData = new FormData();
+          const cleanName = (design.name || rulerDef?.name || 'ruler').replace(/[^a-zA-Z0-9_-]/g, '_');
+          imgFormData.append('file', screenshotBlob, `${cleanName}_${design.length}cm_preview.png`);
+          imgFormData.append('folder', 'printhub3d/custom_prints');
+          const imgRes = await uploadFormData<string | { result?: string; url?: string }>('/upload/image', imgFormData);
+          previewImageUrl = typeof imgRes === 'string' ? imgRes : (imgRes?.result || imgRes?.url || '');
+        } catch (e) {
+          console.warn('Could not upload screenshot preview', e);
+        }
+      }
+
+      // Upload GLB (nếu có)
       let glbUrl = '';
       if (glbBlob && glbBlob.size > 0) {
         try {
@@ -149,6 +178,9 @@ function QuoteRequestFormContent({
       const requirementsPayload = JSON.stringify({
         ...design,
         glbUrl: glbUrl || undefined,
+        previewImageUrl: previewImageUrl || undefined,
+        screenshotUrl: previewImageUrl || undefined,
+        imageUrl: previewImageUrl || undefined,
         stlUrl: attachmentUrl || undefined,
         notes: notes.trim() || undefined,
         technicalSummary: technicalRequirements,
@@ -432,6 +464,7 @@ export default function QuoteRequestModal({
   onClose,
   design,
   getGLB,
+  getScreenshot,
   onSuccess,
 }: QuoteRequestModalProps) {
   if (!open) return null;
@@ -442,6 +475,7 @@ export default function QuoteRequestModal({
         key={`${design.rulerId}-${design.length}`}
         design={design}
         getGLB={getGLB}
+        getScreenshot={getScreenshot}
         onClose={onClose}
         onSuccess={onSuccess}
       />
