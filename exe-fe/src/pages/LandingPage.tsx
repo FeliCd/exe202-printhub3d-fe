@@ -62,19 +62,15 @@ export default function LandingPage() {
                       <path d="M12 2v6m0 0l-4 4m4-4l4 4M4 18h16M7 22h10" />
                     </svg>
                   </div>
-                  <div className="label">TOLERANCE ±0.05mm · 48 ACTIVE NODES</div>
                 </div>
 
                 <div className="space-y-3">
                   <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.06] uppercase">
-                    Precision At Scale <br />
+                    PPrintHub 3D <br />
                     <span className="text-emerald-400 font-black">
-                      Industrial 3D Printing
+                      Thiết Kế Thước của bạn
                     </span>
                   </h1>
-                  <p className="text-lg sm:text-xl font-medium text-slate-300">
-                    On-Demand Additive Manufacturing &amp; Rapid Prototyping
-                  </p>
                 </div>
 
                 <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl font-normal">
@@ -202,9 +198,9 @@ export default function LandingPage() {
               <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0a0c12]/80 border border-white/[0.06] hover:border-[#39FF14]/40 transition">
                 <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-md shadow-emerald-950/50" />
                 <div>
-                  <h2 className="text-sm font-extrabold text-white">Giao Hàng Toàn Quốc</h2>
+                  <h2 className="text-sm font-extrabold text-white">Giao Hàng trong khu vực làng đại học TP.HCM</h2>
                   <p className="text-xs text-slate-400 mt-0.5 leading-snug">
-                    Giao tận tay sinh viên và kỹ sư tại hơn 20+ trường đại học và khu công nghiệp.
+                    Giao tận tay học sinh và sinh viên.
                   </p>
                 </div>
               </div>
@@ -213,9 +209,9 @@ export default function LandingPage() {
               <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0a0c12]/80 border border-white/[0.06] hover:border-[#39FF14]/40 transition">
                 <div className="w-1.5 h-10 rounded-full bg-[#39FF14] shrink-0 shadow-md shadow-emerald-950/50" />
                 <div>
-                  <h2 className="text-sm font-extrabold text-white">Kỹ Sư Thẩm Định File</h2>
+                  <h2 className="text-sm font-extrabold text-white">Gửi tệp để báo giá</h2>
                   <p className="text-xs text-slate-400 mt-0.5 leading-snug">
-                    Tự động phân tích lỗi mesh tệp CAD/STL và tư vấn tối ưu hướng in tiết kiệm nhất.
+                    Tải lên tệp CAD/STL và mô tả yêu cầu in. PrintHub sẽ liên hệ để xác nhận yêu cầu và báo giá.
                   </p>
                 </div>
               </div>
@@ -230,7 +226,7 @@ export default function LandingPage() {
           {/* Top Badge (White Pill Tab in Reference) */}
           <div className="flex items-center">
             <span className="px-5 py-2 rounded-full bg-white text-slate-950 font-extrabold text-xs tracking-wide shadow-lg uppercase">
-              Discover Our Services
+              Khám phá dịch vụ của chúng tôi
             </span>
           </div>
 
@@ -253,7 +249,7 @@ export default function LandingPage() {
               </h2>
 
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
-                Tại PrintHub 3D, chúng tôi mang công nghệ in 3D công nghiệp đến gần hơn với sinh viên kỹ thuật và kiến trúc. Dù là mô hình chi tiết máy, đồ án tốt nghiệp hay bộ thước kỹ thuật vạch chia chính xác, bạn đều nhận được sự chăm chút tuyệt đối.
+                Tại PrintHub 3D, chúng tôi mang công nghệ in 3D đến gần hơn với học sinh và sinh viên kỹ thuật, kiến trúc. Bạn có thể thêm tên, mã số sinh viên hoặc biểu tượng lên thước và duyệt mẫu trước khi in.
               </p>
 
               <div>
@@ -261,7 +257,7 @@ export default function LandingPage() {
                   to="/catalog"
                   className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-primary hover:bg-primary-hover text-slate-950 font-black text-sm shadow-xl shadow-primary/25 hover:shadow-primary/40 transition active:scale-95"
                 >
-                  <span>Find Out More</span>
+                  <span>Tìm hiểu sâu hơn</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -382,10 +378,10 @@ export default function LandingPage() {
                     <Cpu className="w-6 h-6 text-blue-400" />
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-white">
-                    Kỹ Thuật Chế Tác Tiên Tiến
+                    Thước in 3D cho học tập
                   </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                    Quy trình thiết kế và xử lý cắt lớp hiện đại đảm bảo từng sản phẩm có độ tinh xảo vượt trội. Vạch chia kỹ thuật dập chìm chuẩn xác 0.1mm, đáp ứng hoàn hảo tiêu chuẩn đồ án cơ khí và kiến trúc.
+                    Thước dành cho học sinh, sinh viên để kẻ dòng, vẽ hình và đo độ dài khi làm bài tập.
                   </p>
                 </div>
 
@@ -395,10 +391,10 @@ export default function LandingPage() {
                     <Box className="w-6 h-6 text-[#39FF14]" />
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-white">
-                    Chất Lượng Hoàn Thiện Vượt Trội
+                    Kiểm tra trước khi giao
                   </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                    Mọi sản phẩm đều được chế tác từ sợi nhựa nguyên sinh PLA+ và PETG công nghiệp cao cấp, đảm bảo độ bền bỉ, dẻo dai và khả năng chịu lực tối ưu trong môi trường xưởng máy.
+                    Nhóm đối chiếu thước với mẫu bạn đã duyệt và kiểm tra vạch chia, bề mặt trước khi giao.
                   </p>
                 </div>
 
@@ -408,10 +404,10 @@ export default function LandingPage() {
                     <Sparkles className="w-6 h-6 text-[#39FF14]" />
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-white">
-                    Tư Vấn &amp; Cá Nhân Hóa Tận Tâm
+                    Tư Vấn &amp; Cá nhân hóa theo ý bạn
                   </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                    Đồng hành cùng đội ngũ kỹ thuật để tạo nên sản phẩm chuẩn xác theo đúng ý tưởng của bạn. Hỗ trợ khắc laser họ tên và mã số sinh viên (MSSV) hoàn toàn miễn phí, đánh dấu chủ quyền đồ án.
+                    Đồng hành cùng đội ngũ kỹ thuật để tạo nên sản phẩm chuẩn xác theo đúng ý tưởng của bạn.
                   </p>
                 </div>
 
@@ -421,11 +417,10 @@ export default function LandingPage() {
                     <Award className="w-6 h-6 text-purple-400" />
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-white">
-                    Hỗ Trợ Chuyên Môn Tận Tình
+                    Hỗ trợ đặt và nhận thước
                   </h3>
                   <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                    Đội ngũ kỹ sư giàu kinh nghiệm sẵn sàng hỗ trợ kiểm tra lỗi tệp CAD/mesh, tư vấn tối ưu hướng in và mật độ infill từ bản vẽ thiết kế đến sản phẩm hoàn thiện với chi phí tiết kiệm nhất.
-                  </p>
+                    Nhóm hướng dẫn cách đặt, xác nhận giá và hẹn ngày nhận. Nếu thước có lỗi khi nhận, bạn có thể liên hệ PrintHub để được hỗ trợ.</p>
                 </div>
               </div>
 
@@ -469,7 +464,7 @@ export default function LandingPage() {
                   Cam Kết Chất Lượng &amp; Bảo Hành 1-Đổi-1 Suốt 1 Học Kỳ
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl font-normal">
-                  Tất cả sản phẩm thước in 3D và mô hình kỹ thuật đều được áp dụng chính sách bảo hành 1-đổi-1 nếu gãy nứt hoặc phai mờ vạch số.
+                  Tất cả sản phẩm thước in 3D được áp dụng chính sách bảo hành 1-đổi-1 nếu gãy nứt hoặc phai mờ vạch số.
                 </p>
               </div>
             </div>
