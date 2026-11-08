@@ -30,9 +30,10 @@ export default function AdminReviewsPage() {
 
       <section aria-label="Danh sách đánh giá" className="overflow-hidden rounded-2xl border border-border bg-surface">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-4 py-4 sm:px-5">
-          <label className="grid w-full gap-1.5 text-xs font-semibold text-theme-copy sm:w-44">
-            Số sao
+          <div className="grid w-full gap-1.5 sm:w-44">
+            <label htmlFor="admin-review-rating" className="text-xs font-semibold text-theme-copy">Số sao</label>
             <select
+              id="admin-review-rating"
               value={rating}
               className={field}
               onChange={event => {
@@ -43,7 +44,7 @@ export default function AdminReviewsPage() {
               <option value="">Tất cả mức sao</option>
               {[5, 4, 3, 2, 1].map(star => <option key={star} value={star}>{star} sao</option>)}
             </select>
-          </label>
+          </div>
           <p aria-live="polite" className="pb-1 text-sm tabular-nums text-theme-muted">
             {data && `${data.totalElements.toLocaleString('vi-VN')} đánh giá`}
           </p>
