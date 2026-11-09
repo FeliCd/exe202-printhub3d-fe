@@ -364,40 +364,42 @@ export default function RulerStudio({
       <div className="studio-main-body">
         <div className="studio-workspace-column">
           <div className="studio-command-bar">
-            <div className="studio-document">
-              <label className="studio-name">
-                <span className="sr-only">{tr("Design name")}</span>
-                <input aria-label={tr("Design name")} maxLength={40} value={design.name}
-                  onChange={e => change({ ...design, name: e.target.value })} />
-              </label>
-              <span className="save-status" role="status">{isSaved ? tr("Design saved ✓") : tr("Unsaved design")}</span>
-            </div>
-            <div className="studio-left-actions">
-              <button type="button" onClick={() => setLibraryOpen(true)}>{tr("Change Ruler")}</button>
-              <button type="button" onClick={() => setMessage(save() ? (language === "vi" ? "Đã lưu trên thiết bị." : "Saved on this device.") : (language === "vi" ? "Không thể lưu: bộ nhớ thiết bị đầy." : "Could not save: storage full."))}>
-                {tr("Save")}
-              </button>
-              <details className="studio-more-actions">
-                <summary>{language === "vi" ? "Thao tác" : "Actions"} <ChevronDown size={14} aria-hidden="true" /></summary>
-                <div className="studio-more-actions-menu">
-                  <button type="button" onClick={() => {
-                    setMessage(load() ? "Saved design restored." : "No saved design found on this device.");
-                    select("");
-                  }}>{tr("Restore saved")}</button>
-                  <button type="button" onClick={() => {
-                    change({ ...design, id: uid(), name: `${design.name.slice(0, 33)} copy` });
-                    setMessage("Working copy created. Save to replace the saved draft, or export to keep both.");
-                  }}>{tr("Duplicate")}</button>
-                  <button type="button" onClick={() => {
-                    resetDraft();
-                    select("");
-                    setMessage(tr("Design reset. Undo restores your previous design."));
-                  }}>{tr("Reset")}</button>
-                  <button type="button" disabled={isExporting} onClick={handleOpenExportDialog}>
-                    {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
-                  </button>
-                </div>
-              </details>
+            <div className="studio-command-left">
+              <div className="studio-document">
+                <label className="studio-name">
+                  <span className="sr-only">{tr("Design name")}</span>
+                  <input aria-label={tr("Design name")} maxLength={40} value={design.name}
+                    onChange={e => change({ ...design, name: e.target.value })} />
+                </label>
+                <span className="save-status" role="status">{isSaved ? tr("Design saved ✓") : tr("Unsaved design")}</span>
+              </div>
+              <div className="studio-left-actions">
+                <button type="button" onClick={() => setLibraryOpen(true)}>{tr("Change Ruler")}</button>
+                <button type="button" onClick={() => setMessage(save() ? (language === "vi" ? "Đã lưu trên thiết bị." : "Saved on this device.") : (language === "vi" ? "Không thể lưu: bộ nhớ thiết bị đầy." : "Could not save: storage full."))}>
+                  {tr("Save")}
+                </button>
+                <details className="studio-more-actions">
+                  <summary>{language === "vi" ? "Thao tác" : "Actions"} <ChevronDown size={14} aria-hidden="true" /></summary>
+                  <div className="studio-more-actions-menu">
+                    <button type="button" onClick={() => {
+                      setMessage(load() ? "Saved design restored." : "No saved design found on this device.");
+                      select("");
+                    }}>{tr("Restore saved")}</button>
+                    <button type="button" onClick={() => {
+                      change({ ...design, id: uid(), name: `${design.name.slice(0, 33)} copy` });
+                      setMessage("Working copy created. Save to replace the saved draft, or export to keep both.");
+                    }}>{tr("Duplicate")}</button>
+                    <button type="button" onClick={() => {
+                      resetDraft();
+                      select("");
+                      setMessage(tr("Design reset. Undo restores your previous design."));
+                    }}>{tr("Reset")}</button>
+                    <button type="button" disabled={isExporting} onClick={handleOpenExportDialog}>
+                      {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
+                    </button>
+                  </div>
+                </details>
+              </div>
             </div>
           </div>
           <div className="studio-navigation-row">
@@ -561,20 +563,17 @@ export default function RulerStudio({
           </div>
         </div>
         </div>
-          <aside className="studio-sidebar">
-            <Panels
-              design={design}
-              change={change}
-              tab={tab}
-              surface={activeSurface}
-              selected={selected}
-              select={select}
-            />
-            <footer className="studio-price">
-              <p>{language === "vi" ? "Xưởng xác nhận giá sau khi kiểm tra thiết kế." : "The workshop confirms pricing after reviewing the design."}</p>
-            </footer>
-          </aside>
         </div>
+        <aside className="studio-sidebar" id="studio-controls" aria-label={tr("Parameters and materials")}>
+          <Panels
+            design={design}
+            change={change}
+            tab={tab}
+            surface={activeSurface}
+            selected={selected}
+            select={select}
+          />
+        </aside>
       </div>
       <div className="studio-status">
         <div className="studio-status-info">
