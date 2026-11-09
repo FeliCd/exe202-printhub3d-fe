@@ -23,6 +23,7 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import { payOrder } from '../../services/paymentService';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
+import { isActiveCustomOrder, isActiveProductOrder } from './summary';
 import ReviewModal from '../reviews/ReviewModal';
 import { RemoteState, Notice, Status } from '../../components/DataUI';
 import { money, formatDateTime } from '../../utils/format';
@@ -243,11 +244,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   const [activeOrderTab, setActiveOrderTab] = useState<'ALL' | 'PENDING' | 'PRINTING' | 'SHIPPING'>('ALL');
 
   // Đơn Marketplace: Phân tách rõ ràng giữa Đang xử lý vs Lịch sử kết thúc (EXPIRED không bao giờ ở Đang xử lý)
-  const rawMarketplaceOrders = (remote.data || []).filter(o =>
-    history
-      ? ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(o.status)
-      : !['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(o.status)
-  );
+  const rawMarketplaceOrders = (remote.data || []).filter(o => isActiveProductOrder(o.status) !== history);
 
   const marketplaceOrders = rawMarketplaceOrders.filter(o => {
     if (activeTab === 'CUSTOM') return false;
@@ -268,7 +265,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   const currentCustomOrders = allCustomOrders.filter(c =>
     history
       ? ['COMPLETED', 'CANCELLED'].includes(c.status)
-      : ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(c.status)
+      : isActiveCustomOrder(c.status)
   );
 
   const displayedCustomOrders = currentCustomOrders.filter(c => {

@@ -4,6 +4,7 @@ import AppShell from './AppShell';
 import UserSidebar from './UserSidebar';
 
 const workspaceLabels: Record<string, string> = {
+  dashboard: 'Tổng quan',
   catalog: 'Sản phẩm', custom: 'In 3D theo yêu cầu', orders: 'Đơn hàng', 'order-history': 'Lịch sử đơn hàng',
   cart: 'Giỏ hàng', quotations: 'Yêu cầu & báo giá', profile: 'Hồ sơ',
   addresses: 'Sổ địa chỉ', 'bulk-order': 'Đặt hàng số lượng lớn', subscriptions: 'Hội viên',

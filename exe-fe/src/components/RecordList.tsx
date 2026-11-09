@@ -4,9 +4,10 @@ import type { ReactNode } from 'react';
 
 type RecordEntry = { id: string; title: string; meta?: ReactNode; status?: ReactNode; amount?: string; thumbnail?: string | null; to: string };
 
-export default function RecordList({ label, entries }: {
+export default function RecordList({ label, entries, actionLabel }: {
   label: string;
   entries: RecordEntry[];
+  actionLabel?: string;
 }) {
   return (
     <ul aria-label={label} className="grid min-w-0 gap-2">
@@ -24,10 +25,12 @@ export default function RecordList({ label, entries }: {
               {entry.meta && <span className="truncate text-xs text-theme-muted">{entry.meta}</span>}
               {entry.status && <span className="mt-1 justify-self-start sm:hidden">{entry.status}</span>}
               {entry.amount && <span className="text-xs font-semibold sm:hidden">{entry.amount}</span>}
+              {actionLabel && <span className="text-xs font-semibold text-theme-accent sm:hidden">{actionLabel}</span>}
             </span>
-            {(entry.amount || entry.status) && <span className="hidden shrink-0 justify-items-end gap-1.5 sm:grid">
+            {(entry.amount || entry.status || actionLabel) && <span className="hidden shrink-0 justify-items-end gap-1.5 sm:grid">
               {entry.amount && <span className="text-sm font-semibold">{entry.amount}</span>}
               {entry.status}
+              {actionLabel && <span className="text-xs font-semibold text-theme-accent">{actionLabel}</span>}
             </span>}
             <ChevronRight className="h-4 w-4 shrink-0 text-theme-muted" aria-hidden="true" />
           </Link>
