@@ -361,54 +361,52 @@ export default function RulerStudio({
       onPointerUpCapture={end}
       onPointerCancelCapture={end}
     >
-      <div className="studio-command-bar">
-        <div className="studio-document">
-          <label className="studio-name">
-            <span className="sr-only">{tr("Design name")}</span>
-            <input aria-label={tr("Design name")} maxLength={40} value={design.name}
-              onChange={e => change({ ...design, name: e.target.value })} />
-          </label>
-          <span className="save-status" role="status">{isSaved ? tr("Design saved ✓") : tr("Unsaved design")}</span>
-        </div>
-        <div className="studio-command-actions">
-          <button onClick={() => setLibraryOpen(true)}>{tr("Change Ruler")}</button>
-          <button onClick={() => setMessage(save() ? "Saved on this device." : "Could not save: device storage is full or unavailable.")}>
-            {tr("Save")}
-          </button>
-          <button className="studio-primary" disabled={cartAction.busy}
-            onClick={() => void cartAction.run(editingCartItemId ? handleSaveToCart : add)}>
-            {cartAction.busy ? (language === "vi" ? "Đang lưu…" : "Saving…") : (language === "vi" ? "Lưu vào giỏ" : "Save to cart")}
-          </button>
-        </div>
-      </div>
-      <div className="studio-navigation-row">
-        <div className="studio-history-actions">
-          <button aria-label={tr("Undo")} disabled={!canUndo} onClick={undo} title={tr("Ctrl/Cmd+Z")}><Undo2 size={16} /></button>
-          <button aria-label={tr("Redo")} disabled={!canRedo} onClick={redo} title={tr("Ctrl/Cmd+Shift+Z")}><Redo2 size={16} /></button>
-        </div>
-        {headerControls}
-        <details className="studio-more-actions">
-          <summary>{language === "vi" ? "Thao tác" : "Actions"} <ChevronDown size={14} aria-hidden="true" /></summary>
-          <div className="studio-more-actions-menu">
-            <button onClick={() => {
-              setMessage(load() ? "Saved design restored." : "No saved design found on this device.");
-              select("");
-            }}>{tr("Restore saved")}</button>
-            <button onClick={() => {
-              change({ ...design, id: uid(), name: `${design.name.slice(0, 33)} copy` });
-              setMessage("Working copy created. Save to replace the saved draft, or export to keep both.");
-            }}>{tr("Duplicate")}</button>
-            <button onClick={() => {
-              resetDraft();
-              select("");
-              setMessage(tr("Design reset. Undo restores your previous design."));
-            }}>{tr("Reset")}</button>
-            <button disabled={isExporting} onClick={handleOpenExportDialog}>
-              {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
-            </button>
+      <div className="studio-main-body">
+        <div className="studio-workspace-column">
+          <div className="studio-command-bar">
+            <div className="studio-document">
+              <label className="studio-name">
+                <span className="sr-only">{tr("Design name")}</span>
+                <input aria-label={tr("Design name")} maxLength={40} value={design.name}
+                  onChange={e => change({ ...design, name: e.target.value })} />
+              </label>
+              <span className="save-status" role="status">{isSaved ? tr("Design saved ✓") : tr("Unsaved design")}</span>
+            </div>
+            <div className="studio-left-actions">
+              <button type="button" onClick={() => setLibraryOpen(true)}>{tr("Change Ruler")}</button>
+              <button type="button" onClick={() => setMessage(save() ? (language === "vi" ? "Đã lưu trên thiết bị." : "Saved on this device.") : (language === "vi" ? "Không thể lưu: bộ nhớ thiết bị đầy." : "Could not save: storage full."))}>
+                {tr("Save")}
+              </button>
+              <details className="studio-more-actions">
+                <summary>{language === "vi" ? "Thao tác" : "Actions"} <ChevronDown size={14} aria-hidden="true" /></summary>
+                <div className="studio-more-actions-menu">
+                  <button type="button" onClick={() => {
+                    setMessage(load() ? "Saved design restored." : "No saved design found on this device.");
+                    select("");
+                  }}>{tr("Restore saved")}</button>
+                  <button type="button" onClick={() => {
+                    change({ ...design, id: uid(), name: `${design.name.slice(0, 33)} copy` });
+                    setMessage("Working copy created. Save to replace the saved draft, or export to keep both.");
+                  }}>{tr("Duplicate")}</button>
+                  <button type="button" onClick={() => {
+                    resetDraft();
+                    select("");
+                    setMessage(tr("Design reset. Undo restores your previous design."));
+                  }}>{tr("Reset")}</button>
+                  <button type="button" disabled={isExporting} onClick={handleOpenExportDialog}>
+                    {isExporting ? tr("Đang xuất...") : tr("Xuất file thiết kế")}
+                  </button>
+                </div>
+              </details>
+            </div>
           </div>
-        </details>
-      </div>
+          <div className="studio-navigation-row">
+            <div className="studio-history-actions">
+              <button type="button" aria-label={tr("Undo")} disabled={!canUndo} onClick={undo} title={tr("Ctrl/Cmd+Z")}><Undo2 size={16} /></button>
+              <button type="button" aria-label={tr("Redo")} disabled={!canRedo} onClick={redo} title={tr("Ctrl/Cmd+Shift+Z")}><Redo2 size={16} /></button>
+            </div>
+            {headerControls}
+          </div>
       {cartAction.error && <p role="alert" className="border-b border-border px-4 py-2 text-sm text-error">{cartAction.error}</p>}
       {tab === "Draw" && (
         <div className="draw-mobile-switch">
@@ -562,83 +560,87 @@ export default function RulerStudio({
             />
           </div>
         </div>
-        <aside className="studio-sidebar">
-          <Panels
-            design={design}
-            change={change}
-            tab={tab}
-            surface={activeSurface}
-            selected={selected}
-            select={select}
-          />
-          <footer className="studio-price">
-            <p>{language === "vi" ? "Xưởng xác nhận giá sau khi kiểm tra thiết kế." : "The workshop confirms pricing after reviewing the design."}</p>
-            {editingCartItemId ? (
-              <div className="flex flex-col gap-2 w-full mt-2">
-                <button
-                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-bold w-full py-3 cursor-pointer flex items-center justify-center gap-2"
-                  disabled={cartAction.busy}
-                  onClick={() => void cartAction.run(handleSaveToCart)}
-                >
-                  {language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart'}
-                </button>
-                <button
-                  className="px-4 py-2.5 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-300 hover:text-white font-medium transition cursor-pointer"
-                  disabled={cartAction.busy}
-                  onClick={() => void cartAction.run(handleSaveAsNew)}
-                >
-                  {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2 w-full mt-2">
-                <button
-                  className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-black flex items-center justify-center gap-2 cursor-pointer w-full py-3 text-sm"
-                  disabled={cartAction.busy}
-                  onClick={() => void cartAction.run(add)}
-                >
-                  {language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart'}
-                </button>
-              </div>
-            )}
-          </footer>
-        </aside>
+        </div>
+          <aside className="studio-sidebar">
+            <Panels
+              design={design}
+              change={change}
+              tab={tab}
+              surface={activeSurface}
+              selected={selected}
+              select={select}
+            />
+            <footer className="studio-price">
+              <p>{language === "vi" ? "Xưởng xác nhận giá sau khi kiểm tra thiết kế." : "The workshop confirms pricing after reviewing the design."}</p>
+            </footer>
+          </aside>
+        </div>
       </div>
       <div className="studio-status">
-        <label> {tr("Import saved design")}{" "}
-          <input
-            aria-label={tr("Import design JSON")}
-            type="file"
-            accept=".json,application/json"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              try {
-                const text = await file.text();
-                const result = parseDesignFile(text, file.size);
-                if (!result.success) {
-                  setMessage(language === "vi" ? result.message : `Cannot import: ${result.message}`);
-                  return;
+        <div className="studio-status-info">
+          <label> {tr("Import saved design")}{" "}
+            <input
+              aria-label={tr("Import design JSON")}
+              type="file"
+              accept=".json,application/json"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const text = await file.text();
+                  const result = parseDesignFile(text, file.size);
+                  if (!result.success) {
+                    setMessage(language === "vi" ? result.message : `Cannot import: ${result.message}`);
+                    return;
+                  }
+                  change(result.design);
+                  select("");
+                  const successMsg = language === "vi"
+                    ? `Đã nhập thiết kế "${result.name}" (v${result.version}). Bấm Hoàn tác (Undo) nếu muốn quay lại.`
+                    : `Design "${result.name}" (v${result.version}) imported. Undo restores your previous design.`;
+                  setMessage(successMsg);
+                } catch {
+                  setMessage(
+                    language === "vi"
+                      ? "Không thể đọc file này. Vui lòng chọn file JSON thiết kế hợp lệ dưới 2 MB."
+                      : "Cannot read this file. Choose a valid design JSON smaller than 2 MB."
+                  );
+                } finally {
+                  e.target.value = "";
                 }
-                change(result.design);
-                select("");
-                const successMsg = language === "vi"
-                  ? `Đã nhập thiết kế "${result.name}" (v${result.version}). Bấm Hoàn tác (Undo) nếu muốn quay lại.`
-                  : `Design "${result.name}" (v${result.version}) imported. Undo restores your previous design.`;
-                setMessage(successMsg);
-              } catch {
-                setMessage(
-                  language === "vi"
-                    ? "Không thể đọc file này. Vui lòng chọn file JSON thiết kế hợp lệ dưới 2 MB."
-                    : "Cannot read this file. Choose a valid design JSON smaller than 2 MB."
-                );
-              } finally {
-                e.target.value = "";
-              }
-            }}
-          />
-        </label>
-        <p role="status">{tr(message || "Design locally. Make it personal.")}</p>
+              }}
+            />
+          </label>
+          <p role="status">{tr(message || "Design locally. Make it personal.")}</p>
+        </div>
+        <div className="studio-status-actions">
+          {editingCartItemId ? (
+            <div className="flex items-center gap-2">
+              <button
+                className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-bold px-5 py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-md whitespace-nowrap"
+                disabled={cartAction.busy}
+                onClick={() => void cartAction.run(handleSaveToCart)}
+              >
+                {cartAction.busy ? (language === 'vi' ? 'Đang lưu…' : 'Saving…') : (language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart')}
+              </button>
+              <button
+                className="px-3.5 py-2 rounded-xl border border-white/10 hover:border-[#39FF14]/40 bg-[#11141e] text-xs text-slate-300 hover:text-white font-medium transition cursor-pointer whitespace-nowrap"
+                disabled={cartAction.busy}
+                onClick={() => void cartAction.run(handleSaveAsNew)}
+              >
+                {language === 'vi' ? 'Lưu thành thiết kế mới' : 'Save as new design'}
+              </button>
+            </div>
+          ) : (
+            <button
+              className="studio-primary !bg-[#39FF14] !text-[#040508] hover:!brightness-110 font-black px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wider shadow-md whitespace-nowrap"
+              disabled={cartAction.busy}
+              onClick={() => void cartAction.run(add)}
+            >
+              {cartAction.busy ? (language === 'vi' ? 'Đang lưu…' : 'Saving…') : (language === 'vi' ? 'Lưu thiết kế vào giỏ hàng' : 'Save design to cart')}
+            </button>
+          )}
+        </div>
       </div>
       <RulerLibrary
         open={libraryOpen}

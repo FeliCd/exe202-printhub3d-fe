@@ -55,7 +55,7 @@ export default function LoginPage() {
       } else if (userRole === 'ADMIN') {
         navigate('/admin/dashboard');
       } else {
-        navigate('/dashboard');
+        navigate('/catalog');
       }
     } catch (err: unknown) {
       setErrorMsg(

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -16,8 +16,7 @@ import {
   FileText,
   HelpCircle,
   ChevronDown,
-  ShoppingBag,
-  LayoutDashboard,
+  ShoppingBag
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,29 +24,13 @@ interface UserSidebarProps {
   isOpen: boolean;
   onOpenAddressModal: () => void;
   cartCount?: number;
-  compact?: boolean;
 }
 
 type SidebarGroup = 'shopping' | 'transactions' | 'account';
 
-const compactGroups = [
-  { title: 'Không gian làm việc', links: [
-    ['/dashboard', 'Tổng quan', LayoutDashboard], ['/catalog', 'Sản phẩm', Box],
-    ['/custom', 'Thiết kế 3D', Printer], ['/orders', 'Đơn hàng', PackageCheck],
-    ['/quotations', 'Báo giá', FileText], ['/cart', 'Giỏ hàng', ShoppingBag],
-  ] },
-  { title: 'Dịch vụ', links: [
-    ['/order-history', 'Lịch sử đơn hàng', History], ['/bulk-order', 'Đặt số lượng lớn', Layers],
-    ['/subscriptions', 'Hội viên', Sparkles],
-  ] },
-  { title: 'Tài khoản & hỗ trợ', links: [
-    ['/profile', 'Hồ sơ', UserIcon], ['/addresses', 'Sổ địa chỉ', MapPin],
-    ['/warranty', 'Bảo hành', ShieldAlert], ['/disputes', 'Khiếu nại', Scale],
-    ['/help-center', 'Trợ giúp', HelpCircle],
-  ] },
-] as const;
 
-export default function UserSidebar({ isOpen, cartCount, compact }: UserSidebarProps) {
+
+export default function UserSidebar({ isOpen, cartCount }: UserSidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,6 +52,12 @@ export default function UserSidebar({ isOpen, cartCount, compact }: UserSidebarP
     account: routeGroup === 'account',
   }));
 
+  useEffect(() => {
+    if (routeGroup) {
+      setOpenGroups((prev) => ({ ...prev, [routeGroup]: true }));
+    }
+  }, [routeGroup]);
+
   const isGroupOpen = (group: SidebarGroup) => openGroups[group];
 
   const toggleGroup = (group: SidebarGroup) => {
@@ -80,46 +69,7 @@ export default function UserSidebar({ isOpen, cartCount, compact }: UserSidebarP
     navigate('/login');
   };
 
-  if (compact) return (
-    <aside className="flex h-full min-h-0 w-full flex-col border-r border-border bg-surface-inset">
-      <nav aria-label="Điều hướng PrintHub 3D" className="sidebar-scroll min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
-        {compactGroups.map(group => (
-          <section key={group.title}>
-            <p className="px-2.5 pb-1.5 text-[11px] font-medium text-theme-muted">{group.title}</p>
-            <ul className="grid gap-0.5">
-              {group.links.map(([to, label, Icon]) => (
-                <li key={to}>
-                  <Link to={to} aria-current={isActive(to) ? 'page' : undefined}
-                    className="flex min-h-10 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-theme-copy transition hover:bg-surface-raised aria-[current=page]:bg-primary/10 aria-[current=page]:font-semibold aria-[current=page]:text-theme-accent">
-                    <Icon className="size-4 shrink-0" aria-hidden="true" />
-                    <span className="min-w-0 flex-1 truncate">{label}</span>
-                    {to === '/cart' && !!cartCount && <span className="text-xs text-theme-muted">{cartCount}</span>}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </nav>
-      <div className="shrink-0 border-t border-border p-3">
-        {user ? (
-          <div className="flex items-center gap-2 rounded-lg bg-surface p-2">
-            <Link to="/profile" className="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium text-theme-ink">
-              <UserIcon className="size-4 shrink-0 text-theme-muted" aria-hidden="true" />
-              <span className="truncate">{user.name || 'Tài khoản'}</span>
-            </Link>
-            <button type="button" onClick={handleLogout} aria-label="Đăng xuất" className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md text-theme-muted hover:bg-surface-raised hover:text-theme-ink">
-              <LogOut className="size-4" />
-            </button>
-          </div>
-        ) : (
-          <Link to="/login" className="flex min-h-10 items-center gap-2 rounded-lg bg-surface px-2.5 text-sm text-theme-ink">
-            <LogIn className="size-4 text-theme-muted" aria-hidden="true" /> Đăng nhập
-          </Link>
-        )}
-      </div>
-    </aside>
-  );
+  
 
   return (
     <aside

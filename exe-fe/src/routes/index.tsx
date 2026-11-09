@@ -29,11 +29,12 @@ const QuotationsPage = lazy(() => import('../pages/QuotationsPage'));
 const HelpCenterPage = lazy(() => import('../pages/HelpCenterPage'));
 const PrivacyPolicyPage = lazy(() => import('../pages/legal/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('../pages/legal/TermsOfServicePage'));
-const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const PaymentResultPage = lazy(() => import('../pages/PaymentResultPage'));
 const SubscriptionsPage = lazy(() => import('../pages/SubscriptionsPage'));
 const WarrantyPage = lazy(() => import('../pages/WarrantyPage'));
+const WarrantyCreatePage = lazy(() => import('../pages/WarrantyCreatePage'));
 const DisputesPage = lazy(() => import('../pages/DisputesPage'));
+const DisputeCreatePage = lazy(() => import('../pages/DisputeCreatePage'));
 const ProfilePage = lazy(() => import('../pages/ProfilePage'));
 const AddressBookPage = lazy(() => import('../pages/AddressBookPage'));
 
@@ -118,19 +119,8 @@ export default function AppRoutes({
           />
         }
       >
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
-              <AnimatePresence mode="wait">
-                <PageTransition key="/dashboard">
-                  <DashboardPage />
-                </PageTransition>
-              </AnimatePresence>
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/catalog" replace />} />
+        <Route path="/app" element={<Navigate to="/catalog" replace />} />
 
         <Route
           path="/catalog-preview"
@@ -292,12 +282,36 @@ export default function AppRoutes({
           }
         />
         <Route
+          path="/warranty/create"
+          element={
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <WarrantyCreatePage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/warranty/:claimId?"
           element={
             <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
                   <WarrantyPage />
+                </PageTransition>
+              </AnimatePresence>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/disputes/create"
+          element={
+            <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                  <DisputeCreatePage />
                 </PageTransition>
               </AnimatePresence>
             </ProtectedRoute>
@@ -499,8 +513,8 @@ export default function AppRoutes({
         />
       </Route>
 
-      {/* Redirect factory routes to home/dashboard */}
-      <Route path="/factory/*" element={<Navigate to="/dashboard" replace />} />
+      {/* Redirect factory routes to catalog */}
+      <Route path="/factory/*" element={<Navigate to="/catalog" replace />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

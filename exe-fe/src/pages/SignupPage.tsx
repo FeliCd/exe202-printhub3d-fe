@@ -184,7 +184,7 @@ export default function SignupPage() {
       setTimeout(async () => {
         try {
           await login(username || email, password);
-          navigate('/dashboard');
+          navigate('/catalog');
         } catch {
           navigate('/login');
         }

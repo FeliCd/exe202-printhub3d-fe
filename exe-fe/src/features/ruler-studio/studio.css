@@ -1036,7 +1036,7 @@
 
 @media (min-width: 1024px) {
   .app-content:has(.custom-order-frame > .ruler-studio:not(.is-drawing)) {
-    overflow: hidden;
+    overflow-y: auto;
   }
   .app-page:has(.custom-order-frame > .ruler-studio:not(.is-drawing)),
   .custom-order-frame:has(> .ruler-studio:not(.is-drawing)),
@@ -1048,14 +1048,28 @@
     display: flex;
     flex: 1;
     flex-direction: column;
+    min-height: 780px;
   }
-  .custom-order-frame > .ruler-studio:not(.is-drawing) > :not(.studio-layout) {
+  .custom-order-frame > .ruler-studio:not(.is-drawing) > :not(.studio-main-body) {
     flex-shrink: 0;
+  }
+  .studio-main-body {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    min-height: 620px;
+    align-items: stretch;
+  }
+  .studio-workspace-column {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
   }
   .ruler-studio:not(.is-drawing) .studio-with-tool-rail {
     flex: 1;
-    min-height: 0;
-    grid-template-columns: 78px minmax(0, 1fr) minmax(240px, 28%);
+    min-height: 480px;
+    grid-template-columns: 78px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
   }
   .ruler-studio:not(.is-drawing) .studio-with-tool-rail > .studio-tabs {
@@ -1073,13 +1087,24 @@
     scrollbar-width: thin;
     scrollbar-gutter: stable;
   }
-  .ruler-studio:not(.is-drawing) .studio-sidebar { min-height: 0; overflow: hidden; }
+  .ruler-studio:not(.is-drawing) .studio-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--studio-line);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .ruler-studio:not(.is-drawing) .studio-sidebar > .studio-panel {
+    flex: 1;
+  }
   .ruler-studio:not(.is-drawing) .studio-sidebar > .studio-panel > *,
   .ruler-studio:not(.is-drawing) .studio-sidebar > .studio-price { flex-shrink: 0; }
-  .ruler-studio:not(.is-drawing) .studio-preview { min-height: clamp(390px, calc(100dvh - 250px), 720px); }
+  .ruler-studio:not(.is-drawing) .studio-preview { min-height: clamp(480px, calc(100dvh - 220px), 780px); }
   .ruler-studio:not(.is-drawing) .studio-canvas {
     flex: 1;
-    min-height: clamp(200px, calc(100dvh - 440px), 320px);
+    min-height: clamp(280px, calc(100dvh - 400px), 480px);
   }
   .studio-preview-footer .studio-camera { justify-content: center; }
 }
@@ -1527,3 +1552,48 @@
   margin-bottom: 12px;
 }
 
+
+.studio-main-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.studio-workspace-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.studio-left-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.studio-left-actions > button {
+  min-height: 38px;
+  padding: 6px 12px;
+}
+.studio-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--studio-line);
+  background: var(--color-surface);
+}
+.studio-status-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.studio-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}

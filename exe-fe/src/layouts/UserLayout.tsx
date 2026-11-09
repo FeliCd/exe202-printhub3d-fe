@@ -32,7 +32,7 @@ export default function UserLayout({
   return (
     <AppShell cartCount={cartCount} onOpenCart={onOpenCart} designWorkspace={pathname === '/custom'}
       compactLabel={compactLabel} focusPage={focusSections.has(section)}
-      sidebar={<UserSidebar isOpen={true} onOpenAddressModal={onOpenAddressModal} cartCount={cartCount} compact={!!compactLabel} />}>
+      sidebar={<UserSidebar isOpen={true} onOpenAddressModal={onOpenAddressModal} cartCount={cartCount}  />}>
       {children}
     </AppShell>
   );

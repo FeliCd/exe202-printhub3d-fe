@@ -46,7 +46,7 @@ export default function AppShell({ cartCount, onOpenCart, sidebar, children, des
         compactLabel={compactLabel} onToggleSidebar={toggleSidebar} />
       <div className="flex-1 min-h-0 flex overflow-hidden">
         {desktop && (
-          <div id="app-sidebar" className={`desktop-sidebar ${compactLabel ? 'desktop-sidebar-compact' : ''}`} data-open={open}
+          <div id="app-sidebar" className="desktop-sidebar" data-open={open}
             aria-hidden={!open} inert={!open}>
             <div className="desktop-sidebar-content">{sidebar}</div>
           </div>

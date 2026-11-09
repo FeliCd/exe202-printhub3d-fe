@@ -97,10 +97,10 @@ export default function LandingNavbar() {
           <div className="hidden sm:flex items-center">
             {isAuthenticated && user ? (
               <Link
-                to="/dashboard"
+                to="/catalog"
                 className="btn-precision px-4 xl:px-5 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap shrink-0"
               >
-                <span className="whitespace-nowrap">Vào Bảng Điều Khiển</span>
+                <span className="whitespace-nowrap">Khám Phá Sản Phẩm</span>
                 <ArrowRight className="w-3.5 h-3.5 relative z-10 shrink-0" />
               </Link>
             ) : (
@@ -193,11 +193,11 @@ export default function LandingNavbar() {
           <div className="pt-2 border-t border-white/10 app-light:border-theme-line flex flex-col gap-2">
             {isAuthenticated && user ? (
               <Link
-                to="/dashboard"
+                to="/catalog"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-2.5 text-center rounded-xl bg-theme-action hover:bg-theme-action-hover text-slate-950 font-black text-xs shadow-md shadow-[#39FF14]/20 app-light:shadow-none"
               >
-                Vào Bảng Điều Khiển
+                Khám Phá Sản Phẩm
               </Link>
             ) : (
               <div className="flex gap-2">

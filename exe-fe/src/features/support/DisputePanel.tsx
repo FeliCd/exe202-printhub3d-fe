@@ -1,19 +1,14 @@
 import RecordList, { RecordDetailHeader } from '../../components/RecordList';
 import { Link, useParams } from 'react-router-dom';
-import { useState, useRef, useId } from 'react';
+import { useState } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
-import { send, uploadFormData } from '../../services/api';
-import type { OrderDTO } from '../../services/orderService';
+import { send } from '../../services/api';
 import {
   Scale,
-  UploadCloud,
   RefreshCw,
-  Image as ImageIcon,
   AlertCircle,
   Loader2,
-  Trash2,
-  ExternalLink,
-  Package,
+  Image as ImageIcon,
   MessageSquare,
   Send,
   DollarSign,
@@ -168,70 +163,12 @@ function DisputeStatusBadge({ status }: { status: string }) {
 
 export default function DisputePanel({ admin = false }: { admin?: boolean }) {
   const remote = useRemote<Dispute[]>(admin ? '/admin/disputes' : '/disputes');
-  const orders = useRemote<OrderDTO[]>(admin ? null : '/orders/me');
   const action = useAction(remote.reload);
 
-  const [orderId, setOrderId] = useState('');
-  const [description, setDescription] = useState('');
-  const [evidenceUrl, setEvidenceUrl] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
   const { disputeId } = useParams<{ disputeId: string }>();
   const detailId = admin ? undefined : disputeId;
-  const [createOpen, setCreateOpen] = useState(false);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [resolutionTarget, setResolutionTarget] = useState<DisputeResolutionTarget | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const orderSelectId = useId();
-  const descId = useId();
-  const fileUploadId = useId();
-
-  const handleFileUpload = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Vui lòng chọn file ảnh hợp lệ (PNG, JPG, JPEG, WEBP).');
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError('Dung lượng ảnh tối đa là 10MB.');
-      return;
-    }
-
-    setUploading(true);
-    setUploadError('');
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await uploadFormData<{ result: string } | string>('/upload/image', formData);
-      const url = typeof res === 'string' ? res : res?.result;
-      if (url) {
-        setEvidenceUrl(url);
-      } else {
-        throw new Error('Không nhận được URL ảnh từ máy chủ.');
-      }
-    } catch (err: unknown) {
-      setUploadError(err instanceof Error ? err.message : 'Tải ảnh thất bại. Vui lòng thử lại.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleCreateDispute = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!orderId) return;
-    const success = await action.run(() =>
-      send('/disputes', {
-        orderId,
-        description: description.trim(),
-        evidenceUrl: evidenceUrl || undefined,
-      })
-    );
-    if (success) {
-      setOrderId('');
-      setDescription('');
-      setEvidenceUrl('');
-    }
-  };
 
   const handleAdminResolve = (dispute: Dispute, status: 'RESOLVED' | 'REJECTED') => {
     setResolutionTarget({
@@ -261,7 +198,6 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
     setResolutionTarget(null);
   };
 
-  const completedOrders = orders.data || [];
   const disputes = remote.data ?? [];
   const visibleDispute = detailId ? disputes.find(d => d.id === detailId) : undefined;
 
@@ -274,10 +210,22 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
         description="Hệ thống tiếp nhận phản hồi, đối soát thanh toán và giải quyết tranh chấp chất lượng sản phẩm in 3D theo chuẩn ISO/ASTM."
         icon={Scale}
         actions={!admin ? (
-          <button type="button" aria-expanded={createOpen} onClick={() => setCreateOpen(open => !open)}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#040508]">
-            {createOpen ? 'Đóng biểu mẫu' : 'Tạo khiếu nại'}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/disputes/create"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-[#040508] hover:bg-primary-hover flex items-center gap-1.5 transition shadow-sm"
+            >
+              + Tạo khiếu nại
+            </Link>
+            <button
+              type="button"
+              onClick={remote.reload}
+              className="px-3.5 py-2 rounded-xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14] text-slate-300 hover:text-[#39FF14] text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${remote.loading ? 'animate-spin text-[#39FF14]' : ''}`} />
+              <span>SYNC</span>
+            </button>
+          </div>
         ) : (
           <button
             type="button"
@@ -291,170 +239,8 @@ export default function DisputePanel({ admin = false }: { admin?: boolean }) {
       />}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* CỘT TRÁI: FORM TẠO KHIẾU NẠI (Dành cho Buyer) */}
-        {!admin && !detailId && createOpen && (
-          <div className="lg:col-span-5 p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-5 shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#39FF14]/5 blur-3xl pointer-events-none rounded-full" />
-            <div className="border-b border-[#1e2433] pb-3.5 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-[#39FF14] ring-2 ring-[#39FF14]/40" />
-                  TẠO KHIẾU NẠI MỚI
-                </h2>
-                <p className="text-[11px] text-slate-400 font-mono mt-0.5">CHỌN ĐƠN CẦN ĐỐI SOÁT CHẤT LƯỢNG</p>
-              </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#11141e] text-[#00e5ff] border border-[#1e2433]">
-                FORM #DISPUTE
-              </span>
-            </div>
-
-            {action.error && (
-              <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center gap-2 font-mono">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-                <span>{action.error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateDispute} className="space-y-4">
-              {/* Chọn đơn hàng */}
-              <div className="space-y-1.5">
-                <label htmlFor={orderSelectId} className="text-xs font-bold text-slate-300 flex items-center gap-1.5 font-mono">
-                  <Package className="w-3.5 h-3.5 text-[#39FF14]" /> CHỌN ĐƠN HÀNG KHIẾU NẠI <span className="text-rose-400">*</span>
-                </label>
-                <select
-                  id={orderSelectId}
-                  required
-                  value={orderId}
-                  onChange={(e) => setOrderId(e.target.value)}
-                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-xs text-white outline-none focus:border-[#39FF14] transition cursor-pointer font-mono"
-                >
-                  <option value="">-- Bấm để chọn mã đơn hàng --</option>
-                  {completedOrders.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      Đơn #{o.id.substring(0, 8)} · {o.items.map((i) => i.productTitle).join(', ')} ({o.totalAmount?.toLocaleString()}đ)
-                    </option>
-                  ))}
-                </select>
-                {completedOrders.length === 0 && !orders.loading && (
-                  <p className="text-[11px] text-[#ff9100] font-mono">Chưa có đơn hàng nào để khởi tạo khiếu nại.</p>
-                )}
-              </div>
-
-              {/* Mô tả nội dung khiếu nại */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <label htmlFor={descId} className="font-bold text-slate-300 font-mono">
-                    NỘI DUNG SỰ CỐ / ĐỐI SOÁT <span className="text-rose-400">*</span>
-                  </label>
-                  <span className="text-[11px] text-slate-400 font-mono">{description.length}/4000</span>
-                </div>
-                <textarea
-                  id={descId}
-                  required
-                  rows={4}
-                  maxLength={4000}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Mô tả cụ thể sai lệch kích thước, gãy lớp, sai màu vật liệu hoặc vấn đề thanh toán..."
-                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl p-3 text-xs text-white outline-none focus:border-[#39FF14] resize-none transition"
-                />
-              </div>
-
-              {/* Tải ảnh chụp bằng chứng */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-300 font-mono">
-                  <label htmlFor={fileUploadId} className="flex items-center gap-1.5 cursor-pointer">
-                    <ImageIcon className="w-3.5 h-3.5 text-[#00e5ff]" /> ẢNH CHỤP BIÊN LAI / BẰNG CHỨNG LỖI
-                  </label>
-                  <span className="text-[11px] text-slate-400 font-normal">Tối đa 10MB</span>
-                </div>
-
-                {evidenceUrl ? (
-                  <div className="relative group rounded-xl overflow-hidden border border-[#39FF14]/50 bg-[#040508]">
-                    <img src={evidenceUrl} alt="Bằng chứng khiếu nại" className="w-full h-44 object-cover" />
-                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                      <a
-                        href={evidenceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-2.5 rounded-lg bg-[#0a0c12] border border-[#1e2433] text-white hover:text-[#00e5ff] transition"
-                        title="Xem ảnh gốc toàn màn hình"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => setEvidenceUrl('')}
-                        className="p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 hover:text-white transition cursor-pointer"
-                        title="Xóa ảnh để chọn lại"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
-                      uploading
-                        ? 'border-[#1e2433] bg-[#040508]/80 cursor-wait'
-                        : 'border-[#1e2433] hover:border-[#39FF14] bg-[#040508]/40 hover:bg-[#040508]'
-                    }`}
-                  >
-                    <input
-                      id={fileUploadId}
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file);
-                      }}
-                    />
-                    {uploading ? (
-                      <>
-                        <Loader2 className="w-7 h-7 text-[#39FF14] animate-spin" />
-                        <span className="text-xs text-slate-300 font-bold font-mono">ĐANG TẢI BẰNG CHỨNG LÊN VAULT...</span>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-10 h-10 rounded-full bg-[#39FF14]/10 border border-[#39FF14]/30 flex items-center justify-center text-[#39FF14]">
-                          <UploadCloud className="w-5 h-5" />
-                        </div>
-                        <span className="text-xs font-bold text-white font-mono">BẤM HOẶC KÉO THẢ ẢNH BẰNG CHỨNG</span>
-                        <span className="text-[11px] text-slate-400 font-mono">PNG, JPG, JPEG, WEBP (MAX 10MB)</span>
-                      </>
-                    )}
-                  </div>
-                )}
-                {uploadError && <p className="text-[11px] text-rose-400 font-mono font-semibold">{uploadError}</p>}
-              </div>
-
-              {/* Nút gửi yêu cầu */}
-              <button
-                type="submit"
-                disabled={action.busy || uploading || !orderId}
-                className="w-full py-3.5 rounded-xl bg-[#39FF14] hover:bg-[#32e010] text-[#040508] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md shadow-emerald-950/50 disabled:opacity-50 cursor-pointer mt-2 whitespace-nowrap shrink-0"
-              >
-                {action.busy ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>ĐANG GỬI KHIẾU NẠI...</span>
-                  </>
-                ) : (
-                  <>
-                    <Scale className="w-4 h-4" />
-                    <span>GỬI YÊU CẦU ĐỐI SOÁT & KHIẾU NẠI</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* CỘT PHẢI: DANH SÁCH TRANH CHẤP & TRAO ĐỔI */}
-        <div className={admin || !createOpen ? 'lg:col-span-12 min-w-0 space-y-4' : 'lg:col-span-7 min-w-0 space-y-4'}>
+        {/* DANH SÁCH TRANH CHẤP & TRAO ĐỔI */}
+        <div className="lg:col-span-12 min-w-0 space-y-4">
           <div className="flex items-center justify-between bg-[#0a0c12] border border-[#1e2433] px-4 py-3 rounded-xl">
             <h2 className="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
               <span className="w-2 h-2 rounded-full bg-[#00e5ff] ring-2 ring-[#00e5ff]/40" />
