@@ -63,9 +63,7 @@ export default function AdminFinancePage() {
   return (
     <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
       <PageHeader
-        title="BÁO CÁO TÀI CHÍNH &amp; ĐỐI SOÁT DOANH THU PLATFORM"
-        description="Dữ liệu đối soát tài chính thực tế tổng hợp từ cơ sở dữ liệu các đơn hàng in 3D đã thanh toán qua cổng PayOS (VietQR) và COD."
-        badge="Finance Telemetry"
+        title="ĐỐI SOÁT TÀI CHÍNH"
         icon={DollarSign}
         actions={
           <button
@@ -106,28 +104,6 @@ export default function AdminFinancePage() {
           </p>
           <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-[#39FF14]" /> Duy trì hạ tầng máy in
-          </span>
-        </div>
-
-        {/* Số dư ví điểm */}
-        <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-2 relative overflow-hidden shadow-xl">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[#00e5ff]/10 blur-2xl pointer-events-none rounded-full" />
-          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">QUỸ ĐIỂM THƯỞNG HỘI VIÊN</p>
-          <p className="text-2xl font-black text-[#00e5ff] font-mono">
-            {formatPrice(data?.studentWalletBalance ?? 0)} <span className="text-sm">Xu</span>
-          </p>
-          <span className="text-xs text-[#00e5ff] font-mono font-bold flex items-center gap-1">
-            <Wallet className="w-3.5 h-3.5" /> Điểm thưởng sinh viên
-          </span>
-        </div>
-
-        {/* Thanh toán cho xưởng in */}
-        <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-2 relative overflow-hidden shadow-xl">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[#ff9100]/10 blur-2xl pointer-events-none rounded-full" />
-          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">XƯỞNG GIA CÔNG (95%)</p>
-          <p className="text-2xl font-black text-[#ff9100] font-mono">{formatPrice(data?.factoryPayout ?? 0)}đ</p>
-          <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
-            <ArrowDownRight className="w-3.5 h-3.5 text-[#ff9100]" /> Chuyển trả đối tác in
           </span>
         </div>
       </div>

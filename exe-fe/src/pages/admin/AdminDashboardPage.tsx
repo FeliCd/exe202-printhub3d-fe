@@ -68,12 +68,6 @@ export default function AdminDashboardPage() {
       {/* 1. Header with Cyber-Industrial styling */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse ring-2 ring-[#39FF14]/40 shrink-0" />
-            <p className="text-xs sm:text-sm font-semibold text-slate-400 break-words font-mono">
-              ADDITIVE FARM TELEMETRY &bull; 24/7 FLEET MONITOR
-            </p>
-          </div>
           <h1 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight break-words">
             Trung Tâm Điều Khiển <span className="text-[#39FF14] ">PrintHub 3D</span>
           </h1>

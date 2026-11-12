@@ -89,15 +89,6 @@ export default function LandingPage() {
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Left Column: Hero Content */}
               <div className="lg:col-span-7 space-y-6">
-                {/* Telemetry Status Pill (Pixel Contract B) */}
-                <div className="badge-telemetry">
-                  <div className="tile">
-                    <svg viewBox="0 0 24 24" strokeWidth="2">
-                      <path d="M12 2v6m0 0l-4 4m4-4l4 4M4 18h16M7 22h10" />
-                    </svg>
-                  </div>
-                </div>
-
                 <div className="space-y-3">
                   <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-theme-ink tracking-tight leading-[1.06] uppercase">
                     PrintHub 3D <br />
