@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DollarSign, ArrowUpRight, RotateCcw, ShieldCheck, Wallet, ArrowDownRight } from 'lucide-react';
+import { DollarSign, ArrowUpRight, RotateCcw, ShieldCheck} from 'lucide-react';
 import { formatPrice } from '../../utils/format';
 import { adminService, type FinanceSummaryData } from '../../services/adminService';
 import { PageHeader } from '../../components/DataUI';
