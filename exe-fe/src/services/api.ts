@@ -60,7 +60,7 @@ export async function read<T>(path: string): Promise<T> {
   return unwrap<T>((await api.get(path)).data);
 }
 
-export async function send<T = void>(path: string, data?: unknown, method: 'post' | 'put' | 'delete' = 'post'): Promise<T> {
+export async function send<T = void>(path: string, data?: unknown, method: 'post' | 'put' | 'patch' | 'delete' = 'post'): Promise<T> {
   return unwrap<T>((await api.request({ url: path, method, data })).data);
 }
 

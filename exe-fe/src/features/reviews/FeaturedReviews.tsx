@@ -7,7 +7,7 @@ import ReviewPhotoGallery, { ReviewPhoto } from './ReviewPhotoGallery';
 
 export default function FeaturedReviews() {
   const { data, error, loading, reload } = useRemote<FeaturedProductReviewDTO[]>('/reviews/featured');
-  const reviews = data?.filter(review => review.rating === 5) ?? [];
+  const reviews = data ?? [];
   const [gallery, setGallery] = useState<FeaturedProductReviewDTO | null>(null);
 
   return (
@@ -15,7 +15,7 @@ export default function FeaturedReviews() {
       <div data-scroll-reveal className="space-y-6">
         <div className="space-y-2 border-b border-border pb-5">
           <h2 id="customer-reviews-title" className="text-2xl font-black tracking-tight text-theme-ink sm:text-4xl">
-            Đánh giá 5 sao từ khách hàng
+            Đánh giá nổi bật từ khách hàng
           </h2>
           <p className="text-sm leading-relaxed text-theme-copy">
             Đọc nhận xét và xem ảnh khách gửi sau khi nhận hàng.
@@ -32,7 +32,7 @@ export default function FeaturedReviews() {
             </button>
           </div>
         ) : reviews.length === 0 ? (
-          <p className="text-sm text-theme-muted">Chưa có đánh giá 5 sao để hiển thị.</p>
+          <p className="text-sm text-theme-muted">Chưa có đánh giá công khai để hiển thị.</p>
         ) : (
           <ul className="grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {reviews.map(review => (
@@ -56,8 +56,14 @@ export default function FeaturedReviews() {
 
                 <article className="space-y-3 p-4 sm:p-5">
                   <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                    <span aria-label="5 trên 5 sao" role="img" className="inline-flex gap-0.5 text-amber-400 app-light:text-amber-700">
-                      {Array.from({ length: 5 }, (_, i) => <Star key={i} className="size-4 fill-current" aria-hidden="true" />)}
+                    <span aria-label={`${review.rating} trên 5 sao`} role="img" className="inline-flex gap-0.5 text-amber-400 app-light:text-amber-700">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <Star
+                          key={i}
+                          className={`size-4 ${i < review.rating ? 'fill-current' : 'text-theme-muted/35'}`}
+                          aria-hidden="true"
+                        />
+                      ))}
                     </span>
                     <time dateTime={review.createdAt} className="text-xs text-theme-muted">{formatDateTime(review.createdAt, false)}</time>
                   </div>

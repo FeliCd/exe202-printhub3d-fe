@@ -22,8 +22,23 @@ export interface ProductReviewDTO {
   imageUrls: string[];
   color?: string;
   engravingText?: string;
+  isPublic?: boolean;
+  publicUpdatedAt?: string;
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface AdminReviewSummaryDTO {
+  totalReviews: number;
+  publicCount: number;
+  hiddenCount: number;
+  maxPublicLimit: number;
+}
+
+export interface ReviewVisibilityResponseDTO {
+  review: ProductReviewDTO;
+  publicCount: number;
+  maxPublicLimit: number;
 }
 
 export interface ProductReviewSummaryDTO {
@@ -56,6 +71,12 @@ export const reviewService = {
 
   getProductReviewSummary: (productId: string) =>
     read<ProductReviewSummaryDTO>(`/reviews/products/${productId}/summary`),
+
+  getAdminReviewSummary: () =>
+    read<AdminReviewSummaryDTO>('/admin/reviews/summary'),
+
+  updateReviewVisibility: (reviewId: number, isPublic: boolean) =>
+    send<ReviewVisibilityResponseDTO>(`/admin/reviews/${reviewId}/visibility`, { isPublic }, 'patch'),
 
   uploadReviewImage: async (file: File): Promise<string> => {
     const formData = new FormData();
