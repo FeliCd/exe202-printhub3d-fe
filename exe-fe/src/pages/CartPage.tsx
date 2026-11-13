@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { ShippingAddress } from '../features/address/data';
 import type { useCart } from '../features/cart/hooks/useCart';
 import { useAuth } from '../context/AuthContext';
 import { send } from '../services/api';
+import type { CheckoutOrderDTO } from '../services/checkoutOrderService';
 import { useAction } from '../hooks/useRemote';
 import { PageHeader, Notice, Status, CopyButton } from '../components/DataUI';
 import { money } from '../utils/format';
@@ -29,21 +30,6 @@ interface Props {
   onOpenAddressModal: () => void;
 }
 
-interface CheckoutOrderDTO {
-  id: string;
-  userId: string;
-  shippingAddress: string;
-  shippingMode: 'COMMON' | 'SEPARATE';
-  status: string;
-  totalAmount?: number;
-  shippingFee?: number;
-  paymentMethod?: string;
-  summaryVersion: number;
-  paymentLinkUrl?: string;
-  allCustomQuoted: boolean;
-  readyForConfirm: boolean;
-}
-
 export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal }: Props) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -52,6 +38,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [createdCheckoutOrder, setCreatedCheckoutOrder] = useState<CheckoutOrderDTO | null>(null);
   const [confirmOrder, setConfirmOrder] = useState<{ id: string; totalAmount: number; checkoutUrl?: string } | null>(null);
+  const customIdemRef = useRef<{ sig: string; key: string }>({ sig: '', key: '' });
   const action = useAction();
 
   // Tự động tick chọn tất cả các món khi giỏ hàng tải xong
@@ -168,9 +155,12 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       });
     });
 
-  // Gửi yêu cầu báo giá Custom (REQUESTED, không thanh toán ngay)
+  // Đặt nhiều sản phẩm custom cùng lúc -> Gộp thành DUY NHẤT 1 CheckoutOrder (PENDING_QUOTE)
   const handleCustomQuoteSubmit = () =>
     action.run(async () => {
+      if (cart.loading || cart.saving || cart.error || !cart.items.length) {
+        throw new Error('Giỏ hàng chưa sẵn sàng. Vui lòng chờ đồng bộ hoặc tải lại trang.');
+      }
       if (selectedCustomItems.length === 0) {
         throw new Error('Vui lòng chọn ít nhất 1 thiết kế in 3D để gửi yêu cầu báo giá.');
       }
@@ -184,25 +174,23 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
       const fullAddress = `${a.recipientName} - ${a.phone} - ${a.addressLine}, ${a.province}`;
       const customItemIds = selectedCustomItems.map(i => i.clientLineId || i.id);
-
-      for (const item of selectedCustomItems) {
-        const hasReal3DModel = item.product.imageUrl && (
-          item.product.imageUrl.toLowerCase().includes('.stl') ||
-          item.product.imageUrl.toLowerCase().includes('.step') ||
-          item.product.imageUrl.toLowerCase().includes('/raw/upload/')
-        );
-        await send('/custom-orders', {
-          quantity: item.quantity,
-          shippingAddress: fullAddress,
-          requirements: item.product.rulerDesign ? JSON.stringify(item.product.rulerDesign) : item.product.name,
-          rulerModel: item.product.name,
-          attachmentUrl: hasReal3DModel
-            ? item.product.imageUrl
-            : (item.product.imageUrl?.startsWith('http') ? item.product.imageUrl : (item.product.thumbnail?.startsWith('http') ? item.product.thumbnail : '')),
-          previewImageUrl: !hasReal3DModel ? (item.product.imageUrl || item.product.thumbnail) : '',
-          paymentMethod: 'PAYOS',
-        });
+      const selectionSig = `${selectedCustomItems.map(i => `${i.clientLineId || i.id}:${i.quantity}`).sort().join('|')}::${a.id}`;
+      if (customIdemRef.current.sig !== selectionSig || !customIdemRef.current.key) {
+        customIdemRef.current = {
+          sig: selectionSig,
+          key: crypto.randomUUID ? crypto.randomUUID() : `chk-${Date.now()}`,
+        };
       }
+
+      const res = await send<CheckoutOrderDTO>('/checkout-orders', {
+        selectedLineIds: customItemIds,
+        shippingMode: 'COMMON',
+        shippingAddress: fullAddress,
+        recipientName: a.recipientName,
+        recipientPhone: a.phone,
+        paymentMethod: 'PAYOS',
+        idempotencyKey: customIdemRef.current.key,
+      });
 
       // Xóa các món custom đã gửi khỏi giỏ
       cart.removeLocalItems(customItemIds);
@@ -211,9 +199,10 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
         customItemIds.forEach(id => next.delete(id));
         return next;
       });
+      customIdemRef.current = { sig: '', key: '' };
 
-      // Điều hướng về trang báo giá theo chuẩn Flow 01
-      navigate('/quotations?created=true');
+      // Điều hướng về chi tiết yêu cầu báo giá gộp
+      navigate(`/quotations/${encodeURIComponent(res.id)}?created=true&items=${customItemIds.length}`);
     });
 
   return (
@@ -680,11 +669,20 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                             <div className="pt-3 border-t border-white/10 space-y-2.5 text-xs">
                               <div className="flex justify-between text-slate-300">
                                 <span>Số lượng thiết kế:</span>
-                                <span className="font-mono text-white font-bold">{selectedCustomItems.length} mẫu</span>
+                                <span className="font-mono text-white font-bold">
+                                  {selectedCustomItems.length} mẫu (gộp thành 1 đơn)
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-slate-300">
+                                <span>Phương thức thanh toán:</span>
+                                <span className="inline-flex items-center gap-1.5 font-semibold text-[#39FF14]">
+                                  <QrCode className="w-3.5 h-3.5" /> PayOS (VietQR)
+                                </span>
                               </div>
 
-
-                              <p className="text-theme-muted">Bạn có thể theo dõi báo giá trong mục Yêu cầu &amp; báo giá. Chưa cần thanh toán ở bước này.</p>
+                              <p className="text-theme-muted">
+                                Các sản phẩm đã chọn sẽ được gộp vào 1 đơn duy nhất. Đơn in theo yêu cầu chỉ hỗ trợ thanh toán trực tuyến PayOS (không áp dụng COD) sau khi xưởng báo giá.
+                              </p>
                             </div>
 
                             {/* NÚT GỬI YÊU CẦU BÁO GIÁ */}

@@ -82,6 +82,8 @@ export interface Design {
   layers: Layer[];
   strokes: Stroke[];
   template: string;
+  previewImageUrl?: string;
+  stlUrl?: string;
 }
 export const uid = () => crypto.randomUUID();
 export const clamp = (n: number, min = 0, max = 1) =>

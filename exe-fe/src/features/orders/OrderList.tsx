@@ -23,6 +23,8 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import { payOrder } from '../../services/paymentService';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
+import type { CheckoutOrderDTO } from '../../services/checkoutOrderService';
+import CheckoutOrderDetailCard from '../custom/CheckoutOrderDetailCard';
 import ReviewModal from '../reviews/ReviewModal';
 import { RemoteState, Notice, Status } from '../../components/DataUI';
 import { money, formatDateTime } from '../../utils/format';
@@ -179,10 +181,12 @@ const normalizeOrderSearch = (value: string) =>
 export default function OrderList({ admin = false, history = false }: { admin?: boolean; history?: boolean }) {
   const remote = useRemote<OrderDTO[]>(admin ? '/admin/orders' : '/orders/me');
   const customRemote = useRemote<CustomOrderAdminItem[]>(admin ? '/admin/custom-orders' : '/custom-orders');
+  const checkoutRemote = useRemote<CheckoutOrderDTO[]>(admin ? '/admin/checkout-orders' : '/checkout-orders/my');
 
   const handleReload = () => {
     remote.reload();
     customRemote.reload();
+    checkoutRemote.reload();
   };
 
   const action = useAction(handleReload);
@@ -263,8 +267,37 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
     return true;
   });
 
-  // Đơn Custom: Tách theo active vs history
-  const allCustomOrders = customRemote.data || [];
+  // Đơn Custom gộp (CheckoutOrder)
+  const checkoutCustomOrders = (checkoutRemote.data || []).filter(
+    co => ((co.customOrderDetails?.length || co.customOrders?.length) ?? 0) > 0
+  );
+  const childIdsInCheckout = new Set<string>();
+  checkoutCustomOrders.forEach(co => {
+    (co.customOrderDetails || co.customOrders || []).forEach(c => childIdsInCheckout.add(c.id));
+  });
+
+  const currentCheckoutCustomOrders = checkoutCustomOrders.filter(co =>
+    history
+      ? ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(co.status)
+      : ['CONFIRMED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(co.status)
+  );
+
+  const displayedCheckoutCustomOrders = currentCheckoutCustomOrders.filter(co => {
+    if (activeTab === 'MARKETPLACE') return false;
+    if (history) {
+      if (historyTab === 'COMPLETED') return co.status === 'COMPLETED';
+      if (historyTab === 'CANCELLED') return co.status === 'CANCELLED';
+      if (historyTab === 'EXPIRED') return co.status === 'EXPIRED';
+      return true;
+    }
+    if (activeOrderTab === 'PENDING') return ['CONFIRMED', 'PAID', 'PREPARING'].includes(co.status);
+    if (activeOrderTab === 'PRINTING') return co.status === 'PRINTING';
+    if (activeOrderTab === 'SHIPPING') return co.status === 'SHIPPING';
+    return true;
+  });
+
+  // Đơn Custom đơn lẻ cũ (loại trừ các child đã thuộc CheckoutOrder để không lặp)
+  const allCustomOrders = (customRemote.data || []).filter(c => !childIdsInCheckout.has(c.id));
   const currentCustomOrders = allCustomOrders.filter(c =>
     history
       ? ['COMPLETED', 'CANCELLED'].includes(c.status)
@@ -287,7 +320,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
 
   const search = normalizeOrderSearch(orderSearch);
   const since = orderDate ? Date.parse(orderDate + 'T00:00:00+07:00') : NaN;
-  const historyOrders = [...rawMarketplaceOrders, ...currentCustomOrders];
+  const historyOrders = [...rawMarketplaceOrders, ...currentCheckoutCustomOrders, ...currentCustomOrders];
   const detailUrl = (id: string) => `${listPath}/${encodeURIComponent(id)}${suffix}`;
   const entries = [
     ...marketplaceOrders.map(o => {
@@ -302,6 +335,22 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         createdAt: o.createdAt,
         status: <Status value={o.status} />,
         searchText: `${o.id} ${o.orderCode || ''} ${products.join(' ')}`,
+      };
+    }),
+    ...displayedCheckoutCustomOrders.map(co => {
+      const items = (co.customOrderDetails && co.customOrderDetails.length > 0 ? co.customOrderDetails : co.customOrders) || [];
+      const firstName = items[0]?.rulerModel || 'Đơn in 3D';
+      const extraCount = items.length > 1 ? ` (+${items.length - 1} thiết kế khác)` : '';
+      return {
+        id: `checkout:${co.id}`,
+        to: detailUrl(`checkout:${co.id}`),
+        title: `${firstName}${extraCount}`,
+        meta: `#CHK-${co.id.slice(0, 8)} · ${items.length} sản phẩm · ${formatDateTime(co.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
+        amount: co.totalAmount == null ? undefined : money(co.totalAmount),
+        thumbnail: null,
+        createdAt: co.createdAt,
+        status: <Status value={co.status} />,
+        searchText: `CHK-${co.id} ${co.id} ${items.map(i => i.rulerModel || '').join(' ')}`,
       };
     }),
     ...displayedCustomOrders.map(o => ({
@@ -321,12 +370,19 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
   const detailProducts = detailKey
     ? (history ? rawMarketplaceOrders : remote.data ?? []).filter(o => detailKey === `product:${o.id}`)
     : marketplaceOrders;
+  const detailCheckoutOrders = detailKey
+    ? (history ? currentCheckoutCustomOrders : checkoutCustomOrders).filter(co => detailKey === `checkout:${co.id}`)
+    : displayedCheckoutCustomOrders;
   const detailCustomOrders = detailKey
     ? (history ? currentCustomOrders : allCustomOrders).filter(c => detailKey === `custom:${c.id}`)
     : displayedCustomOrders;
-  const detailRemote = detailKey?.startsWith('custom:') ? customRemote : remote;
-  const listLoading = remote.loading || (!admin && customRemote.loading);
-  const listError = remote.error || (!admin ? customRemote.error : '');
+  const detailRemote = detailKey?.startsWith('checkout:')
+    ? checkoutRemote
+    : detailKey?.startsWith('custom:')
+      ? customRemote
+      : remote;
+  const listLoading = remote.loading || (!admin && (customRemote.loading || checkoutRemote.loading));
+  const listError = remote.error || (!admin ? (customRemote.error || checkoutRemote.error) : '');
   const filtersApplied = !!search || !Number.isNaN(since) || activeTab !== 'ALL'
     || (history ? historyTab !== 'ALL' : activeOrderTab !== 'ALL');
 
@@ -440,10 +496,10 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 {label}{!listLoading && !listError && ` (${value === 'ALL' ? historyOrders.length : historyOrders.filter(order => order.status === value).length})`}
               </button>
             )) : ([
-              ['ALL', 'Tất cả', rawMarketplaceOrders.length + currentCustomOrders.length],
-              ['PENDING', 'Chờ xử lý', rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCustomOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING'].includes(o.status)).length],
-              ['PRINTING', 'Đang sản xuất', rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCustomOrders.filter(o => o.status === 'PRINTING').length],
-              ['SHIPPING', 'Đang giao', rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCustomOrders.filter(o => o.status === 'SHIPPING').length],
+              ['ALL', 'Tất cả', rawMarketplaceOrders.length + currentCheckoutCustomOrders.length + currentCustomOrders.length],
+              ['PENDING', 'Chờ xử lý', rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCheckoutCustomOrders.filter(co => ['CONFIRMED', 'PAID', 'PREPARING'].includes(co.status)).length + currentCustomOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING'].includes(o.status)).length],
+              ['PRINTING', 'Đang sản xuất', rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCheckoutCustomOrders.filter(co => co.status === 'PRINTING').length + currentCustomOrders.filter(o => o.status === 'PRINTING').length],
+              ['SHIPPING', 'Đang giao', rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCheckoutCustomOrders.filter(co => co.status === 'SHIPPING').length + currentCustomOrders.filter(o => o.status === 'SHIPPING').length],
             ] as const).map(([value, label, count]) => (
               <button key={value} type="button" aria-pressed={activeOrderTab === value} onClick={() => setActiveOrderTab(value)}
                 className="shrink-0 cursor-pointer border-b-2 border-transparent px-1 py-3 text-sm font-medium text-theme-muted hover:text-theme-ink aria-pressed:border-primary aria-pressed:text-theme-accent">
@@ -499,7 +555,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          Tất Cả Đơn Hàng ({rawMarketplaceOrders.length + currentCustomOrders.length})
+          Tất Cả Đơn Hàng ({rawMarketplaceOrders.length + currentCheckoutCustomOrders.length + currentCustomOrders.length})
         </button>
 
         <button
@@ -523,7 +579,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          Đơn In Custom Theo Yêu Cầu ({currentCustomOrders.length})
+          Đơn In Custom Theo Yêu Cầu ({currentCheckoutCustomOrders.length + currentCustomOrders.length})
         </button>
       </div>
 
@@ -538,7 +594,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Tất Cả Lịch Sử ({rawMarketplaceOrders.length + currentCustomOrders.length})
+            Tất Cả Lịch Sử ({rawMarketplaceOrders.length + currentCheckoutCustomOrders.length + currentCustomOrders.length})
           </button>
           <button
             onClick={() => setHistoryTab('COMPLETED')}
@@ -549,7 +605,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             }`}
           >
             <Check className="w-3.5 h-3.5" />
-            Đã Hoàn Thành ({rawMarketplaceOrders.filter(o => o.status === 'COMPLETED').length + currentCustomOrders.filter(c => c.status === 'COMPLETED').length})
+            Đã Hoàn Thành ({rawMarketplaceOrders.filter(o => o.status === 'COMPLETED').length + currentCheckoutCustomOrders.filter(co => co.status === 'COMPLETED').length + currentCustomOrders.filter(c => c.status === 'COMPLETED').length})
           </button>
           <button
             onClick={() => setHistoryTab('CANCELLED')}
@@ -559,7 +615,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đã Hủy ({rawMarketplaceOrders.filter(o => o.status === 'CANCELLED').length + currentCustomOrders.filter(c => c.status === 'CANCELLED').length})
+            Đã Hủy ({rawMarketplaceOrders.filter(o => o.status === 'CANCELLED').length + currentCheckoutCustomOrders.filter(co => co.status === 'CANCELLED').length + currentCustomOrders.filter(c => c.status === 'CANCELLED').length})
           </button>
           <button
             onClick={() => setHistoryTab('EXPIRED')}
@@ -570,7 +626,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            Hết Hạn Thanh Toán ({rawMarketplaceOrders.filter(o => o.status === 'EXPIRED').length})
+            Hết Hạn Thanh Toán ({rawMarketplaceOrders.filter(o => o.status === 'EXPIRED').length + currentCheckoutCustomOrders.filter(co => co.status === 'EXPIRED').length})
           </button>
         </div>
       )}
@@ -586,7 +642,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Tất Cả Đang Xử Lý ({rawMarketplaceOrders.length + currentCustomOrders.length})
+            Tất Cả Đang Xử Lý ({rawMarketplaceOrders.length + currentCheckoutCustomOrders.length + currentCustomOrders.length})
           </button>
           <button
             onClick={() => setActiveOrderTab('PENDING')}
@@ -596,7 +652,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Chờ Xử Lý ({rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCustomOrders.filter(c => ['ACCEPTED', 'PAID', 'PREPARING'].includes(c.status)).length})
+            Chờ Xử Lý ({rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCheckoutCustomOrders.filter(co => ['CONFIRMED', 'PAID', 'PREPARING'].includes(co.status)).length + currentCustomOrders.filter(c => ['ACCEPTED', 'PAID', 'PREPARING'].includes(c.status)).length})
           </button>
           <button
             onClick={() => setActiveOrderTab('PRINTING')}
@@ -606,7 +662,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đang In 3D ({rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCustomOrders.filter(c => c.status === 'PRINTING').length})
+            Đang In 3D ({rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCheckoutCustomOrders.filter(co => co.status === 'PRINTING').length + currentCustomOrders.filter(c => c.status === 'PRINTING').length})
           </button>
           <button
             onClick={() => setActiveOrderTab('SHIPPING')}
@@ -616,7 +672,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đang Giao Hàng ({rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCustomOrders.filter(c => c.status === 'SHIPPING').length})
+            Đang Giao Hàng ({rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCheckoutCustomOrders.filter(co => co.status === 'SHIPPING').length + currentCustomOrders.filter(c => c.status === 'SHIPPING').length})
           </button>
         </div>
       )}
@@ -627,7 +683,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
       {!detailKey && <RemoteState
         loading={listLoading}
         error={listError}
-        empty={admin ? !marketplaceOrders.length && !displayedCustomOrders.length && !customRemote.loading : !entries.length}
+        empty={admin ? !marketplaceOrders.length && !displayedCheckoutCustomOrders.length && !displayedCustomOrders.length && !customRemote.loading && !checkoutRemote.loading : !entries.length}
         emptyMessage={!admin && filtersApplied
           ? 'Không tìm thấy đơn hàng phù hợp với bộ lọc.'
           : userHistory ? 'Bạn chưa có đơn hàng nào trong lịch sử.' : undefined}
@@ -637,7 +693,7 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
         <RemoteState
           loading={detailRemote.loading}
           error={detailRemote.error}
-          empty={!detailProducts.length && !detailCustomOrders.length}
+          empty={!detailProducts.length && !detailCheckoutOrders.length && !detailCustomOrders.length}
           emptyMessage="Không tìm thấy đơn hàng này trong tài khoản của bạn."
           retry={detailRemote.reload}
         />
@@ -856,8 +912,18 @@ export default function OrderList({ admin = false, history = false }: { admin?: 
           })}
 
         {/* ========================================================================= */}
-        {/* 2. HIỂN THỊ ĐƠN HÀNG IN CUSTOM (ĐÃ CHỐT BÁO GIÁ) */}
+        {/* 2. HIỂN THỊ ĐƠN HÀNG IN CUSTOM (ĐÃ CHỐT BÁO GIÁ / GỘP CHECKOUT ORDER)   */}
         {/* ========================================================================= */}
+        {(detailKey || activeTab !== 'MARKETPLACE') &&
+          detailCheckoutOrders.map(co => (
+            <CheckoutOrderDetailCard
+              key={co.id}
+              checkoutOrder={co}
+              admin={admin}
+              busy={action.busy}
+              onRunAction={action.run}
+            />
+          ))}
         {(detailKey || activeTab !== 'MARKETPLACE') &&
           detailCustomOrders.map(c => {
             const next = nextStateCustom(c);

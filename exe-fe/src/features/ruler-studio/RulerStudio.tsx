@@ -192,7 +192,7 @@ export default function RulerStudio({
           stlFormData.append('file', stlBlob, filename);
           stlFormData.append('folder', 'printhub3d/custom_prints');
           const stlRes = await uploadFormData<string | { result?: string; url?: string }>('/upload/raw', stlFormData);
-          const uploadedStl = typeof stlRes === 'string' ? stlRes : (stlRes?.result || (stlRes as any)?.url || '');
+          const uploadedStl = typeof stlRes === 'string' ? stlRes : (stlRes?.result || stlRes?.url || '');
           if (uploadedStl && uploadedStl.startsWith('http')) {
             stlModelUrl = uploadedStl;
           }
@@ -222,7 +222,11 @@ export default function RulerStudio({
         y: profile.height * 10,
         z: profile.thickness * 10,
       },
-      rulerDesign: structuredClone(design),
+      rulerDesign: {
+        ...structuredClone(design),
+        ...(thumbnail.startsWith('http') ? { previewImageUrl: thumbnail } : {}),
+        ...(stlModelUrl ? { stlUrl: stlModelUrl } : {}),
+      },
     };
   };
 

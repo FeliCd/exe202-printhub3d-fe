@@ -33,10 +33,21 @@ export default function CartItem({ item, onUpdateQuantity, selected, onToggleSel
     combo: 'Combo',
   };
 
+  const isRaw3DUrl = (url?: string) => {
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    return lower.includes('.stl') || lower.includes('.step') || lower.includes('.stp') || lower.includes('/raw/upload/');
+  };
+
+  const previewFromDesign = item.product.rulerDesign?.previewImageUrl;
+  const candidateImage = previewFromDesign && (previewFromDesign.startsWith('http') || previewFromDesign.startsWith('data:'))
+    ? previewFromDesign
+    : (!isRaw3DUrl(item.product.imageUrl) ? item.product.imageUrl : undefined);
+
   const hasImage =
-    (item.product.imageUrl && (item.product.imageUrl.startsWith('data:') || item.product.imageUrl.startsWith('http'))) ||
+    (candidateImage && (candidateImage.startsWith('data:') || candidateImage.startsWith('http'))) ||
     (item.product.thumbnail && (item.product.thumbnail.startsWith('data:') || item.product.thumbnail.startsWith('http')));
-  const imgSrc = item.product.imageUrl || item.product.thumbnail;
+  const imgSrc = candidateImage || item.product.thumbnail;
 
   const colorClass = thumbnailColorMap[item.product.thumbnail] || 'text-[#39FF14]';
   const label = thumbnailLabelMap[item.product.thumbnail] || item.product.material;

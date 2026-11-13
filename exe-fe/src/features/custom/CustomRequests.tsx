@@ -8,7 +8,9 @@ import type { CustomDTO } from '../../services/quotationService';
 import { Notice, RemoteState } from '../../components/DataUI';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { money } from '../../utils/format';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import type { CheckoutOrderDTO } from '../../services/checkoutOrderService';
+import CheckoutOrderDetailCard from './CheckoutOrderDetailCard';
 import {
   Ruler,
   Layers,
@@ -214,6 +216,7 @@ function renderStatusBadge(status?: string, tr: (text: string) => string = text 
   switch (s) {
     case 'REQUESTED':
     case 'PENDING':
+    case 'PENDING_QUOTE':
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#ff9100]/40 bg-[#ff9100]/10 text-[#ff9100] whitespace-nowrap shrink-0 shadow-sm">
           <Clock className="w-3.5 h-3.5 animate-pulse text-[#ff9100]" />
@@ -225,6 +228,13 @@ function renderStatusBadge(status?: string, tr: (text: string) => string = text 
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#39FF14]/60 bg-[#39FF14]/15 text-[#39FF14] ring-1 ring-[#39FF14]/30 whitespace-nowrap shrink-0 shadow-sm animate-pulse">
           <Sparkles className="w-3.5 h-3.5 text-[#39FF14]" />
           <span>{tr("Đã có báo giá")}</span>
+        </span>
+      );
+    case 'CONFIRMED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold border border-[#00e5ff]/40 bg-[#00e5ff]/10 text-[#00e5ff] whitespace-nowrap shrink-0 shadow-sm">
+          <CreditCard className="w-3.5 h-3.5 text-[#00e5ff]" />
+          <span>{tr("Chờ thanh toán")}</span>
         </span>
       );
     case 'ACCEPTED':
@@ -293,9 +303,30 @@ function renderStatusBadge(status?: string, tr: (text: string) => string = text 
 /* ========================================================================= */
 /* 3. CUSTOM REQUESTS - BEAUTIFIED LISTING PAGE                              */
 /* ========================================================================= */
+function normalizeQuoteBucket(status?: string, allCustomQuoted?: boolean): 'REQUESTED' | 'QUOTED' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' {
+  const s = (status || '').toUpperCase();
+  if (s === 'PENDING_QUOTE') {
+    return allCustomQuoted ? 'QUOTED' : 'REQUESTED';
+  }
+  if (['REQUESTED', 'PENDING'].includes(s)) return 'REQUESTED';
+  if (s === 'QUOTED') return 'QUOTED';
+  if (['CONFIRMED', 'ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(s)) return 'PROCESSING';
+  if (s === 'COMPLETED') return 'COMPLETED';
+  if (['CANCELLED', 'REJECTED', 'EXPIRED'].includes(s)) return 'CANCELLED';
+  return 'REQUESTED';
+}
+
 export function CustomRequests({ admin = false, translate: tr = text => text }: { admin?: boolean; translate?: (text: string) => string }) {
   const remote = useRemote<CustomDTO[]>(admin ? '/admin/custom-orders' : '/custom-orders');
-  const action = useAction(remote.reload);
+  const checkoutRemote = useRemote<CheckoutOrderDTO[]>(
+    admin ? '/admin/checkout-orders' : '/checkout-orders/my'
+  );
+  const reloadAll = () => {
+    remote.reload();
+    checkoutRemote.reload();
+  };
+  const action = useAction(reloadAll);
+  const [searchParams] = useSearchParams();
   const [prices, setPrices] = useState<Record<string, string>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
@@ -337,36 +368,72 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
     return undefined;
   };
 
-  // Filter tabs logic
-  const allOrders = useMemo(() => remote.data || [], [remote.data]);
+  const checkoutCustomOrders = useMemo(
+    () =>
+      (checkoutRemote.data || []).filter(
+        co => ((co.customOrderDetails?.length || co.customOrders?.length) ?? 0) > 0
+      ),
+    [checkoutRemote.data]
+  );
+
+  const childIdsInCheckout = useMemo(() => {
+    const ids = new Set<string>();
+    checkoutCustomOrders.forEach(co => {
+      (co.customOrderDetails || co.customOrders || []).forEach(c => ids.add(c.id));
+    });
+    return ids;
+  }, [checkoutCustomOrders]);
+
+  // Filter tabs logic (loại trừ các child đã gộp trong CheckoutOrder để không bị trùng card)
+  const allOrders = useMemo(
+    () => (remote.data || []).filter(o => !childIdsInCheckout.has(o.id)),
+    [remote.data, childIdsInCheckout]
+  );
 
   const counts = useMemo(() => {
+    const checkBuckets = checkoutCustomOrders.map(co => normalizeQuoteBucket(co.status, co.allCustomQuoted));
+    const singleBuckets = allOrders.map(o => normalizeQuoteBucket(o.status));
+    const combined = [...checkBuckets, ...singleBuckets];
     return {
-      ALL: allOrders.length,
-      REQUESTED: allOrders.filter(o => ['REQUESTED', 'PENDING'].includes(o.status)).length,
-      QUOTED: allOrders.filter(o => o.status === 'QUOTED').length,
-      PROCESSING: allOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(o.status)).length,
-      COMPLETED: allOrders.filter(o => o.status === 'COMPLETED').length,
-      CANCELLED: allOrders.filter(o => ['CANCELLED', 'REJECTED', 'EXPIRED'].includes(o.status)).length,
+      ALL: combined.length,
+      REQUESTED: combined.filter(b => b === 'REQUESTED').length,
+      QUOTED: combined.filter(b => b === 'QUOTED').length,
+      PROCESSING: combined.filter(b => b === 'PROCESSING').length,
+      COMPLETED: combined.filter(b => b === 'COMPLETED').length,
+      CANCELLED: combined.filter(b => b === 'CANCELLED').length,
     };
-  }, [allOrders]);
+  }, [checkoutCustomOrders, allOrders]);
+
+  const filteredCheckouts = useMemo(() => {
+    if (activeFilter === 'ALL') return checkoutCustomOrders;
+    return checkoutCustomOrders.filter(co => normalizeQuoteBucket(co.status, co.allCustomQuoted) === activeFilter);
+  }, [checkoutCustomOrders, activeFilter]);
 
   const filteredOrders = useMemo(() => {
     if (activeFilter === 'ALL') return allOrders;
-    if (activeFilter === 'REQUESTED') return allOrders.filter(o => ['REQUESTED', 'PENDING'].includes(o.status));
-    if (activeFilter === 'QUOTED') return allOrders.filter(o => o.status === 'QUOTED');
-    if (activeFilter === 'PROCESSING') return allOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(o.status));
-    if (activeFilter === 'COMPLETED') return allOrders.filter(o => o.status === 'COMPLETED');
-    if (activeFilter === 'CANCELLED') return allOrders.filter(o => ['CANCELLED', 'REJECTED', 'EXPIRED'].includes(o.status));
-    return allOrders;
+    return allOrders.filter(o => normalizeQuoteBucket(o.status) === activeFilter);
   }, [allOrders, activeFilter]);
 
-  const visibleRequest = detailId ? remote.data?.find(c => c.id === detailId) : undefined;
+  const visibleCheckout = detailId ? checkoutCustomOrders.find(co => co.id === detailId) : undefined;
+  const visibleRequest = detailId && !visibleCheckout ? remote.data?.find(c => c.id === detailId) : undefined;
+  const createdBannerItems = searchParams.get('created') === 'true' ? searchParams.get('items') : null;
+  const listLoading = remote.loading || checkoutRemote.loading;
+  const hasVisibleItems = filteredCheckouts.length > 0 || filteredOrders.length > 0;
 
   return (
     <div className="w-full max-w-6xl mx-auto pb-16 px-4 space-y-8 animate-in fade-in duration-300 min-w-0">
       {detailId ? (
-        <RecordDetailHeader to="/quotations" label={tr("Yêu cầu & báo giá")} title={visibleRequest ? `Báo giá #${visibleRequest.id.slice(0, 8)}` : tr("Chi tiết báo giá")} />
+        <RecordDetailHeader
+          to="/quotations"
+          label={tr("Yêu cầu & báo giá")}
+          title={
+            visibleCheckout
+              ? `Đơn gộp #CHK-${visibleCheckout.id.slice(0, 8)}`
+              : visibleRequest
+                ? `Báo giá #${visibleRequest.id.slice(0, 8)}`
+                : tr("Chi tiết báo giá")
+          }
+        />
       ) : <>
       {/* ========================================================================= */}
       {/* PAGE HEADER & QUICK ACTIONS                                               */}
@@ -392,12 +459,12 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
         <div className="flex items-center gap-2.5 flex-wrap shrink-0">
           <button
-            onClick={() => remote.reload()}
-            disabled={remote.loading}
+            onClick={reloadAll}
+            disabled={listLoading}
             className="px-4 py-2.5 rounded-xl border border-border bg-surface-inset text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center gap-2 text-xs font-semibold cursor-pointer disabled:opacity-50"
             title={tr("Tải lại danh sách")}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${remote.loading ? 'animate-spin text-primary' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${listLoading ? 'animate-spin text-primary' : ''}`} />
             <span>{tr("Làm mới")}</span>
           </button>
 
@@ -454,7 +521,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       <Notice error={action.error} />
 
       {/* Loading state */}
-      {remote.loading && (
+      {listLoading && (
         <div className="p-12 text-center rounded-3xl border border-border bg-surface space-y-3">
           <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto" />
           <p className="text-sm text-slate-400">{tr("Đang tải danh sách yêu cầu in 3D...")}</p>
@@ -462,7 +529,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       )}
 
       {/* Empty State */}
-      {!remote.loading && filteredOrders.length === 0 && (
+      {!listLoading && !hasVisibleItems && (
         <div className="p-8 sm:p-12 text-center rounded-3xl border border-border bg-surface space-y-4 max-w-lg mx-auto w-full min-w-0">
           <div className="w-16 h-16 rounded-3xl bg-surface-inset border border-border flex items-center justify-center text-slate-500 mx-auto">
             <Ruler className="w-8 h-8 opacity-40" />
@@ -489,23 +556,69 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       {/* VIVID & BEAUTIFIED REQUEST CARDS LIST                                      */}
       {/* ========================================================================= */}
       </>}
+      {createdBannerItems && (
+        <div className="rounded-2xl border border-[#39FF14]/40 bg-[#39FF14]/10 p-4 text-xs sm:text-sm text-slate-100 flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-[#39FF14] shrink-0" />
+          <span>
+            Đã gộp <strong className="text-[#39FF14]">{createdBannerItems} thiết kế custom</strong> vào 1 yêu cầu báo giá duy nhất. Bấm xem chi tiết bên dưới để theo dõi báo giá từng món và thanh toán 1 lần qua PayOS.
+          </span>
+        </div>
+      )}
       {detailId && <Notice error={action.error} />}
       {detailId && (
-        <RemoteState {...remote} empty={!visibleRequest} emptyMessage={tr("Không tìm thấy yêu cầu này.")} retry={remote.reload} />
+        <RemoteState
+          loading={listLoading}
+          error={remote.error || checkoutRemote.error}
+          empty={!visibleCheckout && !visibleRequest}
+          emptyMessage={tr("Không tìm thấy yêu cầu này.")}
+          retry={reloadAll}
+        />
       )}
-      {!admin && !detailId && filteredOrders.length > 0 && (
+      {!admin && !detailId && hasVisibleItems && (
         <RecordList
           label={tr("Yêu cầu & báo giá")}
-          entries={filteredOrders.map(c => ({
-            id: c.id,
-            to: `/quotations/${encodeURIComponent(c.id)}`,
-            title: parseOrderRequirements(c.requirements, c).modelName,
-            meta: `#${c.id.slice(0, 8)} · ${formatDate(c.createdAt)}`,
-            status: renderStatusBadge(c.status, tr),
-          }))}
+          entries={[
+            ...filteredCheckouts.map(co => {
+              const items = (co.customOrderDetails && co.customOrderDetails.length > 0 ? co.customOrderDetails : co.customOrders) || [];
+              const firstName = items[0]?.rulerModel || `Đơn in 3D`;
+              const extraCount = items.length > 1 ? ` (+${items.length - 1} thiết kế khác)` : '';
+              return {
+                id: co.id,
+                to: `/quotations/${encodeURIComponent(co.id)}`,
+                title: `${firstName}${extraCount}`,
+                meta: `#CHK-${co.id.slice(0, 8)} · ${items.length} sản phẩm · ${formatDate(co.createdAt)}`,
+                amount: co.totalAmount && co.totalAmount > 0 ? money(co.totalAmount) : undefined,
+                status: renderStatusBadge(co.allCustomQuoted && co.status === 'PENDING_QUOTE' ? 'QUOTED' : co.status, tr),
+                _ts: Date.parse(co.createdAt || '') || 0,
+              };
+            }),
+            ...filteredOrders.map(c => ({
+              id: c.id,
+              to: `/quotations/${encodeURIComponent(c.id)}`,
+              title: parseOrderRequirements(c.requirements, c).modelName,
+              meta: `#${c.id.slice(0, 8)} · ${formatDate(c.createdAt)}`,
+              amount: c.quotedPrice == null ? undefined : money(c.quotedPrice),
+              status: renderStatusBadge(c.status, tr),
+              _ts: Date.parse(c.createdAt || '') || 0,
+            })),
+          ]
+            .sort((a, b) => b._ts - a._ts)
+            .map(({ _ts: _unusedTs, ...entry }) => {
+              void _unusedTs;
+              return entry;
+            })}
         />
       )}
       <div className="space-y-6">
+        {(admin ? filteredCheckouts : visibleCheckout ? [visibleCheckout] : []).map(co => (
+          <CheckoutOrderDetailCard
+            key={co.id}
+            checkoutOrder={co}
+            admin={admin}
+            busy={action.busy}
+            onRunAction={action.run}
+          />
+        ))}
         {(admin ? filteredOrders : visibleRequest ? [visibleRequest] : []).map(c => {
           const req = parseOrderRequirements(c.requirements, c);
           const ship = parseShippingAddress(c.shippingAddress, c.buyerName);
