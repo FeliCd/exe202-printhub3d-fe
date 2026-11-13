@@ -319,6 +319,7 @@ export function Pagination({
 /* ========================================================================= */
 const labels: Record<string, string> = {
   PENDING: 'Chờ xử lý',
+  PENDING_QUOTE: 'Chờ báo giá',
   PAID: 'Đã thanh toán',
   UNPAID: 'Chưa thanh toán',
   PREPARING: 'Chuẩn bị phôi & file',
@@ -329,7 +330,8 @@ const labels: Record<string, string> = {
   EXPIRED: 'Hết hạn thanh toán',
   REQUESTED: 'Chờ báo giá',
   QUOTED: 'Đã báo giá',
-  ACCEPTED: 'Đã chấp nhận',
+  ACCEPTED: 'Chờ thanh toán',
+  CONFIRMED: 'Đã duyệt · Chờ TT',
   APPROVED: 'Đã duyệt',
   REJECTED: 'Từ chối',
   REPLACED: 'Đã đổi sản phẩm',
@@ -350,13 +352,16 @@ export function Status({ value, className = '' }: { value?: string; className?: 
   if (['CANCELLED', 'FAILED', 'REJECTED', 'DISPUTED'].includes(v)) {
     color = 'border-red-500/40 bg-red-950/40 text-red-400 font-semibold';
     dotColor = 'bg-red-400';
-  } else if (['PENDING', 'REQUESTED', 'UNDER_REVIEW', 'OPEN', 'UNPAID', 'EXPIRED'].includes(v)) {
+  } else if (['PENDING', 'PENDING_QUOTE', 'REQUESTED', 'UNDER_REVIEW', 'OPEN', 'UNPAID', 'EXPIRED'].includes(v)) {
     color = 'border-amber-500/40 bg-amber-950/40 text-amber-300 font-semibold';
     dotColor = 'bg-amber-400';
+  } else if (['ACCEPTED', 'CONFIRMED'].includes(v)) {
+    color = 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300 font-semibold';
+    dotColor = 'bg-cyan-400';
+  } else if (['PAID', 'COMPLETED', 'APPROVED', 'RESOLVED', 'SUCCESS', 'REPLACED'].includes(v)) {
+    color = 'border-emerald-500/40 bg-emerald-950/40 text-emerald-300 font-semibold';
+    dotColor = 'bg-emerald-400';
   } else if (['PREPARING', 'PRINTING', 'SHIPPING', 'QUOTED'].includes(v)) {
-    color = 'border-primary/40 bg-primary/10 text-primary font-semibold';
-    dotColor = 'bg-primary';
-  } else if (['COMPLETED', 'PAID', 'APPROVED', 'ACCEPTED', 'RESOLVED', 'SUCCESS', 'REPLACED'].includes(v)) {
     color = 'border-primary/40 bg-primary/10 text-primary font-semibold';
     dotColor = 'bg-primary';
   }

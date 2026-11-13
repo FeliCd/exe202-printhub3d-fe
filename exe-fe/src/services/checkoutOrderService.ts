@@ -40,6 +40,8 @@ export interface CheckoutOrderDTO {
   appliedSubscriptionId?: string;
   appliedSubscriptionName?: string;
   priorityProduction?: boolean;
+  cancelledByRole?: string;
+  cancelledAt?: string;
 }
 
 export interface BatchQuoteItemPayload {

@@ -8,7 +8,7 @@ import type { CustomDTO } from '../../services/quotationService';
 import subscriptionService, { type BenefitPreviewResponse } from '../../services/subscriptionService';
 import { Notice, RemoteState } from '../../components/DataUI';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import { money } from '../../utils/format';
+import { formatDateTime, money } from '../../utils/format';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import type { CheckoutOrderDTO } from '../../services/checkoutOrderService';
 import CheckoutOrderDetailCard from './CheckoutOrderDetailCard';
@@ -37,6 +37,7 @@ import {
   ChevronRight,
   ShieldCheck,
   PlusCircle,
+  XCircle,
 } from 'lucide-react';
 
 /* ========================================================================= */
@@ -1238,6 +1239,30 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         }`}
                       > {tr("4. Hoàn tất")} </div>
                     </div>
+                  </div>
+                )}
+
+                {c.status === 'CANCELLED' && (
+                  <div className="p-4 rounded-2xl border border-rose-500/40 bg-rose-950/30 space-y-1.5 text-xs">
+                    <div className="flex items-center gap-2 font-bold text-rose-300">
+                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>
+                        {(c.cancelledByRole || '').toUpperCase() === 'ADMIN'
+                          ? tr('Xưởng đã hủy yêu cầu báo giá này')
+                          : tr('Yêu cầu đặt in đã bị hủy')}
+                      </span>
+                    </div>
+                    <p className="text-rose-200/90 pl-6">
+                      {tr('Lý do:')}{' '}
+                      <span className="font-semibold text-white">
+                        {c.cancelReason || tr('Không có lý do chi tiết')}
+                      </span>
+                    </p>
+                    {c.cancelledAt && (
+                      <p className="text-[11px] font-mono text-rose-300/70 pl-6">
+                        {tr('Thời điểm hủy:')} {formatDateTime(c.cancelledAt)}
+                      </p>
+                    )}
                   </div>
                 )}
 

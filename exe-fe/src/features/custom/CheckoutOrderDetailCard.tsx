@@ -19,6 +19,7 @@ import {
   Truck,
   User,
   X,
+  XCircle,
 } from 'lucide-react';
 import api from '../../services/api';
 import checkoutOrderService, { type CheckoutOrderDTO } from '../../services/checkoutOrderService';
@@ -26,8 +27,10 @@ import quotationService, { type CustomDTO } from '../../services/quotationServic
 import subscriptionService, { type BenefitPreviewResponse } from '../../services/subscriptionService';
 import { payOrder } from '../../services/paymentService';
 import { downloadFile } from '../../services/fileVaultService';
+import { getApiErrorMessage } from '../../utils/apiError';
 import RulerSpecsViewer from '../../components/RulerSpecsViewer';
 import Modal from '../../components/Modal';
+import CancelCustomOrderModal from './CancelCustomOrderModal';
 import { Modal3DViewer } from '../ruler-studio/Modal3DViewer';
 import type { Design } from '../ruler-studio/model';
 import { money, formatDateTime } from '../../utils/format';
@@ -127,6 +130,8 @@ export default function CheckoutOrderDetailCard({
   const [batchQuoteError, setBatchQuoteError] = useState<string>('');
   const [previewDesign, setPreviewDesign] = useState<{ design: Design; name: string } | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelError, setCancelError] = useState('');
 
   const items: CustomDTO[] = (co.customOrderDetails && co.customOrderDetails.length > 0
     ? co.customOrderDetails
@@ -369,9 +374,38 @@ export default function CheckoutOrderDetailCard({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {co.priorityProduction && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-950/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
+              <Sparkles className="w-3 h-3" /> Ưu tiên VIP
+            </span>
+          )}
           <Status value={co.status} />
         </div>
       </div>
+
+      {/* Red Cancellation Banner */}
+      {(co.status || '').toUpperCase() === 'CANCELLED' && (
+        <div className="rounded-xl border border-rose-500/40 bg-rose-950/35 p-4 space-y-1.5 text-xs">
+          <div className="flex items-center gap-2 font-bold text-rose-300">
+            <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>
+              {(co.cancelledByRole || '').toUpperCase() === 'ADMIN'
+                ? 'Đơn hàng đã bị Xưởng / Admin hủy'
+                : (co.cancelledByRole || '').toUpperCase() === 'BUYER'
+                  ? 'Khách hàng đã hủy đơn hàng này'
+                  : 'Đơn hàng này đã bị hủy'}
+            </span>
+          </div>
+          <p className="text-rose-200/90 pl-6">
+            Lý do: <span className="font-semibold text-white">{co.cancelReason || 'Không có lý do chi tiết'}</span>
+          </p>
+          {co.cancelledAt && (
+            <p className="text-[11px] font-mono text-rose-300/70 pl-6">
+              Thời điểm hủy: {formatDateTime(co.cancelledAt)}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Shipping & Payment summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
@@ -886,6 +920,23 @@ export default function CheckoutOrderDetailCard({
             </button>
           )}
 
+          {admin &&
+            ['PENDING_QUOTE', 'QUOTED', 'CONFIRMED'].includes((co.status || '').toUpperCase()) &&
+            (co.paymentStatus || '').toUpperCase() !== 'SUCCESS' && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setCancelError('');
+                  setCancelModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-950/20 text-rose-300 text-xs font-bold hover:bg-rose-900/30 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                <span>Hủy yêu cầu báo giá</span>
+              </button>
+            )}
+
           {admin && !forwardAct && blockedPayment && (
             <span className="px-3 py-1.5 rounded-xl border border-amber-500/40 bg-amber-950/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
@@ -894,6 +945,33 @@ export default function CheckoutOrderDetailCard({
           )}
         </div>
       </div>
+
+      <CancelCustomOrderModal
+        open={cancelModalOpen}
+        orderId={co.id}
+        orderLabel={co.recipientName || co.buyerName || 'Đơn hàng gộp'}
+        submitting={busy}
+        error={cancelError}
+        onClose={() => {
+          setCancelError('');
+          setCancelModalOpen(false);
+        }}
+        onConfirm={async (reason) => {
+          setCancelError('');
+          try {
+            await onRunAction(() =>
+              checkoutOrderService.updateAdminCheckoutOrderStatus(co.id, {
+                status: 'CANCELLED',
+                action: 'CANCEL',
+                cancelReason: reason,
+              })
+            );
+            setCancelModalOpen(false);
+          } catch (err) {
+            setCancelError(getApiErrorMessage(err, 'Không thể hủy đơn hàng lúc này.'));
+          }
+        }}
+      />
 
       {/* 3D Model Viewer Modal */}
       {previewDesign && (

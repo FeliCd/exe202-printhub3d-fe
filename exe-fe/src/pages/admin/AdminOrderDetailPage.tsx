@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Copy,
@@ -22,10 +22,13 @@ import {
 } from 'lucide-react';
 import api, { send, unwrap } from '../../services/api';
 import checkoutOrderService, { type CheckoutOrderDTO } from '../../services/checkoutOrderService';
+import quotationService from '../../services/quotationService';
 import CheckoutOrderDetailCard from '../../features/custom/CheckoutOrderDetailCard';
+import CancelCustomOrderModal from '../../features/custom/CancelCustomOrderModal';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
-import { Status } from '../../components/DataUI';
+import { Status, field } from '../../components/DataUI';
 import { money, formatDateTime } from '../../utils/format';
+import { getApiErrorMessage } from '../../utils/apiError';
 import { RulerSpecsViewer } from '../../components/RulerSpecsViewer';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Modal from '../../components/Modal';
@@ -54,6 +57,15 @@ interface CustomOrderAdminDetail {
   createdAt: string;
   allowedActions?: string[];
   blockedActions?: { action: string; reasonCode: string; message: string }[];
+  subtotalAmount?: number;
+  shippingFee?: number;
+  discountAmount?: number;
+  shippingDiscountAmount?: number;
+  appliedSubscriptionName?: string;
+  priorityProduction?: boolean;
+  cancelReason?: string;
+  cancelledByRole?: string;
+  cancelledAt?: string;
 }
 
 const STEPS = [
@@ -89,6 +101,7 @@ function getActiveStep(s: string) {
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -103,70 +116,125 @@ export default function AdminOrderDetailPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancelCustomModalOpen, setCancelCustomModalOpen] = useState(false);
+  const [cancelCustomError, setCancelCustomError] = useState('');
+  const [quoteUnitPrice, setQuoteUnitPrice] = useState('');
+  const [quoteNote, setQuoteNote] = useState('');
+  const [quoteError, setQuoteError] = useState('');
   const [codConfirmOpen, setCodConfirmOpen] = useState(false);
 
+  const kindHint = (searchParams.get('kind') || '').toUpperCase();
+
+  const loadOrderData = useCallback(async (): Promise<{
+    kind: 'MARKETPLACE' | 'CUSTOM' | 'CHECKOUT' | null;
+    marketplace: OrderDTO | null;
+    custom: CustomOrderAdminDetail | null;
+    checkout: CheckoutOrderDTO | null;
+    errorMessage: string | null;
+  }> => {
+    if (!id) {
+      return { kind: null, marketplace: null, custom: null, checkout: null, errorMessage: 'Mã đơn hàng không hợp lệ.' };
+    }
+
+    const tryMarketplace = async () => {
+      try {
+        const res = await api.get<{ code: number; result: OrderDTO } | OrderDTO>(`/orders/${id}`);
+        const data = unwrap(res.data);
+        if (data && (data.id || (data as OrderDTO).items)) {
+          return data as OrderDTO;
+        }
+      } catch {
+        // Bỏ qua lỗi để thử fallback nếu không chỉ định kind
+      }
+      return null;
+    };
+
+    const tryCheckout = async () => {
+      try {
+        const coData = await checkoutOrderService.getAdminCheckoutOrder(id);
+        if (coData && coData.id) {
+          return coData;
+        }
+      } catch {
+        // Bỏ qua lỗi để thử fallback nếu không chỉ định kind
+      }
+      return null;
+    };
+
+    const tryCustom = async () => {
+      try {
+        const customData = (await quotationService.getAdminCustomOrder(id)) as CustomOrderAdminDetail;
+        if (customData && customData.id) {
+          return customData;
+        }
+      } catch {
+        // Bỏ qua lỗi
+      }
+      return null;
+    };
+
+    if (kindHint === 'MARKETPLACE') {
+      const m = await tryMarketplace();
+      if (m) return { kind: 'MARKETPLACE', marketplace: m, custom: null, checkout: null, errorMessage: null };
+    } else if (kindHint === 'CHECKOUT') {
+      const c = await tryCheckout();
+      if (c) return { kind: 'CHECKOUT', marketplace: null, custom: null, checkout: c, errorMessage: null };
+    } else if (kindHint === 'CUSTOM') {
+      const cu = await tryCustom();
+      if (cu) return { kind: 'CUSTOM', marketplace: null, custom: cu, checkout: null, errorMessage: null };
+    } else {
+      const m = await tryMarketplace();
+      if (m) return { kind: 'MARKETPLACE', marketplace: m, custom: null, checkout: null, errorMessage: null };
+      const c = await tryCheckout();
+      if (c) return { kind: 'CHECKOUT', marketplace: null, custom: null, checkout: c, errorMessage: null };
+      const cu = await tryCustom();
+      if (cu) return { kind: 'CUSTOM', marketplace: null, custom: cu, checkout: null, errorMessage: null };
+    }
+
+    return {
+      kind: null,
+      marketplace: null,
+      custom: null,
+      checkout: null,
+      errorMessage: `Không tìm thấy đơn hàng có mã ID: ${id}`,
+    };
+  }, [id, kindHint]);
+
+  const applyOrderResult = useCallback(
+    (result: Awaited<ReturnType<typeof loadOrderData>>) => {
+      setOrderType(result.kind);
+      setMarketplaceOrder(result.marketplace);
+      setCheckoutOrder(result.checkout);
+      setCustomOrder(result.custom);
+      if (result.custom) {
+        setQuoteUnitPrice(result.custom.unitQuotedPrice ? String(result.custom.unitQuotedPrice) : '');
+        setQuoteNote(result.custom.quoteNote || '');
+        setQuoteError('');
+      }
+      setError(result.errorMessage);
+      setLoading(false);
+    },
+    []
+  );
+
   const fetchOrderDetail = useCallback(async () => {
-    if (!id) return;
     setLoading(true);
     setError(null);
-
-    // 1. Thử tải dưới dạng đơn Marketplace
-    try {
-      const res = await api.get<{ code: number; result: OrderDTO } | OrderDTO>(`/orders/${id}`);
-      const data = unwrap(res.data);
-      if (data && (data.id || (data as OrderDTO).items)) {
-        setMarketplaceOrder(data as OrderDTO);
-        setCustomOrder(null);
-        setCheckoutOrder(null);
-        setOrderType('MARKETPLACE');
-        setLoading(false);
-        return;
-      }
-    } catch {
-      // Bỏ qua lỗi và thử tiếp dạng CheckoutOrder cha
-    }
-
-    // 2. Thử tải dưới dạng đơn cha CheckoutOrder (đơn gộp / báo giá nhiều món)
-    try {
-      const coData = await checkoutOrderService.getAdminCheckoutOrder(id);
-      if (coData && coData.id) {
-        setCheckoutOrder(coData);
-        setMarketplaceOrder(null);
-        setCustomOrder(null);
-        setOrderType('CHECKOUT');
-        setLoading(false);
-        return;
-      }
-    } catch {
-      // Bỏ qua lỗi và thử tiếp dạng Custom Order lẻ
-    }
-
-    // 3. Thử tìm trong danh sách Custom Order của Admin
-    try {
-      const res = await api.get<{ code: number; result: CustomOrderAdminDetail[] } | CustomOrderAdminDetail[]>(
-        '/admin/custom-orders'
-      );
-      const list = unwrap(res.data) || [];
-      const found = Array.isArray(list) ? list.find((c) => c.id === id) : null;
-      if (found) {
-        setCustomOrder(found);
-        setMarketplaceOrder(null);
-        setCheckoutOrder(null);
-        setOrderType('CUSTOM');
-        setLoading(false);
-        return;
-      }
-    } catch {
-      // Thử thất bại
-    }
-
-    setError(`Không tìm thấy đơn hàng có mã ID: ${id}`);
-    setLoading(false);
-  }, [id]);
+    const result = await loadOrderData();
+    applyOrderResult(result);
+  }, [loadOrderData, applyOrderResult]);
 
   useEffect(() => {
-    void fetchOrderDetail();
-  }, [fetchOrderDetail]);
+    let active = true;
+    void loadOrderData().then((result) => {
+      if (active) {
+        applyOrderResult(result);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [loadOrderData, applyOrderResult]);
 
   const handleCopyId = () => {
     if (!id) return;
@@ -235,7 +303,7 @@ export default function AdminOrderDetailPage() {
     setUpdating(true);
     try {
       if (orderType === 'CUSTOM') {
-        await send(`/custom-orders/${id}/status`, { status: targetStatus }, 'put');
+        await send(`/admin/custom-orders/${id}/status`, { status: targetStatus }, 'put');
       } else {
         await send(`/orders/${id}/status`, { status: targetStatus }, 'put');
       }
@@ -246,6 +314,41 @@ export default function AdminOrderDetailPage() {
       setUpdating(false);
       setCodConfirmOpen(false);
       setCancelConfirmOpen(false);
+    }
+  };
+
+  const handleQuoteCustom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customOrder) return;
+    const priceNum = Number(quoteUnitPrice);
+    if (!Number.isFinite(priceNum) || priceNum <= 0) {
+      setQuoteError('Vui lòng nhập đơn giá lớn hơn 0 VND.');
+      return;
+    }
+    setQuoteError('');
+    setUpdating(true);
+    try {
+      await quotationService.quoteCustomOrder(customOrder.id, priceNum, quoteNote);
+      await fetchOrderDetail();
+    } catch (err) {
+      setQuoteError(getApiErrorMessage(err, 'Không thể gửi báo giá.'));
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleCancelCustom = async (cancelReason: string) => {
+    if (!customOrder) return;
+    setCancelCustomError('');
+    setUpdating(true);
+    try {
+      await quotationService.adminCancelCustomOrder(customOrder.id, cancelReason);
+      setCancelCustomModalOpen(false);
+      await fetchOrderDetail();
+    } catch (err) {
+      setCancelCustomError(getApiErrorMessage(err, 'Không thể hủy yêu cầu báo giá.'));
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -351,7 +454,9 @@ export default function AdminOrderDetailPage() {
           design: (p?.rulerId ? p : null) as Design | null,
         };
       }
-    } catch {}
+    } catch {
+      /* Bỏ qua JSON không hợp lệ */
+    }
     return { glbUrl: null, previewImageUrl: null, design: null };
   })();
 
@@ -430,6 +535,13 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {(orderType === 'MARKETPLACE'
+              ? marketplaceOrder?.priorityProduction
+              : customOrder?.priorityProduction) && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-950/40 px-3 py-1 text-xs font-bold text-amber-300">
+                <Sparkles className="w-3.5 h-3.5" /> Ưu tiên VIP
+              </span>
+            )}
             <div className="text-right">
               <span className="text-xs text-slate-400 font-mono block">Trạng thái hiện tại:</span>
               <Status value={currentStatus} className="mt-1" />
@@ -440,9 +552,27 @@ export default function AdminOrderDetailPage() {
         {/* Visual Stepper */}
         <div className="pt-4 border-t border-white/10">
           {currentStatus === 'CANCELLED' ? (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-xs font-semibold">
-              <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
-              <span>Đơn hàng này đã bị hủy bỏ trên hệ thống.</span>
+            <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-200 text-xs space-y-1.5">
+              <div className="flex items-center gap-2.5 font-semibold text-rose-300">
+                <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                <span>
+                  {customOrder?.cancelledByRole === 'ADMIN'
+                    ? 'Đơn hàng đã bị Xưởng / Admin hủy.'
+                    : customOrder?.cancelledByRole === 'BUYER'
+                      ? 'Khách hàng đã hủy yêu cầu này.'
+                      : 'Đơn hàng này đã bị hủy bỏ trên hệ thống.'}
+                </span>
+              </div>
+              {customOrder?.cancelReason && (
+                <p className="pl-7 text-rose-100">
+                  Lý do: <span className="font-semibold text-white">{customOrder.cancelReason}</span>
+                </p>
+              )}
+              {customOrder?.cancelledAt && (
+                <p className="pl-7 font-mono text-[11px] text-rose-300/80">
+                  Thời điểm hủy: {formatDateTime(customOrder.cancelledAt)}
+                </p>
+              )}
             </div>
           ) : currentStatus === 'EXPIRED' ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-950/40 border border-amber-800 text-amber-300 text-xs font-semibold">
@@ -568,16 +698,70 @@ export default function AdminOrderDetailPage() {
               />
             </div>
 
-            <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-              <span className="text-slate-400 font-mono text-sm">Tổng tiền đơn hàng:</span>
-              <span className="text-2xl font-black text-[#39FF14] font-mono">
-                {orderType === 'MARKETPLACE'
-                  ? money(marketplaceOrder?.totalAmount || 0)
-                  : customOrder?.quotedPrice
-                  ? money(customOrder.quotedPrice)
-                  : 'Chờ báo giá'}
-              </span>
-            </div>
+            {(() => {
+              const fin = orderType === 'MARKETPLACE' ? marketplaceOrder : customOrder;
+              const sub = fin?.subtotalAmount;
+              const ship = fin?.shippingFee ?? 0;
+              const disc = fin?.discountAmount ?? 0;
+              const shipDisc = fin?.shippingDiscountAmount ?? 0;
+              const subName = fin?.appliedSubscriptionName;
+              const hasBreakdown = sub != null || ship > 0 || disc > 0 || shipDisc > 0 || Boolean(subName);
+              const customNet =
+                customOrder?.subtotalAmount != null
+                  ? Math.max(0, customOrder.subtotalAmount - (customOrder.discountAmount ?? 0)) +
+                    Math.max(0, (customOrder.shippingFee ?? 0) - (customOrder.shippingDiscountAmount ?? 0))
+                  : customOrder?.quotedPrice;
+
+              return (
+                <>
+                  {hasBreakdown && (
+                    <div className="rounded-xl border border-white/10 bg-[#040508]/60 p-3 space-y-1.5 font-mono text-[11px]">
+                      {sub != null && (
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span>Tạm tính tiền hàng:</span>
+                          <span>{money(sub)}</span>
+                        </div>
+                      )}
+                      {ship > 0 && (
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span>Phí vận chuyển gốc:</span>
+                          <span>{money(ship)}</span>
+                        </div>
+                      )}
+                      {disc > 0 && (
+                        <div className="flex items-center justify-between text-emerald-300">
+                          <span>Giảm hội viên{subName ? ` (${subName})` : ''}:</span>
+                          <span>-{money(disc)}</span>
+                        </div>
+                      )}
+                      {shipDisc > 0 && (
+                        <div className="flex items-center justify-between text-emerald-300">
+                          <span>Miễn/giảm phí ship:</span>
+                          <span>-{money(shipDisc)}</span>
+                        </div>
+                      )}
+                      {subName && disc === 0 && shipDisc === 0 && (
+                        <div className="flex items-center justify-between text-amber-300">
+                          <span>Gói hội viên áp dụng:</span>
+                          <span>{subName}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-slate-400 font-mono text-sm">Tổng tiền cần thanh toán:</span>
+                    <span className="text-2xl font-black text-[#39FF14] font-mono">
+                      {orderType === 'MARKETPLACE'
+                        ? money(marketplaceOrder?.totalAmount || 0)
+                        : customNet != null
+                          ? money(customNet)
+                          : 'Chờ báo giá'}
+                    </span>
+                  </div>
+                </>
+              );
+            })()}
 
             {currentStatus === 'PENDING' &&
               (orderType === 'MARKETPLACE' ? marketplaceOrder?.paymentMethod : customOrder?.paymentMethod) ===
@@ -716,6 +900,76 @@ export default function AdminOrderDetailPage() {
         </div>
       )}
 
+      {/* Báo giá cho đơn in custom lẻ */}
+      {orderType === 'CUSTOM' &&
+        customOrder &&
+        ['REQUESTED', 'QUOTED'].includes((customOrder.status || '').toUpperCase()) && (
+          <form
+            onSubmit={handleQuoteCustom}
+            className="p-5 rounded-2xl bg-[#0a0c12] border border-[#00e5ff]/30 space-y-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
+              <span className="font-mono text-xs font-bold text-[#00e5ff] uppercase tracking-wider">
+                Báo Giá Đơn In Custom (SL: {customOrder.quantity || 1})
+              </span>
+              {Number(quoteUnitPrice) > 0 && (
+                <span className="font-mono text-xs font-bold text-[#39FF14]">
+                  Thành tiền tạm tính: {money(Number(quoteUnitPrice) * (customOrder.quantity || 1))}
+                </span>
+              )}
+            </div>
+
+            {quoteError && (
+              <div className="rounded-xl border border-rose-500/40 bg-rose-950/30 px-3 py-2 text-xs text-rose-300">
+                {quoteError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Đơn giá / chiếc (VND)</label>
+                <input
+                  type="number"
+                  min={1000}
+                  step={500}
+                  value={quoteUnitPrice}
+                  onChange={(e) => {
+                    setQuoteUnitPrice(e.target.value);
+                    setQuoteError('');
+                  }}
+                  placeholder="Ví dụ: 45000"
+                  className={field}
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs text-slate-400 mb-1">Ghi chú kỹ thuật / báo giá (tùy chọn)</label>
+                <input
+                  type="text"
+                  value={quoteNote}
+                  onChange={(e) => setQuoteNote(e.target.value)}
+                  placeholder="Thời gian in dự kiến, chất liệu nhựa, lưu ý file STL..."
+                  className={field}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={updating}
+                className="px-5 py-2.5 rounded-xl bg-[#00e5ff] text-slate-950 font-black text-xs hover:brightness-110 transition cursor-pointer disabled:opacity-50"
+              >
+                {updating
+                  ? 'Đang lưu...'
+                  : customOrder.status === 'QUOTED'
+                    ? 'Cập nhật báo giá'
+                    : 'Gửi báo giá cho khách'}
+              </button>
+            </div>
+          </form>
+        )}
+
       {/* Card 4: Thao tác Quản trị viên (Admin Controls) */}
       <div className="p-5 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
@@ -739,16 +993,32 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {currentStatus !== 'CANCELLED' && currentStatus !== 'COMPLETED' && currentStatus !== 'EXPIRED' && (
-              <button
-                type="button"
-                onClick={() => setCancelConfirmOpen(true)}
-                disabled={updating}
-                className="px-4 py-2 rounded-xl border border-rose-500/30 hover:bg-rose-500/10 text-rose-400 font-bold text-xs transition cursor-pointer"
-              >
-                Hủy Đơn Hàng Này
-              </button>
-            )}
+            {orderType === 'CUSTOM' &&
+              ['REQUESTED', 'QUOTED'].includes((currentStatus || '').toUpperCase()) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCancelCustomError('');
+                    setCancelCustomModalOpen(true);
+                  }}
+                  disabled={updating}
+                  className="px-4 py-2 rounded-xl border border-rose-500/30 hover:bg-rose-500/10 text-rose-400 font-bold text-xs transition cursor-pointer"
+                >
+                  Hủy yêu cầu báo giá
+                </button>
+              )}
+
+            {orderType === 'MARKETPLACE' &&
+              (currentStatus || '').toUpperCase() === 'PENDING' && (
+                <button
+                  type="button"
+                  onClick={() => setCancelConfirmOpen(true)}
+                  disabled={updating}
+                  className="px-4 py-2 rounded-xl border border-rose-500/30 hover:bg-rose-500/10 text-rose-400 font-bold text-xs transition cursor-pointer"
+                >
+                  Hủy Đơn Hàng Này
+                </button>
+              )}
 
             {nextStatus && (
               <button
@@ -847,7 +1117,7 @@ export default function AdminOrderDetailPage() {
         onConfirm={() => void handleUpdateStatus('COMPLETED')}
       />
 
-      {/* Confirm Cancel Modal */}
+      {/* Confirm Cancel Modal (Marketplace) */}
       <ConfirmDialog
         open={cancelConfirmOpen}
         onClose={() => setCancelConfirmOpen(false)}
@@ -858,6 +1128,20 @@ export default function AdminOrderDetailPage() {
         variant="danger"
         busy={updating}
         onConfirm={() => void handleUpdateStatus('CANCELLED')}
+      />
+
+      {/* Cancel Custom Order Modal (Mandatory Reason >= 5 chars) */}
+      <CancelCustomOrderModal
+        open={cancelCustomModalOpen}
+        orderId={customOrder?.id}
+        orderLabel={customOrder?.buyerName || 'Đơn in custom'}
+        submitting={updating}
+        error={cancelCustomError}
+        onClose={() => {
+          setCancelCustomError('');
+          setCancelCustomModalOpen(false);
+        }}
+        onConfirm={handleCancelCustom}
       />
     </div>
   );

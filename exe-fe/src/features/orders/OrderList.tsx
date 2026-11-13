@@ -25,6 +25,7 @@ import { payOrder } from '../../services/paymentService';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
 import type { CheckoutOrderDTO } from '../../services/checkoutOrderService';
 import CheckoutOrderDetailCard from '../custom/CheckoutOrderDetailCard';
+import AdminOrdersUnifiedList from './components/AdminOrdersUnifiedList';
 import ReviewModal from '../reviews/ReviewModal';
 import { RemoteState, Notice, Status } from '../../components/DataUI';
 import { money, formatDateTime } from '../../utils/format';
@@ -179,9 +180,17 @@ const normalizeOrderSearch = (value: string) =>
   value.trim().toLocaleLowerCase('vi').normalize('NFD').replace(/\p{Diacritic}|#/gu, '').replace(/đ/g, 'd');
 
 export default function OrderList({ admin = false, history = false }: { admin?: boolean; history?: boolean }) {
-  const remote = useRemote<OrderDTO[]>(admin ? '/admin/orders' : '/orders/me');
-  const customRemote = useRemote<CustomOrderAdminItem[]>(admin ? '/admin/custom-orders' : '/custom-orders');
-  const checkoutRemote = useRemote<CheckoutOrderDTO[]>(admin ? '/admin/checkout-orders' : '/checkout-orders/my');
+  if (admin) {
+    return <AdminOrdersUnifiedList history={history} />;
+  }
+  return <BuyerOrderList history={history} />;
+}
+
+function BuyerOrderList({ history = false }: { history?: boolean }) {
+  const admin: boolean = false;
+  const remote = useRemote<OrderDTO[]>('/orders/me');
+  const customRemote = useRemote<CustomOrderAdminItem[]>('/custom-orders');
+  const checkoutRemote = useRemote<CheckoutOrderDTO[]>('/checkout-orders/my');
 
   const handleReload = () => {
     remote.reload();

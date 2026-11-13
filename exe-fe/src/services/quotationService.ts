@@ -30,6 +30,9 @@ export interface CustomDTO {
   appliedSubscriptionId?: string;
   appliedSubscriptionName?: string;
   priorityProduction?: boolean;
+  cancelReason?: string;
+  cancelledByRole?: string;
+  cancelledAt?: string;
 }
 
 export interface CustomOrderCreateRequest {
@@ -47,16 +50,24 @@ export interface CustomOrderCreateRequest {
 export const quotationService = {
   // User endpoints
   getMyCustomOrders: () => read<CustomDTO[]>('/custom-orders'),
+  getCustomOrder: (id: string) => read<CustomDTO>(`/custom-orders/${encodeURIComponent(id)}`),
   createCustomOrder: (data: CustomOrderCreateRequest | unknown) => send<CustomDTO>('/custom-orders', data),
   updateCustomOrderStatus: (id: string, status: string, paymentMethod?: string) =>
     send(`/custom-orders/${id}/status`, { status, paymentMethod }, 'put'),
-  cancelCustomOrder: (id: string) =>
-    send(`/custom-orders/${id}/status`, { status: 'CANCELLED' }, 'put'),
+  cancelCustomOrder: (id: string, cancelReason?: string) =>
+    send(
+      `/custom-orders/${id}/status`,
+      { status: 'CANCELLED', action: 'CANCEL', ...(cancelReason ? { cancelReason } : {}) },
+      'put'
+    ),
   acceptQuotation: (id: string, paymentMethod: string = 'PAYOS') =>
     send(`/custom-orders/${id}/status`, { status: 'ACCEPTED', paymentMethod }, 'put'),
 
   // Admin endpoints
   getAllCustomOrders: () => read<CustomDTO[]>('/admin/custom-orders'),
+  getAdminCustomOrder: (id: string) => read<CustomDTO>(`/admin/custom-orders/${encodeURIComponent(id)}`),
+  adminCancelCustomOrder: (id: string, cancelReason: string) =>
+    send(`/admin/custom-orders/${id}/status`, { status: 'CANCELLED', action: 'CANCEL', cancelReason }, 'put'),
   quoteCustomOrder: (id: string, unitPrice: number, note?: string) =>
     send(`/admin/custom-orders/${id}/quote`, { unitPrice, price: unitPrice, note: note?.trim() ? note.trim() : undefined }, 'put'),
 };
