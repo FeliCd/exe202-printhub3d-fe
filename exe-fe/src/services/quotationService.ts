@@ -23,6 +23,13 @@ export interface CustomDTO {
   paymentStatus?: string;
   allowedActions?: string[];
   blockedActions?: { action: string; reasonCode: string; message: string }[];
+  subtotalAmount?: number;
+  shippingFee?: number;
+  discountAmount?: number;
+  shippingDiscountAmount?: number;
+  appliedSubscriptionId?: string;
+  appliedSubscriptionName?: string;
+  priorityProduction?: boolean;
 }
 
 export interface CustomOrderCreateRequest {

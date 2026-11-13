@@ -41,6 +41,13 @@ export interface OrderDTO {
   paymentDueAt?: string;
   allowedActions?: string[];
   blockedActions?: BlockedActionDTO[];
+  subtotalAmount?: number;
+  shippingFee?: number;
+  discountAmount?: number;
+  shippingDiscountAmount?: number;
+  appliedSubscriptionId?: string;
+  appliedSubscriptionName?: string;
+  priorityProduction?: boolean;
 }
 
 export const orderService = {

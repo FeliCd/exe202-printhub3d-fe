@@ -1,10 +1,11 @@
 import RecordList, { RecordDetailHeader } from '../../components/RecordList';
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
 import api, { send } from '../../services/api';
 import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
 import type { CustomDTO } from '../../services/quotationService';
+import subscriptionService, { type BenefitPreviewResponse } from '../../services/subscriptionService';
 import { Notice, RemoteState } from '../../components/DataUI';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { money } from '../../utils/format';
@@ -417,6 +418,45 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
   const visibleCheckout = detailId ? checkoutCustomOrders.find(co => co.id === detailId) : undefined;
   const visibleRequest = detailId && !visibleCheckout ? remote.data?.find(c => c.id === detailId) : undefined;
+
+  const [quotePreviewState, setQuotePreviewState] = useState<{
+    key: string;
+    data: BenefitPreviewResponse;
+  } | null>(null);
+  const visibleLineTotal = visibleRequest?.quotedPrice ?? 0;
+  const visibleShippingBase =
+    visibleRequest?.shippingFee && visibleRequest.shippingFee > 0 ? visibleRequest.shippingFee : 30000;
+  const quotePreviewKey =
+    !admin && visibleRequest && visibleRequest.status === 'QUOTED' && visibleLineTotal > 0
+      ? `${visibleRequest.id}:${visibleLineTotal}:${visibleShippingBase}`
+      : '';
+
+  useEffect(() => {
+    if (!quotePreviewKey) return;
+    let cancelled = false;
+    subscriptionService
+      .previewBenefits({
+        scope: 'CUSTOM',
+        itemsSubtotal: visibleLineTotal,
+        baseShippingFee: visibleShippingBase,
+      })
+      .then(data => {
+        if (!cancelled) {
+          setQuotePreviewState({ key: quotePreviewKey, data });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setQuotePreviewState(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [quotePreviewKey, visibleLineTotal, visibleShippingBase]);
+
+  const activeQuotePreview =
+    quotePreviewKey && quotePreviewState?.key === quotePreviewKey ? quotePreviewState.data : null;
   const createdBannerItems = searchParams.get('created') === 'true' ? searchParams.get('items') : null;
   const listLoading = remote.loading || checkoutRemote.loading;
   const hasVisibleItems = filteredCheckouts.length > 0 || filteredOrders.length > 0;
@@ -999,6 +1039,61 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           <strong className="text-cyan-400 font-mono">Ghi chú xưởng:</strong> {c.quoteNote}
                         </p>
                       )}
+                      {!admin && visibleRequest?.id === c.id && activeQuotePreview?.hasActiveSubscription && (
+                        <div className="mt-2 rounded-xl border border-[#39FF14]/40 bg-[#040508]/90 p-3 space-y-1.5 text-xs font-mono">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-[#39FF14] font-bold flex items-center gap-1.5 font-sans">
+                              <Sparkles className="w-3.5 h-3.5" />
+                              Ưu đãi hội viên: {activeQuotePreview.planName || 'Gói VIP'}
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {activeQuotePreview.discountAmount > 0 && (
+                                <span className="px-2 py-0.5 rounded bg-[#39FF14]/15 text-[#39FF14] text-[10px] font-bold">
+                                  -{activeQuotePreview.discountPercent}%
+                                </span>
+                              )}
+                              {activeQuotePreview.priorityProduction && (
+                                <span className="px-2 py-0.5 rounded bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 text-[10px] font-bold">
+                                  Ưu tiên sản xuất
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-slate-300">
+                            <span>Giá báo của xưởng:</span>
+                            <span className="text-white">{money(c.quotedPrice || 0)}</span>
+                          </div>
+                          {activeQuotePreview.discountAmount > 0 && (
+                            <div className="flex justify-between text-[#39FF14]">
+                              <span>Giảm hội viên:</span>
+                              <span>-{money(activeQuotePreview.discountAmount)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-slate-300">
+                            <span>
+                              Phí vận chuyển
+                              {activeQuotePreview.freeShippingUsesLimit != null
+                                ? ` (Còn ${activeQuotePreview.remainingFreeShippingUses ?? 0}/${activeQuotePreview.freeShippingUsesLimit} lượt)`
+                                : ''}
+                              :
+                            </span>
+                            <span className={activeQuotePreview.shippingDiscountAmount > 0 ? 'text-[#39FF14] font-bold' : 'text-white'}>
+                              {activeQuotePreview.shippingDiscountAmount > 0
+                                ? activeQuotePreview.finalShippingFee === 0
+                                  ? 'Miễn phí (0đ)'
+                                  : money(activeQuotePreview.finalShippingFee)
+                                : money(activeQuotePreview.finalShippingFee)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center pt-1.5 border-t border-white/10 text-sm">
+                            <span className="text-white font-bold font-sans">Tổng cần thanh toán dự kiến:</span>
+                            <span className="text-[#39FF14] font-black">{money(activeQuotePreview.finalTotal)}</span>
+                          </div>
+                          {activeQuotePreview.ineligibleReason && (
+                            <p className="text-[11px] text-amber-300 font-sans">{activeQuotePreview.ineligibleReason}</p>
+                          )}
+                        </div>
+                      )}
                       <p className="text-xs text-slate-300"> {tr("Đã bao gồm: Vật liệu sợi in PLA Pro+, gia công in FDM độ chính xác cao và khắc laser tên/MSSV.")} </p>
                     </div>
 
@@ -1042,44 +1137,81 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                 )}
 
                 {/* 3. STATUS: ACCEPTED & PAYOS (Cần thanh toán trước) */}
-                {c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && (
-                  <div className="rounded-2xl border border-[#39FF14]/40 bg-[#39FF14]/10 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-[#39FF14]/20 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] shrink-0">
-                        <QrCode className="w-5 h-5" />
+                {c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && (() => {
+                  const snapSub = c.subtotalAmount ?? c.quotedPrice ?? 0;
+                  const snapDisc = c.discountAmount ?? 0;
+                  const snapShip = c.shippingFee ?? 0;
+                  const snapShipDisc = c.shippingDiscountAmount ?? 0;
+                  const finalNet =
+                    c.subtotalAmount != null
+                      ? Math.max(0, snapSub - snapDisc) + Math.max(0, snapShip - snapShipDisc)
+                      : c.quotedPrice || 0;
+                  const hasSnapBenefit =
+                    snapDisc > 0 || snapShipDisc > 0 || !!c.appliedSubscriptionName || !!c.priorityProduction;
+                  return (
+                    <div className="rounded-2xl border border-[#39FF14]/40 bg-[#39FF14]/10 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-[#39FF14]/20 border border-[#39FF14]/40 flex items-center justify-center text-[#39FF14] shrink-0">
+                          <QrCode className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-bold text-white"> {tr("Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS")} </h3>
+                          <p className="text-xs text-slate-300 mt-0.5">
+                            {' '}{tr("Số tiền:")}{' '}
+                            <strong className="text-[#39FF14] font-mono">{money(finalNet)}</strong>
+                            {tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")}{' '}
+                          </p>
+                          {hasSnapBenefit && (
+                            <p className="text-[11px] font-mono text-slate-300">
+                              Giá gốc: {money(snapSub)}
+                              {snapDisc > 0 ? ` · Giảm hội viên (${c.appliedSubscriptionName || 'VIP'}): -${money(snapDisc)}` : ''}
+                              {snapShip > 0 ? ` · Ship: ${money(Math.max(0, snapShip - snapShipDisc))}` : ''}
+                              {c.priorityProduction ? ' · Ưu tiên sản xuất' : ''}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-white"> {tr("Đơn hàng đã được duyệt — Cần hoàn tất thanh toán VietQR PayOS")} </h3>
-                        <p className="text-xs text-slate-300 mt-0.5"> {tr("Số tiền:")} <strong className="text-[#39FF14] font-mono">{money(c.quotedPrice || 0)}</strong>{tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")} </p>
-                      </div>
-                    </div>
 
-                    {!admin && (
-                      <button
-                        type="button"
-                        disabled={action.busy}
-                        onClick={() => void action.run(() => payOrder(c.id, 'CUSTOM_ORDER'))}
-                        className="px-6 py-2.5 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-[#39FF14]/25 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
-                      >
-                        <CreditCard className="w-4 h-4" />
-                        <span>{tr("Thanh toán ngay")}</span>
-                      </button>
-                    )}
-                  </div>
-                )}
+                      {!admin && (
+                        <button
+                          type="button"
+                          disabled={action.busy}
+                          onClick={() => void action.run(() => payOrder(c.id, 'CUSTOM_ORDER'))}
+                          className="px-6 py-2.5 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-[#39FF14]/25 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          <span>{tr("Thanh toán ngay")}</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* 4. STATUS: PRINTING / SHIPPING / COMPLETED (Hiển thị thanh tiến độ sản xuất) */}
                 {['PRINTING', 'SHIPPING', 'COMPLETED'].includes(c.status) && (
                   <div className="p-4 rounded-2xl border border-white/10 bg-[#040508]/80 space-y-3">
-                    <div className="flex items-center justify-between text-xs font-semibold">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
                       <span className="text-slate-300 flex items-center gap-2">
                         {c.status === 'PRINTING' && <Printer className="w-4 h-4 text-[#00e5ff] animate-spin-slow" />}
                         {c.status === 'SHIPPING' && <Truck className="w-4 h-4 text-[#00e5ff]" />}
                         {c.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-[#39FF14]" />} {tr("Tiến độ sản xuất & Bàn giao:")} </span>
-                      {c.quotedPrice && (
-                        <span className="text-[#39FF14] font-mono font-bold"> {tr("Giá chốt:")} {money(c.quotedPrice)} ({c.paymentMethod})
-                        </span>
-                      )}
+                      {(() => {
+                        const snapSub = c.subtotalAmount ?? c.quotedPrice ?? 0;
+                        const snapDisc = c.discountAmount ?? 0;
+                        const snapShip = c.shippingFee ?? 0;
+                        const snapShipDisc = c.shippingDiscountAmount ?? 0;
+                        const netPaid =
+                          c.subtotalAmount != null
+                            ? Math.max(0, snapSub - snapDisc) + Math.max(0, snapShip - snapShipDisc)
+                            : c.quotedPrice;
+                        return netPaid != null ? (
+                          <span className="text-[#39FF14] font-mono font-bold">
+                            {' '}{tr("Giá chốt:")} {money(netPaid)} ({c.paymentMethod})
+                            {snapDisc > 0 ? ` · Đã giảm ${money(snapDisc)}` : ''}
+                            {c.priorityProduction ? ' · Ưu tiên in' : ''}
+                          </span>
+                        ) : null;
+                      })()}
                     </div>
 
                     <div className="grid grid-cols-4 gap-2 text-center text-[11px] font-mono">

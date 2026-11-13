@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Check,
   ChevronRight,
@@ -23,6 +23,7 @@ import {
 import api from '../../services/api';
 import checkoutOrderService, { type CheckoutOrderDTO } from '../../services/checkoutOrderService';
 import quotationService, { type CustomDTO } from '../../services/quotationService';
+import subscriptionService, { type BenefitPreviewResponse } from '../../services/subscriptionService';
 import { payOrder } from '../../services/paymentService';
 import { downloadFile } from '../../services/fileVaultService';
 import RulerSpecsViewer from '../../components/RulerSpecsViewer';
@@ -179,6 +180,48 @@ export default function CheckoutOrderDetailCard({
   const shippingFeeDisplay = co.shippingFee && co.shippingFee > 0 ? co.shippingFee : 30000;
   const isParentQuotable = ['PENDING_QUOTE', 'QUOTED'].includes((co.status || '').toUpperCase());
   const isBatchQuotable = admin && isParentQuotable && quotableActiveItems.length > 0;
+
+  const [coPreviewState, setCoPreviewState] = useState<{
+    key: string;
+    data: BenefitPreviewResponse;
+  } | null>(null);
+  const previewScope: 'CUSTOM' | 'MIXED' | 'MARKETPLACE' =
+    co.orderType === 'MIXED' ? 'MIXED' : co.orderType === 'MARKETPLACE' ? 'MARKETPLACE' : 'CUSTOM';
+  const shouldPreviewBenefits = !admin && co.readyForConfirm && computedItemsSubtotal > 0;
+  const coPreviewKey = shouldPreviewBenefits
+    ? `${co.id}:${co.summaryVersion}:${previewScope}:${computedItemsSubtotal}:${shippingFeeDisplay}`
+    : '';
+
+  useEffect(() => {
+    if (!coPreviewKey) return;
+    let cancelled = false;
+    subscriptionService
+      .previewBenefits({
+        scope: previewScope,
+        itemsSubtotal: computedItemsSubtotal,
+        baseShippingFee: shippingFeeDisplay,
+      })
+      .then(data => {
+        if (!cancelled) {
+          setCoPreviewState({ key: coPreviewKey, data });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCoPreviewState(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [coPreviewKey, previewScope, computedItemsSubtotal, shippingFeeDisplay]);
+
+  const coPreview = coPreviewKey && coPreviewState?.key === coPreviewKey ? coPreviewState.data : null;
+  const hasServerBenefitSnapshot =
+    (co.discountAmount ?? 0) > 0 ||
+    (co.shippingDiscountAmount ?? 0) > 0 ||
+    !!co.appliedSubscriptionName ||
+    !!co.priorityProduction;
 
   const draftItemsSubtotal = activeItems.reduce((sum, item) => {
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
@@ -681,34 +724,123 @@ export default function CheckoutOrderDetailCard({
 
       {/* Footer Total & Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/10">
-        <div className="space-y-1">
+        <div className="space-y-2 min-w-[260px]">
+          {hasServerBenefitSnapshot && (
+            <div className="rounded-xl border border-[#39FF14]/35 bg-[#39FF14]/5 px-3 py-2 text-xs space-y-1">
+              <div className="flex flex-wrap items-center gap-2 text-[#39FF14] font-bold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>
+                  Đã áp dụng ưu đãi hội viên
+                  {co.appliedSubscriptionName ? `: ${co.appliedSubscriptionName}` : ''}
+                </span>
+                {co.priorityProduction && (
+                  <span className="px-2 py-0.5 rounded bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 font-mono text-[10px]">
+                    Ưu tiên sản xuất
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] font-mono text-slate-300">
+                {(co.discountAmount ?? 0) > 0 && (
+                  <span>Giảm giá: <strong className="text-[#39FF14]">-{money(co.discountAmount || 0)}</strong></span>
+                )}
+                {(co.shippingDiscountAmount ?? 0) > 0 && (
+                  <span>Giảm ship: <strong className="text-[#39FF14]">-{money(co.shippingDiscountAmount || 0)}</strong></span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!hasServerBenefitSnapshot && coPreview?.hasActiveSubscription && (
+            <div className="rounded-xl border border-[#39FF14]/35 bg-[#39FF14]/5 px-3 py-2 text-xs space-y-1">
+              <div className="flex flex-wrap items-center gap-2 text-[#39FF14] font-bold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Ưu đãi hội viên dự kiến: {coPreview.planName || 'Gói VIP'}</span>
+                {coPreview.priorityProduction && (
+                  <span className="px-2 py-0.5 rounded bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 font-mono text-[10px]">
+                    Ưu tiên xưởng
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] font-mono text-slate-300">
+                {coPreview.discountAmount > 0 && (
+                  <span>
+                    Giảm {coPreview.discountPercent}%:{' '}
+                    <strong className="text-[#39FF14]">-{money(coPreview.discountAmount)}</strong>
+                  </span>
+                )}
+                {coPreview.shippingDiscountAmount > 0 && (
+                  <span>
+                    Miễn ship:{' '}
+                    <strong className="text-[#39FF14]">-{money(coPreview.shippingDiscountAmount)}</strong>
+                  </span>
+                )}
+                {coPreview.freeShippingUsesLimit != null && (
+                  <span>
+                    (Còn {coPreview.remainingFreeShippingUses ?? 0}/{coPreview.freeShippingUsesLimit} lượt freeship)
+                  </span>
+                )}
+              </div>
+              {coPreview.ineligibleReason && (
+                <p className="text-[11px] text-amber-300">{coPreview.ineligibleReason}</p>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
             <span>
-              Tiền hàng:{' '}
+              Giá báo xưởng:{' '}
               <strong className="text-slate-200">
                 {computedItemsSubtotal > 0 ? money(computedItemsSubtotal) : '--'}
               </strong>
             </span>
+            {hasServerBenefitSnapshot && (co.discountAmount ?? 0) > 0 && (
+              <span>
+                Giảm hội viên:{' '}
+                <strong className="text-[#39FF14]">-{money(co.discountAmount || 0)}</strong>
+              </span>
+            )}
+            {!hasServerBenefitSnapshot && coPreview && coPreview.discountAmount > 0 && (
+              <span>
+                Giảm hội viên:{' '}
+                <strong className="text-[#39FF14]">-{money(coPreview.discountAmount)}</strong>
+              </span>
+            )}
             <span>
               Phí ship:{' '}
-              <strong className="text-slate-200">
-                {co.shippingFee && co.shippingFee > 0
-                  ? money(co.shippingFee)
-                  : co.status === 'PENDING_QUOTE'
-                    ? '30.000đ (khi đủ báo giá)'
-                    : '0đ'}
-              </strong>
+              {hasServerBenefitSnapshot ? (
+                <strong className="text-slate-200">
+                  {money(Math.max(0, (co.shippingFee || 0) - (co.shippingDiscountAmount || 0)))}
+                </strong>
+              ) : coPreview && coPreview.shippingDiscountAmount > 0 ? (
+                <strong className="text-[#39FF14]">
+                  {coPreview.finalShippingFee === 0 ? 'Miễn phí (0đ)' : money(coPreview.finalShippingFee)}
+                </strong>
+              ) : (
+                <strong className="text-slate-200">
+                  {co.shippingFee && co.shippingFee > 0
+                    ? money(co.shippingFee)
+                    : co.status === 'PENDING_QUOTE'
+                      ? '30.000đ (khi đủ báo giá)'
+                      : '0đ'}
+                </strong>
+              )}
             </span>
           </div>
           <span className="text-xs text-slate-400 font-mono block">
-            {co.totalAmount && co.totalAmount > 0 ? 'Tổng cộng đơn gộp:' : 'Tổng tạm tính (các món đã báo giá):'}
+            {!hasServerBenefitSnapshot && coPreview
+              ? 'Tổng thanh toán dự kiến sau ưu đãi:'
+              : co.totalAmount && co.totalAmount > 0
+                ? 'Tổng cộng đơn gộp:'
+                : 'Tổng tạm tính (các món đã báo giá):'}
           </span>
           <span className="text-xl sm:text-2xl font-black text-[#39FF14] font-mono">
-            {co.totalAmount && co.totalAmount > 0
-              ? money(co.totalAmount)
-              : computedItemsSubtotal > 0
-                ? `${money(computedItemsSubtotal)} (+ ship)`
-                : 'Chờ xưởng báo giá'}
+            {!hasServerBenefitSnapshot && coPreview
+              ? money(coPreview.finalTotal)
+              : co.totalAmount && co.totalAmount > 0
+                ? money(co.totalAmount)
+                : computedItemsSubtotal > 0
+                  ? `${money(computedItemsSubtotal)} (+ ship)`
+                  : 'Chờ xưởng báo giá'}
           </span>
         </div>
 

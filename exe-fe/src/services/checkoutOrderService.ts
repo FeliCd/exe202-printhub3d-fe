@@ -35,6 +35,11 @@ export interface CheckoutOrderDTO {
   allCustomQuoted: boolean;
   readyForConfirm: boolean;
   paymentLinkUrl?: string;
+  discountAmount?: number;
+  shippingDiscountAmount?: number;
+  appliedSubscriptionId?: string;
+  appliedSubscriptionName?: string;
+  priorityProduction?: boolean;
 }
 
 export interface BatchQuoteItemPayload {

@@ -5,6 +5,7 @@ import type { useCart } from '../features/cart/hooks/useCart';
 import { useAuth } from '../context/AuthContext';
 import { send } from '../services/api';
 import type { CheckoutOrderDTO } from '../services/checkoutOrderService';
+import subscriptionService, { type BenefitPreviewResponse } from '../services/subscriptionService';
 import { useAction } from '../hooks/useRemote';
 import { PageHeader, Notice, Status, CopyButton } from '../components/DataUI';
 import { money } from '../utils/format';
@@ -22,6 +23,7 @@ import {
   Layers,
   Info,
   Send,
+  Sparkles,
 } from 'lucide-react';
 
 interface Props {
@@ -106,6 +108,43 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
   const marketplaceShippingFee = selectedMarketplaceItems.length > 0 ? 30000 : 0;
   const marketplaceTotalAmount = marketplaceSubtotal + marketplaceShippingFee;
 
+  const [marketPreviewState, setMarketPreviewState] = useState<{
+    key: string;
+    data: BenefitPreviewResponse;
+  } | null>(null);
+  const marketPreviewKey =
+    isAuthenticated && activeTab === 'MARKETPLACE' && marketplaceSubtotal > 0
+      ? `MARKETPLACE:${marketplaceSubtotal}:${marketplaceShippingFee}`
+      : '';
+
+  useEffect(() => {
+    if (!marketPreviewKey) return;
+    let cancelled = false;
+    subscriptionService
+      .previewBenefits({
+        scope: 'MARKETPLACE',
+        itemsSubtotal: marketplaceSubtotal,
+        baseShippingFee: marketplaceShippingFee,
+      })
+      .then(data => {
+        if (!cancelled) {
+          setMarketPreviewState({ key: marketPreviewKey, data });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMarketPreviewState(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [marketPreviewKey, marketplaceSubtotal, marketplaceShippingFee]);
+
+  const marketPreview =
+    marketPreviewKey && marketPreviewState?.key === marketPreviewKey ? marketPreviewState.data : null;
+  const effectiveMarketplaceTotal = marketPreview ? marketPreview.finalTotal : marketplaceTotalAmount;
+
   // Đặt hàng Marketplace
   const handleMarketplaceCheckout = () =>
     action.run(async () => {
@@ -141,7 +180,7 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
       if (res.paymentLinkUrl && method === 'PAYOS') {
         setConfirmOrder({
           id: res.id,
-          totalAmount: res.totalAmount || marketplaceTotalAmount,
+          totalAmount: res.totalAmount ?? effectiveMarketplaceTotal,
           checkoutUrl: res.paymentLinkUrl,
         });
       }
@@ -323,12 +362,40 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
                 </span>
               </div>
               <div>
-                <span className="text-xs text-slate-400 block mb-1 font-sans">Trạng thái thanh toán:</span>
+                <span className="text-xs text-slate-400 block mb-1 font-sans">Tổng thanh toán:</span>
                 <span className="font-bold text-[#39FF14]">
-                  {createdCheckoutOrder.totalAmount ? money(createdCheckoutOrder.totalAmount) : 'Chờ xưởng báo giá'}
+                  {createdCheckoutOrder.totalAmount != null ? money(createdCheckoutOrder.totalAmount) : 'Chờ xưởng báo giá'}
                 </span>
               </div>
             </div>
+
+            {(createdCheckoutOrder.appliedSubscriptionName ||
+              (createdCheckoutOrder.discountAmount ?? 0) > 0 ||
+              (createdCheckoutOrder.shippingDiscountAmount ?? 0) > 0) && (
+              <div className="rounded-xl border border-[#39FF14]/30 bg-[#39FF14]/5 px-4 py-3 text-xs space-y-1 font-mono">
+                <div className="flex items-center justify-between text-[#39FF14] font-bold">
+                  <span className="flex items-center gap-1.5 font-sans">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Ưu đãi đã áp dụng{createdCheckoutOrder.appliedSubscriptionName ? ` (${createdCheckoutOrder.appliedSubscriptionName})` : ''}
+                  </span>
+                  {createdCheckoutOrder.priorityProduction && (
+                    <span className="px-2 py-0.5 rounded bg-[#39FF14]/15 border border-[#39FF14]/40 text-[10px]">Ưu tiên sản xuất</span>
+                  )}
+                </div>
+                {(createdCheckoutOrder.discountAmount ?? 0) > 0 && (
+                  <div className="flex justify-between text-slate-200">
+                    <span>Giảm hội viên:</span>
+                    <span className="text-[#39FF14]">-{money(createdCheckoutOrder.discountAmount || 0)}</span>
+                  </div>
+                )}
+                {(createdCheckoutOrder.shippingDiscountAmount ?? 0) > 0 && (
+                  <div className="flex justify-between text-slate-200">
+                    <span>Miễn/giảm phí vận chuyển:</span>
+                    <span className="text-[#39FF14]">-{money(createdCheckoutOrder.shippingDiscountAmount || 0)}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {createdCheckoutOrder.paymentLinkUrl && (
               <button
@@ -533,22 +600,75 @@ export default function CartPage({ shippingAddress: a, cart, onOpenAddressModal 
 
                             {/* BẢNG TÍNH TIỀN MARKETPLACE */}
                             <div className="pt-3 border-t border-white/10 space-y-2 text-xs">
+                              {marketPreview?.hasActiveSubscription && (
+                                <div className="rounded-xl border border-[#39FF14]/35 bg-[#39FF14]/5 p-3 space-y-1.5 mb-2">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="font-bold text-[#39FF14] flex items-center gap-1.5">
+                                      <Sparkles className="w-3.5 h-3.5" />
+                                      Ưu đãi hội viên: {marketPreview.planName || 'Gói VIP'}
+                                    </span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {marketPreview.discountPercent > 0 && marketPreview.discountAmount > 0 && (
+                                        <span className="px-2 py-0.5 rounded bg-[#39FF14]/15 text-[#39FF14] font-mono text-[10px] font-bold">
+                                          -{marketPreview.discountPercent}%
+                                        </span>
+                                      )}
+                                      {marketPreview.priorityProduction && (
+                                        <span className="px-2 py-0.5 rounded bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 font-mono text-[10px] font-bold">
+                                          Ưu tiên in
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {marketPreview.freeShippingUsesLimit != null && (
+                                    <p className="text-[11px] text-slate-300 font-mono">
+                                      Freeship còn {marketPreview.remainingFreeShippingUses ?? 0} / {marketPreview.freeShippingUsesLimit} lượt trong kỳ
+                                    </p>
+                                  )}
+                                  {marketPreview.ineligibleReason && (
+                                    <p className="text-[11px] text-amber-300">{marketPreview.ineligibleReason}</p>
+                                  )}
+                                </div>
+                              )}
+
                               <div className="flex justify-between text-slate-300">
-                                <span>Tiền hàng ({selectedMarketplaceItems.length} món):</span>
+                                <span>Tạm tính ({selectedMarketplaceItems.length} món):</span>
                                 <span className="font-mono text-white">{money(marketplaceSubtotal)}</span>
                               </div>
 
+                              {marketPreview && marketPreview.discountAmount > 0 && (
+                                <div className="flex justify-between text-[#39FF14]">
+                                  <span>
+                                    Giảm hội viên
+                                    {marketPreview.appliedDiscountPlanName ? ` (${marketPreview.appliedDiscountPlanName})` : ''}:
+                                  </span>
+                                  <span className="font-mono font-bold">-{money(marketPreview.discountAmount)}</span>
+                                </div>
+                              )}
+
                               <div className="flex justify-between text-slate-300">
                                 <span>Phí vận chuyển:</span>
-                                <span className="font-mono text-white">{money(marketplaceShippingFee)}</span>
+                                {marketPreview && marketPreview.shippingDiscountAmount > 0 ? (
+                                  <span className="font-mono flex items-center gap-2">
+                                    <span className="line-through text-slate-500">{money(marketplaceShippingFee)}</span>
+                                    <span className="text-[#39FF14] font-bold">
+                                      {marketPreview.finalShippingFee === 0 ? 'Miễn phí (0đ)' : money(marketPreview.finalShippingFee)}
+                                    </span>
+                                  </span>
+                                ) : (
+                                  <span className="font-mono text-white">{money(marketplaceShippingFee)}</span>
+                                )}
                               </div>
 
                               <div className="flex justify-between items-center pt-2.5 border-t border-white/10 text-sm">
-                                <span className="font-bold text-white block">Tổng thanh toán:</span>
+                                <span className="font-bold text-white block">Tổng thanh toán dự kiến:</span>
                                 <span className="text-2xl font-black text-[#39FF14] font-mono">
-                                  {money(marketplaceTotalAmount)}
+                                  {money(effectiveMarketplaceTotal)}
                                 </span>
                               </div>
+                              <p className="text-[10px] text-slate-400">
+                                Tổng thanh toán chính thức được tính và khóa an toàn bởi máy chủ khi đặt hàng.
+                              </p>
                             </div>
 
                             {/* NÚT BẤM ĐẶT HÀNG */}

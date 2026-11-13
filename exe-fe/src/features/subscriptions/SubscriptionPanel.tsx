@@ -122,6 +122,10 @@ export interface Membership {
     startDate?: string;
     endDate: string;
     isActive?: boolean;
+    structuredBenefits?: string | null;
+    freeShippingUsesLimit?: number | null;
+    freeShippingUsesUsed?: number | null;
+    remainingFreeShippingUses?: number | null;
   }[];
 }
 
@@ -538,12 +542,29 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               <dd className="text-sm text-theme-ink">
                 {membership.loading ? 'Đang tải gói hội viên…' : membership.error ? 'Chưa tải được gói hội viên' : membership.data?.subscriptions?.length ? (
                   <ul className="space-y-1.5">
-                    {membership.data.subscriptions.map((plan, index) => (
-                      <li key={plan.subscriptionId || plan.id || index} className="flex flex-wrap items-center gap-x-2">
-                        <span className="font-semibold">{plan.planName || plan.name}</span>
-                        <span className="text-theme-muted">Đến {new Date(plan.endDate).toLocaleDateString('vi-VN')}</span>
-                      </li>
-                    ))}
+                    {membership.data.subscriptions.map((plan, index) => {
+                      const limit = plan.freeShippingUsesLimit;
+                      const remaining = plan.remainingFreeShippingUses ?? (
+                        limit != null ? Math.max(0, limit - (plan.freeShippingUsesUsed ?? 0)) : null
+                      );
+                      const parsedSub = parseBenefits(plan.structuredBenefits);
+                      return (
+                        <li key={plan.subscriptionId || plan.id || index} className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold">{plan.planName || plan.name}</span>
+                          <span className="text-theme-muted">Đến {new Date(plan.endDate).toLocaleDateString('vi-VN')}</span>
+                          {limit != null && remaining != null && (
+                            <span className="text-[11px] font-mono text-[#39FF14] bg-[#39FF14]/10 border border-[#39FF14]/30 px-2 py-0.5 rounded-full">
+                              Còn {remaining} / {limit} lượt miễn phí ship trong kỳ
+                            </span>
+                          )}
+                          {limit == null && parsedSub?.shipping && (
+                            <span className="text-[11px] font-mono text-[#00e5ff] bg-[#00e5ff]/10 border border-[#00e5ff]/30 px-2 py-0.5 rounded-full">
+                              Miễn phí ship theo kỳ
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : 'Chưa có gói đang hoạt động'}
               </dd>
