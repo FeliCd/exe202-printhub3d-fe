@@ -328,6 +328,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
   const action = useAction(reloadAll);
   const [searchParams] = useSearchParams();
   const [prices, setPrices] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
   const { requestId } = useParams<{ requestId: string }>();
@@ -978,16 +979,26 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                 {/* 2. STATUS: QUOTED (Đã có báo giá từ Admin) */}
                 {c.status === 'QUOTED' && (
                   <div className="rounded-2xl border-2 border-[#39FF14]/60 bg-gradient-to-r from-[#39FF14]/10 via-[#0a0c12] to-[#39FF14]/5 p-4 sm:p-5 shadow-lg shadow-[#39FF14]/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono uppercase tracking-wider bg-[#39FF14]/20 text-[#39FF14] border border-[#39FF14]/40 whitespace-nowrap shrink-0"> {tr("Báo giá trọn gói")} </span>
-                        <span className="text-xs text-slate-400 font-mono">{tr("Cho")} {c.quantity || 1} {tr("sản phẩm hoàn thiện")}</span>
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono uppercase tracking-wider bg-[#39FF14]/20 text-[#39FF14] border border-[#39FF14]/40 whitespace-nowrap shrink-0"> {tr("Báo giá chi tiết")} </span>
+                        <span className="text-xs text-slate-300 font-mono">
+                          {c.unitQuotedPrice && c.unitQuotedPrice > 0
+                            ? `${money(c.unitQuotedPrice)} / chiếc × ${c.quantity || 1} sản phẩm`
+                            : `${tr("Cho")} ${c.quantity || 1} ${tr("sản phẩm hoàn thiện")}`}
+                        </span>
                       </div>
                       <div className="flex items-baseline gap-2 pt-1">
                         <span className="text-3xl sm:text-4xl font-black text-[#39FF14] font-mono tracking-tight ">
                           {money(c.quotedPrice || 0)}
                         </span>
+                        <span className="text-xs text-slate-400 font-mono">(chưa gồm phí ship nếu đặt kèm giao hàng)</span>
                       </div>
+                      {c.quoteNote && (
+                        <p className="text-xs text-cyan-200 bg-cyan-950/30 border border-cyan-500/20 rounded-lg px-2.5 py-1.5">
+                          <strong className="text-cyan-400 font-mono">Ghi chú xưởng:</strong> {c.quoteNote}
+                        </p>
+                      )}
                       <p className="text-xs text-slate-300"> {tr("Đã bao gồm: Vật liệu sợi in PLA Pro+, gia công in FDM độ chính xác cao và khắc laser tên/MSSV.")} </p>
                     </div>
 
@@ -1113,12 +1124,13 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           e.preventDefault();
                           const p = Number(prices[c.id]);
                           if (!p || p <= 0) {
-                            setQuoteError(prev => ({ ...prev, [c.id]: 'Vui lòng nhập giá hợp lệ (> 0 VNĐ).' }));
+                            setQuoteError(prev => ({ ...prev, [c.id]: 'Vui lòng nhập đơn giá hợp lệ (> 0 VNĐ).' }));
                             return;
                           }
                           setQuoteError(prev => ({ ...prev, [c.id]: '' }));
+                          const noteVal = notes[c.id]?.trim() ? notes[c.id].trim() : undefined;
                           void action.run(() =>
-                            send(`/admin/custom-orders/${c.id}/quote`, { price: p }, 'put')
+                            send(`/admin/custom-orders/${c.id}/quote`, { unitPrice: p, price: p, note: noteVal }, 'put')
                           );
                         }}
                       >
@@ -1127,11 +1139,24 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           min={1}
                           step={1000}
                           required
-                          placeholder={tr("Nhập giá trọn gói (VND)")}
-                          value={prices[c.id] || ''}
+                          placeholder="Đơn giá / 1 chiếc (VND)"
+                          value={prices[c.id] ?? (c.unitQuotedPrice ? String(c.unitQuotedPrice) : '')}
                           onChange={e => setPrices({ ...prices, [c.id]: e.target.value })}
-                          className="rounded-xl border border-white/10 bg-[#0a0c12] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#39FF14] font-mono w-44"
+                          className="rounded-xl border border-white/10 bg-[#0a0c12] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#39FF14] font-mono w-48"
                         />
+                        <input
+                          type="text"
+                          maxLength={500}
+                          placeholder="Ghi chú kỹ thuật (tùy chọn)"
+                          value={notes[c.id] ?? (c.quoteNote || '')}
+                          onChange={e => setNotes({ ...notes, [c.id]: e.target.value })}
+                          className="rounded-xl border border-white/10 bg-[#0a0c12] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 w-52"
+                        />
+                        {Number(prices[c.id] ?? c.unitQuotedPrice ?? 0) > 0 && (
+                          <span className="text-[11px] font-mono text-slate-300">
+                            × {c.quantity || 1} = <strong className="text-[#39FF14]">{money(Number(prices[c.id] ?? c.unitQuotedPrice ?? 0) * (c.quantity || 1))}</strong>
+                          </span>
+                        )}
                         <button
                           type="submit"
                           disabled={action.busy}

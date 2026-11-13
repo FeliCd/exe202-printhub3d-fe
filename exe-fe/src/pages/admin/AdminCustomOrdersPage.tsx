@@ -18,7 +18,9 @@ interface CustomOrderItem {
   requirements?: string;
   quantity: number;
   attachmentUrl?: string;
+  unitQuotedPrice?: number;
   quotedPrice?: number;
+  quoteNote?: string;
   status: string;
   paymentMethod?: string;
   shippingAddress?: string;
@@ -260,6 +262,7 @@ export default function AdminCustomOrdersPage() {
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<CustomOrderItem | null>(null);
   const [priceInput, setPriceInput] = useState('');
+  const [noteInput, setNoteInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Preview & Download File State
@@ -330,7 +333,14 @@ export default function AdminCustomOrdersPage() {
     if (order.status === 'CANCELLED') return;
     setQuoteModalError(null);
     setSelectedOrder(order);
-    setPriceInput(order.quotedPrice ? String(order.quotedPrice) : '');
+    const qty = order.quantity && order.quantity > 0 ? order.quantity : 1;
+    const unitVal = order.unitQuotedPrice && order.unitQuotedPrice > 0
+      ? order.unitQuotedPrice
+      : order.quotedPrice && order.quotedPrice > 0
+        ? Math.round(order.quotedPrice / qty)
+        : 0;
+    setPriceInput(unitVal > 0 ? String(unitVal) : '');
+    setNoteInput(order.quoteNote || '');
     setQuoteModalOpen(true);
   };
 
@@ -340,7 +350,16 @@ export default function AdminCustomOrdersPage() {
 
     setSubmitting(true);
     try {
-      await send(`/admin/custom-orders/${selectedOrder.id}/quote`, { price: Number(priceInput) }, 'put');
+      const unitPrice = Number(priceInput);
+      await send(
+        `/admin/custom-orders/${selectedOrder.id}/quote`,
+        {
+          unitPrice,
+          price: unitPrice,
+          note: noteInput.trim() ? noteInput.trim() : undefined,
+        },
+        'put'
+      );
       setQuoteModalOpen(false);
       void fetchCustomOrders();
     } catch (err) {
@@ -641,11 +660,18 @@ export default function AdminCustomOrdersPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2.5">
-                    {o.quotedPrice && (
-                      <span className="font-mono text-base font-black text-[#39FF14] mr-2">
-                        {formatPrice(o.quotedPrice)}đ
-                      </span>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {o.quotedPrice != null && o.quotedPrice > 0 && (
+                      <div className="text-right mr-2 font-mono">
+                        {o.unitQuotedPrice != null && o.unitQuotedPrice > 0 && (
+                          <span className="text-[11px] text-slate-400 block">
+                            {formatPrice(o.unitQuotedPrice)}đ × {o.quantity || 1}
+                          </span>
+                        )}
+                        <span className="text-base font-black text-[#39FF14]">
+                          {formatPrice(o.quotedPrice)}đ
+                        </span>
+                      </div>
                     )}
                     {isCancelled ? (
                       <span className="px-4 py-2.5 rounded-xl font-mono font-bold text-xs bg-rose-500/10 text-rose-400 border border-rose-500/30 flex items-center gap-1.5 select-none">
@@ -706,7 +732,7 @@ export default function AdminCustomOrdersPage() {
                 </div>
               )}
               <div className="space-y-1.5">
-                <label htmlFor="custom-quote-price" className="font-semibold text-slate-300">Giá báo cho khách (VNĐ) *</label>
+                <label htmlFor="custom-quote-price" className="font-semibold text-slate-300">Đơn giá / 1 chiếc (VNĐ) *</label>
                 <input
                   id="custom-quote-price"
                   aria-describedby="custom-quote-price-help"
@@ -720,8 +746,32 @@ export default function AdminCustomOrdersPage() {
                   className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-[#39FF14] font-mono text-sm"
                 />
                 <span id="custom-quote-price-help" className="text-xs text-slate-400 leading-relaxed block">
-                  Giá này bao gồm vật liệu PLA Pro+, công in FDM độ mịn 0.16mm và khắc laser tên/MSSV.
+                  Hệ thống tự nhân số lượng ({selectedOrder.quantity || 1} chiếc) để ra thành tiền trên hóa đơn.
                 </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#040508] border border-[#39FF14]/30 flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300">
+                  Thành tiền ({selectedOrder.quantity || 1} chiếc):
+                </span>
+                <strong className="text-base font-black text-[#39FF14]">
+                  {Number(priceInput) > 0
+                    ? `${formatPrice(Number(priceInput) * (selectedOrder.quantity || 1))}đ`
+                    : '--'}
+                </strong>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="custom-quote-note" className="font-semibold text-slate-300">Ghi chú kỹ thuật (tùy chọn)</label>
+                <input
+                  id="custom-quote-note"
+                  type="text"
+                  maxLength={500}
+                  value={noteInput}
+                  onChange={(e) => setNoteInput(e.target.value)}
+                  placeholder="VD: Nhựa PLA Pro+ đen, độ mịn 0.16mm"
+                  className="w-full bg-[#040508] border border-[#1e2433] rounded-xl px-3.5 py-2 text-white outline-none focus:border-cyan-400 text-xs"
+                />
               </div>
 
               {/* Fast presets */}

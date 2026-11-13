@@ -20,9 +20,9 @@ import {
   User,
   X,
 } from 'lucide-react';
-import api, { send } from '../../services/api';
+import api from '../../services/api';
 import checkoutOrderService, { type CheckoutOrderDTO } from '../../services/checkoutOrderService';
-import type { CustomDTO } from '../../services/quotationService';
+import quotationService, { type CustomDTO } from '../../services/quotationService';
 import { payOrder } from '../../services/paymentService';
 import { downloadFile } from '../../services/fileVaultService';
 import RulerSpecsViewer from '../../components/RulerSpecsViewer';
@@ -91,6 +91,28 @@ function isImageUrl(url?: string): boolean {
   );
 }
 
+function resolveUnitQuotedPrice(item: CustomDTO): number {
+  if (item.unitQuotedPrice != null && item.unitQuotedPrice > 0) {
+    return item.unitQuotedPrice;
+  }
+  const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
+  if (item.quotedPrice != null && item.quotedPrice > 0) {
+    return Math.round(item.quotedPrice / qty);
+  }
+  return 0;
+}
+
+function resolveLineTotal(item: CustomDTO): number {
+  if (item.quotedPrice != null && item.quotedPrice > 0) {
+    return item.quotedPrice;
+  }
+  const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
+  if (item.unitQuotedPrice != null && item.unitQuotedPrice > 0) {
+    return item.unitQuotedPrice * qty;
+  }
+  return 0;
+}
+
 export default function CheckoutOrderDetailCard({
   checkoutOrder: co,
   admin = false,
@@ -98,8 +120,10 @@ export default function CheckoutOrderDetailCard({
   onRunAction,
 }: CheckoutOrderDetailCardProps) {
   const [copiedId, setCopiedId] = useState(false);
-  const [prices, setPrices] = useState<Record<string, string>>({});
+  const [priceEdits, setPriceEdits] = useState<{ key: string; map: Record<string, string> }>({ key: '', map: {} });
+  const [noteEdits, setNoteEdits] = useState<{ key: string; map: Record<string, string> }>({ key: '', map: {} });
   const [quoteErrors, setQuoteErrors] = useState<Record<string, string>>({});
+  const [batchQuoteError, setBatchQuoteError] = useState<string>('');
   const [previewDesign, setPreviewDesign] = useState<{ design: Design; name: string } | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
@@ -107,12 +131,87 @@ export default function CheckoutOrderDetailCard({
     ? co.customOrderDetails
     : co.customOrders) || [];
 
+  const syncKey = `${co.id}:${co.summaryVersion ?? ''}:${items
+    .map(i => `${i.id}:${i.unitQuotedPrice ?? ''}:${i.quotedPrice ?? ''}:${i.quoteNote ?? ''}`)
+    .join('|')}`;
+
+  const getPriceInput = (item: CustomDTO): string => {
+    if (priceEdits.key === syncKey && priceEdits.map[item.id] !== undefined) {
+      return priceEdits.map[item.id];
+    }
+    const unitVal = resolveUnitQuotedPrice(item);
+    return unitVal > 0 ? String(unitVal) : '';
+  };
+
+  const getNoteInput = (item: CustomDTO): string => {
+    if (noteEdits.key === syncKey && noteEdits.map[item.id] !== undefined) {
+      return noteEdits.map[item.id];
+    }
+    return item.quoteNote || '';
+  };
+
+  const updatePriceInput = (itemId: string, val: string) => {
+    setBatchQuoteError('');
+    setPriceEdits(prev => ({
+      key: syncKey,
+      map: { ...(prev.key === syncKey ? prev.map : {}), [itemId]: val },
+    }));
+  };
+
+  const updateNoteInput = (itemId: string, val: string) => {
+    setNoteEdits(prev => ({
+      key: syncKey,
+      map: { ...(prev.key === syncKey ? prev.map : {}), [itemId]: val },
+    }));
+  };
+
   const activeItems = items.filter(i => (i.status || '').toUpperCase() !== 'CANCELLED');
-  const computedItemsSubtotal = activeItems.reduce((sum, item) => {
-    const qty = item.quantity || 1;
-    const price = item.quotedPrice || 0;
-    return sum + price * qty;
+  const quotableActiveItems = activeItems.filter(i =>
+    ['REQUESTED', 'QUOTED'].includes((i.status || '').toUpperCase())
+  );
+
+  // Backend đã tính quotedPrice = lineTotal (= unitQuotedPrice * quantity), không nhân đôi quantity ở FE
+  const computedItemsSubtotal =
+    co.itemsSubtotal != null && co.itemsSubtotal > 0
+      ? co.itemsSubtotal
+      : activeItems.reduce((sum, item) => sum + resolveLineTotal(item), 0);
+
+  const shippingFeeDisplay = co.shippingFee && co.shippingFee > 0 ? co.shippingFee : 30000;
+  const isParentQuotable = ['PENDING_QUOTE', 'QUOTED'].includes((co.status || '').toUpperCase());
+  const isBatchQuotable = admin && isParentQuotable && quotableActiveItems.length > 0;
+
+  const draftItemsSubtotal = activeItems.reduce((sum, item) => {
+    const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
+    const rawUnit = getPriceInput(item);
+    const parsedUnit = rawUnit !== '' ? Number(rawUnit) : resolveUnitQuotedPrice(item);
+    if (parsedUnit > 0) {
+      return sum + parsedUnit * qty;
+    }
+    return sum + resolveLineTotal(item);
   }, 0);
+
+  const handleBatchQuoteSubmit = () => {
+    const missing = quotableActiveItems.filter(i => {
+      const val = Number(getPriceInput(i));
+      return !val || val <= 0;
+    });
+    if (missing.length > 0) {
+      setBatchQuoteError(
+        `Vui lòng nhập đầy đủ đơn giá (> 0 VNĐ) cho tất cả ${quotableActiveItems.length} sản phẩm trước khi gửi báo giá toàn đơn.`
+      );
+      return;
+    }
+    setBatchQuoteError('');
+    const payload = quotableActiveItems.map(i => {
+      const n = getNoteInput(i).trim();
+      return {
+        customOrderId: i.id,
+        unitPrice: Number(getPriceInput(i)),
+        note: n || undefined,
+      };
+    });
+    void onRunAction(() => checkoutOrderService.batchQuoteCheckoutOrder(co.id, payload));
+  };
 
   const nextAdminAction = (): { action: string; nextStatus: string; label: string } | null => {
     const acts = co.allowedActions || [];
@@ -336,14 +435,42 @@ export default function CheckoutOrderDetailCard({
 
                   <div className="flex items-center gap-2.5 shrink-0">
                     <Status value={item.status} />
-                    <div className="text-right">
-                      <span className="text-[10px] font-mono text-slate-400 block">Báo giá</span>
-                      <span className="font-mono font-bold text-sm text-[#39FF14]">
-                        {item.quotedPrice != null ? money(item.quotedPrice) : 'Chờ báo giá'}
-                      </span>
+                    <div className="text-right space-y-0.5">
+                      {(() => {
+                        const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
+                        const unitVal = resolveUnitQuotedPrice(item);
+                        const lineVal = resolveLineTotal(item);
+                        if (lineVal > 0) {
+                          return (
+                            <>
+                              {unitVal > 0 && (
+                                <span className="text-[11px] font-mono text-slate-400 block">
+                                  Đơn giá: <strong className="text-slate-200">{money(unitVal)}</strong> × {qty}
+                                </span>
+                              )}
+                              <span className="font-mono font-bold text-sm text-[#39FF14] block">
+                                Thành tiền: {money(lineVal)}
+                              </span>
+                            </>
+                          );
+                        }
+                        return (
+                          <>
+                            <span className="text-[10px] font-mono text-slate-400 block">Báo giá</span>
+                            <span className="font-mono font-bold text-sm text-[#39FF14]">Chờ báo giá</span>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
+
+                {item.quoteNote && (
+                  <div className="px-3 py-2 rounded-lg bg-[#0a0c12] border border-cyan-500/20 text-xs text-cyan-200">
+                    <span className="font-mono font-bold text-cyan-400 mr-1.5">Ghi chú xưởng:</span>
+                    <span>{item.quoteNote}</span>
+                  </div>
+                )}
 
                 {/* Files & 3D View */}
                 <div className="flex flex-wrap items-center gap-2">
@@ -392,36 +519,70 @@ export default function CheckoutOrderDetailCard({
                 {/* Admin inline quote control per item */}
                 {admin && ['REQUESTED', 'QUOTED'].includes((item.status || '').toUpperCase()) && (
                   <form
-                    className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10"
+                    className="space-y-2.5 pt-2.5 border-t border-white/10"
                     onSubmit={e => {
                       e.preventDefault();
-                      const val = Number(prices[item.id]);
+                      const val = Number(getPriceInput(item));
                       if (!val || val <= 0) {
-                        setQuoteErrors(prev => ({ ...prev, [item.id]: 'Vui lòng nhập giá hợp lệ (> 0 VNĐ).' }));
+                        setQuoteErrors(prev => ({ ...prev, [item.id]: 'Vui lòng nhập đơn giá hợp lệ (> 0 VNĐ).' }));
                         return;
                       }
                       setQuoteErrors(prev => ({ ...prev, [item.id]: '' }));
-                      void onRunAction(() => send(`/admin/custom-orders/${item.id}/quote`, { price: val }, 'put'));
+                      const noteVal = getNoteInput(item);
+                      void onRunAction(() => quotationService.quoteCustomOrder(item.id, val, noteVal));
                     }}
                   >
-                    <input
-                      type="number"
-                      min={1}
-                      step={1000}
-                      placeholder="Nhập báo giá món này (VND)"
-                      value={prices[item.id] || ''}
-                      onChange={e => setPrices(prev => ({ ...prev, [item.id]: e.target.value }))}
-                      className="rounded-xl border border-white/10 bg-[#0a0c12] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#39FF14] font-mono w-52"
-                    />
-                    <button
-                      type="submit"
-                      disabled={busy}
-                      className="px-3.5 py-1.5 rounded-xl bg-[#39FF14] text-slate-950 text-xs font-bold hover:brightness-110 transition cursor-pointer disabled:opacity-50"
-                    >
-                      {item.status === 'QUOTED' ? 'Cập nhật báo giá' : 'Gửi báo giá'}
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+                      <div className="sm:col-span-4 space-y-1">
+                        <label className="text-[11px] font-mono text-slate-400 block">
+                          Đơn giá / 1 chiếc (VNĐ)
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          step={1000}
+                          placeholder="VD: 50000"
+                          value={getPriceInput(item)}
+                          onChange={e => updatePriceInput(item.id, e.target.value)}
+                          className="w-full rounded-xl border border-white/10 bg-[#0a0c12] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#39FF14] font-mono"
+                        />
+                      </div>
+                      <div className="sm:col-span-5 space-y-1">
+                        <label className="text-[11px] font-mono text-slate-400 block">
+                          Ghi chú kỹ thuật (tùy chọn)
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={500}
+                          placeholder="VD: PLA+ 0.2mm, đã tính hỗ trợ"
+                          value={getNoteInput(item)}
+                          onChange={e => updateNoteInput(item.id, e.target.value)}
+                          className="w-full rounded-xl border border-white/10 bg-[#0a0c12] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                        />
+                      </div>
+                      <div className="sm:col-span-3 flex items-center justify-between sm:justify-end gap-2">
+                        <div className="text-right font-mono text-xs">
+                          <span className="text-slate-400 block text-[10px]">
+                            × {item.quantity || 1} chiếc
+                          </span>
+                          <strong className="text-[#39FF14]">
+                            {Number(getPriceInput(item)) > 0
+                              ? money(Number(getPriceInput(item)) * (item.quantity || 1))
+                              : '--'}
+                          </strong>
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={busy}
+                          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-slate-100 text-xs font-bold transition cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                          title="Lưu riêng sản phẩm này"
+                        >
+                          {item.status === 'QUOTED' ? 'Lưu món này' : 'Báo giá món'}
+                        </button>
+                      </div>
+                    </div>
                     {quoteErrors[item.id] && (
-                      <span className="text-[11px] text-rose-400 font-semibold">{quoteErrors[item.id]}</span>
+                      <span className="text-[11px] text-rose-400 font-semibold block">{quoteErrors[item.id]}</span>
                     )}
                   </form>
                 )}
@@ -477,9 +638,68 @@ export default function CheckoutOrderDetailCard({
         </div>
       )}
 
+      {/* Admin Batch Quote Summary Bar */}
+      {isBatchQuotable && (
+        <div className="p-4 rounded-xl border border-[#39FF14]/40 bg-[#39FF14]/5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="space-y-1 text-xs font-mono">
+              <div className="flex flex-wrap items-center gap-3 text-slate-300">
+                <span>
+                  Tổng tiền hàng ({activeItems.length} món):{' '}
+                  <strong className="text-white">{money(draftItemsSubtotal)}</strong>
+                </span>
+                <span>•</span>
+                <span>
+                  Phí vận chuyển:{' '}
+                  <strong className="text-white">{money(shippingFeeDisplay)}</strong>
+                </span>
+              </div>
+              <div className="text-sm text-[#39FF14] font-black">
+                Tổng báo giá toàn đơn dự kiến:{' '}
+                {draftItemsSubtotal > 0 ? money(draftItemsSubtotal + shippingFeeDisplay) : '--'}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={busy}
+              onClick={handleBatchQuoteSubmit}
+              className="px-5 py-2.5 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 transition flex items-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-[#39FF14]/20 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>
+                {co.status === 'QUOTED' ? 'Cập nhật lại báo giá toàn đơn' : 'Gửi báo giá toàn đơn'}
+              </span>
+            </button>
+          </div>
+
+          {batchQuoteError && (
+            <div className="text-xs text-rose-400 font-semibold">{batchQuoteError}</div>
+          )}
+        </div>
+      )}
+
       {/* Footer Total & Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/10">
-        <div>
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
+            <span>
+              Tiền hàng:{' '}
+              <strong className="text-slate-200">
+                {computedItemsSubtotal > 0 ? money(computedItemsSubtotal) : '--'}
+              </strong>
+            </span>
+            <span>
+              Phí ship:{' '}
+              <strong className="text-slate-200">
+                {co.shippingFee && co.shippingFee > 0
+                  ? money(co.shippingFee)
+                  : co.status === 'PENDING_QUOTE'
+                    ? '30.000đ (khi đủ báo giá)'
+                    : '0đ'}
+              </strong>
+            </span>
+          </div>
           <span className="text-xs text-slate-400 font-mono block">
             {co.totalAmount && co.totalAmount > 0 ? 'Tổng cộng đơn gộp:' : 'Tổng tạm tính (các món đã báo giá):'}
           </span>

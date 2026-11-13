@@ -17,6 +17,7 @@ export interface CheckoutOrderDTO {
   shippingAddress: string;
   shippingMode: 'COMMON' | 'SEPARATE' | string;
   status: string;
+  itemsSubtotal?: number;
   totalAmount?: number;
   shippingFee?: number;
   paymentMethod?: string;
@@ -36,6 +37,12 @@ export interface CheckoutOrderDTO {
   paymentLinkUrl?: string;
 }
 
+export interface BatchQuoteItemPayload {
+  customOrderId: string;
+  unitPrice: number;
+  note?: string;
+}
+
 export const checkoutOrderService = {
   getMyCheckoutOrders: () => read<CheckoutOrderDTO[]>('/checkout-orders/my'),
   getCheckoutOrder: (id: string) => read<CheckoutOrderDTO>(`/checkout-orders/${encodeURIComponent(id)}`),
@@ -52,6 +59,8 @@ export const checkoutOrderService = {
     return read<CheckoutOrderDTO[]>(`/admin/checkout-orders${qs ? `?${qs}` : ''}`);
   },
   getAdminCheckoutOrder: (id: string) => read<CheckoutOrderDTO>(`/admin/checkout-orders/${encodeURIComponent(id)}`),
+  batchQuoteCheckoutOrder: (id: string, items: BatchQuoteItemPayload[]) =>
+    send<CheckoutOrderDTO>(`/admin/checkout-orders/${encodeURIComponent(id)}/quote`, { items }, 'put'),
   updateAdminCheckoutOrderStatus: (id: string, payload: { status?: string; action?: string; cancelReason?: string }) =>
     send<CheckoutOrderDTO>(`/admin/checkout-orders/${encodeURIComponent(id)}/status`, payload, 'put'),
 };

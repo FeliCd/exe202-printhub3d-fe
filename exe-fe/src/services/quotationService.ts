@@ -7,7 +7,11 @@ export interface CustomDTO {
   quantity: number;
   shippingAddress: string;
   attachmentUrl: string;
+  unitQuotedPrice?: number;
   quotedPrice?: number;
+  quoteNote?: string;
+  quotedAt?: string;
+  checkoutOrderId?: string;
   status: string;
   createdAt: string;
   rulerModel?: string;
@@ -46,8 +50,8 @@ export const quotationService = {
 
   // Admin endpoints
   getAllCustomOrders: () => read<CustomDTO[]>('/admin/custom-orders'),
-  quoteCustomOrder: (id: string, price: number) =>
-    send(`/admin/custom-orders/${id}/quote`, { price }, 'put'),
+  quoteCustomOrder: (id: string, unitPrice: number, note?: string) =>
+    send(`/admin/custom-orders/${id}/quote`, { unitPrice, price: unitPrice, note: note?.trim() ? note.trim() : undefined }, 'put'),
 };
 
 export default quotationService;

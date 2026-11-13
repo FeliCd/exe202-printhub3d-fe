@@ -21,6 +21,8 @@ import {
   X,
 } from 'lucide-react';
 import api, { send, unwrap } from '../../services/api';
+import checkoutOrderService, { type CheckoutOrderDTO } from '../../services/checkoutOrderService';
+import CheckoutOrderDetailCard from '../../features/custom/CheckoutOrderDetailCard';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
 import { Status } from '../../components/DataUI';
 import { money, formatDateTime } from '../../utils/format';
@@ -43,6 +45,8 @@ interface CustomOrderAdminDetail {
   quantity: number;
   attachmentUrl?: string;
   quotedPrice?: number;
+  unitQuotedPrice?: number;
+  quoteNote?: string;
   status: string;
   paymentMethod?: string;
   paymentStatus?: string;
@@ -89,9 +93,10 @@ export default function AdminOrderDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [orderType, setOrderType] = useState<'MARKETPLACE' | 'CUSTOM' | null>(null);
+  const [orderType, setOrderType] = useState<'MARKETPLACE' | 'CUSTOM' | 'CHECKOUT' | null>(null);
   const [marketplaceOrder, setMarketplaceOrder] = useState<OrderDTO | null>(null);
   const [customOrder, setCustomOrder] = useState<CustomOrderAdminDetail | null>(null);
+  const [checkoutOrder, setCheckoutOrder] = useState<CheckoutOrderDTO | null>(null);
 
   const [copiedId, setCopiedId] = useState(false);
   const [preview3D, setPreview3D] = useState<{ design: Design; name: string } | null>(null);
@@ -112,15 +117,31 @@ export default function AdminOrderDetailPage() {
       if (data && (data.id || (data as OrderDTO).items)) {
         setMarketplaceOrder(data as OrderDTO);
         setCustomOrder(null);
+        setCheckoutOrder(null);
         setOrderType('MARKETPLACE');
         setLoading(false);
         return;
       }
     } catch {
-      // Bỏ qua lỗi và thử tiếp dạng Custom Order
+      // Bỏ qua lỗi và thử tiếp dạng CheckoutOrder cha
     }
 
-    // 2. Thử tìm trong danh sách Custom Order của Admin
+    // 2. Thử tải dưới dạng đơn cha CheckoutOrder (đơn gộp / báo giá nhiều món)
+    try {
+      const coData = await checkoutOrderService.getAdminCheckoutOrder(id);
+      if (coData && coData.id) {
+        setCheckoutOrder(coData);
+        setMarketplaceOrder(null);
+        setCustomOrder(null);
+        setOrderType('CHECKOUT');
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Bỏ qua lỗi và thử tiếp dạng Custom Order lẻ
+    }
+
+    // 3. Thử tìm trong danh sách Custom Order của Admin
     try {
       const res = await api.get<{ code: number; result: CustomOrderAdminDetail[] } | CustomOrderAdminDetail[]>(
         '/admin/custom-orders'
@@ -130,6 +151,7 @@ export default function AdminOrderDetailPage() {
       if (found) {
         setCustomOrder(found);
         setMarketplaceOrder(null);
+        setCheckoutOrder(null);
         setOrderType('CUSTOM');
         setLoading(false);
         return;
@@ -250,6 +272,40 @@ export default function AdminOrderDetailPage() {
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
         <RotateCcw className="w-8 h-8 text-[#39FF14] animate-spin" />
         <p className="text-slate-400 font-mono text-sm">Đang tải thông tin chi tiết đơn hàng...</p>
+      </div>
+    );
+  }
+
+  if (orderType === 'CHECKOUT' && checkoutOrder) {
+    return (
+      <div className="space-y-6 w-full max-w-5xl mx-auto py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-[#0a0c12] hover:bg-[#11141e] text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" /> Quay lại danh sách
+          </button>
+          <span className="text-xs font-mono text-slate-400">
+            Chi tiết &amp; Báo giá đơn hàng gộp (#CHK-{checkoutOrder.id.slice(0, 8)})
+          </span>
+        </div>
+
+        <CheckoutOrderDetailCard
+          checkoutOrder={checkoutOrder}
+          admin
+          busy={updating}
+          onRunAction={async (fn) => {
+            setUpdating(true);
+            try {
+              await fn();
+              await fetchOrderDetail();
+            } finally {
+              setUpdating(false);
+            }
+          }}
+        />
       </div>
     );
   }
