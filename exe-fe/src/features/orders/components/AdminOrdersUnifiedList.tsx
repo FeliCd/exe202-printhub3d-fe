@@ -1,3 +1,4 @@
+import { checkoutCustomLines, checkoutDisplay, orderDisplay, uniqueOrderLines, standaloneCustomLines, checkoutStatus } from '../../../utils/orderDisplay';
 import { useMemo, useState } from 'react';
 import { History, Package, RefreshCw, Search, X } from 'lucide-react';
 import { useRemote } from '../../../hooks/useRemote';
@@ -21,6 +22,7 @@ interface UnifiedAdminOrderItem {
   status: string;
   priorityProduction: boolean;
   searchText: string;
+  displayLabel: string;
 }
 
 const normalizeSearch = (value: string) =>
@@ -48,29 +50,22 @@ export default function AdminOrdersUnifiedList({ history = false }: { history?: 
   };
 
   const loading = marketRemote.loading || checkoutRemote.loading || customRemote.loading;
-  const error =
-    marketRemote.error && checkoutRemote.error && customRemote.error
-      ? marketRemote.error
-      : '';
+  const error = [marketRemote.error, checkoutRemote.error, customRemote.error].filter(Boolean).join(' · ');
 
   const allItems = useMemo<UnifiedAdminOrderItem[]>(() => {
-    const checkouts = Array.isArray(checkoutRemote.data) ? checkoutRemote.data : [];
-    const customs = Array.isArray(customRemote.data) ? customRemote.data : [];
-    const markets = Array.isArray(marketRemote.data) ? marketRemote.data : [];
+    const checkouts = uniqueOrderLines(Array.isArray(checkoutRemote.data) ? checkoutRemote.data : []);
+    const customs = uniqueOrderLines(Array.isArray(customRemote.data) ? customRemote.data : []);
+    const markets = uniqueOrderLines(Array.isArray(marketRemote.data) ? marketRemote.data : []);
 
     // Đơn cha CheckoutOrder (ưu tiên hiển thị thay cho các đơn con bên trong)
     const relevantCheckouts = checkouts.filter((co) => {
-      const childCustoms = (co.customOrderDetails?.length ? co.customOrderDetails : co.customOrders) || [];
+      const childCustoms = checkoutCustomLines(co);
       const childMarkets = Array.isArray(co.marketplaceOrders) ? co.marketplaceOrders : [];
       return childCustoms.length > 0 || childMarkets.length > 0 || (co.orderType || '').toUpperCase() !== 'MARKETPLACE';
     });
 
-    const childCustomIds = new Set<string>();
     const childMarketIds = new Set<string>();
     relevantCheckouts.forEach((co) => {
-      (co.customOrderDetails || co.customOrders || []).forEach((c) => {
-        if (c?.id) childCustomIds.add(c.id);
-      });
       (co.marketplaceOrders || []).forEach((m) => {
         const mo = m as { id?: string };
         if (mo?.id) childMarketIds.add(mo.id);
@@ -89,19 +84,20 @@ export default function AdminOrdersUnifiedList({ history = false }: { history?: 
     };
 
     const checkoutItems: UnifiedAdminOrderItem[] = relevantCheckouts
-      .filter((co) => inScope(co.status, true))
+      .filter((co) => inScope(checkoutStatus(co), true))
       .map((co) => {
-        const childCustoms = (co.customOrderDetails?.length ? co.customOrderDetails : co.customOrders) || [];
+        const childCustoms = checkoutCustomLines(co);
         const hasCustom = childCustoms.length > 0 || ['CUSTOM', 'MIXED'].includes((co.orderType || '').toUpperCase());
         const childText = childCustoms.flatMap((c) => [c.id, c.customName, c.customStudentId, c.rulerModel]);
         return {
           id: co.id,
           kind: 'CHECKOUT',
+          displayLabel: checkoutDisplay(co).label,
           category: hasCustom ? 'CUSTOM' : 'MARKETPLACE',
           customerName: co.recipientName?.trim() || co.buyerName?.trim() || 'Khách hàng',
           shippingAddress: co.shippingAddress?.trim() || 'Chưa cập nhật địa chỉ',
           createdAt: co.createdAt,
-          status: co.status,
+          status: checkoutStatus(co),
           priorityProduction: Boolean(co.priorityProduction),
           searchText: normalizeSearch(
             [co.id, co.buyerName, co.recipientName, co.shippingAddress, ...childText].filter(Boolean).join(' ')
@@ -109,11 +105,12 @@ export default function AdminOrdersUnifiedList({ history = false }: { history?: 
         };
       });
 
-    const standaloneCustomItems: UnifiedAdminOrderItem[] = customs
-      .filter((c) => !c.checkoutOrderId && !childCustomIds.has(c.id) && inScope(c.status, true))
+    const standaloneCustomItems: UnifiedAdminOrderItem[] = standaloneCustomLines(customs, checkouts, !checkoutRemote.error && !checkoutRemote.loading)
+      .filter((c) => inScope(c.status, true))
       .map((c) => ({
         id: c.id,
         kind: 'CUSTOM',
+        displayLabel: orderDisplay([c]).label,
         category: 'CUSTOM',
         customerName: c.buyerName?.trim() || 'Khách hàng',
         shippingAddress: c.shippingAddress?.trim() || 'Chưa cập nhật địa chỉ',
@@ -126,12 +123,13 @@ export default function AdminOrdersUnifiedList({ history = false }: { history?: 
       }));
 
     const marketplaceItems: UnifiedAdminOrderItem[] = markets
-      .filter((o) => !childMarketIds.has(o.id) && inScope(o.status, false))
+      .filter((o) => !checkoutRemote.error && !checkoutRemote.loading && !o.checkoutOrderId && !childMarketIds.has(o.id) && inScope(o.status, false))
       .map((o) => {
         const addr = [o.shippingInfo?.address, o.shippingInfo?.province].filter(Boolean).join(', ');
         return {
           id: o.id,
           kind: 'MARKETPLACE',
+          displayLabel: 'Sản phẩm có sẵn',
           category: 'MARKETPLACE',
           customerName: o.shippingInfo?.recipientName?.trim() || o.buyerName?.trim() || 'Khách hàng',
           shippingAddress: addr || 'Chưa cập nhật địa chỉ',
@@ -158,7 +156,7 @@ export default function AdminOrdersUnifiedList({ history = false }: { history?: 
       const tb = Date.parse(b.createdAt || '') || 0;
       return tb - ta;
     });
-  }, [checkoutRemote.data, customRemote.data, marketRemote.data, history]);
+  }, [checkoutRemote.data, customRemote.data, marketRemote.data, history, checkoutRemote.error, checkoutRemote.loading]);
 
   const byKindAndSearch = useMemo(() => {
     const q = normalizeSearch(searchQuery);
@@ -320,13 +318,14 @@ export default function AdminOrdersUnifiedList({ history = false }: { history?: 
         }
       />
 
-      {!loading && !error && visibleItems.length > 0 && (
+      {!loading && visibleItems.length > 0 && (
         <div className="space-y-3">
           {visibleItems.map((item) => (
             <AdminOrderSummaryCard
               key={`${item.kind}-${item.id}`}
               id={item.id}
               kind={item.kind}
+              displayLabel={item.displayLabel}
               customerName={item.customerName}
               shippingAddress={item.shippingAddress}
               createdAt={item.createdAt}

@@ -1,3 +1,4 @@
+import { checkoutCustomLines, checkoutDisplay, orderDisplay, uniqueOrderLines, standaloneCustomLines, checkoutStatus } from '../../utils/orderDisplay';
 import RecordList, { RecordDetailHeader } from '../../components/RecordList';
 import { useEffect, useMemo, useState } from 'react';
 import { useRemote, useAction } from '../../hooks/useRemote';
@@ -61,7 +62,7 @@ interface ParsedRequirements {
 
 function parseOrderRequirements(reqText: string, dto: CustomDTO): ParsedRequirements {
   const text = reqText || '';
-  let jsonParsed: any = null;
+  let jsonParsed: { name?: string; material?: string; infill?: number; color?: string; tag?: { color?: string; textColor?: string; text?: string; font?: string }; layers?: unknown[] } | null = null;
   if (text.trim().startsWith('{')) {
     try {
       jsonParsed = JSON.parse(text);
@@ -373,28 +374,19 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
   const checkoutCustomOrders = useMemo(
     () =>
-      (checkoutRemote.data || []).filter(
+      uniqueOrderLines(checkoutRemote.data || []).filter(
         co => ((co.customOrderDetails?.length || co.customOrders?.length) ?? 0) > 0
       ),
     [checkoutRemote.data]
   );
 
-  const childIdsInCheckout = useMemo(() => {
-    const ids = new Set<string>();
-    checkoutCustomOrders.forEach(co => {
-      (co.customOrderDetails || co.customOrders || []).forEach(c => ids.add(c.id));
-    });
-    return ids;
-  }, [checkoutCustomOrders]);
-
-  // Filter tabs logic (loại trừ các child đã gộp trong CheckoutOrder để không bị trùng card)
   const allOrders = useMemo(
-    () => (remote.data || []).filter(o => !childIdsInCheckout.has(o.id)),
-    [remote.data, childIdsInCheckout]
+    () => standaloneCustomLines(remote.data || [], checkoutCustomOrders, !checkoutRemote.loading && !checkoutRemote.error),
+    [remote.data, checkoutCustomOrders, checkoutRemote.loading, checkoutRemote.error]
   );
 
   const counts = useMemo(() => {
-    const checkBuckets = checkoutCustomOrders.map(co => normalizeQuoteBucket(co.status, co.allCustomQuoted));
+    const checkBuckets = checkoutCustomOrders.map(co => normalizeQuoteBucket(checkoutStatus(co), co.allCustomQuoted));
     const singleBuckets = allOrders.map(o => normalizeQuoteBucket(o.status));
     const combined = [...checkBuckets, ...singleBuckets];
     return {
@@ -409,7 +401,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
   const filteredCheckouts = useMemo(() => {
     if (activeFilter === 'ALL') return checkoutCustomOrders;
-    return checkoutCustomOrders.filter(co => normalizeQuoteBucket(co.status, co.allCustomQuoted) === activeFilter);
+    return checkoutCustomOrders.filter(co => normalizeQuoteBucket(checkoutStatus(co), co.allCustomQuoted) === activeFilter);
   }, [checkoutCustomOrders, activeFilter]);
 
   const filteredOrders = useMemo(() => {
@@ -422,11 +414,13 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
   const [quotePreviewState, setQuotePreviewState] = useState<{
     key: string;
-    data: BenefitPreviewResponse;
+    data?: BenefitPreviewResponse;
+    error?: string;
   } | null>(null);
+  const [quotePreviewRevision, setQuotePreviewRevision] = useState(0);
   const visibleLineTotal = visibleRequest?.quotedPrice ?? 0;
   const visibleShippingBase =
-    visibleRequest?.shippingFee && visibleRequest.shippingFee > 0 ? visibleRequest.shippingFee : 30000;
+    visibleRequest?.shippingFee ?? 30000;
   const quotePreviewKey =
     !admin && visibleRequest && visibleRequest.status === 'QUOTED' && visibleLineTotal > 0
       ? `${visibleRequest.id}:${visibleLineTotal}:${visibleShippingBase}`
@@ -448,16 +442,17 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       })
       .catch(() => {
         if (!cancelled) {
-          setQuotePreviewState(null);
+          setQuotePreviewState({ key: quotePreviewKey, error: 'Không thể tải bảng giá sau ưu đãi. Hãy thử lại trước khi xác nhận.' });
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [quotePreviewKey, visibleLineTotal, visibleShippingBase]);
+  }, [quotePreviewKey, visibleLineTotal, visibleShippingBase, quotePreviewRevision]);
 
   const activeQuotePreview =
     quotePreviewKey && quotePreviewState?.key === quotePreviewKey ? quotePreviewState.data : null;
+  const quotePreviewError = quotePreviewState?.key === quotePreviewKey ? quotePreviewState.error || '' : '';
   const createdBannerItems = searchParams.get('created') === 'true' ? searchParams.get('items') : null;
   const listLoading = remote.loading || checkoutRemote.loading;
   const hasVisibleItems = filteredCheckouts.length > 0 || filteredOrders.length > 0;
@@ -470,9 +465,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
           label={tr("Yêu cầu & báo giá")}
           title={
             visibleCheckout
-              ? `Đơn gộp #CHK-${visibleCheckout.id.slice(0, 8)}`
+              ? `${checkoutDisplay(visibleCheckout).label} #CHK-${visibleCheckout.id.slice(0, 8)}`
               : visibleRequest
-                ? `Báo giá #${visibleRequest.id.slice(0, 8)}`
+                ? `${orderDisplay([visibleRequest]).label} #${visibleRequest.id.slice(0, 8)}`
                 : tr("Chi tiết báo giá")
           }
         />
@@ -561,6 +556,11 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       </div>
 
       <Notice error={action.error} />
+      {!detailId && (remote.error || checkoutRemote.error) && (
+        <RemoteState loading={false}
+          error={'Chưa tải đủ dữ liệu đơn hàng. ' + [remote.error, checkoutRemote.error].filter(Boolean).join(' · ')}
+          retry={reloadAll} />
+      )}
 
       {/* Loading state */}
       {listLoading && (
@@ -571,7 +571,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
       )}
 
       {/* Empty State */}
-      {!listLoading && !hasVisibleItems && (
+      {!listLoading && !remote.error && !checkoutRemote.error && !hasVisibleItems && (
         <div className="p-8 sm:p-12 text-center rounded-3xl border border-border bg-surface space-y-4 max-w-lg mx-auto w-full min-w-0">
           <div className="w-16 h-16 rounded-3xl bg-surface-inset border border-border flex items-center justify-center text-slate-500 mx-auto">
             <Ruler className="w-8 h-8 opacity-40" />
@@ -602,11 +602,15 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
         <div className="rounded-2xl border border-[#39FF14]/40 bg-[#39FF14]/10 p-4 text-xs sm:text-sm text-slate-100 flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-[#39FF14] shrink-0" />
           <span>
-            Đã gộp <strong className="text-[#39FF14]">{createdBannerItems} thiết kế custom</strong> vào 1 yêu cầu báo giá duy nhất. Bấm xem chi tiết bên dưới để theo dõi báo giá từng món và thanh toán 1 lần qua PayOS.
+            Đã tạo yêu cầu báo giá. {visibleCheckout ? checkoutDisplay(visibleCheckout).label : `${createdBannerItems} thiết kế`}. Mở chi tiết để theo dõi báo giá.
           </span>
         </div>
       )}
       {detailId && <Notice error={action.error} />}
+      {quotePreviewKey && !activeQuotePreview && (
+        <RemoteState loading={!quotePreviewError} error={quotePreviewError}
+          retry={() => setQuotePreviewRevision(value => value + 1)} />
+      )}
       {detailId && (
         <RemoteState
           loading={listLoading}
@@ -621,16 +625,16 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
           label={tr("Yêu cầu & báo giá")}
           entries={[
             ...filteredCheckouts.map(co => {
-              const items = (co.customOrderDetails && co.customOrderDetails.length > 0 ? co.customOrderDetails : co.customOrders) || [];
+              const items = checkoutCustomLines(co);
               const firstName = items[0]?.rulerModel || `Đơn in 3D`;
               const extraCount = items.length > 1 ? ` (+${items.length - 1} thiết kế khác)` : '';
               return {
                 id: co.id,
                 to: `/quotations/${encodeURIComponent(co.id)}`,
                 title: `${firstName}${extraCount}`,
-                meta: `#CHK-${co.id.slice(0, 8)} · ${items.length} sản phẩm · ${formatDate(co.createdAt)}`,
+                meta: `#CHK-${co.id.slice(0, 8)} · ${checkoutDisplay(co).label} · ${formatDate(co.createdAt)}`,
                 amount: co.totalAmount && co.totalAmount > 0 ? money(co.totalAmount) : undefined,
-                status: renderStatusBadge(co.allCustomQuoted && co.status === 'PENDING_QUOTE' ? 'QUOTED' : co.status, tr),
+                status: renderStatusBadge(co.allCustomQuoted && checkoutStatus(co) === 'PENDING_QUOTE' ? 'QUOTED' : checkoutStatus(co), tr),
                 _ts: Date.parse(co.createdAt || '') || 0,
               };
             }),
@@ -638,7 +642,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
               id: c.id,
               to: `/quotations/${encodeURIComponent(c.id)}`,
               title: parseOrderRequirements(c.requirements, c).modelName,
-              meta: `#${c.id.slice(0, 8)} · ${formatDate(c.createdAt)}`,
+              meta: `#${c.id.slice(0, 8)} · ${orderDisplay([c]).label} · ${formatDate(c.createdAt)}`,
               amount: c.quotedPrice == null ? undefined : money(c.quotedPrice),
               status: renderStatusBadge(c.status, tr),
               _ts: Date.parse(c.createdAt || '') || 0,
@@ -780,7 +784,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           const p = JSON.parse(c.requirements);
                           if (p?.glbUrl) glbUrl = p.glbUrl;
                         }
-                      } catch {}
+                      } catch { /* Legacy requirements may contain plain text. */ }
                       return (
                         <div className="pt-2 space-y-1.5">
                           {glbUrl && (
@@ -1107,7 +1111,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                         <button
                           type="button"
-                          disabled={action.busy}
+                          disabled={action.busy || (!!quotePreviewKey && !activeQuotePreview)}
                           onClick={() =>
                             void action.run(() =>
                               send(

@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { errorText, send } from '../services/api';
 import { useRemote } from '../hooks/useRemote';
+import type { PointWalletResponse } from '../services/pointService';
 import type { ShippingAddress } from '../features/address/data';
 import { validatePhoneMessage, normalizeVietnamesePhone } from '../utils/phoneValidator';
 import ChangePasswordModal from '../components/ChangePasswordModal';
@@ -30,6 +31,7 @@ export default function ProfilePage() {
 
 function ProfilePageContent() {
   const { user, updateProfile } = useAuth();
+  const wallet = useRemote<PointWalletResponse>(user ? '/points/me' : null, user?.id);
 
   // Mode: View vs Edit
   const [isEditing, setIsEditing] = useState(false);
@@ -292,10 +294,14 @@ function ProfilePageContent() {
               </div>
               <div className="flex items-baseline gap-2 pt-1">
                 <span className="text-3xl font-black text-white font-mono ">
-                  {(user?.rewardPoints ?? 0).toLocaleString()}
+                  {wallet.loading ? 'Đang tải…' : wallet.data ? wallet.data.balance.toLocaleString('vi-VN') : '—'}
                 </span>
                 <span className="text-xs font-bold text-[#39FF14] font-mono">PrintHub Xu</span>
               </div>
+              {wallet.error && <div role="alert" className="space-y-2 text-xs text-red-400">
+                <p>Chưa tải được số dư ví. {wallet.error}</p>
+                <button type="button" onClick={wallet.reload} className="underline">Tải lại số dư</button>
+              </div>}
               <p className="text-[11px] text-slate-400 leading-relaxed">
                 Tích lũy từ mỗi đơn in 3D &amp; custom thước kỹ thuật. Dùng xu để đổi voucher giảm giá hoặc nâng cấp gói hội viên.
               </p>

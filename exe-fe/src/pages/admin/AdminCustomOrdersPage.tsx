@@ -1,3 +1,4 @@
+import { checkoutCustomLines, checkoutDisplay, orderDisplay, uniqueOrderLines, standaloneCustomLines, checkoutStatus } from '../../utils/orderDisplay';
 import { useEffect, useMemo, useState } from 'react';
 import { FileText, RefreshCw, Search, X } from 'lucide-react';
 import { PageHeader, RemoteState, TabGroup, field, secondary, type TabItem } from '../../components/DataUI';
@@ -18,10 +19,11 @@ interface QuotationSummaryItem {
   bucket: FilterTab | 'OTHER';
   priorityProduction: boolean;
   searchText: string;
+  displayLabel: string;
 }
 
 const resolveCheckoutBucket = (co: CheckoutOrderDTO): FilterTab | 'OTHER' => {
-  const raw = (co.status || '').toUpperCase();
+  const raw = checkoutStatus(co).toUpperCase();
   if (raw === 'CANCELLED') return 'CANCELLED';
   if (raw === 'PAID') return 'PAID';
   if (raw === 'CONFIRMED') {
@@ -51,6 +53,7 @@ export default function AdminCustomOrdersPage() {
   const [customOrders, setCustomOrders] = useState<CustomDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [parentsReady, setParentsReady] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [reloadTick, setReloadTick] = useState(0);
@@ -64,20 +67,21 @@ export default function AdminCustomOrdersPage() {
       ]);
       if (!active) return;
 
+      setParentsReady(coRes.status === 'fulfilled');
       let firstError = '';
       if (coRes.status === 'fulfilled') {
-        setCheckoutOrders(Array.isArray(coRes.value) ? coRes.value : []);
+        setCheckoutOrders(uniqueOrderLines(Array.isArray(coRes.value) ? coRes.value : []));
       } else {
         firstError = getApiErrorMessage(coRes.reason, 'Không thể tải danh sách đơn gộp custom.');
       }
 
       if (customRes.status === 'fulfilled') {
-        setCustomOrders(Array.isArray(customRes.value) ? customRes.value : []);
+        setCustomOrders(uniqueOrderLines(Array.isArray(customRes.value) ? customRes.value : []));
       } else if (!firstError) {
         firstError = getApiErrorMessage(customRes.reason, 'Không thể tải danh sách yêu cầu in custom.');
       }
 
-      if (coRes.status === 'rejected' && customRes.status === 'rejected') {
+      if (coRes.status === 'rejected' || customRes.status === 'rejected') {
         setError(firstError);
       } else {
         setError('');
@@ -103,12 +107,8 @@ export default function AdminCustomOrdersPage() {
       return orderType === 'CUSTOM' || orderType === 'MIXED' || childCount > 0;
     });
 
-    const childIdsInCheckouts = new Set<string>();
     const mappedCheckouts: QuotationSummaryItem[] = relevantCheckouts.map((co) => {
-      const children = co.customOrderDetails?.length ? co.customOrderDetails : co.customOrders || [];
-      children.forEach((child) => {
-        if (child?.id) childIdsInCheckouts.add(child.id);
-      });
+      const children = checkoutCustomLines(co);
 
       const childSearchParts = children.flatMap((c) => [
         c.id,
@@ -121,10 +121,11 @@ export default function AdminCustomOrdersPage() {
       return {
         id: co.id,
         kind: 'CHECKOUT',
+        displayLabel: checkoutDisplay(co).label,
         customerName: co.recipientName?.trim() || co.buyerName?.trim() || 'Khách hàng',
         shippingAddress: co.shippingAddress?.trim() || 'Chưa cập nhật địa chỉ',
         createdAt: co.createdAt,
-        status: co.status,
+        status: checkoutStatus(co),
         bucket: resolveCheckoutBucket(co),
         priorityProduction: Boolean(co.priorityProduction),
         searchText: [
@@ -140,11 +141,11 @@ export default function AdminCustomOrdersPage() {
       };
     });
 
-    const mappedStandalone: QuotationSummaryItem[] = customOrders
-      .filter((c) => !c.checkoutOrderId && !childIdsInCheckouts.has(c.id))
+    const mappedStandalone: QuotationSummaryItem[] = standaloneCustomLines(customOrders, checkoutOrders, parentsReady)
       .map((c) => ({
         id: c.id,
         kind: 'CUSTOM',
+        displayLabel: orderDisplay([c]).label,
         customerName: c.buyerName?.trim() || 'Khách hàng',
         shippingAddress: c.shippingAddress?.trim() || 'Chưa cập nhật địa chỉ',
         createdAt: c.createdAt,
@@ -169,7 +170,7 @@ export default function AdminCustomOrdersPage() {
       const tb = Date.parse(b.createdAt || '') || 0;
       return tb - ta;
     });
-  }, [checkoutOrders, customOrders]);
+  }, [checkoutOrders, customOrders, parentsReady]);
 
   const searchedItems = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -264,13 +265,14 @@ export default function AdminCustomOrdersPage() {
         }
       />
 
-      {!loading && !error && visibleItems.length > 0 && (
+      {!loading && visibleItems.length > 0 && (
         <div className="space-y-3">
           {visibleItems.map((item) => (
             <AdminOrderSummaryCard
               key={`${item.kind}-${item.id}`}
               id={item.id}
               kind={item.kind}
+              displayLabel={item.displayLabel}
               customerName={item.customerName}
               shippingAddress={item.shippingAddress}
               createdAt={item.createdAt}

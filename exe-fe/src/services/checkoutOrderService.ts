@@ -1,5 +1,6 @@
 import { read, send } from './api';
 import type { CustomDTO } from './quotationService';
+import type { OrderDTO } from './orderService';
 
 export interface BlockedActionDTO {
   action: string;
@@ -29,7 +30,7 @@ export interface CheckoutOrderDTO {
   updatedAt?: string;
   customOrders?: CustomDTO[];
   customOrderDetails?: CustomDTO[];
-  marketplaceOrders?: unknown[];
+  marketplaceOrders?: OrderDTO[];
   allowedActions?: string[];
   blockedActions?: BlockedActionDTO[];
   allCustomQuoted: boolean;

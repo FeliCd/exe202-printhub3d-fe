@@ -6,8 +6,14 @@ test('merging main cart API retains studio snapshots without sending synthetic I
   const product = { id: 'catalogue-1', name: 'Ruler' };
   const custom = { id: 'ruler-design-1', rulerDesign: { strokes: [{ id: 'stroke-1' }] } };
   const items = [{ id: 'a', product, quantity: 2 }, { id: 'b', product: custom, quantity: 1 }];
-  assert.deepEqual(catalogueItems(items), [{ productId: 'catalogue-1', quantity: 2 }]);
+  // /cart now persists customDesign snapshots as well as catalog products.
+  const payload = JSON.parse(JSON.stringify(catalogueItems(items)));
+  assert.deepEqual(payload, [
+    { productId: 'catalogue-1', quantity: 2 },
+    { quantity: 1, customDesign: JSON.stringify(custom.rulerDesign) },
+  ]);
+  assert.equal(payload[1].productId, undefined);
   assert.deepEqual(localDesigns(items), [items[1]]);
-  assert.deepEqual(catalogueItems(localDesigns(items)), []);
+  assert.equal(catalogueItems(localDesigns(items))[0].customDesign, JSON.stringify(custom.rulerDesign));
   assert.equal(items.length, 2);
 });

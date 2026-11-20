@@ -27,6 +27,7 @@ export interface BlockedActionDTO {
 }
 
 export interface OrderDTO {
+  checkoutOrderId?: string;
   id: string;
   buyerName: string;
   sellerName: string;

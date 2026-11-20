@@ -32,7 +32,6 @@ export default function PaymentResultPage() {
   const cancelled = status === 'CANCELLED';
   const leftCheckout = cancelReturn && !code;
   const amount = remote.data?.amount;
-  const points = paid && !isSubscription && typeof amount === 'number' ? Math.floor(amount / 10000) : 0;
 
   let Icon = CircleAlert;
   let title = 'Chưa xác nhận được thanh toán';
@@ -105,7 +104,7 @@ export default function PaymentResultPage() {
             )}
           </dl>
         )}
-        {points > 0 && <p className="text-xs text-theme-muted">Dự kiến cộng {points} xu khi đơn hàng hoàn tất.</p>}
+        {paid && !isSubscription && <p className="text-xs text-theme-muted">Xu thưởng được ghi nhận sau khi giao hàng và kiểm tra điều kiện thưởng.</p>}
         <div className="grid gap-2">{actions}</div>
         <Link to="/help-center" className="text-xs text-theme-muted underline underline-offset-4 hover:text-theme-accent">Liên hệ hỗ trợ</Link>
       </section>

@@ -1,3 +1,4 @@
+import { checkoutCustomLines, checkoutDisplay, checkoutStatus } from '../../utils/orderDisplay';
 import { useEffect, useState } from 'react';
 import {
   Check,
@@ -34,7 +35,7 @@ import CancelCustomOrderModal from './CancelCustomOrderModal';
 import { Modal3DViewer } from '../ruler-studio/Modal3DViewer';
 import type { Design } from '../ruler-studio/model';
 import { money, formatDateTime } from '../../utils/format';
-import { Status } from '../../components/DataUI';
+import { RemoteState, Status } from '../../components/DataUI';
 
 interface CheckoutOrderDetailCardProps {
   checkoutOrder: CheckoutOrderDTO;
@@ -133,9 +134,7 @@ export default function CheckoutOrderDetailCard({
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelError, setCancelError] = useState('');
 
-  const items: CustomDTO[] = (co.customOrderDetails && co.customOrderDetails.length > 0
-    ? co.customOrderDetails
-    : co.customOrders) || [];
+  const items: CustomDTO[] = checkoutCustomLines(co);
 
   const syncKey = `${co.id}:${co.summaryVersion ?? ''}:${items
     .map(i => `${i.id}:${i.unitQuotedPrice ?? ''}:${i.quotedPrice ?? ''}:${i.quoteNote ?? ''}`)
@@ -182,14 +181,16 @@ export default function CheckoutOrderDetailCard({
       ? co.itemsSubtotal
       : activeItems.reduce((sum, item) => sum + resolveLineTotal(item), 0);
 
-  const shippingFeeDisplay = co.shippingFee && co.shippingFee > 0 ? co.shippingFee : 30000;
-  const isParentQuotable = ['PENDING_QUOTE', 'QUOTED'].includes((co.status || '').toUpperCase());
+  const shippingFeeDisplay = co.shippingFee ?? 30000;
+  const isParentQuotable = ['PENDING_QUOTE', 'QUOTED'].includes(checkoutStatus(co).toUpperCase());
   const isBatchQuotable = admin && isParentQuotable && quotableActiveItems.length > 0;
 
   const [coPreviewState, setCoPreviewState] = useState<{
     key: string;
-    data: BenefitPreviewResponse;
+    data?: BenefitPreviewResponse;
+    error?: string;
   } | null>(null);
+  const [previewRevision, setPreviewRevision] = useState(0);
   const previewScope: 'CUSTOM' | 'MIXED' | 'MARKETPLACE' =
     co.orderType === 'MIXED' ? 'MIXED' : co.orderType === 'MARKETPLACE' ? 'MARKETPLACE' : 'CUSTOM';
   const shouldPreviewBenefits = !admin && co.readyForConfirm && computedItemsSubtotal > 0;
@@ -213,15 +214,16 @@ export default function CheckoutOrderDetailCard({
       })
       .catch(() => {
         if (!cancelled) {
-          setCoPreviewState(null);
+          setCoPreviewState({ key: coPreviewKey, error: 'Không thể tải bảng giá sau ưu đãi. Hãy thử lại trước khi xác nhận.' });
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [coPreviewKey, previewScope, computedItemsSubtotal, shippingFeeDisplay]);
+  }, [coPreviewKey, previewScope, computedItemsSubtotal, shippingFeeDisplay, previewRevision]);
 
   const coPreview = coPreviewKey && coPreviewState?.key === coPreviewKey ? coPreviewState.data : null;
+  const previewError = coPreviewState?.key === coPreviewKey ? coPreviewState.error || '' : '';
   const hasServerBenefitSnapshot =
     (co.discountAmount ?? 0) > 0 ||
     (co.shippingDiscountAmount ?? 0) > 0 ||
@@ -278,7 +280,7 @@ export default function CheckoutOrderDetailCard({
     return null;
   };
 
-  const forwardAct = admin ? nextAdminAction() : null;
+  const forwardAct = admin && checkoutStatus(co) !== 'CANCELLED' ? nextAdminAction() : null;
   const blockedPayment = (co.blockedActions || []).find(b => b.reasonCode === 'PAYMENT_REQUIRED');
 
   const handleCopyId = () => {
@@ -347,7 +349,7 @@ export default function CheckoutOrderDetailCard({
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] text-[11px] font-mono font-extrabold">
               <Layers className="w-3.5 h-3.5" />
-              ĐƠN GỘP {items.length} THIẾT KẾ
+              {checkoutDisplay(co).label}
             </span>
             <button
               type="button"
@@ -379,7 +381,7 @@ export default function CheckoutOrderDetailCard({
               <Sparkles className="w-3 h-3" /> Ưu tiên VIP
             </span>
           )}
-          <Status value={co.status} />
+          <Status value={checkoutStatus(co)} />
         </div>
       </div>
 
@@ -449,12 +451,27 @@ export default function CheckoutOrderDetailCard({
         </div>
       </div>
 
+      {!!co.marketplaceOrders?.length && (
+        <section className="space-y-3 rounded-xl border border-border bg-surface-inset p-4">
+          <h3 className="font-semibold text-white">Sản phẩm có sẵn</h3>
+          {co.marketplaceOrders.map(order => (
+            <div key={order.id} className="space-y-2">
+              <p className="text-xs text-slate-400">Đơn #{order.id.slice(0, 8)} · <Status value={order.status} /></p>
+              <ul className="space-y-1 text-sm text-slate-200">
+                {order.items?.map((item, index) => (
+                  <li key={item.id ?? index}>{item.productTitle} · {item.quantity} bản</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
       {/* Child Custom Items Breakdown */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
             <Package className="w-4 h-4 text-[#39FF14]" />
-            <span>Chi tiết {items.length} sản phẩm in custom trong đơn</span>
+            <span>{checkoutDisplay(co).label}{checkoutDisplay(co).cancelledCount > 0 ? ` · ${checkoutDisplay(co).cancelledCount} dòng đã hủy` : ''}</span>
           </h3>
         </div>
 
@@ -868,7 +885,9 @@ export default function CheckoutOrderDetailCard({
                 : 'Tổng tạm tính (các món đã báo giá):'}
           </span>
           <span className="text-xl sm:text-2xl font-black text-[#39FF14] font-mono">
-            {!hasServerBenefitSnapshot && coPreview
+            {!hasServerBenefitSnapshot && coPreviewKey && !coPreview
+              ? previewError ? 'Chưa xác định số tiền thanh toán' : 'Đang tải bảng giá…'
+              : !hasServerBenefitSnapshot && coPreview
               ? money(coPreview.finalTotal)
               : co.totalAmount && co.totalAmount > 0
                 ? money(co.totalAmount)
@@ -876,13 +895,15 @@ export default function CheckoutOrderDetailCard({
                   ? `${money(computedItemsSubtotal)} (+ ship)`
                   : 'Chờ xưởng báo giá'}
           </span>
+          {previewError && <RemoteState loading={false} error={previewError}
+            retry={() => setPreviewRevision(value => value + 1)} />}
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          {!admin && co.readyForConfirm && (
+          {!admin && co.readyForConfirm && checkoutDisplay(co).label !== 'Đã hủy' && (
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || (!!coPreviewKey && !hasServerBenefitSnapshot && !coPreview)}
               onClick={() => void handleConfirmAndPay()}
               className="px-5 py-2.5 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 transition flex items-center gap-2 text-xs uppercase tracking-tight shadow-lg shadow-[#39FF14]/25 cursor-pointer disabled:opacity-50"
             >
@@ -891,7 +912,7 @@ export default function CheckoutOrderDetailCard({
             </button>
           )}
 
-          {!admin && co.status === 'CONFIRMED' && co.paymentStatus !== 'SUCCESS' && (
+          {!admin && co.status === 'CONFIRMED' && co.paymentStatus !== 'SUCCESS' && checkoutDisplay(co).label !== 'Đã hủy' && (
             <button
               type="button"
               disabled={busy}

@@ -1,3 +1,4 @@
+import { checkoutCustomLines, checkoutDisplay, orderDisplay, uniqueOrderLines, standaloneCustomLines, checkoutStatus } from '../../utils/orderDisplay';
 import RecordList, { RecordDetailHeader } from '../../components/RecordList';
 import { useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -138,6 +139,7 @@ function OrderStepper({ status, admin = false }: { status: string; admin?: boole
 }
 
 interface CustomOrderAdminItem {
+  checkoutOrderId?: string;
   id: string;
   buyerName: string;
   rulerModel?: string;
@@ -202,7 +204,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
   const { orderKey } = useParams<{ orderKey: string }>();
   const [params, setParams] = useSearchParams();
   const userHistory = !admin && history;
-  const detailKey = admin ? undefined : orderKey;
+  const detailKey = admin ? undefined : orderKey?.replace(/^(checkout|product|custom)::/, '$1:');
   const listPath = userHistory ? '/order-history' : '/orders';
   const [historyFilters, setHistoryFilters] = useState<HistoryFilters>(() => {
     const kind = params.get('kind');
@@ -256,10 +258,10 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
   const [activeOrderTab, setActiveOrderTab] = useState<'ALL' | 'PENDING' | 'PRINTING' | 'SHIPPING'>('ALL');
 
   // Đơn Marketplace: Phân tách rõ ràng giữa Đang xử lý vs Lịch sử kết thúc (EXPIRED không bao giờ ở Đang xử lý)
-  const rawMarketplaceOrders = (remote.data || []).filter(o =>
-    history
+  const rawMarketplaceOrders = uniqueOrderLines(remote.data || []).filter(o =>
+    !o.checkoutOrderId && !checkoutRemote.loading && !checkoutRemote.error && !(checkoutRemote.data || []).some(co => co.marketplaceOrders?.some(child => child.id === o.id)) && (history
       ? ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(o.status)
-      : !['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(o.status)
+      : !['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(o.status))
   );
 
   const marketplaceOrders = rawMarketplaceOrders.filter(o => {
@@ -277,36 +279,29 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
   });
 
   // Đơn Custom gộp (CheckoutOrder)
-  const checkoutCustomOrders = (checkoutRemote.data || []).filter(
-    co => ((co.customOrderDetails?.length || co.customOrders?.length) ?? 0) > 0
-  );
-  const childIdsInCheckout = new Set<string>();
-  checkoutCustomOrders.forEach(co => {
-    (co.customOrderDetails || co.customOrders || []).forEach(c => childIdsInCheckout.add(c.id));
-  });
-
+  const checkoutCustomOrders = uniqueOrderLines(checkoutRemote.data || []);
   const currentCheckoutCustomOrders = checkoutCustomOrders.filter(co =>
     history
-      ? ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(co.status)
-      : ['CONFIRMED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(co.status)
+      ? ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(checkoutStatus(co))
+      : ['CONFIRMED', 'PAID', 'PREPARING', 'PRINTING', 'SHIPPING'].includes(checkoutStatus(co))
   );
 
   const displayedCheckoutCustomOrders = currentCheckoutCustomOrders.filter(co => {
     if (activeTab === 'MARKETPLACE') return false;
     if (history) {
-      if (historyTab === 'COMPLETED') return co.status === 'COMPLETED';
-      if (historyTab === 'CANCELLED') return co.status === 'CANCELLED';
-      if (historyTab === 'EXPIRED') return co.status === 'EXPIRED';
+      if (historyTab === 'COMPLETED') return checkoutStatus(co) === 'COMPLETED';
+      if (historyTab === 'CANCELLED') return checkoutStatus(co) === 'CANCELLED';
+      if (historyTab === 'EXPIRED') return checkoutStatus(co) === 'EXPIRED';
       return true;
     }
-    if (activeOrderTab === 'PENDING') return ['CONFIRMED', 'PAID', 'PREPARING'].includes(co.status);
-    if (activeOrderTab === 'PRINTING') return co.status === 'PRINTING';
-    if (activeOrderTab === 'SHIPPING') return co.status === 'SHIPPING';
+    if (activeOrderTab === 'PENDING') return ['CONFIRMED', 'PAID', 'PREPARING'].includes(checkoutStatus(co));
+    if (activeOrderTab === 'PRINTING') return checkoutStatus(co) === 'PRINTING';
+    if (activeOrderTab === 'SHIPPING') return checkoutStatus(co) === 'SHIPPING';
     return true;
   });
 
   // Đơn Custom đơn lẻ cũ (loại trừ các child đã thuộc CheckoutOrder để không lặp)
-  const allCustomOrders = (customRemote.data || []).filter(c => !childIdsInCheckout.has(c.id));
+  const allCustomOrders = standaloneCustomLines(customRemote.data || [], checkoutCustomOrders, !checkoutRemote.loading && !checkoutRemote.error);
   const currentCustomOrders = allCustomOrders.filter(c =>
     history
       ? ['COMPLETED', 'CANCELLED'].includes(c.status)
@@ -347,18 +342,18 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
       };
     }),
     ...displayedCheckoutCustomOrders.map(co => {
-      const items = (co.customOrderDetails && co.customOrderDetails.length > 0 ? co.customOrderDetails : co.customOrders) || [];
+      const items = checkoutCustomLines(co);
       const firstName = items[0]?.rulerModel || 'Đơn in 3D';
       const extraCount = items.length > 1 ? ` (+${items.length - 1} thiết kế khác)` : '';
       return {
         id: `checkout:${co.id}`,
         to: detailUrl(`checkout:${co.id}`),
         title: `${firstName}${extraCount}`,
-        meta: `#CHK-${co.id.slice(0, 8)} · ${items.length} sản phẩm · ${formatDateTime(co.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
+        meta: `#CHK-${co.id.slice(0, 8)} · ${checkoutDisplay(co).label} · ${formatDateTime(co.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
         amount: co.totalAmount == null ? undefined : money(co.totalAmount),
         thumbnail: null,
         createdAt: co.createdAt,
-        status: <Status value={co.status} />,
+        status: <Status value={checkoutStatus(co)} />,
         searchText: `CHK-${co.id} ${co.id} ${items.map(i => i.rulerModel || '').join(' ')}`,
       };
     }),
@@ -366,7 +361,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
       id: `custom:${o.id}`,
       to: detailUrl(`custom:${o.id}`),
       title: o.rulerModel || `Đơn in 3D #${o.id.slice(0, 8)}`,
-      meta: `#CUS-${o.id.slice(0, 8)} · ${formatDateTime(o.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
+      meta: `#CUS-${o.id.slice(0, 8)} · ${orderDisplay([o]).label} · ${formatDateTime(o.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
       amount: o.quotedPrice == null ? undefined : money(o.quotedPrice),
       thumbnail: null,
       createdAt: o.createdAt,
@@ -383,7 +378,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
     ? (history ? currentCheckoutCustomOrders : checkoutCustomOrders).filter(co => detailKey === `checkout:${co.id}`)
     : displayedCheckoutCustomOrders;
   const detailCustomOrders = detailKey
-    ? (history ? currentCustomOrders : allCustomOrders).filter(c => detailKey === `custom:${c.id}`)
+    ? (customRemote.data || []).filter(c => detailKey === `custom:${c.id}`)
     : displayedCustomOrders;
   const detailRemote = detailKey?.startsWith('checkout:')
     ? checkoutRemote
@@ -506,9 +501,9 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
               </button>
             )) : ([
               ['ALL', 'Tất cả', rawMarketplaceOrders.length + currentCheckoutCustomOrders.length + currentCustomOrders.length],
-              ['PENDING', 'Chờ xử lý', rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCheckoutCustomOrders.filter(co => ['CONFIRMED', 'PAID', 'PREPARING'].includes(co.status)).length + currentCustomOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING'].includes(o.status)).length],
-              ['PRINTING', 'Đang sản xuất', rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCheckoutCustomOrders.filter(co => co.status === 'PRINTING').length + currentCustomOrders.filter(o => o.status === 'PRINTING').length],
-              ['SHIPPING', 'Đang giao', rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCheckoutCustomOrders.filter(co => co.status === 'SHIPPING').length + currentCustomOrders.filter(o => o.status === 'SHIPPING').length],
+              ['PENDING', 'Chờ xử lý', rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCheckoutCustomOrders.filter(co => ['CONFIRMED', 'PAID', 'PREPARING'].includes(checkoutStatus(co))).length + currentCustomOrders.filter(o => ['ACCEPTED', 'PAID', 'PREPARING'].includes(o.status)).length],
+              ['PRINTING', 'Đang sản xuất', rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCheckoutCustomOrders.filter(co => checkoutStatus(co) === 'PRINTING').length + currentCustomOrders.filter(o => o.status === 'PRINTING').length],
+              ['SHIPPING', 'Đang giao', rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCheckoutCustomOrders.filter(co => checkoutStatus(co) === 'SHIPPING').length + currentCustomOrders.filter(o => o.status === 'SHIPPING').length],
             ] as const).map(([value, label, count]) => (
               <button key={value} type="button" aria-pressed={activeOrderTab === value} onClick={() => setActiveOrderTab(value)}
                 className="shrink-0 cursor-pointer border-b-2 border-transparent px-1 py-3 text-sm font-medium text-theme-muted hover:text-theme-ink aria-pressed:border-primary aria-pressed:text-theme-accent">
@@ -614,7 +609,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
             }`}
           >
             <Check className="w-3.5 h-3.5" />
-            Đã Hoàn Thành ({rawMarketplaceOrders.filter(o => o.status === 'COMPLETED').length + currentCheckoutCustomOrders.filter(co => co.status === 'COMPLETED').length + currentCustomOrders.filter(c => c.status === 'COMPLETED').length})
+            Đã Hoàn Thành ({rawMarketplaceOrders.filter(o => o.status === 'COMPLETED').length + currentCheckoutCustomOrders.filter(co => checkoutStatus(co) === 'COMPLETED').length + currentCustomOrders.filter(c => c.status === 'COMPLETED').length})
           </button>
           <button
             onClick={() => setHistoryTab('CANCELLED')}
@@ -624,7 +619,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đã Hủy ({rawMarketplaceOrders.filter(o => o.status === 'CANCELLED').length + currentCheckoutCustomOrders.filter(co => co.status === 'CANCELLED').length + currentCustomOrders.filter(c => c.status === 'CANCELLED').length})
+            Đã Hủy ({rawMarketplaceOrders.filter(o => o.status === 'CANCELLED').length + currentCheckoutCustomOrders.filter(co => checkoutStatus(co) === 'CANCELLED').length + currentCustomOrders.filter(c => c.status === 'CANCELLED').length})
           </button>
           <button
             onClick={() => setHistoryTab('EXPIRED')}
@@ -635,7 +630,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            Hết Hạn Thanh Toán ({rawMarketplaceOrders.filter(o => o.status === 'EXPIRED').length + currentCheckoutCustomOrders.filter(co => co.status === 'EXPIRED').length})
+            Hết Hạn Thanh Toán ({rawMarketplaceOrders.filter(o => o.status === 'EXPIRED').length + currentCheckoutCustomOrders.filter(co => checkoutStatus(co) === 'EXPIRED').length})
           </button>
         </div>
       )}
@@ -661,7 +656,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Chờ Xử Lý ({rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCheckoutCustomOrders.filter(co => ['CONFIRMED', 'PAID', 'PREPARING'].includes(co.status)).length + currentCustomOrders.filter(c => ['ACCEPTED', 'PAID', 'PREPARING'].includes(c.status)).length})
+            Chờ Xử Lý ({rawMarketplaceOrders.filter(o => ['PENDING', 'UNPAID', 'PAID', 'PREPARING'].includes(o.status)).length + currentCheckoutCustomOrders.filter(co => ['CONFIRMED', 'PAID', 'PREPARING'].includes(checkoutStatus(co))).length + currentCustomOrders.filter(c => ['ACCEPTED', 'PAID', 'PREPARING'].includes(c.status)).length})
           </button>
           <button
             onClick={() => setActiveOrderTab('PRINTING')}
@@ -671,7 +666,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đang In 3D ({rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCheckoutCustomOrders.filter(co => co.status === 'PRINTING').length + currentCustomOrders.filter(c => c.status === 'PRINTING').length})
+            Đang In 3D ({rawMarketplaceOrders.filter(o => o.status === 'PRINTING').length + currentCheckoutCustomOrders.filter(co => checkoutStatus(co) === 'PRINTING').length + currentCustomOrders.filter(c => c.status === 'PRINTING').length})
           </button>
           <button
             onClick={() => setActiveOrderTab('SHIPPING')}
@@ -681,7 +676,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Đang Giao Hàng ({rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCheckoutCustomOrders.filter(co => co.status === 'SHIPPING').length + currentCustomOrders.filter(c => c.status === 'SHIPPING').length})
+            Đang Giao Hàng ({rawMarketplaceOrders.filter(o => o.status === 'SHIPPING').length + currentCheckoutCustomOrders.filter(co => checkoutStatus(co) === 'SHIPPING').length + currentCustomOrders.filter(c => c.status === 'SHIPPING').length})
           </button>
         </div>
       )}

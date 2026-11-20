@@ -12,11 +12,12 @@ export interface AdminOrderSummaryCardProps {
   createdAt?: string | null;
   status?: string | null;
   priorityProduction?: boolean | null;
+  displayLabel?: string;
 }
 
 const KIND_LABELS: Record<AdminOrderKind, { label: string; className: string }> = {
   CHECKOUT: {
-    label: 'Đơn gộp',
+    label: 'Đơn checkout',
     className: 'border-cyan-500/30 bg-cyan-950/30 text-cyan-300',
   },
   CUSTOM: {
@@ -39,6 +40,7 @@ const formatDateTime = (value?: string | null): string => {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh',
   });
 };
 
@@ -50,6 +52,7 @@ export default function AdminOrderSummaryCard({
   createdAt,
   status,
   priorityProduction,
+  displayLabel,
 }: AdminOrderSummaryCardProps) {
   const kindMeta = KIND_LABELS[kind];
   const shortId = `#${id.slice(0, 8)}`;
@@ -65,7 +68,7 @@ export default function AdminOrderSummaryCard({
           </span>
           <CopyButton text={id} label="Copy" />
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${kindMeta.className}`}>
-            {kindMeta.label}
+            {displayLabel || kindMeta.label}
           </span>
           {priorityProduction && (
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-950/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
