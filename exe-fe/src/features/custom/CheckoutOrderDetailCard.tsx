@@ -515,6 +515,12 @@ export default function CheckoutOrderDetailCard({
                       <span>
                         {item.productTitle} · {item.quantity} bản
                       </span>
+                      {admin && item.reviewId && (
+                        <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-theme-accent font-mono">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          {item.reviewRating || 5}/5 · Đã đánh giá
+                        </span>
+                      )}
                       {!admin && isOrderCompleted && (
                         <div className="flex items-center gap-2">
                           {item.reviewId ? (
@@ -769,6 +775,40 @@ export default function CheckoutOrderDetailCard({
                       <span className="text-[11px] text-rose-400 font-semibold block">{quoteErrors[item.id]}</span>
                     )}
                   </form>
+                )}
+
+                {admin && item.review && (
+                  <div className="pt-2.5 border-t border-border space-y-2 text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 font-bold text-theme-accent font-mono">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        Khách hàng đánh giá: {item.review.rating}/5 sao
+                      </span>
+                      {item.review.createdAt && (
+                        <span className="text-[11px] font-mono text-theme-muted">
+                          {formatDateTime(item.review.createdAt)}
+                        </span>
+                      )}
+                    </div>
+                    {item.review.comment && (
+                      <p className="text-theme-copy leading-relaxed">“{item.review.comment}”</p>
+                    )}
+                    {item.review.imageUrls?.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {item.review.imageUrls.map((url, idx) => (
+                          <button
+                            key={url + idx}
+                            type="button"
+                            onClick={() => setPreviewImageUrl(url)}
+                            className="h-12 w-12 overflow-hidden rounded-lg border border-border bg-surface-inset hover:opacity-85 transition cursor-zoom-in"
+                            title="Xem ảnh khách đánh giá"
+                          >
+                            <img src={url} alt={`Ảnh đánh giá ${idx + 1}`} className="h-full w-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {!admin &&

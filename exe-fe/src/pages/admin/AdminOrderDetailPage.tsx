@@ -18,11 +18,13 @@ import {
   XCircle,
   Box,
   Layers,
+  Star,
   X,
 } from 'lucide-react';
 import api, { send, unwrap } from '../../services/api';
 import checkoutOrderService, { type CheckoutOrderDTO } from '../../services/checkoutOrderService';
 import quotationService from '../../services/quotationService';
+import type { CustomOrderReviewDTO } from '../../services/reviewService';
 import CheckoutOrderDetailCard from '../../features/custom/CheckoutOrderDetailCard';
 import CancelCustomOrderModal from '../../features/custom/CancelCustomOrderModal';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
@@ -66,6 +68,7 @@ interface CustomOrderAdminDetail {
   cancelReason?: string;
   cancelledByRole?: string;
   cancelledAt?: string;
+  review?: CustomOrderReviewDTO | null;
 }
 
 const STEPS = [
@@ -883,6 +886,40 @@ export default function AdminOrderDetailPage() {
 
           {/* Detailed Specs Viewer */}
           <RulerSpecsViewer requirements={customOrder.requirements || ''} />
+
+          {customOrder.review && (
+            <div className="pt-4 border-t border-white/10 space-y-2 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 font-bold text-[#39FF14] font-mono">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  Đánh giá từ khách hàng: {customOrder.review.rating}/5 sao
+                </span>
+                {customOrder.review.createdAt && (
+                  <span className="text-[11px] font-mono text-slate-400">
+                    {formatDateTime(customOrder.review.createdAt)}
+                  </span>
+                )}
+              </div>
+              {customOrder.review.comment && (
+                <p className="text-slate-200 leading-relaxed">“{customOrder.review.comment}”</p>
+              )}
+              {customOrder.review.imageUrls?.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {customOrder.review.imageUrls.map((url, idx) => (
+                    <button
+                      key={url + idx}
+                      type="button"
+                      onClick={() => setPreviewImage(url)}
+                      className="h-14 w-14 overflow-hidden rounded-lg border border-white/15 bg-black/40 hover:opacity-85 transition cursor-zoom-in"
+                      title="Xem ảnh khách đánh giá"
+                    >
+                      <img src={url} alt={`Ảnh đánh giá ${idx + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

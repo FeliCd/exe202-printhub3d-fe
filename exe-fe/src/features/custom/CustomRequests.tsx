@@ -1269,6 +1269,40 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                       > {tr("4. Hoàn tất")} </div>
                     </div>
 
+                    {admin && c.status === 'COMPLETED' && c.review && (
+                      <div className="pt-3 border-t border-border space-y-1.5 text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="inline-flex items-center gap-1.5 font-bold text-theme-accent font-mono">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            Khách hàng đánh giá: {c.review.rating}/5 sao
+                          </span>
+                          {c.review.createdAt && (
+                            <span className="text-[11px] font-mono text-theme-muted">
+                              {formatDateTime(c.review.createdAt)}
+                            </span>
+                          )}
+                        </div>
+                        {c.review.comment && (
+                          <p className="text-theme-copy leading-relaxed">“{c.review.comment}”</p>
+                        )}
+                        {c.review.imageUrls?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {c.review.imageUrls.map((url, idx) => (
+                              <a
+                                key={url + idx}
+                                href={url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="h-12 w-12 overflow-hidden rounded-lg border border-border bg-surface-inset hover:opacity-85 transition"
+                              >
+                                <img src={url} alt={`Ảnh đánh giá ${idx + 1}`} className="h-full w-full object-cover" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {!admin && c.status === 'COMPLETED' && (
                       <div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-3">
                         {c.review ? (

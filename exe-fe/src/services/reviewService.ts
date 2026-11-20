@@ -84,6 +84,23 @@ export interface CustomOrderReviewUpsertDTO {
   imageUrls?: string[];
 }
 
+export interface AdminCustomOrderReviewDTO {
+  id: number;
+  customOrderId: string;
+  checkoutOrderId?: string | null;
+  rulerModel?: string | null;
+  quantity?: number | null;
+  color?: string | null;
+  customName?: string | null;
+  reviewerId?: string | null;
+  reviewerName?: string | null;
+  rating: number;
+  comment?: string | null;
+  imageUrls: string[];
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
 export const reviewService = {
   createOrUpdateReview: (data: ProductReviewCreateDTO) =>
     send<ProductReviewDTO>('/reviews', data, 'post'),

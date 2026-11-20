@@ -1,22 +1,30 @@
 import { useState } from 'react';
-import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, MessageSquare, Star } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, MessageSquare, Printer, ShoppingBag, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { field, PageHeader, Pagination, RemoteState } from '../../components/DataUI';
 import ReviewPhotoGallery, { ReviewPhoto, type ReviewPhotos } from '../../features/reviews/ReviewPhotoGallery';
 import { useRemote } from '../../hooks/useRemote';
 import { errorText } from '../../services/api';
 import type { PageDTO } from '../../services/productService';
-import { reviewService, type AdminReviewSummaryDTO, type ProductReviewDTO } from '../../services/reviewService';
+import {
+  reviewService,
+  type AdminCustomOrderReviewDTO,
+  type AdminReviewSummaryDTO,
+  type ProductReviewDTO,
+} from '../../services/reviewService';
 import { formatDateTime } from '../../utils/format';
 
 const reviewColumns = 'md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_7rem_11.5rem]';
 
+type ReviewScope = 'PRODUCT' | 'CUSTOM';
 type VisibilityFilter = 'ALL' | 'PUBLIC' | 'HIDDEN';
 
 export default function AdminReviewsPage() {
+  const [scope, setScope] = useState<ReviewScope>('PRODUCT');
   const [rating, setRating] = useState('');
   const [visibility, setVisibility] = useState<VisibilityFilter>('ALL');
   const [page, setPage] = useState(0);
+  const [customPage, setCustomPage] = useState(0);
   const [gallery, setGallery] = useState<ReviewPhotos | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -26,8 +34,17 @@ export default function AdminReviewsPage() {
   if (visibility === 'PUBLIC') params.set('isPublic', 'true');
   if (visibility === 'HIDDEN') params.set('isPublic', 'false');
 
+  const customParams = new URLSearchParams({ page: String(customPage) });
+  if (rating) customParams.set('rating', rating);
+
   const { data, error, loading, reload } = useRemote<PageDTO<ProductReviewDTO>>(`/admin/reviews?${params}`);
   const { data: summary, reload: reloadSummary } = useRemote<AdminReviewSummaryDTO>('/admin/reviews/summary');
+  const {
+    data: customData,
+    error: customError,
+    loading: customLoading,
+    reload: reloadCustom,
+  } = useRemote<PageDTO<AdminCustomOrderReviewDTO>>(`/admin/reviews/custom-orders?${customParams}`);
 
   const reviews = data?.content ?? [];
   const totalPages = data?.totalPages ?? page + 1;
@@ -36,6 +53,10 @@ export default function AdminReviewsPage() {
   const hiddenCount = summary?.hiddenCount ?? Math.max(0, (data?.totalElements ?? 0) - publicCount);
   const totalCount = summary?.totalReviews ?? data?.totalElements ?? 0;
   const isAtPublicLimit = publicCount >= maxPublicLimit;
+
+  const customReviews = customData?.content ?? [];
+  const customTotalPages = customData?.totalPages ?? customPage + 1;
+  const customTotalCount = customData?.totalElements ?? 0;
 
   const handleToggleVisibility = async (review: ProductReviewDTO) => {
     const currentlyPublic = Boolean(review.isPublic);
@@ -124,6 +145,44 @@ export default function AdminReviewsPage() {
       )}
 
       <section aria-label="Danh sách đánh giá" className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-inset/40 px-4 py-3 sm:px-5">
+          <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Phân loại đánh giá">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={scope === 'PRODUCT'}
+              onClick={() => setScope('PRODUCT')}
+              className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
+                scope === 'PRODUCT'
+                  ? 'border-primary bg-primary/15 text-theme-accent'
+                  : 'border-border bg-surface text-theme-copy hover:text-theme-ink'
+              }`}
+            >
+              <ShoppingBag className="size-3.5" aria-hidden="true" />
+              <span>Sản phẩm trên sàn ({totalCount})</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={scope === 'CUSTOM'}
+              onClick={() => setScope('CUSTOM')}
+              className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
+                scope === 'CUSTOM'
+                  ? 'border-primary bg-primary/15 text-theme-accent'
+                  : 'border-border bg-surface text-theme-copy hover:text-theme-ink'
+              }`}
+            >
+              <Printer className="size-3.5" aria-hidden="true" />
+              <span>Đơn in Custom 3D ({customTotalCount})</span>
+            </button>
+          </div>
+          {scope === 'CUSTOM' && (
+            <p className="text-xs text-theme-muted">
+              Đánh giá đơn in custom 3D được lưu tách biệt để không ảnh hưởng sao sản phẩm trang chủ.
+            </p>
+          )}
+        </div>
+
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
           <div className="flex flex-wrap items-end gap-3">
             <div className="grid w-full gap-1.5 sm:w-44">
@@ -135,6 +194,7 @@ export default function AdminReviewsPage() {
                 onChange={event => {
                   setRating(event.target.value);
                   setPage(0);
+                  setCustomPage(0);
                 }}
               >
                 <option value="">Tất cả mức sao</option>
@@ -142,40 +202,46 @@ export default function AdminReviewsPage() {
               </select>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Lọc trạng thái công khai">
-              {([
-                { key: 'ALL', label: `Tất cả (${totalCount})` },
-                { key: 'PUBLIC', label: `Công khai (${publicCount}/${maxPublicLimit})` },
-                { key: 'HIDDEN', label: `Không public (${hiddenCount})` },
-              ] as const).map(tab => {
-                const active = visibility === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => {
-                      setVisibility(tab.key);
-                      setPage(0);
-                    }}
-                    className={`rounded-xl border px-3 py-2 text-xs font-semibold transition cursor-pointer ${
-                      active
-                        ? 'border-primary bg-primary/15 text-theme-accent'
-                        : 'border-border bg-surface-inset text-theme-copy hover:border-slate-500 hover:text-theme-ink'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+            {scope === 'PRODUCT' && (
+              <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Lọc trạng thái công khai">
+                {([
+                  { key: 'ALL', label: `Tất cả (${totalCount})` },
+                  { key: 'PUBLIC', label: `Công khai (${publicCount}/${maxPublicLimit})` },
+                  { key: 'HIDDEN', label: `Không public (${hiddenCount})` },
+                ] as const).map(tab => {
+                  const active = visibility === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => {
+                        setVisibility(tab.key);
+                        setPage(0);
+                      }}
+                      className={`rounded-xl border px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                        active
+                          ? 'border-primary bg-primary/15 text-theme-accent'
+                          : 'border-border bg-surface-inset text-theme-copy hover:border-slate-500 hover:text-theme-ink'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <p aria-live="polite" className="pb-1 text-sm tabular-nums text-theme-muted">
-            {data && `${data.totalElements.toLocaleString('vi-VN')} đánh giá phù hợp`}
+            {scope === 'PRODUCT'
+              ? data && `${data.totalElements.toLocaleString('vi-VN')} đánh giá phù hợp`
+              : customData && `${customData.totalElements.toLocaleString('vi-VN')} đánh giá đơn custom`}
           </p>
         </div>
 
-        {reviews.length > 0 ? (
+        {scope === 'PRODUCT' ? (
+          <>
+            {reviews.length > 0 ? (
           <>
             <div aria-hidden="true" className={`hidden gap-4 border-b border-border bg-surface-inset/50 px-5 py-3 text-xs font-semibold text-theme-muted md:grid ${reviewColumns}`}>
               <span>Khách hàng</span>
@@ -298,6 +364,119 @@ export default function AdminReviewsPage() {
 
         {(page > 0 || totalPages > 1) && (
           <Pagination className="px-4 pb-4 sm:px-5" page={page} totalPages={totalPages} loading={loading} onPageChange={setPage} />
+        )}
+          </>
+        ) : (
+          <>
+            {customReviews.length > 0 ? (
+              <>
+                <div aria-hidden="true" className={`hidden gap-4 border-b border-border bg-surface-inset/50 px-5 py-3 text-xs font-semibold text-theme-muted md:grid ${reviewColumns}`}>
+                  <span>Khách hàng</span>
+                  <span>Thiết kế &amp; đơn hàng</span>
+                  <span>Đánh giá</span>
+                  <span>Ảnh đính kèm</span>
+                  <span>Phạm vi</span>
+                </div>
+                <ul aria-label="Các đánh giá đơn custom 3D" className="divide-y divide-border">
+                  {customReviews.map(review => {
+                    const reviewerName = review.reviewerName?.trim() || 'Khách hàng';
+                    const photos = [...new Set((review.imageUrls || []).filter(url => /^https?:\/\//i.test(url)))];
+                    const designTitle = review.rulerModel?.trim() || 'Đơn in 3D Custom';
+                    const targetOrderId = review.checkoutOrderId || review.customOrderId;
+                    const targetKind = review.checkoutOrderId ? 'CHECKOUT' : 'CUSTOM';
+
+                    return (
+                      <li key={review.id} className={`grid items-start gap-3 px-4 py-4 sm:px-5 md:gap-4 ${reviewColumns}`}>
+                        <div className="min-w-0 space-y-1">
+                          <p className="break-words text-sm font-semibold text-theme-ink">{reviewerName}</p>
+                          <time dateTime={review.createdAt} className="block text-xs tabular-nums text-theme-muted">
+                            {formatDateTime(review.createdAt)}
+                          </time>
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <p className="break-words text-sm text-theme-copy">
+                            {designTitle}
+                            {review.quantity ? ` · x${review.quantity}` : ''}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-theme-muted">
+                            {review.color && <span>Màu: {review.color}</span>}
+                            {review.customName && <span>Khắc: “{review.customName}”</span>}
+                          </div>
+                          <Link
+                            to={`/admin/orders/${encodeURIComponent(targetOrderId)}?kind=${targetKind}`}
+                            className="inline-block rounded-sm text-xs font-semibold text-theme-accent underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:decoration-current"
+                          >
+                            {review.checkoutOrderId
+                              ? `Đơn #CHK-${review.checkoutOrderId.slice(0, 8)}`
+                              : `Đơn #${review.customOrderId.slice(0, 8)}`}
+                          </Link>
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <p className="flex items-center gap-1.5 text-sm font-semibold text-theme-ink">
+                            <Star aria-hidden="true" className="size-4 fill-current text-amber-400 app-light:text-amber-700" />
+                            {review.rating} sao
+                          </p>
+                          <p className="whitespace-pre-line break-words text-sm leading-relaxed text-theme-copy">
+                            {review.comment?.trim() || 'Không có nhận xét.'}
+                          </p>
+                        </div>
+                        {photos.length > 0 ? (
+                          <button
+                            type="button"
+                            aria-label={`Xem ${photos.length} ảnh đánh giá của ${reviewerName}`}
+                            onClick={() =>
+                              setGallery({
+                                reviewerName,
+                                productTitle: designTitle,
+                                imageUrls: photos,
+                              })
+                            }
+                            className="inline-flex w-fit cursor-zoom-in items-center gap-2 rounded-lg border border-border p-1 pr-2 text-xs font-semibold text-theme-copy hover:bg-surface-raised"
+                          >
+                            <ReviewPhoto key={photos[0]} src={photos[0]} alt="" className="size-9 rounded object-cover" />
+                            {photos.length} ảnh
+                          </button>
+                        ) : (
+                          <p className="text-xs text-theme-muted">Không có ảnh</p>
+                        )}
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-inset px-3 py-1.5 text-xs font-semibold text-theme-copy">
+                            <Printer className="size-3.5 text-theme-accent" aria-hidden="true" />
+                            Đơn Custom 3D
+                          </span>
+                          <span className="text-[11px] text-theme-muted">Không tính vào sao sàn</span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            ) : (
+              <div className="p-4 sm:p-5">
+                <RemoteState
+                  loading={customLoading}
+                  error={customError ? 'Chưa tải được danh sách đánh giá đơn custom.' : ''}
+                  empty={!customLoading && !customError}
+                  retry={reloadCustom}
+                  emptyMessage={
+                    rating
+                      ? `Chưa có đánh giá đơn in custom ${rating} sao nào.`
+                      : 'Chưa có đánh giá nào cho đơn in Custom 3D.'
+                  }
+                />
+              </div>
+            )}
+
+            {(customPage > 0 || customTotalPages > 1) && (
+              <Pagination
+                className="px-4 pb-4 sm:px-5"
+                page={customPage}
+                totalPages={customTotalPages}
+                loading={customLoading}
+                onPageChange={setCustomPage}
+              />
+            )}
+          </>
         )}
       </section>
 
