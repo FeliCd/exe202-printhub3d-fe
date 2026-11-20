@@ -1,4 +1,4 @@
-import { checkoutCustomLines, checkoutDisplay, orderDisplay, uniqueOrderLines, standaloneCustomLines, checkoutStatus } from '../../utils/orderDisplay';
+import { checkoutCustomLines, checkoutDisplay, orderDisplay, uniqueOrderLines, standaloneCustomLines, checkoutStatus, customOrderPayable } from '../../utils/orderDisplay';
 import RecordList, { RecordDetailHeader } from '../../components/RecordList';
 import { useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -24,7 +24,7 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import { payOrder } from '../../services/paymentService';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
-import type { CheckoutOrderDTO } from '../../services/checkoutOrderService';
+import type { CheckoutOrderDTO, PricingBreakdownDTO } from '../../services/checkoutOrderService';
 import CheckoutOrderDetailCard from '../custom/CheckoutOrderDetailCard';
 import AdminOrdersUnifiedList from './components/AdminOrdersUnifiedList';
 import ReviewModal from '../reviews/ReviewModal';
@@ -156,6 +156,12 @@ interface CustomOrderAdminItem {
   paymentStatus?: string;
   shippingAddress?: string;
   createdAt: string;
+  subtotalAmount?: number;
+  shippingFee?: number;
+  discountAmount?: number;
+  shippingDiscountAmount?: number;
+  quoteVersion?: number;
+  pricingBreakdown?: PricingBreakdownDTO | null;
   allowedActions?: string[];
   blockedActions?: { action: string; reasonCode: string; message: string }[];
 }
@@ -350,7 +356,9 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
         to: detailUrl(`checkout:${co.id}`),
         title: `${firstName}${extraCount}`,
         meta: `#CHK-${co.id.slice(0, 8)} · ${checkoutDisplay(co).label} · ${formatDateTime(co.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
-        amount: co.totalAmount == null ? undefined : money(co.totalAmount),
+        amount: (co.pricingBreakdown?.totalPayable ?? co.totalAmount) == null
+          ? undefined
+          : money(co.pricingBreakdown?.totalPayable ?? co.totalAmount ?? 0),
         thumbnail: null,
         createdAt: co.createdAt,
         status: <Status value={checkoutStatus(co)} />,
@@ -362,7 +370,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
       to: detailUrl(`custom:${o.id}`),
       title: o.rulerModel || `Đơn in 3D #${o.id.slice(0, 8)}`,
       meta: `#CUS-${o.id.slice(0, 8)} · ${orderDisplay([o]).label} · ${formatDateTime(o.createdAt)}${history ? ' · In theo yêu cầu' : ''}`,
-      amount: o.quotedPrice == null ? undefined : money(o.quotedPrice),
+      amount: o.quotedPrice == null ? undefined : money(customOrderPayable(o)),
       thumbnail: null,
       createdAt: o.createdAt,
       status: <Status value={o.status} />,
@@ -1192,12 +1200,30 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
 
                 {/* Footer Actions */}
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/10">
-                  <div>
-                    <span className="text-xs text-slate-400 block font-mono">Giá chốt báo giá:</span>
-                    <span className="text-xl sm:text-2xl font-black text-[#ff9100] font-mono">
-                      {userHistory && c.quotedPrice == null ? 'Chưa có báo giá' : money(c.quotedPrice)}
-                    </span>
-                  </div>
+                  {(() => {
+                    const netPayable = customOrderPayable(c);
+                    const rawSub = c.subtotalAmount ?? c.quotedPrice ?? 0;
+                    const disc = c.discountAmount ?? 0;
+                    const ship = c.shippingFee ?? 0;
+                    const shipDisc = c.shippingDiscountAmount ?? 0;
+                    return (
+                      <div>
+                        <span className="text-xs text-slate-400 block font-mono">
+                          {c.status === 'REQUESTED' ? 'Giá chốt báo giá:' : 'Tổng tiền thanh toán:'}
+                        </span>
+                        <span className="text-xl sm:text-2xl font-black text-[#ff9100] font-mono">
+                          {c.quotedPrice == null ? 'Chưa có báo giá' : money(netPayable)}
+                        </span>
+                        {c.quotedPrice != null && (disc > 0 || ship > 0) && (
+                          <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                            Giá gốc: {money(rawSub)}
+                            {disc > 0 ? ` · Giảm hội viên: -${money(disc)}` : ''}
+                            {ship > 0 ? ` · Ship: ${shipDisc >= ship ? '0đ' : money(Math.max(0, ship - shipDisc))}` : ''}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex flex-wrap items-center gap-2.5">
                     {admin && (

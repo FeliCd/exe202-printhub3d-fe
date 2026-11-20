@@ -1,4 +1,5 @@
 import { read, send } from './api';
+import type { PricingBreakdownDTO } from './checkoutOrderService';
 
 export interface CustomDTO {
   id: string;
@@ -33,6 +34,10 @@ export interface CustomDTO {
   cancelReason?: string;
   cancelledByRole?: string;
   cancelledAt?: string;
+  quoteVersion?: number;
+  pricingBreakdown?: PricingBreakdownDTO | null;
+  estimatedRewardPoints?: number | null;
+  rewardStatus?: string | null;
 }
 
 export interface CustomOrderCreateRequest {
@@ -52,16 +57,23 @@ export const quotationService = {
   getMyCustomOrders: () => read<CustomDTO[]>('/custom-orders'),
   getCustomOrder: (id: string) => read<CustomDTO>(`/custom-orders/${encodeURIComponent(id)}`),
   createCustomOrder: (data: CustomOrderCreateRequest | unknown) => send<CustomDTO>('/custom-orders', data),
-  updateCustomOrderStatus: (id: string, status: string, paymentMethod?: string) =>
-    send(`/custom-orders/${id}/status`, { status, paymentMethod }, 'put'),
+  updateCustomOrderStatus: (
+    id: string,
+    status: string,
+    paymentMethod?: string,
+    extra?: { quoteVersion?: number; expectedTotalPayable?: number; action?: string; cancelReason?: string }
+  ) => send<CustomDTO>(`/custom-orders/${id}/status`, { status, paymentMethod, ...extra }, 'put'),
   cancelCustomOrder: (id: string, cancelReason?: string) =>
     send(
       `/custom-orders/${id}/status`,
       { status: 'CANCELLED', action: 'CANCEL', ...(cancelReason ? { cancelReason } : {}) },
       'put'
     ),
-  acceptQuotation: (id: string, paymentMethod: string = 'PAYOS') =>
-    send(`/custom-orders/${id}/status`, { status: 'ACCEPTED', paymentMethod }, 'put'),
+  acceptQuotation: (
+    id: string,
+    paymentMethod: string = 'PAYOS',
+    options?: { quoteVersion?: number; expectedTotalPayable?: number }
+  ) => send<CustomDTO>(`/custom-orders/${id}/status`, { status: 'ACCEPTED', paymentMethod, ...options }, 'put'),
 
   // Admin endpoints
   getAllCustomOrders: () => read<CustomDTO[]>('/admin/custom-orders'),

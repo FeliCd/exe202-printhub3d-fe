@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { DollarSign, ArrowUpRight, RotateCcw, ShieldCheck} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { DollarSign, ArrowUpRight, RotateCcw, ShieldCheck, AlertTriangle, CheckCircle2, CreditCard, Package } from 'lucide-react';
 import { formatPrice } from '../../utils/format';
 import { adminService, type FinanceSummaryData } from '../../services/adminService';
 import { PageHeader } from '../../components/DataUI';
@@ -39,26 +39,54 @@ export default function AdminFinancePage() {
   const [data, setData] = useState<FinanceSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [reloadTick, setReloadTick] = useState(0);
 
-  const fetchFinance = async () => {
+  const fetchFinance = useCallback(() => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await adminService.getFinanceSummary();
-      if (res) {
-        setData(res);
-      }
-    } catch (err: unknown) {
-      console.error('Lỗi tải báo cáo tài chính:', err);
-      setError('Không thể kết nối máy chủ để lấy số liệu tài chính.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setReloadTick((v) => v + 1);
+  }, []);
 
   useEffect(() => {
-    fetchFinance();
-  }, []);
+    let active = true;
+    adminService
+      .getFinanceSummary({
+        from: fromDate || undefined,
+        to: toDate || undefined,
+      })
+      .then((res) => {
+        if (active && res) {
+          setData(res);
+          setError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Lỗi tải báo cáo tài chính:', err);
+        if (active) {
+          setError('Không thể kết nối máy chủ để lấy số liệu tài chính.');
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [fromDate, toDate, reloadTick]);
+
+  const summary = data?.financialSummary;
+  const totalCashVnd = summary?.totalCashVnd ?? 0;
+  const orderCashVnd = summary?.orderCashVnd ?? 0;
+  const subscriptionCashVnd = summary?.subscriptionCashVnd ?? 0;
+  const shippingCashVnd = summary?.shippingCashVnd ?? 0;
+  const completedGoodsVnd = summary?.completedGoodsValueVnd ?? data?.totalGmv ?? 0;
+  const pendingReconciliationVnd = summary?.pendingReconciliationVnd ?? 0;
+  const reconciliationItems = summary?.reconciliationItems ?? [];
+  const completionIssues = summary?.completionIssues ?? [];
 
   return (
     <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
@@ -66,14 +94,46 @@ export default function AdminFinancePage() {
         title="ĐỐI SOÁT TÀI CHÍNH"
         icon={DollarSign}
         actions={
-          <button
-            onClick={fetchFinance}
-            disabled={loading}
-            className="px-3.5 py-2 rounded-xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14] text-slate-300 hover:text-[#39FF14] font-mono font-bold text-xs flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap shrink-0"
-          >
-            <RotateCcw className={`w-3.5 h-3.5 text-[#39FF14] ${loading ? 'animate-spin' : ''}`} />
-            <span>{loading ? 'ĐANG ĐỐI SOÁT...' : 'LÀM MỚI SỐ LIỆU'}</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex items-center gap-1.5 text-xs font-mono text-slate-300 bg-[#0a0c12] border border-[#1e2433] rounded-xl px-2.5 py-1.5">
+              <span>Từ</span>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="bg-transparent text-white outline-none"
+              />
+            </label>
+            <label className="inline-flex items-center gap-1.5 text-xs font-mono text-slate-300 bg-[#0a0c12] border border-[#1e2433] rounded-xl px-2.5 py-1.5">
+              <span>Đến</span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="bg-transparent text-white outline-none"
+              />
+            </label>
+            {(fromDate || toDate) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFromDate('');
+                  setToDate('');
+                }}
+                className="px-2.5 py-2 rounded-xl border border-[#1e2433] text-xs font-mono text-[#00e5ff] hover:border-[#00e5ff]/50 cursor-pointer"
+              >
+                Xóa lọc
+              </button>
+            )}
+            <button
+              onClick={() => void fetchFinance()}
+              disabled={loading}
+              className="px-3.5 py-2 rounded-xl bg-[#0a0c12] border border-[#1e2433] hover:border-[#39FF14] text-slate-300 hover:text-[#39FF14] font-mono font-bold text-xs flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 text-[#39FF14] ${loading ? 'animate-spin' : ''}`} />
+              <span>{loading ? 'ĐANG ĐỐI SOÁT...' : 'LÀM MỚI SỐ LIỆU'}</span>
+            </button>
+          </div>
         }
       />
 
@@ -84,14 +144,42 @@ export default function AdminFinancePage() {
       )}
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* GMV */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Tổng tiền thực thu thành công */}
+        <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#39FF14]/35 space-y-2 relative overflow-hidden shadow-xl">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#39FF14]/10 blur-2xl pointer-events-none rounded-full" />
+          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">TỔNG TIỀN THU THÀNH CÔNG</p>
+          <p className="text-2xl font-black text-[#39FF14] font-mono">{formatPrice(totalCashVnd)}đ</p>
+          <span className="text-xs text-slate-300 font-mono flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#39FF14]" /> Tổng đơn hàng + gói hội viên (SUCCESS)
+          </span>
+        </div>
+
+        {/* Tiền đơn hàng đã thu */}
+        <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-2 relative overflow-hidden shadow-xl">
+          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">TIỀN ĐƠN HÀNG ĐÃ THU</p>
+          <p className="text-2xl font-black text-white font-mono">{formatPrice(orderCashVnd)}đ</p>
+          <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+            <Package className="w-3.5 h-3.5 text-[#00e5ff]" /> Trong đó phí ship: {formatPrice(shippingCashVnd)}đ
+          </span>
+        </div>
+
+        {/* Doanh thu gói hội viên */}
+        <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-2 relative overflow-hidden shadow-xl">
+          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">DOANH THU GÓI HỘI VIÊN</p>
+          <p className="text-2xl font-black text-[#00e5ff] font-mono">{formatPrice(subscriptionCashVnd)}đ</p>
+          <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+            <CreditCard className="w-3.5 h-3.5 text-[#00e5ff]" /> Giao dịch mua gói PayOS thành công
+          </span>
+        </div>
+
+        {/* GMV đơn hoàn tất */}
         <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-2 relative overflow-hidden shadow-xl">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#39FF14]/5 blur-2xl pointer-events-none rounded-full" />
-          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">TỔNG DOANH SỐ GMV</p>
-          <p className="text-2xl font-black text-white font-mono">{formatPrice(data?.totalGmv ?? 0)}đ</p>
+          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">GIÁ TRỊ HÀNG ĐƠN HOÀN TẤT (GMV)</p>
+          <p className="text-2xl font-black text-white font-mono">{formatPrice(completedGoodsVnd)}đ</p>
           <span className="text-xs text-[#39FF14] font-mono font-bold flex items-center gap-1">
-            <ArrowUpRight className="w-3.5 h-3.5" /> Tổng giá trị đơn hoàn tất
+            <ArrowUpRight className="w-3.5 h-3.5" /> Chỉ tính đơn ở trạng thái COMPLETED
           </span>
         </div>
 
@@ -106,7 +194,59 @@ export default function AdminFinancePage() {
             <ShieldCheck className="w-3.5 h-3.5 text-[#39FF14]" /> Duy trì hạ tầng máy in
           </span>
         </div>
+
+        {/* Chờ đối soát */}
+        <div className="p-5 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-2 relative overflow-hidden shadow-xl">
+          <p className="text-[11px] text-slate-400 font-mono uppercase tracking-wider">TIỀN CHỜ ĐỐI SOÁT</p>
+          <p className={`text-2xl font-black font-mono ${pendingReconciliationVnd > 0 ? 'text-amber-300' : 'text-slate-300'}`}>
+            {formatPrice(pendingReconciliationVnd)}đ
+          </p>
+          <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+            <AlertTriangle className={`w-3.5 h-3.5 ${pendingReconciliationVnd > 0 ? 'text-amber-400' : 'text-slate-500'}`} />
+            {reconciliationItems.length} giao dịch · {completionIssues.length} cảnh báo hoàn tất
+          </span>
+        </div>
       </div>
+
+      {(reconciliationItems.length > 0 || completionIssues.length > 0) && (
+        <div className="p-5 rounded-2xl bg-amber-950/20 border border-amber-500/35 space-y-3 text-xs">
+          <div className="flex items-center gap-2 font-mono font-bold text-amber-300">
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <span>CẢNH BÁO ĐỐI SOÁT &amp; DỮ LIỆU ĐƠN HOÀN TẤT</span>
+          </div>
+          {reconciliationItems.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="font-mono text-[11px] text-amber-200 uppercase">Giao dịch cần đối soát ({reconciliationItems.length})</p>
+              {reconciliationItems.map((item) => (
+                <div key={`${item.paymentId}-${item.reason}`} className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-[#0a0c12]/80 border border-amber-500/20 font-mono">
+                  <span className="text-slate-200">
+                    {item.sourceType} #{item.sourceId?.slice(0, 8) || '--'} · <strong className="text-amber-300">{item.reason}</strong>
+                    {item.orderCode ? ` · PayOS #${item.orderCode}` : ''}
+                  </span>
+                  <span className="text-amber-300 font-bold">
+                    {item.amountVnd != null ? `${formatPrice(item.amountVnd)}đ` : '--'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {completionIssues.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="font-mono text-[11px] text-amber-200 uppercase">Đơn hoàn tất thiếu thông tin tính GMV ({completionIssues.length})</p>
+              {completionIssues.map((issue) => (
+                <div key={`${issue.sourceType}-${issue.sourceId}-${issue.reason}`} className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-[#0a0c12]/80 border border-amber-500/20 font-mono">
+                  <span className="text-slate-200">
+                    {issue.sourceType} #{issue.sourceId.slice(0, 8)} · <strong className="text-amber-300">{issue.reason}</strong>
+                  </span>
+                  <span className="text-slate-400">
+                    {issue.completedAt ? new Date(issue.completedAt).toLocaleString('vi-VN') : 'Thiếu completedAt'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Transaction Logs Table */}
       <div className="p-5 sm:p-6 rounded-2xl bg-[#0a0c12] border border-[#1e2433] space-y-4 text-xs shadow-lg relative overflow-hidden">

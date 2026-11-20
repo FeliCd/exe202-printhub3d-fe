@@ -51,3 +51,25 @@ export function checkoutDisplay(order: CheckoutOrderDTO) {
 export function checkoutStatus(order: CheckoutOrderDTO) {
   return checkoutDisplay(order).label === 'Đã hủy' ? 'CANCELLED' : order.status;
 }
+
+interface PayableCustomLine {
+  quotedPrice?: number;
+  subtotalAmount?: number;
+  discountAmount?: number;
+  shippingFee?: number;
+  shippingDiscountAmount?: number;
+  pricingBreakdown?: { totalPayable?: number | null } | null;
+}
+
+export function customOrderPayable(order: PayableCustomLine): number {
+  if (order.pricingBreakdown?.totalPayable != null) {
+    return order.pricingBreakdown.totalPayable;
+  }
+  if (order.subtotalAmount != null) {
+    const netItems = Math.max(0, order.subtotalAmount - (order.discountAmount ?? 0));
+    const netShip = Math.max(0, (order.shippingFee ?? 0) - (order.shippingDiscountAmount ?? 0));
+    return netItems + netShip;
+  }
+  const base = order.quotedPrice ?? 0;
+  return base > 0 ? base + (order.shippingFee ?? 0) : 0;
+}

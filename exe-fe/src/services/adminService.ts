@@ -34,6 +34,37 @@ export interface FinancialTransaction {
   date: string;
 }
 
+export interface FinancialReconciliationItem {
+  paymentId: string;
+  orderCode?: string | null;
+  sourceType: string;
+  sourceId?: string | null;
+  reason: string;
+  amountVnd?: number | null;
+  receivedAt?: string | null;
+}
+
+export interface FinancialCompletionIssue {
+  sourceType: string;
+  sourceId: string;
+  reason: string;
+  completedAt?: string | null;
+}
+
+export interface FinancialReportDTO {
+  period?: { from?: string | null; to?: string | null } | null;
+  timeZone?: string;
+  generatedAt?: string;
+  orderCashVnd: number;
+  subscriptionCashVnd: number;
+  totalCashVnd: number;
+  shippingCashVnd: number;
+  completedGoodsValueVnd: number;
+  pendingReconciliationVnd: number;
+  reconciliationItems: FinancialReconciliationItem[];
+  completionIssues: FinancialCompletionIssue[];
+}
+
 export interface FinanceSummaryData {
   totalGmv: number;
   platformCommission: number;
@@ -41,6 +72,7 @@ export interface FinanceSummaryData {
   studentWalletBalance: number;
   totalOrders: number;
   recentTransactions: FinancialTransaction[];
+  financialSummary?: FinancialReportDTO;
 }
 
 export const adminService = {
@@ -81,7 +113,13 @@ export const adminService = {
   updatePrinter: (id: string, data: unknown) => send(`/admin/printers/${id}`, data, 'put'),
 
   // Finance & Analytics
-  getFinanceSummary: () => read<FinanceSummaryData>('/admin/finance/summary'),
+  getFinanceSummary: (params?: { from?: string; to?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.from) sp.set('from', params.from);
+    if (params?.to) sp.set('to', params.to);
+    const qs = sp.toString();
+    return read<FinanceSummaryData>(`/admin/finance/summary${qs ? `?${qs}` : ''}`);
+  },
   getRevenueAnalytics: () => read<Record<string, unknown>>('/admin/analytics/revenue'),
   getCommissionFund: () => read<Record<string, unknown>>('/admin/finance/commission-fund'),
 

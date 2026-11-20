@@ -1,6 +1,26 @@
 import { read, send } from './api';
 import type { CustomDTO } from './quotationService';
 import type { OrderDTO } from './orderService';
+import type { BenefitStatus } from './subscriptionService';
+
+export interface PricingBreakdownDTO {
+  pricingStage: 'PENDING_QUOTE' | 'ESTIMATED' | 'LOCKED' | string;
+  quoteVersion: number;
+  customItemsSubtotal?: number;
+  marketplaceItemsSubtotal?: number;
+  itemsSubtotal?: number;
+  itemDiscountAmount?: number | null;
+  baseShippingFee?: number | null;
+  shippingDiscountAmount?: number | null;
+  finalShippingFee?: number | null;
+  totalPayable?: number | null;
+  zeroAmountSettlement?: boolean;
+  appliedSubscriptionId?: string | null;
+  appliedSubscriptionName?: string | null;
+  benefitStatus?: BenefitStatus | null;
+  ineligibleReason?: string | null;
+  priorityProduction?: boolean;
+}
 
 export interface BlockedActionDTO {
   action: string;
@@ -43,6 +63,15 @@ export interface CheckoutOrderDTO {
   priorityProduction?: boolean;
   cancelledByRole?: string;
   cancelledAt?: string;
+  pricingBreakdown?: PricingBreakdownDTO | null;
+  estimatedRewardPoints?: number | null;
+  rewardStatus?: string | null;
+}
+
+export interface ConfirmCheckoutOrderPayload {
+  summaryVersion: number;
+  paymentMethod?: string;
+  expectedTotalPayable?: number;
 }
 
 export interface BatchQuoteItemPayload {
@@ -54,8 +83,12 @@ export interface BatchQuoteItemPayload {
 export const checkoutOrderService = {
   getMyCheckoutOrders: () => read<CheckoutOrderDTO[]>('/checkout-orders/my'),
   getCheckoutOrder: (id: string) => read<CheckoutOrderDTO>(`/checkout-orders/${encodeURIComponent(id)}`),
-  confirmCheckoutOrder: (id: string, summaryVersion: number) =>
-    send<CheckoutOrderDTO>(`/checkout-orders/${encodeURIComponent(id)}/confirm`, { summaryVersion }),
+  confirmCheckoutOrder: (id: string, payload: number | ConfirmCheckoutOrderPayload) => {
+    const body = typeof payload === 'number'
+      ? { summaryVersion: payload }
+      : { paymentMethod: 'PAYOS', ...payload };
+    return send<CheckoutOrderDTO>(`/checkout-orders/${encodeURIComponent(id)}/confirm`, body);
+  },
 
   // Admin endpoints
   getAdminCheckoutOrders: (params?: { orderType?: string; status?: string; q?: string }) => {

@@ -27,6 +27,11 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import SubscriptionPurchaseModal from './SubscriptionPurchaseModal';
 import { money } from '../../utils/format';
 import { paySubscription } from '../../services/paymentService';
+import subscriptionService, {
+  type AdminSubscriptionHistoryMethod,
+  type AdminSubscriptionHistoryResponse,
+  type AdminSubscriptionHistoryStatus,
+} from '../../services/subscriptionService';
 import pointService, {
   type PointWalletResponse,
   type PointTransactionItem,
@@ -203,6 +208,62 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
   const [wallet, setWallet] = useState<PointWalletResponse | null>(null);
   const [transactions, setTransactions] = useState<PointTransactionItem[]>([]);
   const [loadingLedger, setLoadingLedger] = useState(false);
+
+  // Admin Subscription Transaction History states
+  const [adminTab, setAdminTab] = useState<'plans' | 'history'>('plans');
+  const [historyData, setHistoryData] = useState<AdminSubscriptionHistoryResponse | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyQ, setHistoryQ] = useState('');
+  const [historyMethod, setHistoryMethod] = useState<AdminSubscriptionHistoryMethod | ''>('');
+  const [historyStatus, setHistoryStatus] = useState<AdminSubscriptionHistoryStatus | ''>('');
+  const [historyPlanId, setHistoryPlanId] = useState('');
+  const [historyFrom, setHistoryFrom] = useState('');
+  const [historyTo, setHistoryTo] = useState('');
+  const [historyPage, setHistoryPage] = useState(0);
+  const [historyTick, setHistoryTick] = useState(0);
+
+  const fetchAdminHistory = useCallback(() => {
+    if (!admin) return;
+    setHistoryLoading(true);
+    setHistoryError(null);
+    setHistoryTick((v) => v + 1);
+  }, [admin]);
+
+  useEffect(() => {
+    if (!admin || adminTab !== 'history') return;
+    let active = true;
+    subscriptionService
+      .getAdminSubscriptionTransactions({
+        q: historyQ || undefined,
+        method: historyMethod || undefined,
+        status: historyStatus || undefined,
+        planId: historyPlanId || undefined,
+        from: historyFrom || undefined,
+        to: historyTo || undefined,
+        page: historyPage,
+        size: 20,
+      })
+      .then((res) => {
+        if (active) {
+          setHistoryData(res);
+          setHistoryError(null);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setHistoryError(errorText(err) || 'Không thể tải lịch sử giao dịch hội viên.');
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setHistoryLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [admin, adminTab, historyQ, historyMethod, historyStatus, historyPlanId, historyFrom, historyTo, historyPage, historyTick]);
 
   const customerUsers = (users.data || []).filter((u) => u.role !== 'ADMIN');
 
@@ -587,6 +648,30 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       {/* ========================================================================= */}
       {admin && (
         <div className="space-y-4">
+          <div className="flex flex-wrap gap-x-5 border-b border-border" aria-label="Quản trị hội viên">
+            {([
+              { key: 'plans', label: 'Cấu hình & Tặng gói', icon: Sparkles },
+              { key: 'history', label: 'Lịch sử user mua / đổi gói', icon: History },
+            ] as const).map(tab => (
+              <button
+                key={tab.key}
+                type="button"
+                aria-pressed={adminTab === tab.key}
+                onClick={() => setAdminTab(tab.key)}
+                className={`inline-flex items-center gap-2 border-b-2 px-1 py-2.5 text-sm font-semibold cursor-pointer ${
+                  adminTab === tab.key
+                    ? 'border-theme-accent text-theme-accent'
+                    : 'border-transparent text-theme-muted hover:text-theme-ink'
+                }`}
+              >
+                <tab.icon className="size-4" aria-hidden="true" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {adminTab === 'plans' && (
+            <>
           {/* HÀNG 1: Nút thêm gói */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#0a0c12] border border-white/10">
             <div>
@@ -648,6 +733,240 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               )}
             </div>
           </div>
+            </>
+          )}
+
+          {adminTab === 'history' && (
+            <div className="space-y-4">
+              {/* Summary KPI cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-1">
+                  <p className="text-[11px] font-mono uppercase text-slate-400">Tổng doanh thu mua gói (Tiền mặt)</p>
+                  <p className="text-xl font-black font-mono text-[#39FF14]">
+                    {money(historyData?.summary?.subscriptionCashVnd ?? 0)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-1">
+                  <p className="text-[11px] font-mono uppercase text-slate-400">Lượt mua qua PayOS</p>
+                  <p className="text-xl font-black font-mono text-[#00e5ff]">
+                    {historyData?.summary?.cashCount ?? 0} lượt
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-1">
+                  <p className="text-[11px] font-mono uppercase text-slate-400">Lượt đổi bằng điểm xu</p>
+                  <p className="text-xl font-black font-mono text-amber-300">
+                    {historyData?.summary?.pointsRedeemCount ?? 0} lượt
+                  </p>
+                </div>
+              </div>
+
+              {/* Filter Bar */}
+              <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 text-xs">
+                  <input
+                    type="search"
+                    placeholder="Tìm tên, email, mã PayOS..."
+                    value={historyQ}
+                    onChange={(e) => {
+                      setHistoryQ(e.target.value);
+                      setHistoryPage(0);
+                    }}
+                    className="lg:col-span-2 bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#39FF14] font-mono"
+                  />
+                  <select
+                    value={historyMethod}
+                    onChange={(e) => {
+                      setHistoryMethod(e.target.value as AdminSubscriptionHistoryMethod | '');
+                      setHistoryPage(0);
+                    }}
+                    className="bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-[#39FF14] font-mono"
+                  >
+                    <option value="">Tất cả kênh</option>
+                    <option value="CASH">PayOS (Tiền mặt)</option>
+                    <option value="POINTS_REDEEM">Đổi điểm xu</option>
+                  </select>
+                  <select
+                    value={historyStatus}
+                    onChange={(e) => {
+                      setHistoryStatus(e.target.value as AdminSubscriptionHistoryStatus | '');
+                      setHistoryPage(0);
+                    }}
+                    className="bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-[#39FF14] font-mono"
+                  >
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="PAID">PAID (Đã thanh toán)</option>
+                    <option value="REDEEMED">REDEEMED (Đã đổi xu)</option>
+                    <option value="PENDING">PENDING (Chờ thanh toán)</option>
+                    <option value="PENDING_RECONCILIATION">PENDING_RECONCILIATION</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                    <option value="EXPIRED">EXPIRED</option>
+                  </select>
+                  <select
+                    value={historyPlanId}
+                    onChange={(e) => {
+                      setHistoryPlanId(e.target.value);
+                      setHistoryPage(0);
+                    }}
+                    className="bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-[#39FF14] font-mono"
+                  >
+                    <option value="">Tất cả gói</option>
+                    {(remote.data || []).map((pl) => (
+                      <option key={pl.id} value={pl.id}>{pl.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void fetchAdminHistory()}
+                    className="px-3 py-2 rounded-xl bg-[#040508] border border-white/10 hover:border-[#39FF14]/50 text-slate-200 font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-[#39FF14] ${historyLoading ? 'animate-spin' : ''}`} />
+                    Làm mới
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono">
+                  <label className="flex items-center gap-2 text-slate-400">
+                    <span>Từ ngày:</span>
+                    <input
+                      type="date"
+                      value={historyFrom}
+                      onChange={(e) => {
+                        setHistoryFrom(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                      className="bg-[#040508] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-200"
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 text-slate-400">
+                    <span>Đến ngày:</span>
+                    <input
+                      type="date"
+                      value={historyTo}
+                      onChange={(e) => {
+                        setHistoryTo(e.target.value);
+                        setHistoryPage(0);
+                      }}
+                      className="bg-[#040508] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-200"
+                    />
+                  </label>
+                  {(historyQ || historyMethod || historyStatus || historyPlanId || historyFrom || historyTo) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHistoryQ('');
+                        setHistoryMethod('');
+                        setHistoryStatus('');
+                        setHistoryPlanId('');
+                        setHistoryFrom('');
+                        setHistoryTo('');
+                        setHistoryPage(0);
+                      }}
+                      className="text-[#00e5ff] hover:underline cursor-pointer"
+                    >
+                      Xóa bộ lọc
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <RemoteState
+                loading={historyLoading && !historyData}
+                error={historyError || ''}
+                empty={!historyLoading && !historyError && (historyData?.items?.length ?? 0) === 0}
+                emptyMessage="Chưa có giao dịch mua hoặc đổi gói hội viên nào khớp bộ lọc."
+                retry={() => void fetchAdminHistory()}
+              />
+
+              {historyData && historyData.items.length > 0 && (
+                <div className="rounded-2xl bg-[#0a0c12] border border-white/10 overflow-hidden">
+                  <div className="divide-y divide-white/10">
+                    {historyData.items.map((item) => {
+                      const isCash = item.method === 'CASH';
+                      const isSuccess = item.status === 'PAID' || item.status === 'REDEEMED';
+                      const isWarning = item.status === 'PENDING' || item.status === 'PENDING_RECONCILIATION';
+                      return (
+                        <div key={item.id} className="p-4 flex flex-wrap items-center justify-between gap-3 text-xs hover:bg-[#11141e]/60 transition">
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold text-white text-sm">{item.buyerName || 'Khách hàng'}</span>
+                              {item.buyerEmail && (
+                                <span className="text-slate-400 font-mono text-[11px]">{item.buyerEmail}</span>
+                              )}
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                                isCash
+                                  ? 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
+                                  : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                              }`}>
+                                {isCash ? 'PayOS' : 'Đổi điểm xu'}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                                isSuccess
+                                  ? 'bg-[#39FF14]/15 text-[#39FF14] border-[#39FF14]/40'
+                                  : isWarning
+                                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                                    : 'bg-rose-500/15 text-rose-400 border-rose-500/40'
+                              }`}>
+                                {item.status}
+                              </span>
+                            </div>
+                            <p className="text-slate-300 font-medium">
+                              Gói: <strong className="text-white">{item.planName}</strong>
+                              {item.payosOrderCode ? <span className="ml-2 font-mono text-[11px] text-[#00e5ff]">· PayOS #{item.payosOrderCode}</span> : null}
+                            </p>
+                            <p className="text-[11px] text-slate-400 font-mono">
+                              {item.transactionAt ? new Date(item.transactionAt).toLocaleString('vi-VN') : '--'}
+                              {item.legacyTimestamp ? ' (mốc cũ)' : ''}
+                              {item.reconciliationReason ? ` · Đối soát: ${item.reconciliationReason}` : ''}
+                            </p>
+                          </div>
+                          <div className="text-right font-mono shrink-0">
+                            {isCash ? (
+                              <span className="text-base font-black text-[#39FF14] block">
+                                {money(item.amountVnd ?? item.purchaseAmountVnd ?? 0)}
+                              </span>
+                            ) : (
+                              <span className="text-base font-black text-amber-300 block">
+                                -{item.pointsSpent} xu
+                              </span>
+                            )}
+                            {item.referenceId && (
+                              <span className="text-[10px] text-slate-500">Ref: {item.referenceId.slice(0, 8)}</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {historyData.totalElements > historyData.size && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 text-xs font-mono text-slate-400">
+                      <span>
+                        Tổng {historyData.totalElements} giao dịch · Trang {historyData.page + 1} / {Math.max(1, Math.ceil(historyData.totalElements / historyData.size))}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={historyPage <= 0 || historyLoading}
+                          onClick={() => setHistoryPage(p => Math.max(0, p - 1))}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 bg-[#040508] text-slate-200 disabled:opacity-40 cursor-pointer"
+                        >
+                          Trước
+                        </button>
+                        <button
+                          type="button"
+                          disabled={(historyData.page + 1) * historyData.size >= historyData.totalElements || historyLoading}
+                          onClick={() => setHistoryPage(p => p + 1)}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 bg-[#040508] text-slate-200 disabled:opacity-40 cursor-pointer"
+                        >
+                          Sau
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -1027,7 +1346,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
       {/* ========================================================================= */}
       {/* DANH SÁCH CÁC GÓI SUBSCRIPTIONS (Plans Grid - Flow 09)                     */}
       {/* ========================================================================= */}
-      {(admin || activeTab === 'plans') && (
+      {(admin ? adminTab === 'plans' : activeTab === 'plans') && (
         <>
           <RemoteState {...remote} empty={!remote.data?.length} retry={remote.reload} />
 

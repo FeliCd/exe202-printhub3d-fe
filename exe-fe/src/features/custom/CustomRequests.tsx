@@ -5,7 +5,7 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import api, { send } from '../../services/api';
 import { downloadFile } from '../../services/fileVaultService';
 import { payOrder } from '../../services/paymentService';
-import type { CustomDTO } from '../../services/quotationService';
+import quotationService, { type CustomDTO } from '../../services/quotationService';
 import subscriptionService, { type BenefitPreviewResponse } from '../../services/subscriptionService';
 import { Notice, RemoteState } from '../../components/DataUI';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -420,9 +420,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
   const [quotePreviewRevision, setQuotePreviewRevision] = useState(0);
   const visibleLineTotal = visibleRequest?.quotedPrice ?? 0;
   const visibleShippingBase =
-    visibleRequest?.shippingFee ?? 30000;
+    visibleRequest?.pricingBreakdown?.baseShippingFee ?? visibleRequest?.shippingFee ?? 30000;
   const quotePreviewKey =
-    !admin && visibleRequest && visibleRequest.status === 'QUOTED' && visibleLineTotal > 0
+    !admin && visibleRequest && visibleRequest.status === 'QUOTED' && !visibleRequest.pricingBreakdown && visibleLineTotal > 0
       ? `${visibleRequest.id}:${visibleLineTotal}:${visibleShippingBase}`
       : '';
 
@@ -633,7 +633,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                 to: `/quotations/${encodeURIComponent(co.id)}`,
                 title: `${firstName}${extraCount}`,
                 meta: `#CHK-${co.id.slice(0, 8)} · ${checkoutDisplay(co).label} · ${formatDate(co.createdAt)}`,
-                amount: co.totalAmount && co.totalAmount > 0 ? money(co.totalAmount) : undefined,
+                amount: (co.pricingBreakdown?.totalPayable ?? co.totalAmount) && (co.pricingBreakdown?.totalPayable ?? co.totalAmount ?? 0) > 0
+                  ? money(co.pricingBreakdown?.totalPayable ?? co.totalAmount ?? 0)
+                  : undefined,
                 status: renderStatusBadge(co.allCustomQuoted && checkoutStatus(co) === 'PENDING_QUOTE' ? 'QUOTED' : checkoutStatus(co), tr),
                 _ts: Date.parse(co.createdAt || '') || 0,
               };
@@ -643,7 +645,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
               to: `/quotations/${encodeURIComponent(c.id)}`,
               title: parseOrderRequirements(c.requirements, c).modelName,
               meta: `#${c.id.slice(0, 8)} · ${orderDisplay([c]).label} · ${formatDate(c.createdAt)}`,
-              amount: c.quotedPrice == null ? undefined : money(c.quotedPrice),
+              amount: c.quotedPrice == null ? undefined : money(c.pricingBreakdown?.totalPayable ?? c.quotedPrice),
               status: renderStatusBadge(c.status, tr),
               _ts: Date.parse(c.createdAt || '') || 0,
             })),
@@ -1022,7 +1024,21 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                 )}
 
                 {/* 2. STATUS: QUOTED (Đã có báo giá từ Admin) */}
-                {c.status === 'QUOTED' && (
+                {c.status === 'QUOTED' && (() => {
+                  const pb = c.pricingBreakdown ?? null;
+                  const quotePreview = !pb && visibleRequest?.id === c.id ? activeQuotePreview : null;
+                  const rawSubtotal = pb?.itemsSubtotal ?? quotePreview?.itemsSubtotal ?? c.quotedPrice ?? 0;
+                  const discountAmt = pb?.itemDiscountAmount ?? quotePreview?.discountAmount ?? 0;
+                  const shipDiscount = pb?.shippingDiscountAmount ?? quotePreview?.shippingDiscountAmount ?? 0;
+                  const finalShip = pb?.finalShippingFee ?? quotePreview?.finalShippingFee ?? (c.shippingFee ?? 30000);
+                  const expectedTotal =
+                    pb?.totalPayable ?? quotePreview?.finalTotal ?? Math.max(0, rawSubtotal - discountAmt) + finalShip;
+                  const subName = pb?.appliedSubscriptionName || quotePreview?.planName;
+                  const ineligibleReason = pb?.ineligibleReason || quotePreview?.ineligibleReason;
+                  const isPriority = Boolean(pb?.priorityProduction || quotePreview?.priorityProduction);
+                  const quoteVersion = c.quoteVersion ?? pb?.quoteVersion ?? 1;
+                  const showPricingBox = Boolean(pb || quotePreview);
+                  return (
                   <div className="rounded-2xl border-2 border-[#39FF14]/60 bg-gradient-to-r from-[#39FF14]/10 via-[#0a0c12] to-[#39FF14]/5 p-4 sm:p-5 shadow-lg shadow-[#39FF14]/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div className="space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
@@ -1035,67 +1051,69 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                       </div>
                       <div className="flex items-baseline gap-2 pt-1">
                         <span className="text-3xl sm:text-4xl font-black text-[#39FF14] font-mono tracking-tight ">
-                          {money(c.quotedPrice || 0)}
+                          {money(expectedTotal)}
                         </span>
-                        <span className="text-xs text-slate-400 font-mono">(chưa gồm phí ship nếu đặt kèm giao hàng)</span>
+                        <span className="text-xs text-slate-400 font-mono">(tổng thanh toán dự kiến gồm ship &amp; ưu đãi)</span>
                       </div>
                       {c.quoteNote && (
                         <p className="text-xs text-cyan-200 bg-cyan-950/30 border border-cyan-500/20 rounded-lg px-2.5 py-1.5">
                           <strong className="text-cyan-400 font-mono">Ghi chú xưởng:</strong> {c.quoteNote}
                         </p>
                       )}
-                      {!admin && visibleRequest?.id === c.id && activeQuotePreview?.hasActiveSubscription && (
+                      {!admin && showPricingBox && (
                         <div className="mt-2 rounded-xl border border-[#39FF14]/40 bg-[#040508]/90 p-3 space-y-1.5 text-xs font-mono">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <span className="text-[#39FF14] font-bold flex items-center gap-1.5 font-sans">
-                              <Sparkles className="w-3.5 h-3.5" />
-                              Ưu đãi hội viên: {activeQuotePreview.planName || 'Gói VIP'}
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {activeQuotePreview.discountAmount > 0 && (
-                                <span className="px-2 py-0.5 rounded bg-[#39FF14]/15 text-[#39FF14] text-[10px] font-bold">
-                                  -{activeQuotePreview.discountPercent}%
-                                </span>
-                              )}
-                              {activeQuotePreview.priorityProduction && (
-                                <span className="px-2 py-0.5 rounded bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 text-[10px] font-bold">
-                                  Ưu tiên sản xuất
-                                </span>
-                              )}
+                          {(subName || ineligibleReason || isPriority) && (
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-[#39FF14] font-bold flex items-center gap-1.5 font-sans">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                {subName ? `Ưu đãi hội viên: ${subName}` : 'Ưu đãi hội viên'}
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {quotePreview && quotePreview.discountPercent > 0 && (
+                                  <span className="px-2 py-0.5 rounded bg-[#39FF14]/15 text-[#39FF14] text-[10px] font-bold">
+                                    -{quotePreview.discountPercent}%
+                                  </span>
+                                )}
+                                {isPriority && (
+                                  <span className="px-2 py-0.5 rounded bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 text-[10px] font-bold">
+                                    Ưu tiên sản xuất
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
                           <div className="flex justify-between text-slate-300">
                             <span>Giá báo của xưởng:</span>
-                            <span className="text-white">{money(c.quotedPrice || 0)}</span>
+                            <span className="text-white">{money(rawSubtotal)}</span>
                           </div>
-                          {activeQuotePreview.discountAmount > 0 && (
+                          {discountAmt > 0 && (
                             <div className="flex justify-between text-[#39FF14]">
                               <span>Giảm hội viên:</span>
-                              <span>-{money(activeQuotePreview.discountAmount)}</span>
+                              <span>-{money(discountAmt)}</span>
                             </div>
                           )}
                           <div className="flex justify-between text-slate-300">
                             <span>
                               Phí vận chuyển
-                              {activeQuotePreview.freeShippingUsesLimit != null
-                                ? ` (Còn ${activeQuotePreview.remainingFreeShippingUses ?? 0}/${activeQuotePreview.freeShippingUsesLimit} lượt)`
+                              {quotePreview?.freeShippingUsesLimit != null
+                                ? ` (Còn ${quotePreview.remainingFreeShippingUses ?? 0}/${quotePreview.freeShippingUsesLimit} lượt)`
                                 : ''}
                               :
                             </span>
-                            <span className={activeQuotePreview.shippingDiscountAmount > 0 ? 'text-[#39FF14] font-bold' : 'text-white'}>
-                              {activeQuotePreview.shippingDiscountAmount > 0
-                                ? activeQuotePreview.finalShippingFee === 0
+                            <span className={shipDiscount > 0 ? 'text-[#39FF14] font-bold' : 'text-white'}>
+                              {shipDiscount > 0
+                                ? finalShip === 0
                                   ? 'Miễn phí (0đ)'
-                                  : money(activeQuotePreview.finalShippingFee)
-                                : money(activeQuotePreview.finalShippingFee)}
+                                  : money(finalShip)
+                                : money(finalShip)}
                             </span>
                           </div>
                           <div className="flex justify-between items-center pt-1.5 border-t border-white/10 text-sm">
                             <span className="text-white font-bold font-sans">Tổng cần thanh toán dự kiến:</span>
-                            <span className="text-[#39FF14] font-black">{money(activeQuotePreview.finalTotal)}</span>
+                            <span className="text-[#39FF14] font-black">{money(expectedTotal)}</span>
                           </div>
-                          {activeQuotePreview.ineligibleReason && (
-                            <p className="text-[11px] text-amber-300 font-sans">{activeQuotePreview.ineligibleReason}</p>
+                          {ineligibleReason && (
+                            <p className="text-[11px] text-amber-300 font-sans">{ineligibleReason}</p>
                           )}
                         </div>
                       )}
@@ -1111,14 +1129,13 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
 
                         <button
                           type="button"
-                          disabled={action.busy || (!!quotePreviewKey && !activeQuotePreview)}
+                          disabled={action.busy || (!!quotePreviewKey && !activeQuotePreview && !pb)}
                           onClick={() =>
                             void action.run(() =>
-                              send(
-                                `/custom-orders/${c.id}/status`,
-                                { status: 'ACCEPTED', paymentMethod: 'PAYOS' },
-                                'put'
-                              )
+                              quotationService.acceptQuotation(c.id, 'PAYOS', {
+                                quoteVersion,
+                                expectedTotalPayable: expectedTotal,
+                              })
                             )
                           }
                           className="px-6 py-3 rounded-xl bg-[#39FF14] text-slate-950 font-black hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 text-xs uppercase tracking-tight shadow-xl shadow-[#39FF14]/25 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
@@ -1139,7 +1156,8 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                       </div>
                     )}
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* 3. STATUS: ACCEPTED & PAYOS (Cần thanh toán trước) */}
                 {c.status === 'ACCEPTED' && c.paymentMethod === 'PAYOS' && (() => {
