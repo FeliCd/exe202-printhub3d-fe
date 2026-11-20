@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calendar, ArrowRight, Sparkles } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 import { CopyButton, Status } from '../../../components/DataUI';
 
 export type AdminOrderKind = 'CUSTOM' | 'CHECKOUT' | 'MARKETPLACE';
@@ -51,7 +51,6 @@ export default function AdminOrderSummaryCard({
   shippingAddress,
   createdAt,
   status,
-  priorityProduction,
   displayLabel,
 }: AdminOrderSummaryCardProps) {
   const kindMeta = KIND_LABELS[kind];
@@ -61,7 +60,7 @@ export default function AdminOrderSummaryCard({
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-surface p-4 sm:p-5 shadow-md transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1 space-y-2">
-        {/* 1. Mã đơn + Tag phân loại + Badge VIP + Status */}
+        {/* 1. Mã đơn + Tag phân loại + Status */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-sm font-bold text-white" title={id}>
             {shortId}
@@ -70,12 +69,6 @@ export default function AdminOrderSummaryCard({
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${kindMeta.className}`}>
             {displayLabel || kindMeta.label}
           </span>
-          {priorityProduction && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-950/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
-              <Sparkles className="h-3 w-3" />
-              Ưu tiên VIP
-            </span>
-          )}
           <Status value={status ?? undefined} />
         </div>
 

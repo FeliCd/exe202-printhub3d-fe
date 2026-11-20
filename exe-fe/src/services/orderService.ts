@@ -10,6 +10,10 @@ export interface OrderItemDTO {
   engravingText?: string;
   reviewId?: number;
   reviewRating?: number;
+  canReview?: boolean;
+  canEditReview?: boolean;
+  reviewComment?: string | null;
+  reviewCreatedAt?: string | null;
 }
 
 export interface ShippingInfoDTO {

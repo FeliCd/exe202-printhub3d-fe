@@ -535,13 +535,6 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {(orderType === 'MARKETPLACE'
-              ? marketplaceOrder?.priorityProduction
-              : customOrder?.priorityProduction) && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-950/40 px-3 py-1 text-xs font-bold text-amber-300">
-                <Sparkles className="w-3.5 h-3.5" /> Ưu tiên VIP
-              </span>
-            )}
             <div className="text-right">
               <span className="text-xs text-slate-400 font-mono block">Trạng thái hiện tại:</span>
               <Status value={currentStatus} className="mt-1" />
@@ -704,8 +697,7 @@ export default function AdminOrderDetailPage() {
               const ship = fin?.shippingFee ?? 0;
               const disc = fin?.discountAmount ?? 0;
               const shipDisc = fin?.shippingDiscountAmount ?? 0;
-              const subName = fin?.appliedSubscriptionName;
-              const hasBreakdown = sub != null || ship > 0 || disc > 0 || shipDisc > 0 || Boolean(subName);
+              const hasBreakdown = sub != null || ship > 0 || disc > 0 || shipDisc > 0;
               const customNet =
                 customOrder?.subtotalAmount != null
                   ? Math.max(0, customOrder.subtotalAmount - (customOrder.discountAmount ?? 0)) +
@@ -730,7 +722,7 @@ export default function AdminOrderDetailPage() {
                       )}
                       {disc > 0 && (
                         <div className="flex items-center justify-between text-emerald-300">
-                          <span>Giảm hội viên{subName ? ` (${subName})` : ''}:</span>
+                          <span>Giảm giá:</span>
                           <span>-{money(disc)}</span>
                         </div>
                       )}
@@ -738,12 +730,6 @@ export default function AdminOrderDetailPage() {
                         <div className="flex items-center justify-between text-emerald-300">
                           <span>Miễn/giảm phí ship:</span>
                           <span>-{money(shipDisc)}</span>
-                        </div>
-                      )}
-                      {subName && disc === 0 && shipDisc === 0 && (
-                        <div className="flex items-center justify-between text-amber-300">
-                          <span>Gói hội viên áp dụng:</span>
-                          <span>{subName}</span>
                         </div>
                       )}
                     </div>

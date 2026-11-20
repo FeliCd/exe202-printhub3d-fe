@@ -24,10 +24,11 @@ import { useRemote, useAction } from '../../hooks/useRemote';
 import { send } from '../../services/api';
 import { payOrder } from '../../services/paymentService';
 import type { OrderDTO, OrderItemDTO } from '../../services/orderService';
+import type { CustomOrderReviewDTO } from '../../services/reviewService';
 import type { CheckoutOrderDTO, PricingBreakdownDTO } from '../../services/checkoutOrderService';
 import CheckoutOrderDetailCard from '../custom/CheckoutOrderDetailCard';
 import AdminOrdersUnifiedList from './components/AdminOrdersUnifiedList';
-import ReviewModal from '../reviews/ReviewModal';
+import ReviewModal, { type ReviewCustomTarget } from '../reviews/ReviewModal';
 import { RemoteState, Notice, Status } from '../../components/DataUI';
 import { money, formatDateTime } from '../../utils/format';
 import RulerSpecsViewer from '../../components/RulerSpecsViewer';
@@ -162,6 +163,9 @@ interface CustomOrderAdminItem {
   shippingDiscountAmount?: number;
   quoteVersion?: number;
   pricingBreakdown?: PricingBreakdownDTO | null;
+  canReview?: boolean;
+  canEditReview?: boolean;
+  review?: CustomOrderReviewDTO | null;
   allowedActions?: string[];
   blockedActions?: { action: string; reasonCode: string; message: string }[];
 }
@@ -249,7 +253,11 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
     isCustom: boolean;
     totalAmount?: number;
   } | null>(null);
-  const [reviewTarget, setReviewTarget] = useState<{ orderId: string; item: OrderItemDTO } | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{
+    orderId?: string;
+    item?: OrderItemDTO;
+    customOrder?: ReviewCustomTarget;
+  } | null>(null);
   const [preview3DDesign, setPreview3DDesign] = useState<{ design: Design; name?: string } | null>(null);
   const [previewImageModalUrl, setPreviewImageModalUrl] = useState<string | null>(null);
 
@@ -1217,7 +1225,7 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
                         {c.quotedPrice != null && (disc > 0 || ship > 0) && (
                           <p className="text-[11px] text-slate-400 font-mono mt-0.5">
                             Giá gốc: {money(rawSub)}
-                            {disc > 0 ? ` · Giảm hội viên: -${money(disc)}` : ''}
+                            {disc > 0 ? ` · ${admin ? 'Giảm giá' : 'Giảm hội viên'}: -${money(disc)}` : ''}
                             {ship > 0 ? ` · Ship: ${shipDisc >= ship ? '0đ' : money(Math.max(0, ship - shipDisc))}` : ''}
                           </p>
                         )}
@@ -1261,6 +1269,57 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
                         <span>Thanh toán ngay PayOS</span>
                       </button>
                     )}
+                    {!admin && c.status === 'COMPLETED' && (
+                      c.review ? (
+                        (c.canEditReview ?? c.review.canEdit ?? true) ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setReviewTarget({
+                                customOrder: {
+                                  id: c.id,
+                                  title: c.rulerModel || 'Đơn in 3D',
+                                  color: c.color,
+                                  engravingText: c.customName,
+                                  review: c.review,
+                                },
+                              })
+                            }
+                            className="whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/35 bg-emerald-500/10 text-theme-accent text-xs font-bold hover:bg-emerald-500/20 transition cursor-pointer font-mono"
+                            title="Xem hoặc chỉnh sửa đánh giá"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span>{c.review.rating}/5 · Sửa đánh giá</span>
+                          </button>
+                        ) : (
+                          <span className="whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-theme-accent text-xs font-bold font-mono">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span>{c.review.rating}/5 · Đã đánh giá</span>
+                          </span>
+                        )
+                      ) : (
+                        (c.canReview ?? true) && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setReviewTarget({
+                                customOrder: {
+                                  id: c.id,
+                                  title: c.rulerModel || 'Đơn in 3D',
+                                  color: c.color,
+                                  engravingText: c.customName,
+                                  review: null,
+                                },
+                              })
+                            }
+                            className="whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-amber-500/40 bg-amber-500/15 text-amber-400 app-light:text-amber-700 hover:bg-amber-500/25 text-xs font-bold transition cursor-pointer"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span>Gửi đánh giá 3D</span>
+                          </button>
+                        )
+                      )
+                    )}
                   </div>
                 </div>
               </div>
@@ -1272,10 +1331,16 @@ function BuyerOrderList({ history = false }: { history?: boolean }) {
       {/* Modal Đánh giá chất lượng in 3D */}
       {reviewTarget && (
         <ReviewModal
+          key={
+            reviewTarget.item
+              ? `item-${reviewTarget.item.id ?? reviewTarget.item.productId}`
+              : `custom-${reviewTarget.customOrder?.id ?? 'unknown'}`
+          }
           open={!!reviewTarget}
           onClose={() => setReviewTarget(null)}
           orderId={reviewTarget.orderId}
           orderItem={reviewTarget.item}
+          customOrder={reviewTarget.customOrder}
           onSuccess={handleReload}
         />
       )}

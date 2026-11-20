@@ -62,9 +62,37 @@ export interface FeaturedProductReviewDTO {
   createdAt: string;
 }
 
+export interface CustomOrderReviewDTO {
+  id: number;
+  customOrderId: string;
+  checkoutOrderId?: string | null;
+  reviewTargetType?: string;
+  reviewerId?: string | null;
+  reviewerName?: string | null;
+  rating: number;
+  comment?: string | null;
+  imageUrls: string[];
+  canEdit?: boolean;
+  editDeadlineAt?: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface CustomOrderReviewUpsertDTO {
+  rating: number;
+  comment?: string;
+  imageUrls?: string[];
+}
+
 export const reviewService = {
   createOrUpdateReview: (data: ProductReviewCreateDTO) =>
     send<ProductReviewDTO>('/reviews', data, 'post'),
+
+  upsertCustomOrderReview: (customOrderId: string, data: CustomOrderReviewUpsertDTO) =>
+    send<CustomOrderReviewDTO>(`/custom-orders/${encodeURIComponent(customOrderId)}/review`, data, 'put'),
+
+  getCustomOrderReview: (customOrderId: string) =>
+    read<CustomOrderReviewDTO>(`/custom-orders/${encodeURIComponent(customOrderId)}/review`),
 
   getProductReviews: (productId: string, page = 0, size = 10) =>
     read<PageDTO<ProductReviewDTO>>(`/reviews/products/${productId}?page=${page}&size=${size}`),

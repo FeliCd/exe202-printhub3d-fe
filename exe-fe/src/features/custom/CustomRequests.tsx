@@ -13,6 +13,7 @@ import { formatDateTime, money } from '../../utils/format';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import type { CheckoutOrderDTO } from '../../services/checkoutOrderService';
 import CheckoutOrderDetailCard from './CheckoutOrderDetailCard';
+import ReviewModal, { type ReviewCustomTarget } from '../reviews/ReviewModal';
 import {
   Ruler,
   Layers,
@@ -30,6 +31,7 @@ import {
   QrCode,
   RefreshCw,
   Sparkles,
+  Star,
   Copy,
   Check,
   Box,
@@ -339,6 +341,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
   const [cancelModalOrderId, setCancelModalOrderId] = useState<string | null>(null);
   const [codModalOrder, setCodModalOrder] = useState<{ id: string; nextStatus: string } | null>(null);
   const [quoteError, setQuoteError] = useState<Record<string, string>>({});
+  const [reviewCustomTarget, setReviewCustomTarget] = useState<ReviewCustomTarget | null>(null);
 
   const copyToClipboard = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -1061,10 +1064,10 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         </p>
                       )}
                       {!admin && showPricingBox && (
-                        <div className="mt-2 rounded-xl border border-[#39FF14]/40 bg-[#040508]/90 p-3 space-y-1.5 text-xs font-mono">
+                        <div className="mt-2 rounded-xl border border-[#39FF14]/40 bg-surface-inset p-3 space-y-1.5 text-xs font-mono">
                           {(subName || ineligibleReason || isPriority) && (
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="text-[#39FF14] font-bold flex items-center gap-1.5 font-sans">
+                              <span className="text-theme-accent font-bold flex items-center gap-1.5 font-sans">
                                 <Sparkles className="w-3.5 h-3.5" />
                                 {subName ? `Ưu đãi hội viên: ${subName}` : 'Ưu đãi hội viên'}
                               </span>
@@ -1082,17 +1085,17 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                               </div>
                             </div>
                           )}
-                          <div className="flex justify-between text-slate-300">
+                          <div className="flex justify-between text-theme-copy">
                             <span>Giá báo của xưởng:</span>
-                            <span className="text-white">{money(rawSubtotal)}</span>
+                            <span className="text-theme-ink">{money(rawSubtotal)}</span>
                           </div>
                           {discountAmt > 0 && (
-                            <div className="flex justify-between text-[#39FF14]">
+                            <div className="flex justify-between text-theme-accent">
                               <span>Giảm hội viên:</span>
                               <span>-{money(discountAmt)}</span>
                             </div>
                           )}
-                          <div className="flex justify-between text-slate-300">
+                          <div className="flex justify-between text-theme-copy">
                             <span>
                               Phí vận chuyển
                               {quotePreview?.freeShippingUsesLimit != null
@@ -1100,7 +1103,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                                 : ''}
                               :
                             </span>
-                            <span className={shipDiscount > 0 ? 'text-[#39FF14] font-bold' : 'text-white'}>
+                            <span className={shipDiscount > 0 ? 'text-theme-accent font-bold' : 'text-theme-ink'}>
                               {shipDiscount > 0
                                 ? finalShip === 0
                                   ? 'Miễn phí (0đ)'
@@ -1108,9 +1111,9 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                                 : money(finalShip)}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center pt-1.5 border-t border-white/10 text-sm">
-                            <span className="text-white font-bold font-sans">Tổng cần thanh toán dự kiến:</span>
-                            <span className="text-[#39FF14] font-black">{money(expectedTotal)}</span>
+                          <div className="flex justify-between items-center pt-1.5 border-t border-border text-sm">
+                            <span className="text-theme-ink font-bold font-sans">Tổng cần thanh toán dự kiến:</span>
+                            <span className="text-theme-accent font-black">{money(expectedTotal)}</span>
                           </div>
                           {ineligibleReason && (
                             <p className="text-[11px] text-amber-300 font-sans">{ineligibleReason}</p>
@@ -1184,12 +1187,16 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                             <strong className="text-[#39FF14] font-mono">{money(finalNet)}</strong>
                             {tr(". Sau khi quét mã QR thanh toán thành công, máy in sẽ được tự động kích hoạt.")}{' '}
                           </p>
-                          {hasSnapBenefit && (
+                          {(admin ? snapDisc > 0 || snapShip > 0 : hasSnapBenefit) && (
                             <p className="text-[11px] font-mono text-slate-300">
                               Giá gốc: {money(snapSub)}
-                              {snapDisc > 0 ? ` · Giảm hội viên (${c.appliedSubscriptionName || 'VIP'}): -${money(snapDisc)}` : ''}
+                              {snapDisc > 0
+                                ? admin
+                                  ? ` · Giảm giá: -${money(snapDisc)}`
+                                  : ` · Giảm hội viên (${c.appliedSubscriptionName || 'VIP'}): -${money(snapDisc)}`
+                                : ''}
                               {snapShip > 0 ? ` · Ship: ${money(Math.max(0, snapShip - snapShipDisc))}` : ''}
-                              {c.priorityProduction ? ' · Ưu tiên sản xuất' : ''}
+                              {!admin && c.priorityProduction ? ' · Ưu tiên sản xuất' : ''}
                             </p>
                           )}
                         </div>
@@ -1231,7 +1238,7 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                           <span className="text-[#39FF14] font-mono font-bold">
                             {' '}{tr("Giá chốt:")} {money(netPaid)} ({c.paymentMethod})
                             {snapDisc > 0 ? ` · Đã giảm ${money(snapDisc)}` : ''}
-                            {c.priorityProduction ? ' · Ưu tiên in' : ''}
+                            {!admin && c.priorityProduction ? ' · Ưu tiên in' : ''}
                           </span>
                         ) : null;
                       })()}
@@ -1261,6 +1268,66 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
                         }`}
                       > {tr("4. Hoàn tất")} </div>
                     </div>
+
+                    {!admin && c.status === 'COMPLETED' && (
+                      <div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-3">
+                        {c.review ? (
+                          <>
+                            <div className="space-y-0.5 text-xs">
+                              <div className="inline-flex items-center gap-1.5 font-bold text-theme-accent font-mono">
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                <span>{c.review.rating}/5 · Đã đánh giá</span>
+                              </div>
+                              {c.review.comment && (
+                                <p className="text-theme-copy line-clamp-2">“{c.review.comment}”</p>
+                              )}
+                            </div>
+                            {(c.canEditReview ?? c.review.canEdit ?? true) && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setReviewCustomTarget({
+                                    id: c.id,
+                                    title: c.rulerModel || req.modelName || 'Đơn in 3D',
+                                    color: c.color,
+                                    engravingText: c.customName,
+                                    review: c.review,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-theme-accent hover:bg-emerald-500/20 transition cursor-pointer"
+                              >
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                Chỉnh sửa đánh giá
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          (c.canReview ?? true) && (
+                            <div className="flex w-full flex-wrap items-center justify-between gap-3">
+                              <span className="text-xs text-theme-muted">
+                                Đơn in 3D đã hoàn thành — chia sẻ đánh giá của bạn
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setReviewCustomTarget({
+                                    id: c.id,
+                                    title: c.rulerModel || req.modelName || 'Đơn in 3D',
+                                    color: c.color,
+                                    engravingText: c.customName,
+                                    review: null,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/15 px-3.5 py-1.5 text-xs font-bold text-amber-400 app-light:text-amber-700 hover:bg-amber-500/25 transition cursor-pointer shrink-0"
+                              >
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                Gửi đánh giá 3D
+                              </button>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1415,6 +1482,16 @@ export function CustomRequests({ admin = false, translate: tr = text => text }: 
         variant="primary"
         busy={action.busy}
       />
+
+      {reviewCustomTarget && (
+        <ReviewModal
+          key={`custom-req-${reviewCustomTarget.id}`}
+          open={!!reviewCustomTarget}
+          onClose={() => setReviewCustomTarget(null)}
+          customOrder={reviewCustomTarget}
+          onSuccess={reloadAll}
+        />
+      )}
     </div>
   );
 }

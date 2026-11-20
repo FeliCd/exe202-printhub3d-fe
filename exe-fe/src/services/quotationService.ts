@@ -1,5 +1,6 @@
 import { read, send } from './api';
 import type { PricingBreakdownDTO } from './checkoutOrderService';
+import type { CustomOrderReviewDTO } from './reviewService';
 
 export interface CustomDTO {
   id: string;
@@ -38,6 +39,9 @@ export interface CustomDTO {
   pricingBreakdown?: PricingBreakdownDTO | null;
   estimatedRewardPoints?: number | null;
   rewardStatus?: string | null;
+  canReview?: boolean;
+  canEditReview?: boolean;
+  review?: CustomOrderReviewDTO | null;
 }
 
 export interface CustomOrderCreateRequest {

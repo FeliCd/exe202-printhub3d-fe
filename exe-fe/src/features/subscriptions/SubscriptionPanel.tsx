@@ -658,11 +658,10 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                 type="button"
                 aria-pressed={adminTab === tab.key}
                 onClick={() => setAdminTab(tab.key)}
-                className={`inline-flex items-center gap-2 border-b-2 px-1 py-2.5 text-sm font-semibold cursor-pointer ${
-                  adminTab === tab.key
-                    ? 'border-theme-accent text-theme-accent'
-                    : 'border-transparent text-theme-muted hover:text-theme-ink'
-                }`}
+                className={`inline-flex items-center gap-2 border-b-2 px-1 py-2.5 text-sm font-semibold cursor-pointer ${adminTab === tab.key
+                  ? 'border-theme-accent text-theme-accent'
+                  : 'border-transparent text-theme-muted hover:text-theme-ink'
+                  }`}
               >
                 <tab.icon className="size-4" aria-hidden="true" />
                 {tab.label}
@@ -672,67 +671,67 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
 
           {adminTab === 'plans' && (
             <>
-          {/* HÀNG 1: Nút thêm gói */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#0a0c12] border border-white/10">
-            <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2 font-mono">
-                <Sparkles className="w-4 h-4 text-[#00e5ff]" />
-                Cấu Hình Các Gói Khách Hàng VIP / Subscriptions
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Thiết lập giá tiền mặt, thời hạn gói (ngày), quyền lợi giảm giá và điểm đổi gói
-              </p>
-            </div>
+              {/* HÀNG 1: Nút thêm gói */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#0a0c12] border border-white/10">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2 font-mono">
+                    <Sparkles className="w-4 h-4 text-[#00e5ff]" />
+                    Cấu Hình Các Gói Khách Hàng VIP / Subscriptions
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Thiết lập giá tiền mặt, thời hạn gói (ngày), quyền lợi giảm giá và điểm đổi gói
+                  </p>
+                </div>
 
-            <button
-              onClick={() => {
-                setOpen(true);
-                setEditing('');
-                setForm(emptyFormState);
-              }}
-              className="px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs uppercase tracking-tight transition shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0 self-start sm:self-auto whitespace-nowrap cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Thêm Gói Mới</span>
-            </button>
-          </div>
-
-          {/* HÀNG 2: Khung tặng gói cho người dùng (Flow 04) */}
-          <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#00e5ff] font-mono">
-              <Gift className="w-4 h-4 text-[#00e5ff]" />
-              <span>Người Nhận Gói Quà Tặng (Sinh viên / Khách hàng)</span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="relative flex-1">
-                <select
-                  className="w-full bg-[#040508] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 outline-none focus:border-[#39FF14] font-mono transition cursor-pointer"
-                  value={giftUser}
-                  onChange={(e) => setGiftUser(e.target.value)}
+                <button
+                  onClick={() => {
+                    setOpen(true);
+                    setEditing('');
+                    setForm(emptyFormState);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#39FF14] hover:bg-[#32e012] text-slate-950 font-black text-xs uppercase tracking-tight transition shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0 self-start sm:self-auto whitespace-nowrap cursor-pointer"
                 >
-                  <option value="">-- Chọn tài khoản người dùng để tặng gói quà --</option>
-                  {customerUsers.length === 0 ? (
-                    <option value="" disabled>
-                      {users.loading ? 'Đang tải người dùng...' : 'Không tìm thấy người dùng'}
-                    </option>
-                  ) : (
-                    customerUsers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name} ({u.email}){u.studentId ? ` - MSSV: ${u.studentId}` : ''}
-                      </option>
-                    ))
-                  )}
-                </select>
+                  <Plus className="w-4 h-4" />
+                  <span>Thêm Gói Mới</span>
+                </button>
               </div>
 
-              {giftUser && (
-                <span className="text-xs text-[#39FF14] font-semibold flex items-center gap-1 shrink-0 font-mono whitespace-nowrap">
-                  <Check className="w-3.5 h-3.5" /> Đã chọn người nhận. Nhấn nút "Tặng gói quà" ở thẻ bên dưới.
-                </span>
-              )}
-            </div>
-          </div>
+              {/* HÀNG 2: Khung tặng gói cho người dùng (Flow 04) */}
+              <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#00e5ff] font-mono">
+                  <Gift className="w-4 h-4 text-[#00e5ff]" />
+                  <span>Người Nhận Gói Quà Tặng (Sinh viên / Khách hàng)</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="relative flex-1">
+                    <select
+                      className="w-full bg-[#040508] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 outline-none focus:border-[#39FF14] font-mono transition cursor-pointer"
+                      value={giftUser}
+                      onChange={(e) => setGiftUser(e.target.value)}
+                    >
+                      <option value="">-- Chọn tài khoản người dùng để tặng gói quà --</option>
+                      {customerUsers.length === 0 ? (
+                        <option value="" disabled>
+                          {users.loading ? 'Đang tải người dùng...' : 'Không tìm thấy người dùng'}
+                        </option>
+                      ) : (
+                        customerUsers.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.name} ({u.email}){u.studentId ? ` - MSSV: ${u.studentId}` : ''}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  {giftUser && (
+                    <span className="text-xs text-[#39FF14] font-semibold flex items-center gap-1 shrink-0 font-mono whitespace-nowrap">
+                      <Check className="w-3.5 h-3.5" /> Đã chọn người nhận. Nhấn nút "Tặng gói quà" ở thẻ bên dưới.
+                    </span>
+                  )}
+                </div>
+              </div>
             </>
           )}
 
@@ -740,20 +739,20 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
             <div className="space-y-4">
               {/* Summary KPI cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-1">
-                  <p className="text-[11px] font-mono uppercase text-slate-400">Tổng doanh thu mua gói (Tiền mặt)</p>
-                  <p className="text-xl font-black font-mono text-[#39FF14]">
+                <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+                  <p className="text-[11px] font-mono uppercase text-theme-muted">Tổng doanh thu mua gói (Tiền mặt)</p>
+                  <p className="text-xl font-black font-mono text-theme-accent">
                     {money(historyData?.summary?.subscriptionCashVnd ?? 0)}
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-1">
-                  <p className="text-[11px] font-mono uppercase text-slate-400">Lượt mua qua PayOS</p>
+                <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+                  <p className="text-[11px] font-mono uppercase text-theme-muted">Lượt mua qua PayOS</p>
                   <p className="text-xl font-black font-mono text-[#00e5ff]">
                     {historyData?.summary?.cashCount ?? 0} lượt
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-1">
-                  <p className="text-[11px] font-mono uppercase text-slate-400">Lượt đổi bằng điểm xu</p>
+                <div className="p-4 rounded-2xl bg-surface border border-border space-y-1">
+                  <p className="text-[11px] font-mono uppercase text-theme-muted">Lượt đổi bằng điểm xu</p>
                   <p className="text-xl font-black font-mono text-amber-300">
                     {historyData?.summary?.pointsRedeemCount ?? 0} lượt
                   </p>
@@ -761,7 +760,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               </div>
 
               {/* Filter Bar */}
-              <div className="p-4 rounded-2xl bg-[#0a0c12] border border-white/10 space-y-3">
+              <div className="p-4 rounded-2xl bg-surface border border-border space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 text-xs">
                   <input
                     type="search"
@@ -771,7 +770,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                       setHistoryQ(e.target.value);
                       setHistoryPage(0);
                     }}
-                    className="lg:col-span-2 bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#39FF14] font-mono"
+                    className="lg:col-span-2 bg-surface-inset border border-border rounded-xl px-3 py-2 text-theme-ink outline-none focus:border-[#39FF14] font-mono"
                   />
                   <select
                     value={historyMethod}
@@ -779,7 +778,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                       setHistoryMethod(e.target.value as AdminSubscriptionHistoryMethod | '');
                       setHistoryPage(0);
                     }}
-                    className="bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-[#39FF14] font-mono"
+                    className="bg-surface-inset border border-border rounded-xl px-3 py-2 text-theme-ink outline-none focus:border-[#39FF14] font-mono"
                   >
                     <option value="">Tất cả kênh</option>
                     <option value="CASH">PayOS (Tiền mặt)</option>
@@ -791,7 +790,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                       setHistoryStatus(e.target.value as AdminSubscriptionHistoryStatus | '');
                       setHistoryPage(0);
                     }}
-                    className="bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-[#39FF14] font-mono"
+                    className="bg-surface-inset border border-border rounded-xl px-3 py-2 text-theme-ink outline-none focus:border-[#39FF14] font-mono"
                   >
                     <option value="">Tất cả trạng thái</option>
                     <option value="PAID">PAID (Đã thanh toán)</option>
@@ -807,7 +806,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                       setHistoryPlanId(e.target.value);
                       setHistoryPage(0);
                     }}
-                    className="bg-[#040508] border border-white/10 rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-[#39FF14] font-mono"
+                    className="bg-surface-inset border border-border rounded-xl px-3 py-2 text-theme-ink outline-none focus:border-[#39FF14] font-mono"
                   >
                     <option value="">Tất cả gói</option>
                     {(remote.data || []).map((pl) => (
@@ -817,15 +816,15 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                   <button
                     type="button"
                     onClick={() => void fetchAdminHistory()}
-                    className="px-3 py-2 rounded-xl bg-[#040508] border border-white/10 hover:border-[#39FF14]/50 text-slate-200 font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="px-3 py-2 rounded-xl bg-surface-inset border border-border hover:border-[#39FF14]/50 text-theme-ink font-mono font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 text-[#39FF14] ${historyLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 text-theme-accent ${historyLoading ? 'animate-spin' : ''}`} />
                     Làm mới
                   </button>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono">
-                  <label className="flex items-center gap-2 text-slate-400">
+                  <label className="flex items-center gap-2 text-theme-muted">
                     <span>Từ ngày:</span>
                     <input
                       type="date"
@@ -834,10 +833,10 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                         setHistoryFrom(e.target.value);
                         setHistoryPage(0);
                       }}
-                      className="bg-[#040508] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-200"
+                      className="bg-surface-inset border border-border rounded-lg px-2.5 py-1.5 text-theme-ink"
                     />
                   </label>
-                  <label className="flex items-center gap-2 text-slate-400">
+                  <label className="flex items-center gap-2 text-theme-muted">
                     <span>Đến ngày:</span>
                     <input
                       type="date"
@@ -846,7 +845,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                         setHistoryTo(e.target.value);
                         setHistoryPage(0);
                       }}
-                      className="bg-[#040508] border border-white/10 rounded-lg px-2.5 py-1.5 text-slate-200"
+                      className="bg-surface-inset border border-border rounded-lg px-2.5 py-1.5 text-theme-ink"
                     />
                   </label>
                   {(historyQ || historyMethod || historyStatus || historyPlanId || historyFrom || historyTo) && (
@@ -878,24 +877,24 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               />
 
               {historyData && historyData.items.length > 0 && (
-                <div className="rounded-2xl bg-[#0a0c12] border border-white/10 overflow-hidden">
-                  <div className="divide-y divide-white/10">
+                <div className="rounded-2xl bg-surface border border-border overflow-hidden">
+                  <div className="divide-y divide-border">
                     {historyData.items.map((item) => {
                       const isCash = item.method === 'CASH';
                       const isSuccess = item.status === 'PAID' || item.status === 'REDEEMED';
                       const isWarning = item.status === 'PENDING' || item.status === 'PENDING_RECONCILIATION';
                       return (
-                        <div key={item.id} className="p-4 flex flex-wrap items-center justify-between gap-3 text-xs hover:bg-[#11141e]/60 transition">
+                        <div key={item.id} className="p-4 flex flex-wrap items-center justify-between gap-3 text-xs hover:bg-surface-raised transition">
                           <div className="space-y-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-bold text-white text-sm">{item.buyerName || 'Khách hàng'}</span>
+                              <span className="font-bold text-theme-ink text-sm">{item.buyerName || 'Khách hàng'}</span>
                               {item.buyerEmail && (
-                                <span className="text-slate-400 font-mono text-[11px]">{item.buyerEmail}</span>
+                                <span className="text-theme-muted font-mono text-[11px]">{item.buyerEmail}</span>
                               )}
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                                 isCash
                                   ? 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30'
-                                  : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                                  : 'bg-amber-950/30 text-amber-300 border-amber-500/40'
                               }`}>
                                 {isCash ? 'PayOS' : 'Đổi điểm xu'}
                               </span>
@@ -903,17 +902,17 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                                 isSuccess
                                   ? 'bg-[#39FF14]/15 text-[#39FF14] border-[#39FF14]/40'
                                   : isWarning
-                                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                                    : 'bg-rose-500/15 text-rose-400 border-rose-500/40'
+                                    ? 'bg-amber-950/30 text-amber-300 border-amber-500/40'
+                                    : 'bg-rose-950/40 text-rose-400 border-rose-500/40'
                               }`}>
                                 {item.status}
                               </span>
                             </div>
-                            <p className="text-slate-300 font-medium">
-                              Gói: <strong className="text-white">{item.planName}</strong>
+                            <p className="text-theme-copy font-medium">
+                              Gói: <strong className="text-theme-ink">{item.planName}</strong>
                               {item.payosOrderCode ? <span className="ml-2 font-mono text-[11px] text-[#00e5ff]">· PayOS #{item.payosOrderCode}</span> : null}
                             </p>
-                            <p className="text-[11px] text-slate-400 font-mono">
+                            <p className="text-[11px] text-theme-muted font-mono">
                               {item.transactionAt ? new Date(item.transactionAt).toLocaleString('vi-VN') : '--'}
                               {item.legacyTimestamp ? ' (mốc cũ)' : ''}
                               {item.reconciliationReason ? ` · Đối soát: ${item.reconciliationReason}` : ''}
@@ -921,7 +920,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                           </div>
                           <div className="text-right font-mono shrink-0">
                             {isCash ? (
-                              <span className="text-base font-black text-[#39FF14] block">
+                              <span className="text-base font-black text-theme-accent block">
                                 {money(item.amountVnd ?? item.purchaseAmountVnd ?? 0)}
                               </span>
                             ) : (
@@ -930,7 +929,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                               </span>
                             )}
                             {item.referenceId && (
-                              <span className="text-[10px] text-slate-500">Ref: {item.referenceId.slice(0, 8)}</span>
+                              <span className="text-[10px] text-theme-muted">Ref: {item.referenceId.slice(0, 8)}</span>
                             )}
                           </div>
                         </div>
@@ -939,7 +938,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                   </div>
 
                   {historyData.totalElements > historyData.size && (
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 text-xs font-mono text-slate-400">
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-border text-xs font-mono text-theme-muted">
                       <span>
                         Tổng {historyData.totalElements} giao dịch · Trang {historyData.page + 1} / {Math.max(1, Math.ceil(historyData.totalElements / historyData.size))}
                       </span>
@@ -948,7 +947,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                           type="button"
                           disabled={historyPage <= 0 || historyLoading}
                           onClick={() => setHistoryPage(p => Math.max(0, p - 1))}
-                          className="px-3 py-1.5 rounded-lg border border-white/10 bg-[#040508] text-slate-200 disabled:opacity-40 cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg border border-border bg-surface-inset text-theme-ink disabled:opacity-40 cursor-pointer"
                         >
                           Trước
                         </button>
@@ -956,7 +955,7 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                           type="button"
                           disabled={(historyData.page + 1) * historyData.size >= historyData.totalElements || historyLoading}
                           onClick={() => setHistoryPage(p => p + 1)}
-                          className="px-3 py-1.5 rounded-lg border border-white/10 bg-[#040508] text-slate-200 disabled:opacity-40 cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg border border-border bg-surface-inset text-theme-ink disabled:opacity-40 cursor-pointer"
                         >
                           Sau
                         </button>
@@ -1011,11 +1010,10 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                          isEarn
-                            ? 'bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                        }`}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isEarn
+                          ? 'bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/30'
+                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                          }`}
                       >
                         {isEarn ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                       </div>
@@ -1362,9 +1360,8 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
               return (
                 <div
                   key={p.id}
-                  className={`min-w-0 rounded-xl bg-surface border transition-colors p-4 sm:p-5 space-y-4 relative overflow-hidden group ${
-                    p.isActive ? 'border-white/10 hover:border-[#39FF14]/50' : 'border-white/5 opacity-60'
-                  }`}
+                  className={`min-w-0 rounded-xl bg-surface border transition-colors p-4 sm:p-5 space-y-4 relative overflow-hidden group ${p.isActive ? 'border-white/10 hover:border-[#39FF14]/50' : 'border-white/5 opacity-60'
+                    }`}
                 >
                   {admin && <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#39FF14] to-[#00e5ff] opacity-80" />}
 
@@ -1464,8 +1461,8 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                             p.allowAdminGift === false
                               ? 'Gói này không hỗ trợ tặng quà'
                               : !giftUser
-                              ? 'Vui lòng chọn người nhận ở khung trên trước'
-                              : undefined
+                                ? 'Vui lòng chọn người nhận ở khung trên trước'
+                                : undefined
                           }
                         >
                           <Gift className="w-3.5 h-3.5" />
@@ -1506,8 +1503,8 @@ export default function SubscriptionPanel({ admin = false }: { admin?: boolean }
                               {redeemingPlanId === p.id
                                 ? 'Đang đổi...'
                                 : hasEnoughPoints
-                                ? `Đổi gói (${p.requiredPoints} xu)`
-                                : `Thiếu ${(p.requiredPoints || 0) - availablePoints} xu`}
+                                  ? `Đổi gói (${p.requiredPoints} xu)`
+                                  : `Thiếu ${(p.requiredPoints || 0) - availablePoints} xu`}
                             </span>
                           </button>
                         )}

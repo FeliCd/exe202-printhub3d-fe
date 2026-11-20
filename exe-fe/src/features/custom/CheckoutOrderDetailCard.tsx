@@ -17,6 +17,7 @@ import {
   Ruler,
   ShieldCheck,
   Sparkles,
+  Star,
   Truck,
   User,
   X,
@@ -32,6 +33,7 @@ import { getApiErrorMessage } from '../../utils/apiError';
 import RulerSpecsViewer from '../../components/RulerSpecsViewer';
 import Modal from '../../components/Modal';
 import CancelCustomOrderModal from './CancelCustomOrderModal';
+import ReviewModal, { type ReviewCustomTarget, type ReviewTargetItem } from '../reviews/ReviewModal';
 import { Modal3DViewer } from '../ruler-studio/Modal3DViewer';
 import type { Design } from '../ruler-studio/model';
 import { money, formatDateTime } from '../../utils/format';
@@ -133,6 +135,10 @@ export default function CheckoutOrderDetailCard({
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelError, setCancelError] = useState('');
+  const [reviewTarget, setReviewTarget] = useState<{
+    orderItem?: ReviewTargetItem;
+    customOrder?: ReviewCustomTarget;
+  } | null>(null);
 
   const items: CustomDTO[] = checkoutCustomLines(co);
 
@@ -413,7 +419,7 @@ export default function CheckoutOrderDetailCard({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {co.priorityProduction && (
+          {!admin && co.priorityProduction && (
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-950/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
               <Sparkles className="w-3 h-3" /> Ưu tiên VIP
             </span>
@@ -424,7 +430,7 @@ export default function CheckoutOrderDetailCard({
 
       {/* Red Cancellation Banner */}
       {(co.status || '').toUpperCase() === 'CANCELLED' && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-950/35 p-4 space-y-1.5 text-xs">
+        <div className="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 space-y-1.5 text-xs">
           <div className="flex items-center gap-2 font-bold text-rose-300">
             <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
             <span>
@@ -435,11 +441,11 @@ export default function CheckoutOrderDetailCard({
                   : 'Đơn hàng này đã bị hủy'}
             </span>
           </div>
-          <p className="text-rose-200/90 pl-6">
-            Lý do: <span className="font-semibold text-white">{co.cancelReason || 'Không có lý do chi tiết'}</span>
+          <p className="text-rose-200 app-light:text-rose-800 pl-6">
+            Lý do: <span className="font-semibold text-theme-ink">{co.cancelReason || 'Không có lý do chi tiết'}</span>
           </p>
           {co.cancelledAt && (
-            <p className="text-[11px] font-mono text-rose-300/70 pl-6">
+            <p className="text-[11px] font-mono text-rose-300 app-light:text-rose-700 pl-6">
               Thời điểm hủy: {formatDateTime(co.cancelledAt)}
             </p>
           )}
@@ -448,35 +454,35 @@ export default function CheckoutOrderDetailCard({
 
       {/* Shipping & Payment summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-        <div className="rounded-xl border border-white/10 bg-[#040508]/70 p-3.5 space-y-1.5">
-          <div className="flex items-center gap-2 font-mono font-bold text-[#39FF14]">
+        <div className="rounded-xl border border-border bg-surface-inset p-3.5 space-y-1.5">
+          <div className="flex items-center gap-2 font-mono font-bold text-theme-accent">
             <MapPin className="w-4 h-4 shrink-0" />
             <span>Thông tin nhận hàng</span>
           </div>
-          <div className="pl-6 space-y-1 text-slate-300">
+          <div className="pl-6 space-y-1 text-theme-copy">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-white">{co.recipientName || co.buyerName || 'Khách hàng'}</span>
+              <span className="font-bold text-theme-ink">{co.recipientName || co.buyerName || 'Khách hàng'}</span>
               {co.recipientPhone && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#0a0c12] border border-white/10 font-mono text-[11px]">
-                  <Phone className="w-3 h-3 text-[#39FF14]" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border font-mono text-[11px] text-theme-ink">
+                  <Phone className="w-3 h-3 text-theme-accent" />
                   {co.recipientPhone}
                 </span>
               )}
             </div>
-            <p className="leading-relaxed text-slate-300">{co.shippingAddress}</p>
+            <p className="leading-relaxed text-theme-copy">{co.shippingAddress}</p>
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-[#040508]/70 p-3.5 space-y-1.5">
+        <div className="rounded-xl border border-border bg-surface-inset p-3.5 space-y-1.5">
           <div className="flex items-center gap-2 font-mono font-bold text-[#ff9100]">
             <CreditCard className="w-4 h-4 shrink-0" />
             <span>Thanh toán đơn gộp</span>
           </div>
-          <div className="pl-6 space-y-1.5 text-slate-300">
+          <div className="pl-6 space-y-1.5 text-theme-copy">
             <p className="flex items-center gap-1.5">
               <span>Hình thức:</span>
-              <strong className="text-white inline-flex items-center gap-1">
-                <QrCode className="w-3.5 h-3.5 text-[#39FF14]" />
+              <strong className="text-theme-ink inline-flex items-center gap-1">
+                <QrCode className="w-3.5 h-3.5 text-theme-accent" />
                 PayOS (VietQR — Chỉ thanh toán 1 lần cho cả đơn)
               </strong>
             </p>
@@ -490,17 +496,64 @@ export default function CheckoutOrderDetailCard({
 
       {!!co.marketplaceOrders?.length && (
         <section className="space-y-3 rounded-xl border border-border bg-surface-inset p-4">
-          <h3 className="font-semibold text-white">Sản phẩm có sẵn</h3>
-          {co.marketplaceOrders.map(order => (
-            <div key={order.id} className="space-y-2">
-              <p className="text-xs text-slate-400">Đơn #{order.id.slice(0, 8)} · <Status value={order.status} /></p>
-              <ul className="space-y-1 text-sm text-slate-200">
-                {order.items?.map((item, index) => (
-                  <li key={item.id ?? index}>{item.productTitle} · {item.quantity} bản</li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <h3 className="font-semibold text-theme-ink">Sản phẩm có sẵn</h3>
+          {co.marketplaceOrders.map(order => {
+            const isOrderCompleted =
+              (order.status || '').toUpperCase() === 'COMPLETED' ||
+              (co.status || '').toUpperCase() === 'COMPLETED';
+            return (
+              <div key={order.id} className="space-y-2">
+                <p className="text-xs text-theme-muted">
+                  Đơn #{order.id.slice(0, 8)} · <Status value={order.status} />
+                </p>
+                <ul className="space-y-2 text-sm text-theme-copy">
+                  {order.items?.map((item, index) => (
+                    <li
+                      key={item.id ?? index}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-surface px-3 py-2"
+                    >
+                      <span>
+                        {item.productTitle} · {item.quantity} bản
+                      </span>
+                      {!admin && isOrderCompleted && (
+                        <div className="flex items-center gap-2">
+                          {item.reviewId ? (
+                            item.canEditReview === false ? (
+                              <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-theme-accent font-mono">
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                {item.reviewRating || 5}/5 · Đã đánh giá
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setReviewTarget({ orderItem: item })}
+                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-theme-accent hover:bg-emerald-500/20 transition cursor-pointer font-mono"
+                                title="Xem hoặc chỉnh sửa đánh giá"
+                              >
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                {item.reviewRating || 5}/5 · Sửa đánh giá
+                              </button>
+                            )
+                          ) : (
+                            (item.canReview ?? true) && (
+                              <button
+                                type="button"
+                                onClick={() => setReviewTarget({ orderItem: item })}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-500 app-light:text-amber-700 hover:bg-amber-500/25 transition cursor-pointer"
+                              >
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                Đánh giá sản phẩm
+                              </button>
+                            )
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </section>
       )}
       {/* Child Custom Items Breakdown */}
@@ -597,7 +650,7 @@ export default function CheckoutOrderDetailCard({
                 </div>
 
                 {item.quoteNote && (
-                  <div className="px-3 py-2 rounded-lg bg-[#0a0c12] border border-cyan-500/20 text-xs text-cyan-200">
+                  <div className="px-3 py-2 rounded-lg bg-surface border border-cyan-500/30 text-xs text-cyan-200 app-light:text-cyan-900">
                     <span className="font-mono font-bold text-cyan-400 mr-1.5">Ghi chú xưởng:</span>
                     <span>{item.quoteNote}</span>
                   </div>
@@ -609,7 +662,7 @@ export default function CheckoutOrderDetailCard({
                     <button
                       type="button"
                       onClick={() => setPreviewDesign({ design: meta.design!, name: item.rulerModel || 'Thước 3D' })}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-[#39FF14] text-xs font-mono font-bold transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#39FF14]/15 hover:bg-[#39FF14]/25 border border-[#39FF14]/30 text-[#39FF14] text-xs font-mono font-bold transition cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5" /> Xem 3D trực quan
                     </button>
@@ -619,7 +672,7 @@ export default function CheckoutOrderDetailCard({
                       href={meta.glbUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-[#00e5ff] text-xs font-mono font-bold transition"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#00e5ff]/15 hover:bg-[#00e5ff]/20 border border-[#00e5ff]/30 text-[#00e5ff] text-xs font-mono font-bold transition"
                     >
                       <Download className="w-3.5 h-3.5" /> File 3D (.GLB)
                     </a>
@@ -629,7 +682,7 @@ export default function CheckoutOrderDetailCard({
                       type="button"
                       disabled={busy}
                       onClick={() => void handleDownloadStl(item)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold transition cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-950/30 hover:bg-amber-950/40 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold transition cursor-pointer disabled:opacity-50"
                     >
                       <Download className="w-3.5 h-3.5" /> Tải file in (.STL)
                     </button>
@@ -717,6 +770,73 @@ export default function CheckoutOrderDetailCard({
                     )}
                   </form>
                 )}
+
+                {!admin &&
+                  ((item.status || '').toUpperCase() === 'COMPLETED' ||
+                    (co.status || '').toUpperCase() === 'COMPLETED') &&
+                  (item.status || '').toUpperCase() !== 'CANCELLED' && (
+                    <div className="pt-2.5 border-t border-border flex flex-wrap items-center justify-between gap-3">
+                      {item.review ? (
+                        <>
+                          <div className="space-y-0.5 text-xs">
+                            <div className="inline-flex items-center gap-1.5 font-bold text-theme-accent font-mono">
+                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              <span>{item.review.rating}/5 · Đã đánh giá</span>
+                            </div>
+                            {item.review.comment && (
+                              <p className="text-theme-copy line-clamp-2">“{item.review.comment}”</p>
+                            )}
+                          </div>
+                          {(item.canEditReview ?? item.review.canEdit ?? true) && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setReviewTarget({
+                                  customOrder: {
+                                    id: item.id,
+                                    title: item.rulerModel || 'Đơn in 3D',
+                                    color: item.color,
+                                    engravingText: item.customName,
+                                    review: item.review,
+                                  },
+                                })
+                              }
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-theme-accent hover:bg-emerald-500/20 transition cursor-pointer"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              Chỉnh sửa đánh giá
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        (item.canReview ?? true) && (
+                          <div className="flex w-full items-center justify-between gap-3">
+                            <span className="text-xs text-theme-muted">
+                              Đơn hàng đã hoàn thành — chia sẻ trải nghiệm in 3D của bạn
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setReviewTarget({
+                                  customOrder: {
+                                    id: item.id,
+                                    title: item.rulerModel || 'Đơn in 3D',
+                                    color: item.color,
+                                    engravingText: item.customName,
+                                    review: null,
+                                  },
+                                })
+                              }
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/15 px-3.5 py-1.5 text-xs font-bold text-amber-400 app-light:text-amber-700 hover:bg-amber-500/25 transition cursor-pointer shrink-0"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              Gửi đánh giá 3D
+                            </button>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
               </div>
             );
           })}
@@ -810,7 +930,7 @@ export default function CheckoutOrderDetailCard({
       {/* Footer Total & Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/10">
         <div className="space-y-2 min-w-[260px]">
-          {showBenefitBanner && (
+          {!admin && showBenefitBanner && (
             <div className="rounded-xl border border-[#39FF14]/35 bg-[#39FF14]/5 px-3 py-2 text-xs space-y-1">
               <div className="flex flex-wrap items-center gap-2 text-[#39FF14] font-bold">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -859,7 +979,7 @@ export default function CheckoutOrderDetailCard({
             </span>
             {itemDiscountDisplay > 0 && (
               <span>
-                Giảm hội viên:{' '}
+                {admin ? 'Giảm giá:' : 'Giảm hội viên:'}{' '}
                 <strong className="text-[#39FF14]">-{money(itemDiscountDisplay)}</strong>
               </span>
             )}
@@ -1047,6 +1167,23 @@ export default function CheckoutOrderDetailCard({
             </div>
           </div>
         </Modal>
+      )}
+
+      {reviewTarget && (
+        <ReviewModal
+          key={
+            reviewTarget.orderItem
+              ? `item-${reviewTarget.orderItem.id ?? reviewTarget.orderItem.productId}`
+              : `custom-${reviewTarget.customOrder?.id ?? 'unknown'}`
+          }
+          open={!!reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          orderItem={reviewTarget.orderItem}
+          customOrder={reviewTarget.customOrder}
+          onSuccess={() => {
+            void onRunAction(async () => {});
+          }}
+        />
       )}
     </div>
   );
